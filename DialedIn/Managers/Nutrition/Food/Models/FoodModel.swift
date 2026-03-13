@@ -19,7 +19,7 @@ struct FoodModel: DataSyncModelProtocol, SearchListItem, FoodItem {
     let measurementMethod: MeasurementMethod
 
     // MARK: Nutrients (dictionary-backed)
-    let nutrients: [NutrientKey: Double]
+    let nutrients: NutrientMap
 
     // MARK: Convenience subscript
     subscript(key: NutrientKey) -> Double? { nutrients[key] }
@@ -94,7 +94,7 @@ struct FoodModel: DataSyncModelProtocol, SearchListItem, FoodItem {
         brandName: String? = nil,
         description: String? = nil,
         measurementMethod: MeasurementMethod = .weight,
-        nutrients: [NutrientKey: Double] = [:],
+        nutrients: NutrientMap = NutrientMap(),
         barcode: String? = nil,
         servingWeight: Double? = nil,
         portionSize: Double? = nil,

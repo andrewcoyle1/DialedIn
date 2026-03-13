@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RecipeListBuilderDelegate {
     var onRecipeSelectionChanged: ((RecipeTemplateModel) -> Void)?
+    var onMealItemConfirmed: ((MealItemModel) -> Void)?
     /// Optional list of recipe templates that should display as "selected" in the UI.
     /// If `nil`, no selection state is shown.
     var selectedRecipeTemplates: [RecipeTemplateModel]?
@@ -53,16 +54,7 @@ struct RecipeListBuilderView: View {
     private var userRecipeTemplatesSection: some View {
         Section {
             ForEach(presenter.userRecipeTemplates) { recipe in
-                CustomListCellView(
-                    imageName: recipe.imageURL,
-                    title: recipe.name,
-                    subtitle: recipe.description,
-                    isSelected: isRecipeTemplateSelected(recipe)
-                )
-                .anyButton(.highlight) {
-                    delegate.onRecipeSelectionChanged?(recipe)
-                }
-                .removeListRowFormatting()
+                recipeRow(recipe)
             }
         } header: {
             Text("Custom Recipes")
@@ -72,16 +64,7 @@ struct RecipeListBuilderView: View {
     private var systemRecipeTemplatesSection: some View {
         Section {
             ForEach(presenter.systemRecipeTemplates) { recipe in
-                CustomListCellView(
-                    imageName: recipe.imageURL,
-                    title: recipe.name,
-                    subtitle: recipe.description,
-                    isSelected: isRecipeTemplateSelected(recipe)
-                )
-                .anyButton(.highlight) {
-                    delegate.onRecipeSelectionChanged?(recipe)
-                }
-                .removeListRowFormatting()
+                recipeRow(recipe)
             }
         } header: {
             Text("System Recipes")
@@ -91,17 +74,40 @@ struct RecipeListBuilderView: View {
     private var filteredRecipeTemplatesSection: some View {
         Section {
             ForEach(presenter.filteredRecipeTemplates) { recipe in
-                CustomListCellView(
-                    imageName: recipe.imageURL,
-                    title: recipe.name,
-                    subtitle: recipe.description,
-                    isSelected: isRecipeTemplateSelected(recipe)
-                )
-                .anyButton(.highlight) {
-                    delegate.onRecipeSelectionChanged?(recipe)
-                }
-                .removeListRowFormatting()
+                recipeRow(recipe)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func recipeRow(_ recipe: RecipeTemplateModel) -> some View {
+        if delegate.onMealItemConfirmed != nil {
+            FoodLibraryPickerRowView(
+                delegate: FoodLibraryPickerRowDelegate(
+                    item: recipe,
+                    onAdd: {
+                        presenter.navToRecipeAmountView(recipe: recipe, delegate: delegate)
+                    },
+                    onQuickAdd: {
+                        presenter.quickAdd(recipe: recipe, delegate: delegate)
+                    },
+                    showImage: presenter.showFoodImageInLogger,
+                    showCalories: presenter.showCaloriesInLogger,
+                    showMacros: presenter.showMacrosInLogger,
+                    showPortion: presenter.showPortionInLogger
+                )
+            )
+        } else {
+            CustomListCellView(
+                imageName: recipe.imageURL,
+                title: recipe.name,
+                subtitle: recipe.description,
+                isSelected: isRecipeTemplateSelected(recipe)
+            )
+            .anyButton(.highlight) {
+                delegate.onRecipeSelectionChanged?(recipe)
+            }
+            .removeListRowFormatting()
         }
     }
 }

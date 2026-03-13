@@ -62,7 +62,7 @@ class RecipeAmountPresenter {
     }
 
     func add(recipe: RecipeTemplateModel, onConfirm: @escaping (MealItemModel) -> Void) {
-        var baseNutrients: [NutrientKey: Double] = [:]
+        var baseNutrients = NutrientMap()
         for recipeIngredient in recipe.ingredients {
             let grams: Double
             switch recipeIngredient.unit {
@@ -75,10 +75,7 @@ class RecipeAmountPresenter {
                 baseNutrients[key, default: 0] += value * scale
             }
         }
-        var scaledNutrients: [NutrientKey: Double] = [:]
-        for (key, value) in baseNutrients {
-            scaledNutrients[key] = value * servings
-        }
+        let scaledNutrients = baseNutrients.mapValues { $0 * servings }
         let item = MealItemModel(
             itemId: UUID().uuidString,
             sourceType: .recipe,

@@ -12,13 +12,15 @@ class IngredientListBuilderPresenter {
     
     var userFoods: [FoodModel] {
         interactor.foods
+            .filter { interactor.foodLogSettings.showBrandedFoods || $0.brandName == nil }
             .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
-    
+
     var systemFoods: [FoodModel] = []
-    
+
     var filteredFoods: [FoodModel] {
         interactor.foods
+            .filter { interactor.foodLogSettings.showBrandedFoods || $0.brandName == nil }
             .filter {
                 $0.name.lowercased().contains(searchText.lowercased()) ||
                 $0.description?.lowercased().contains(searchText.lowercased()) == true
@@ -29,6 +31,11 @@ class IngredientListBuilderPresenter {
     var currentUser: UserModel? {
         interactor.currentUser
     }
+
+    var showFoodImageInLogger: Bool { interactor.foodLogSettings.showFoodImageInLogger }
+    var showCaloriesInLogger: Bool { interactor.foodLogSettings.showCaloriesInLogger }
+    var showMacrosInLogger: Bool { interactor.foodLogSettings.showMacrosInLogger }
+    var showPortionInLogger: Bool { interactor.foodLogSettings.showPortionInLogger }
 
     init(interactor: IngredientListBuilderInteractor, router: IngredientListBuilderRouter) {
         self.interactor = interactor
@@ -52,8 +59,13 @@ class IngredientListBuilderPresenter {
         onIngredientPressed?(ingredient)
     }
 
-    func navToMealItemAmountView(food: FoodModel, delegate: IngredientListBuilderDelegate) {
-        if delegate.onMealItemConfirmed != nil {
+    func navToIngredientAmountView(food: FoodModel, delegate: IngredientListBuilderDelegate) {
+        if let recipeCallback = delegate.onRecipeIngredientConfirmed {
+            router.showRecipeIngredientAmountView(delegate: RecipeIngredientAmountDelegate(
+                food: food,
+                onConfirm: recipeCallback
+            ))
+        } else if delegate.onMealItemConfirmed != nil {
             router.showMealItemAmountViewView(delegate: MealItemAmountViewDelegate(
                 mode: .addFood(food),
                 onConfirm: { item in delegate.onMealItemConfirmed?(item) }
@@ -64,25 +76,29 @@ class IngredientListBuilderPresenter {
     }
 
     func quickAdd(food: FoodModel, delegate: IngredientListBuilderDelegate) {
-        guard delegate.onMealItemConfirmed != nil else {
+        if let recipeCallback = delegate.onRecipeIngredientConfirmed {
+            let unit: IngredientAmountUnit = food.measurementMethod == .volume ? .milliliters : .grams
+            let defaultAmount = food.portionGramsCalculated ?? food.portionMillilitersCalculated ?? 100
+            recipeCallback(RecipeIngredientModel(ingredient: food, amount: defaultAmount, unit: unit))
+        } else if delegate.onMealItemConfirmed != nil {
+            let baseAmount = food.portionGramsCalculated ?? food.portionMillilitersCalculated ?? 100
+            let scale = baseAmount / 100.0
+            let nutrients = food.nutrients.mapValues { $0 * scale }
+            let item = MealItemModel(
+                itemId: UUID().uuidString,
+                sourceType: .ingredient,
+                sourceId: food.ingredientId,
+                displayName: food.name,
+                amount: food.portionQuantityCalculated ?? baseAmount,
+                unit: food.portionNameCalculated ?? (food.measurementMethod == .volume ? "ml" : "g"),
+                resolvedGrams: food.measurementMethod != .volume ? baseAmount : nil,
+                resolvedMilliliters: food.measurementMethod == .volume ? baseAmount : nil,
+                nutrients: nutrients
+            )
+            delegate.onMealItemConfirmed?(item)
+        } else {
             delegate.onIngredientSelectionChanged?(food)
-            return
         }
-        let baseAmount = food.portionGramsCalculated ?? food.portionMillilitersCalculated ?? 100
-        let scale = baseAmount / 100.0
-        let nutrients = food.nutrients.mapValues { $0 * scale }
-        let item = MealItemModel(
-            itemId: UUID().uuidString,
-            sourceType: .ingredient,
-            sourceId: food.ingredientId,
-            displayName: food.name,
-            amount: food.portionQuantityCalculated ?? baseAmount,
-            unit: food.portionNameCalculated ?? (food.measurementMethod == .volume ? "ml" : "g"),
-            resolvedGrams: food.measurementMethod != .volume ? baseAmount : nil,
-            resolvedMilliliters: food.measurementMethod == .volume ? baseAmount : nil,
-            nutrients: nutrients
-        )
-        delegate.onMealItemConfirmed?(item)
     }
 
     // MARK: Analytics Events

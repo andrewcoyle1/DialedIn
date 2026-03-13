@@ -32,7 +32,7 @@ struct OFFProductDTO: Decodable {
         let nutrient = nutriments
         let parsed = servingSize.map { parseServingSize($0) }
 
-        var nutrients: [NutrientKey: Double] = [:]
+        var nutrients = NutrientMap()
         func set(_ key: NutrientKey, _ value: Double?) {
             if let val = value { nutrients[key] = val }
         }

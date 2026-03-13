@@ -24,18 +24,25 @@ struct MealHourHeaderView: View {
                 .padding(6)
                 .frame(width: 80)
                 .background(.secondary.opacity(0.2), in: .capsule)
+                .onLongPressGesture {
+                    if !presenter.showAddFoodsButton {
+                        presenter.onAddMealPressed(selectedTime: delegate.hour)
+                    }
+                }
             
-            Button {
-                presenter.onAddMealPressed(selectedTime: delegate.hour)
-            } label: {
-                Image(systemName: "plus")
+            if presenter.showAddFoodsButton {
+                Button {
+                    presenter.onAddMealPressed(selectedTime: delegate.hour)
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
             }
-            .buttonStyle(.bordered)
-            .buttonBorderShape(.circle)
             
             Spacer()
             
-            if !delegate.meals.isEmpty {
+            if !delegate.meals.isEmpty && presenter.showHourlyMacroTotals {
                 HStack(spacing: 16) {
                     ForEach(Macro.allCases, id: \.self) { macro in
                         var value: Int {
@@ -77,6 +84,8 @@ struct MealHourHeaderView: View {
             }
         }
         .font(.caption)
+        .removeListRowFormatting()
+
     }
 }
 
@@ -90,7 +99,6 @@ struct MealHourHeaderView: View {
         List {
             Section {
                 builder.mealHourHeader(router: router, delegate: delegate)
-                    .removeListRowFormatting()
             }
             .listSectionMargins(.all, 0)
             .padding(.horizontal)

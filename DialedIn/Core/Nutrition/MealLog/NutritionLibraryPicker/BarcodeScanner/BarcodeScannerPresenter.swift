@@ -204,7 +204,7 @@ private struct NutritionLabelResponse: Decodable {
     func toFood(authorId: String?) -> FoodModel {
         let method: MeasurementMethod = measurementMethod == "volume" ? .volume : .weight
         let now = Date()
-        var nutrients: [NutrientKey: Double] = [:]
+        var nutrients: NutrientMap = NutrientMap()
         func set(_ key: NutrientKey, _ value: Double?) {
             if let val = value { nutrients[key] = val }
         }

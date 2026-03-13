@@ -24,11 +24,11 @@ class FoodManager {
     func signIn() async {
         await foodSyncEngine.startListening()
     }
-
+    
     func signOut() {
         foodSyncEngine.stopListening()
     }
-
+    
     // MARK: - Method Aliases for Backward Compatibility
     
     func saveFood(_ ingredient: FoodModel, image: PlatformImage?) async throws {
@@ -45,10 +45,16 @@ class FoodManager {
         try await foodSyncEngine.deleteDocument(id: id)
     }
     
-    func deleteAllFoods(id: String) async throws {
-        // TODO: Add delete all ingredients here
+    func deleteAllFoods() async {
+        await withTaskGroup(of: Void.self) { group in
+            for food in foods {
+                group.addTask {
+                    try? await self.deleteFood(ingredientId: food.id)
+                }
+            }
+            await group.waitForAll()
+        }
     }
-
 }
  
 extension CoreInteractor {

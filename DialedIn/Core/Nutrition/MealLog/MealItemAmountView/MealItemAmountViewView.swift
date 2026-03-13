@@ -37,12 +37,12 @@ struct MealItemAmountViewDelegate {
         }
     }
 
-    var unitNutrients: [NutrientKey: Double] {
+    var unitNutrients: NutrientMap {
         switch mode {
         case .addFood(let food):
             return food.nutrients
         case .editItem(let item):
-            guard item.amount > 0 else { return [:] }
+            guard item.amount > 0 else { return NutrientMap() }
             return item.nutrients.mapValues { $0 / item.amount }
         }
     }
@@ -87,13 +87,6 @@ struct MealItemAmountViewView: View {
                     Text("Add")
                 }
                 .buttonStyle(.glassProminent)
-            }
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    presenter.onDismissPressed()
-                } label: {
-                    Image(systemName: "xmark")
-                }
             }
         }
     }

@@ -52,7 +52,12 @@ struct CreateRecipeView: View {
     
     private var servingQuantitySection: some View {
         Section {
-            AutoSelectNumberField(prompt: "Enter serving quantity", value: .constant(1), alignment: .leading, keyboardType: .decimalPad)
+            AutoSelectNumberField(
+                prompt: "Enter serving quantity",
+                value: $presenter.servingQuantity,
+                alignment: .leading,
+                keyboardType: .decimalPad
+            )
         } header: {
             HStack(alignment: .firstTextBaseline) {
                 Text("Serving Quantity")
@@ -65,7 +70,7 @@ struct CreateRecipeView: View {
     
     private var totalWeightSection: some View {
         Section {
-            TextFieldwUnit<NutritionWeightUnit>(prompt: "Enter weight after preparation", value: .constant(1), unit: .grams)
+            TextFieldwUnit<NutritionWeightUnit>(prompt: "Enter weight after preparation", value: $presenter.recipeTotalWeight, unit: .grams)
 
         } header: {
             Text("Total Weight")
@@ -153,7 +158,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showCreateRecipeView() {
-        router.showScreen(.sheet) { router in
+        router.showScreen(.fullScreenCover) { router in
             builder.createRecipeView(router: router)
         }
     }

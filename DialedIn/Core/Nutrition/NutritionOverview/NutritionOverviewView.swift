@@ -13,6 +13,7 @@ struct NutritionOverviewView: View {
     var body: some View {
         List {
             caloriesSection
+            contributorsSection
             macrosSection
             carbsSection
             fatsSection
@@ -60,6 +61,39 @@ struct NutritionOverviewView: View {
                 .frame(width: 160)
             }
         }
+    }
+
+    // MARK: - Contributors
+
+    @ViewBuilder
+    private var contributorsSection: some View {
+        if presenter.showsContributors && !presenter.topContributors.isEmpty {
+            Section("Top Contributors") {
+                ForEach(presenter.topContributors) { contributor in
+                    contributorRow(contributor)
+                }
+            }
+        }
+    }
+
+    private func contributorRow(_ contributor: MealItemContributor) -> some View {
+        HStack {
+            Text(contributor.displayName)
+                .lineLimit(1)
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(Int(contributor.calories)) kcal")
+                    .font(.subheadline)
+                HStack(spacing: 6) {
+                    Text(String(format: "%.1f P", contributor.proteinGrams))
+                    Text(String(format: "%.1f F", contributor.fatGrams))
+                    Text(String(format: "%.1f C", contributor.carbGrams))
+                }
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 2)
     }
 
     // MARK: - Macros

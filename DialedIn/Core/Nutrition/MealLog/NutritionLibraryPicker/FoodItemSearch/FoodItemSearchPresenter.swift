@@ -37,6 +37,10 @@ class FoodItemSearchPresenter {
             openFoodFactsFoods = []
             return
         }
+        guard interactor.foodLogSettings.showOpenFoodFactsFoods else {
+            openFoodFactsFoods = []
+            return
+        }
         searchTask = Task {
             try? await Task.sleep(nanoseconds: 700_000_000)
             guard !Task.isCancelled else { return }
@@ -44,6 +48,9 @@ class FoodItemSearchPresenter {
             defer { isSearching = false }
             do {
                 openFoodFactsFoods = try await interactor.searchOpenFoodFacts(query: trimmed)
+                if !interactor.foodLogSettings.showBrandedFoods {
+                    openFoodFactsFoods = openFoodFactsFoods.filter { $0.brandName == nil }
+                }
             } catch {
                 interactor.trackEvent(event: Event.searchError(error: error))
                 openFoodFactsFoods = []

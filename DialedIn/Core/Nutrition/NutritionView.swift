@@ -47,8 +47,9 @@ struct NutritionView<
         }
     }
     
+    @ViewBuilder
     private var topSafeAreaSection: some View {
-        VStack {
+        if presenter.showCalendarWeekBanner {
             calendarHeader(
                 CalendarHeaderDelegate(
                     onDatePressed: { date in
@@ -64,49 +65,62 @@ struct NutritionView<
         }
     }
     
+    @ViewBuilder
     private var ringsSection: some View {
-        Section {
-            let ringSize: CGFloat = 75
-            return MacroHeader(
-                caloriePercentage: presenter.caloriePercentage,
-                fatPercentage: presenter.fatPercentage,
-                proteinPercentage: presenter.proteinPercentage,
-                carbsPercentage: presenter.carbsPercentage
-            )
-            .listRowInsets(.horizontal, 0)
+        if let dailyTotals = presenter.dailyTotals,
+        let dailyTarget = presenter.dailyTarget {
+            Section {
+                MacroHeader(
+                    dailyTotals: dailyTotals,
+                    dailyTarget: dailyTarget,
+                    showCaloriesRing: presenter.showCaloriesRing,
+                    showProteinRing: presenter.showProteinRing,
+                    showFatRing: presenter.showFatRing,
+                    showCarbsRing: presenter.showCarbsRing
+                )
+                .listRowInsets(.horizontal, 0)
+            }
+            .listSectionMargins(.top, 0)
         }
-        .listSectionMargins(.top, 0)
     }
     
     private var mealLogSection: some View {
         ForEach(presenter.workingHours, id: \.self) { hour in
+            let hourssMeals = presenter.meals(inHour: hour)
             Section {
-                let hourssMeals = presenter.meals(inHour: hour)
-                let delegate = MealHourHeaderDelegate(hour: hour, meals: hourssMeals)
-                mealHourHeader(delegate)
-                    .removeListRowFormatting()
-                    .padding(.horizontal)
-                ForEach(hourssMeals) { meal in
+                mealHourHeader(MealHourHeaderDelegate(hour: hour, meals: hourssMeals))
+            }
+            ForEach(hourssMeals) { meal in
+                Section {
                     ForEach(meal.items) { item in
                         mealItemRow(item, meal: meal)
                     }
                 }
             }
-            .listSectionMargins(.all, 0)
-            .listSectionSpacing(0)
         }
         .listRowSeparator(.hidden)
+        .listSectionMargins(.vertical, 0)
+        .listSectionSpacing(0)
     }
 
     private func mealItemRow(_ item: MealItemModel, meal: MealLogModel) -> some View {
-        MealItemRowView(mealLogModel: meal, item: item)
-            .removeListRowFormatting()
-            .padding(.horizontal)
-            .swipeActions(edge: .trailing) {
-                Button(role: .destructive) {
-                    presenter.deleteMealItem(item, from: meal)
-                }
+        MealItemRowView(
+            mealLogModel: meal,
+            item: item,
+            showTimestamp: presenter.showsFoodTimestamps,
+            timestampSide: presenter.timestampSide,
+            showImage: presenter.showFoodImageInTimeline,
+            showCalories: presenter.showCaloriesInTimeline,
+            showMacros: presenter.showMacrosInTimeline,
+            onEditPressed: { mealItem in
+                presenter.onEditMealItem(mealItem)
             }
+        )
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) {
+                presenter.deleteMealItem(item, from: meal)
+            }
+        }
     }
     
     private var moreSection: some View {

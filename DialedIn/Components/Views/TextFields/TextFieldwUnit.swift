@@ -20,7 +20,7 @@ struct TextFieldwUnit<T: PickableUnit>: View {
     var body: some View {
         HStack {
             AutoSelectNumberField(prompt: prompt, value: $value, alignment: .leading)
-                .textFieldStyle(.roundedBorder)
+                .textFieldStyle(.plain)
             Text(unit.acronym)
                 .foregroundStyle(.secondary)
         }

@@ -8,7 +8,8 @@ struct DashboardDelegate {
 
 struct DashboardView<
     WorkoutSessionRow: View,
-    TodaysCard: View
+    TodaysCard: View,
+    StreakCard: View
 >: View {
 
     @Environment(\.colorScheme) private var colorScheme
@@ -17,13 +18,17 @@ struct DashboardView<
 
     @ViewBuilder var workoutSessionRow: (WorkoutSessionRowDelegate) -> WorkoutSessionRow
     @ViewBuilder var todaysWorkoutCard: (TodaysWorkoutCardDelegate) -> TodaysCard
+    @ViewBuilder var workoutStreakCard: (WorkoutStreakDelegate) -> StreakCard
+    
     var body: some View {
         List {
-            cardsSection
-            Section { } header: {
-                Text("Workout Feed")
+            Group {
+                cardsSection
+                Section { } header: {
+                    Text("Workout Feed")
+                }
+                .listSectionMargins(.vertical, 0)
             }
-            .listSectionMargins(.vertical, 0)
             .listSectionSpacing(0)
             workoutFeedSection
         }
@@ -54,20 +59,26 @@ struct DashboardView<
                                 todaysWorkoutTemplate: todaysWorkoutTemplate
                             )
                         )
+                        .padding(.bottom)
                     }
                 }
 
-                Tab { streakCard }
+                Tab {
+                    workoutStreakCard(WorkoutStreakDelegate())
+                        .padding(.bottom)
+                }
 
-                Tab { nutritionCard }
+                Tab {
+                    nutritionCard
+                        .padding(.bottom)
+                }
             }
             .tabViewStyle(.page)
-            .frame(height: 240)
+            .frame(height: 260)
+            .removeListRowFormatting()
         }
-        .removeListRowFormatting()
         .listSectionMargins(.all, 0)
         .listSectionSeparator(.hidden)
-
     }
 
     private var nutritionCard: some View {
@@ -83,145 +94,26 @@ struct DashboardView<
             onLogMealTapped: { presenter.onLogMealPressed() }
         )
     }
-
-    private var streakCard: some View {
-        VStack(alignment: .leading) {
-            Text("Workout Streak")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.leading)
-            VStack(alignment: .leading, spacing: 16) {
-                streakHeader
-                weeklyDotsRow
-                Divider()
-                streakStats
-            }
-            .padding()
-            .frame(height: 200)
-            .background(colorScheme.backgroundPrimary)
-            .cornerRadius(24)
-        }
-        .padding()
-    }
-
-    private var streakHeader: some View {
-        HStack(alignment: .center) {
-            Image(systemName: "flame.fill")
-                .font(.title2)
-                .foregroundStyle(streakAccentColor)
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(presenter.workoutStreakCount)")
-                    .font(.system(size: 38, weight: .bold, design: .rounded))
-                    .foregroundStyle(streakAccentColor)
-                Text(presenter.workoutStreakCount == 1 ? "day" : "days")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            streakBadge
-        }
-    }
-
-    @ViewBuilder
-    private var streakBadge: some View {
-        if presenter.isStreakAtRisk {
-            Text("At Risk")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(Color.yellow.opacity(0.15))
-                .foregroundStyle(Color.yellow)
-                .clipShape(Capsule())
-        } else if presenter.isStreakActive {
-            Text("Active")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(Color.orange.opacity(0.15))
-                .foregroundStyle(Color.orange)
-                .clipShape(Capsule())
-        }
-    }
-
-    private var streakAccentColor: Color {
-        if presenter.isStreakAtRisk {
-            return .yellow
-        } else if presenter.isStreakActive {
-            return .orange
-        }
-        return .secondary
-    }
-
-    private var weeklyDotsRow: some View {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekdayIndex = calendar.component(.weekday, from: today) - 1
-        let startOfWeek = calendar.date(byAdding: .day, value: -weekdayIndex, to: today) ?? today
-        let workoutDays = presenter.workoutDaysThisWeek
-        let labels = ["S", "M", "T", "W", "T", "F", "S"]
-
-        return HStack(spacing: 0) {
-            ForEach(0..<7, id: \.self) { index in
-                let day = calendar.date(byAdding: .day, value: index, to: startOfWeek) ?? startOfWeek
-                let hasWorkout = workoutDays.contains(day)
-                let isToday = calendar.isDateInToday(day)
-                let isFuture = day > today
-
-                VStack(spacing: 6) {
-                    Text(labels[index])
-                        .font(.caption2)
-                        .fontWeight(isToday ? .bold : .regular)
-                        .foregroundStyle(isToday ? .primary : .secondary)
-                    ZStack {
-                        Circle()
-                            .foregroundStyle(hasWorkout ? Color.orange : Color(.systemFill))
-                            .opacity(hasWorkout ? 1.0 : isFuture ? 0.2 : 0.45)
-                        if isToday && !hasWorkout {
-                            Circle()
-                                .strokeBorder(.primary.opacity(0.35), lineWidth: 1.5)
-                        }
-                    }
-                    .frame(width: 10, height: 10)
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-    }
-
-    private var streakStats: some View {
-        HStack {
-            StatItem(header: "Best streak", value: "\(presenter.longestStreak) days")
-            Spacer()
-            StatItem(alignment: .trailing, header: "Total workouts", value: "\(presenter.totalWorkouts)")
-        }
-    }
     
     @ViewBuilder
     private var workoutFeedSection: some View {
-//        Section {
-            if presenter.feedSessions.isEmpty {
-                ContentUnavailableView(
-                    "No Workout History",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text("Log a workout or follow some friends to see their sessions.")
-                )
-            } else {
-                ForEach(presenter.feedSessions) { session in
-                    Section {
-                        if let author = presenter.author(for: session) {
-                            let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
-                            workoutSessionRow(rowDelegate)
-                                .removeListRowFormatting()
-                        }
+        if presenter.feedSessions.isEmpty {
+            ContentUnavailableView(
+                "No Workout History",
+                systemImage: "exclamationmark.triangle",
+                description: Text("Log a workout or follow some friends to see their sessions.")
+            )
+        } else {
+            ForEach(presenter.feedSessions) { session in
+                Section {
+                    if let author = presenter.author(for: session) {
+                        let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
+                        workoutSessionRow(rowDelegate)
+                            .removeListRowFormatting()
                     }
-//                    .removeListRowFormatting()
                 }
             }
-//        } header: {
-//            Text("Feed")
-//        }
+        }
     }
     
     @ToolbarContentBuilder
@@ -286,14 +178,29 @@ extension CoreBuilder {
         DashboardView(
             presenter: DashboardPresenter(
                 interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
+                router: CoreRouter(
+                    router: router,
+                    builder: self
+                )
             ),
             delegate: delegate,
             workoutSessionRow: { delegate in
-                self.workoutSessionRowView(router: router, delegate: delegate)
+                self.workoutSessionRowView(
+                    router: router,
+                    delegate: delegate
+                )
             },
             todaysWorkoutCard: { cardDelegate in
-                self.todaysWorkoutCard(router: router, delegate: cardDelegate)
+                self.todaysWorkoutCard(
+                    router: router,
+                    delegate: cardDelegate
+                )
+            },
+            workoutStreakCard: { delegate in
+                self.workoutStreakCardView(
+                    router: router,
+                    delegate: delegate
+                )
             }
         )
     }

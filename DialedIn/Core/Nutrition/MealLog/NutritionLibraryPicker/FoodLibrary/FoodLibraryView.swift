@@ -35,17 +35,7 @@ struct FoodLibraryView<
             case .recipes:
                 recipeList(
                     RecipeListBuilderDelegate(
-                        onRecipeSelectionChanged: { recipe in
-                            let mealLogItem = MealItemModel(
-                                itemId: UUID().uuidString,
-                                sourceType: .recipe,
-                                sourceId: recipe.id,
-                                displayName: recipe.name,
-                                amount: 100,
-                                unit: "grams"
-                            )
-                            delegate.onItemPick?(mealLogItem)
-                        }
+                        onMealItemConfirmed: { item in delegate.onItemPick?(item) }
                     )
                 )
             case .foods:

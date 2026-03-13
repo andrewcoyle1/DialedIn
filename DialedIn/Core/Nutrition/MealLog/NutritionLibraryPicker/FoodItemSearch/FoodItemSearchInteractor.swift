@@ -4,6 +4,7 @@ import SwiftUI
 protocol FoodItemSearchInteractor: GlobalInteractor {
     func searchOpenFoodFacts(query: String) async throws -> [FoodModel]
     var recentFoods: [FoodModel] { get }
+    var foodLogSettings: FoodLogSettings { get }
 }
 
 extension CoreInteractor: FoodItemSearchInteractor {

@@ -8,7 +8,7 @@ class MealItemAmountViewPresenter {
     private let router: MealItemAmountViewRouter
     private let onConfirm: (MealItemModel) -> Void
     private let isAddFoodMode: Bool
-    private let unitNutrients: [NutrientKey: Double]
+    private let unitNutrients: NutrientMap
 
     var amountText: String
 
@@ -47,11 +47,7 @@ class MealItemAmountViewPresenter {
     func onViewDisappear(delegate: MealItemAmountViewDelegate) {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
-
-    func onDismissPressed() {
-        router.dismissScreen()
-    }
-
+    
     func onConfirmPressed(delegate: MealItemAmountViewDelegate) {
         let scaledNutrients = unitNutrients.mapValues { $0 * scale }
         let item: MealItemModel

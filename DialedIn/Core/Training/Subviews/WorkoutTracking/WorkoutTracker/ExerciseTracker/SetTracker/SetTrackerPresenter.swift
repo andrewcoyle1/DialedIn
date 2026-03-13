@@ -154,7 +154,7 @@ class SetTrackerPresenter {
 
     func convertAndRoundWeights(to newUnit: ExerciseWeightUnit, for exercise: Binding<WorkoutExerciseModel>) {
         let existingUnit = getUnitPreference(for: exercise.wrappedValue)
-        let currentUnit = existingUnit.weightUnit
+//        let currentUnit = existingUnit.weightUnit
         
         for set in exercise.sets {
             guard let weightKg = set.wrappedValue.weightKg else { continue }
@@ -237,7 +237,7 @@ class SetTrackerPresenter {
     }
 
     func convertAndRoundDistances(to newUnit: ExerciseDistanceUnit, for exercise: Binding<WorkoutExerciseModel>) {
-        let currentUnit = getUnitPreference(for: exercise.wrappedValue).distanceUnit
+//        let currentUnit = getUnitPreference(for: exercise.wrappedValue).distanceUnit
 
         for set in exercise.sets {
             guard let distanceMeters = set.wrappedValue.distanceMeters else { continue }

@@ -20,7 +20,7 @@ struct MealItemModel: DataSyncModelProtocol, Hashable {
     let resolvedGrams: Double?
     let resolvedMilliliters: Double?
     // Full nutrient snapshot at time of logging
-    let nutrients: [NutrientKey: Double]
+    let nutrients: NutrientMap
 
     // Backward-compat computed wrappers
     var calories: Double? { nutrients[.calories] }
@@ -37,7 +37,7 @@ struct MealItemModel: DataSyncModelProtocol, Hashable {
         unit: String,
         resolvedGrams: Double? = nil,
         resolvedMilliliters: Double? = nil,
-        nutrients: [NutrientKey: Double] = [:]
+        nutrients: NutrientMap = NutrientMap()
     ) {
         self.itemId = itemId
         self.sourceType = sourceType

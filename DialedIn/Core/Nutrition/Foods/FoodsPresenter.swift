@@ -1,5 +1,5 @@
 //
-//  IngredientsPresenter.swift
+//  FoodsPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 26/10/2025.
@@ -9,13 +9,13 @@ import Foundation
 
 @Observable
 @MainActor
-class IngredientsPresenter {
-    private let interactor: IngredientsInteractor
-    private let router: IngredientsRouter
+class FoodsPresenter {
+    private let interactor: FoodsInteractor
+    private let router: FoodsRouter
     
     init(
-        interactor: IngredientsInteractor,
-        router: IngredientsRouter
+        interactor: FoodsInteractor,
+        router: FoodsRouter
     ) {
         self.interactor = interactor
         self.router = router
@@ -34,9 +34,9 @@ class IngredientsPresenter {
 
         var eventName: String {
             switch self {
-            case .incrementIngredientStart:              return "IngredientsView_IncrementIngredient_Start"
-            case .incrementIngredientSuccess:            return "IngredientsView_IncrementIngredient_Success"
-            case .incrementIngredientFail:               return "IngredientsView_IncrementIngredient_Fail"
+            case .incrementIngredientStart:              return "FoodsView_IncrementIngredient_Start"
+            case .incrementIngredientSuccess:            return "FoodsView_IncrementIngredient_Success"
+            case .incrementIngredientFail:               return "FoodsView_IncrementIngredient_Fail"
             }
         }
 

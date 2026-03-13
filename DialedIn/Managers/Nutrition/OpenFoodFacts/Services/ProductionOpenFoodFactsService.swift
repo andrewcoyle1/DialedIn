@@ -37,7 +37,7 @@ final class ProductionOpenFoodFactsService: OpenFoodFactsService {
             let servingSize = product["servingSize"] as? String
             let parsed = servingSize.map { parseServingSize($0) }
 
-            var nutrients: [NutrientKey: Double] = [:]
+            var nutrients: NutrientMap = NutrientMap()
             func set(_ key: NutrientKey, _ kVal: String) {
                 if let val = product[kVal] as? Double { nutrients[key] = val }
             }

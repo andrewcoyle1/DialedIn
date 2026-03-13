@@ -40,7 +40,7 @@ class IngredientAmountPresenter {
     func add(ingredient: FoodModel, onConfirm: @escaping (MealItemModel) -> Void) {
         let resolvedGrams = ingredient.measurementMethod == .weight ? amountValue : nil
         let resolvedMl = ingredient.measurementMethod == .volume ? amountValue : nil
-        var scaledNutrients: [NutrientKey: Double] = [:]
+        var scaledNutrients: NutrientMap = NutrientMap()
         for (key, value) in ingredient.nutrients {
             scaledNutrients[key] = value * scale
         }

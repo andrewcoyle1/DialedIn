@@ -24,78 +24,33 @@ struct TodaysWorkoutCard: View {
                 .font(.headline)
                 .foregroundStyle(.secondary)
                 .padding(.leading)
-            VStack(alignment: .leading, spacing: 12) {
+            ZStack(alignment: .leading) {
                 if presenter.isTodayRestDay {
-                    HStack(spacing: 12) {
-                        Image(systemName: "moon.zzz.fill")
-                            .font(.title2)
-                            .foregroundStyle(.blue)
-                        VStack(alignment: .leading) {
-                            Text("Rest Day")
-                                .font(.title3.bold())
-                            Text("Recovery is part of the process.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
+                    restDayCard
+                } else if presenter.isTodayCompleted {
+                    workoutCompleted
                 } else {
-                    Button {
-                        presenter.onTodaysWorkoutPressed()
-                    } label: {
-                        VStack(alignment: .leading) {
-                            HStack(spacing: -10) {
-                                ForEach(delegate.todaysWorkoutTemplate.exercises.prefix(5)) { exercise in
-                                    exerciseCircle(exercise: exercise.exercise)
-                                }
-                            }
-                            .frame(maxHeight: .infinity)
-                            Divider()
-                            HStack(spacing: 12) {
-                                Image(systemName: "dumbbell.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.accent)
-                                VStack(alignment: .leading) {
-                                    Text(delegate.todaysWorkoutTemplate.name)
-                                        .font(.title3.bold())
-                                        .foregroundStyle(.primary)
-                                    Text("\(delegate.todaysWorkoutTemplate.exercises.count) exercise\(delegate.todaysWorkoutTemplate.exercises.count == 1 ? "" : "s")")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
+                    startWorkoutCard
                 }
             }
-            .padding()
-            .frame(height: 200)
-            .background(colorScheme.backgroundPrimary)
-            .cornerRadius(24)
         }
         .padding(.horizontal)
-        .background(colorScheme.backgroundSecondary)
-        .padding(.vertical)
     }
-
-    @ViewBuilder
-    private func exerciseCircle(exercise: ExerciseModel) -> some View {
-        ZStack {
-            Circle()
-                .fill(Color(uiColor: .secondarySystemBackground))
-
-            ImageLoaderView(
-                urlString: exercise.imageURL ?? "SplashScreen",
-                resizingMode: .fit,
-                clipShape: AnyShape(Circle())
-            )
+    
+    private var restDayCard: some View {
+        RestDayCard()
+    }
+    
+    private var workoutCompleted: some View {
+        WorkoutCompletedCard(template: delegate.todaysWorkoutTemplate)
+    }
+    
+    private var startWorkoutCard: some View {
+        Button {
+            presenter.onTodaysWorkoutPressed()
+        } label: {
+            TodaysWorkoutCardLabel(template: delegate.todaysWorkoutTemplate)
         }
-        .frame(width: 100, height: 100)
-        .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 2))
     }
 }
 
@@ -104,7 +59,10 @@ extension CoreBuilder {
         TodaysWorkoutCard(
             presenter: TodaysWorkoutCardPresenter(
                 interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
+                router: CoreRouter(
+                    router: router,
+                    builder: self
+                )
             ),
             delegate: delegate
         )

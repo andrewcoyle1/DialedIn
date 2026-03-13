@@ -11,7 +11,7 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
     var id: String {
         recipeId
     }
-    
+
     let recipeId: String
     let authorId: String?
     let name: String
@@ -23,7 +23,13 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
     let clickCount: Int?
     let bookmarkCount: Int?
     let favouriteCount: Int?
-    
+    let servingQuantity: Double
+    let totalWeight: Double?
+    let preparationSteps: [String]
+    let prepTimeMins: Double?
+    let cookTimeMins: Double?
+    let sourceURL: String?
+
     init(
         id: String,
         authorId: String,
@@ -35,7 +41,13 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
         ingredients: [RecipeIngredientModel] = [],
         clickCount: Int? = 0,
         bookmarkCount: Int? = 0,
-        favouriteCount: Int? = 0
+        favouriteCount: Int? = 0,
+        servingQuantity: Double = 1,
+        totalWeight: Double? = nil,
+        preparationSteps: [String] = [],
+        prepTimeMins: Double? = nil,
+        cookTimeMins: Double? = nil,
+        sourceURL: String? = nil
     ) {
         self.recipeId = id
         self.authorId = authorId
@@ -48,6 +60,12 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
         self.clickCount = clickCount
         self.bookmarkCount = bookmarkCount
         self.favouriteCount = favouriteCount
+        self.servingQuantity = servingQuantity
+        self.totalWeight = totalWeight
+        self.preparationSteps = preparationSteps
+        self.prepTimeMins = prepTimeMins
+        self.cookTimeMins = cookTimeMins
+        self.sourceURL = sourceURL
     }
     
     mutating func updateImageURL(imageUrl: String) {
@@ -66,8 +84,35 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
         case clickCount = "click_count"
         case bookmarkCount = "bookmark_count"
         case favouriteCount = "favourite_count"
+        case servingQuantity = "serving_quantity"
+        case totalWeight = "total_weight"
+        case preparationSteps = "preparation_steps"
+        case prepTimeMins = "prep_time_mins"
+        case cookTimeMins = "cook_time_mins"
+        case sourceURL = "source_url"
     }
     
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        recipeId = try container.decode(String.self, forKey: .recipeId)
+        authorId = try container.decodeIfPresent(String.self, forKey: .authorId)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        imageURL = try container.decodeIfPresent(String.self, forKey: .imageURL)
+        dateCreated = try container.decode(Date.self, forKey: .dateCreated)
+        dateModified = try container.decode(Date.self, forKey: .dateModified)
+        ingredients = try container.decodeIfPresent([RecipeIngredientModel].self, forKey: .ingredients) ?? []
+        clickCount = try container.decodeIfPresent(Int.self, forKey: .clickCount)
+        bookmarkCount = try container.decodeIfPresent(Int.self, forKey: .bookmarkCount)
+        favouriteCount = try container.decodeIfPresent(Int.self, forKey: .favouriteCount)
+        servingQuantity = try container.decodeIfPresent(Double.self, forKey: .servingQuantity) ?? 1
+        totalWeight = try container.decodeIfPresent(Double.self, forKey: .totalWeight)
+        preparationSteps = try container.decodeIfPresent([String].self, forKey: .preparationSteps) ?? []
+        prepTimeMins = try container.decodeIfPresent(Double.self, forKey: .prepTimeMins)
+        cookTimeMins = try container.decodeIfPresent(Double.self, forKey: .cookTimeMins)
+        sourceURL = try container.decodeIfPresent(String.self, forKey: .sourceURL)
+    }
+
     var eventParameters: [String: Any] {
         let dict: [String: Any?] = [
             "recipe_\(CodingKeys.recipeId.rawValue)": recipeId,
@@ -93,7 +138,13 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
         ingredients: [RecipeIngredientModel] = [],
         clickCount: Int? = 0,
         bookmarkCount: Int? = 0,
-        favouriteCount: Int? = 0
+        favouriteCount: Int? = 0,
+        servingQuantity: Double = 1,
+        totalWeight: Double? = nil,
+        preparationSteps: [String] = [],
+        prepTimeMins: Double? = nil,
+        cookTimeMins: Double? = nil,
+        sourceURL: String? = nil
     ) -> Self {
         RecipeTemplateModel(
             id: UUID().uuidString,
@@ -106,7 +157,13 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
             ingredients: ingredients,
             clickCount: clickCount,
             bookmarkCount: bookmarkCount,
-            favouriteCount: favouriteCount
+            favouriteCount: favouriteCount,
+            servingQuantity: servingQuantity,
+            totalWeight: totalWeight,
+            preparationSteps: preparationSteps,
+            prepTimeMins: prepTimeMins,
+            cookTimeMins: cookTimeMins,
+            sourceURL: sourceURL
         )
     }
     
@@ -270,4 +327,31 @@ extension RecipeTemplateModel: Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
+}
+
+extension RecipeTemplateModel: FoodItem {
+
+    private func totalNutrient(_ keyPath: (FoodModel) -> Double?) -> Double? {
+        var total: Double = 0
+        var found = false
+        for recipeIngredient in ingredients {
+            guard let per100 = keyPath(recipeIngredient.ingredient) else { continue }
+            found = true
+            let grams: Double
+            switch recipeIngredient.unit {
+            case .grams:       grams = recipeIngredient.amount
+            case .milliliters: grams = recipeIngredient.amount
+            case .units:       grams = recipeIngredient.amount * 100
+            }
+            total += per100 * (grams / 100.0)
+        }
+        return found ? total : nil
+    }
+
+    var calories: Double? { totalNutrient { $0.calories }.map { $0 / max(servingQuantity, 1) } }
+    var protein: Double? { totalNutrient { $0.protein }.map { $0 / max(servingQuantity, 1) } }
+    var carbs: Double? { totalNutrient { $0.carbs }.map { $0 / max(servingQuantity, 1) } }
+    var fats: Double? { totalNutrient { $0.fatTotal }.map { $0 / max(servingQuantity, 1) } }
+    var portionQuantityCalculated: Double? { 1 }
+    var portionNameCalculated: String? { "serving" }
 }

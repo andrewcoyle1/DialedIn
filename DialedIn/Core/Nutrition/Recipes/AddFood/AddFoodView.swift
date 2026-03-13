@@ -39,6 +39,7 @@ struct AddFoodView: View {
         .searchable(text: $presenter.searchText)
         .navigationTitle("Add Ingredients")
         .navigationSubtitle("Select one or more ingredients to add")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {

@@ -50,7 +50,7 @@ class MealDescribePresenter {
 
     func onAddItem(_ item: FoodAnalysisItem, delegate: MealDescribeDelegate) {
         interactor.trackEvent(event: Event.onAddItem(name: item.name))
-        var nutrients: [NutrientKey: Double] = [:]
+        var nutrients = NutrientMap()
         if let val = item.calories { nutrients[.calories] = val }
         if let val = item.proteinGrams { nutrients[.protein] = val }
         if let val = item.carbGrams { nutrients[.carbs] = val }

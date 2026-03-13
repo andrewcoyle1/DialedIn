@@ -108,11 +108,16 @@ class WorkoutSessionManager {
     }
 
     func deleteAllWorkoutSessionsForAuthor(authorId: String) async throws {
-        for workoutSession in workoutSessions.filter({ $0.authorId == authorId }) {
-            try await userWorkoutSessionSyncEngine.deleteDocument(id: workoutSession.id)
+        await withTaskGroup(of: Void.self) { group in
+            for workoutSession in workoutSessions.filter({ $0.authorId == authorId }) {
+                group.addTask {
+                    try? await self.deleteWorkoutSession(id: workoutSession.id)
+                }
+            }
+            await group.waitForAll()
         }
     }
-
+    
     // MARK: - Read
 
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel {

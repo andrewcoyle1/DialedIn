@@ -123,7 +123,7 @@ class FoodDefinitionPresenter {
     }
     
     private func createFood(userId: String, delegate: FoodDefinitionDelegate) async throws -> FoodModel {
-        var nutrients: [NutrientKey: Double] = [:]
+        var nutrients: NutrientMap = NutrientMap()
         func set(_ key: NutrientKey, _ value: Double?) {
             if let val = value { nutrients[key] = val }
         }
@@ -160,6 +160,12 @@ class FoodDefinitionPresenter {
         set(.riboflavinMg, self.b2Riboflavin)
         set(.cholesterolMg, self.cholesterol)
         set(.pantothenicAcidMg, self.b5PantothenicAcid)
+
+        // Normalize to per-100g so all downstream callers work correctly
+        if case .serving = delegate.nutritionDefinitionOption,
+           let weight = delegate.servingWeight, weight > 0 {
+            nutrients = nutrients.mapValues { $0 * (100.0 / weight) }
+        }
 
         let ingredient = FoodModel(
             authorId: userId,

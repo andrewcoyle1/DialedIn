@@ -16,6 +16,9 @@ class MealHourHeaderPresenter {
     var currentUser: UserModel? {
         interactor.currentUser
     }
+
+    var showHourlyMacroTotals: Bool { interactor.foodLogSettings.showHourlyMacroTotals }
+    var showAddFoodsButton: Bool { interactor.foodLogSettings.showAddFoodsButton }
     
     init(
         interactor: MealHourHeaderInteractor,

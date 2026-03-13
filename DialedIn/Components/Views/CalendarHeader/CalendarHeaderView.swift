@@ -101,7 +101,7 @@ struct CalendarHeaderView: View {
     private func cellBadge(activityCount: Int) -> some View {
         Text(activityCount > 9 ? "9+" : "\(activityCount)")
             .font(.caption2.weight(.semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(colorScheme.backgroundSecondary)
             .padding(4)
             .background {
                 Circle()

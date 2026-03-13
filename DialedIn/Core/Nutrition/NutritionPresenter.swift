@@ -42,10 +42,8 @@ class NutritionPresenter {
 
     var workingHours: [Date] {
         let calendar = Calendar.current
-        // Start at 7 AM on selected date
-        let start = calendar.date(bySettingHour: 7, minute: 0, second: 0, of: selectedDate)!
-        // End at 11 PM on selected date (23:00)
-        let end = calendar.date(bySettingHour: 23, minute: 0, second: 0, of: selectedDate)!
+        let start = calendar.date(bySettingHour: startHour, minute: 0, second: 0, of: selectedDate)!
+        let end = calendar.date(bySettingHour: endHour, minute: 0, second: 0, of: selectedDate)!
         
         var dates: [Date] = []
         var current = start
@@ -57,7 +55,7 @@ class NutritionPresenter {
         }
         return dates
     }
-
+    
     var caloriePercentage: Double {
         guard let target = dailyTarget?.calories, target > 0 else { return 0 }
         return (dailyTotals?.calories ?? 0) / target
@@ -77,6 +75,19 @@ class NutritionPresenter {
         guard let target = dailyTarget?.carbGrams, target > 0 else { return 0 }
         return (dailyTotals?.carbGrams ?? 0) / target
     }
+
+    var showCalendarWeekBanner: Bool { interactor.foodLogSettings.showCalendarWeekBanner }
+    var showsFoodTimestamps: Bool { interactor.foodLogSettings.showsFoodTimestamps }
+    var startHour: Int { interactor.foodLogSettings.startHour }
+    var endHour: Int { interactor.foodLogSettings.endHour }
+    var timestampSide: TimestampSide { interactor.foodLogSettings.timestampSide }
+    var showCaloriesRing: Bool { interactor.foodLogSettings.showCaloriesRing }
+    var showProteinRing: Bool { interactor.foodLogSettings.showProteinRing }
+    var showFatRing: Bool { interactor.foodLogSettings.showFatRing }
+    var showCarbsRing: Bool { interactor.foodLogSettings.showCarbsRing }
+    var showFoodImageInTimeline: Bool { interactor.foodLogSettings.showFoodImageInTimeline }
+    var showCaloriesInTimeline: Bool { interactor.foodLogSettings.showCaloriesInTimeline }
+    var showMacrosInTimeline: Bool { interactor.foodLogSettings.showMacrosInTimeline }
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -178,8 +189,15 @@ class NutritionPresenter {
         }
     }
 
-    func navToMealDetail(meal: MealLogModel) {
-        router.showMealDetailView(delegate: MealDetailDelegate(meal: meal))
+    func onEditMealItem(_ item: MealItemModel) {
+        router.showMealItemAmountViewView(
+            delegate: MealItemAmountViewDelegate(
+                mode: .editItem(item),
+                onConfirm: { _ in
+                    
+                }
+            )
+        )
     }
     
     func onTimelineActionsPressed() {

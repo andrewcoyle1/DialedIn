@@ -25,6 +25,7 @@ struct Dependencies {
         let exerciseModelManager: ExerciseModelManager
         let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
         let workoutSettingsManager: WorkoutSettingsManager
+        let foodLogSettingsManager: FoodLogSettingsManager
         let workoutTemplateManager: WorkoutTemplateManager
         let workoutSessionManager: WorkoutSessionManager
         let trainingProgramManager: TrainingProgramManager
@@ -127,6 +128,13 @@ struct Dependencies {
                 logger: logManager
             )
             workoutSettingsManager = WorkoutSettingsManager(workoutSettingsSyncEngine: workoutSettingsSyncEngine)
+            let foodLogSettingsSyncEngine = DocumentSyncEngine<FoodLogSettings>(
+                remote: MockRemoteDocumentService(),
+                managerKey: Keys.foodLogSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            foodLogSettingsManager = FoodLogSettingsManager(foodLogSettingsSyncEngine: foodLogSettingsSyncEngine)
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
                 remote: MockRemoteCollectionService(),
                 managerKey: Keys.workoutTemplateManagerKey,
@@ -292,6 +300,18 @@ struct Dependencies {
                 logger: logManager
             )
             workoutSettingsManager = WorkoutSettingsManager(workoutSettingsSyncEngine: workoutSettingsSyncEngine)
+            let foodLogSettingsSyncEngineDev = DocumentSyncEngine<FoodLogSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/food_log_settings"
+                    }
+                ),
+                managerKey: Keys.foodLogSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            foodLogSettingsManager = FoodLogSettingsManager(foodLogSettingsSyncEngine: foodLogSettingsSyncEngineDev)
 
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
                 remote: FirebaseRemoteCollectionService(
@@ -358,7 +378,7 @@ struct Dependencies {
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
                         guard let uid = authManager?.auth?.uid else { return nil }
-                        return "users/\(uid)/ingredient_templates"
+                        return "users/\(uid)/foods"
                     }
                 ),
                 managerKey: Keys.foodManagerKey,
@@ -442,7 +462,7 @@ struct Dependencies {
             )
             goalManager = GoalManager(userGoalSyncEngine: userGoalSyncEngine)
             streakManager = StreakManager(
-                services: ProductionStreakServices(rootCollectionName: "user_streaks"), 
+                services: ProductionStreakServices(rootCollectionName: "user_streaks"),
                 configuration: StreakConfiguration(streakKey: "workout", leewayHours: 2),
                 logger: logManager
             )
@@ -504,6 +524,18 @@ struct Dependencies {
                 logger: logManager
             )
             workoutSettingsManager = WorkoutSettingsManager(workoutSettingsSyncEngine: workoutSettingsSyncEngine)
+            let foodLogSettingsSyncEngineProd = DocumentSyncEngine<FoodLogSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/food_log_settings"
+                    }
+                ),
+                managerKey: Keys.foodLogSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            foodLogSettingsManager = FoodLogSettingsManager(foodLogSettingsSyncEngine: foodLogSettingsSyncEngineProd)
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: {[weak authManager] in
@@ -569,7 +601,7 @@ struct Dependencies {
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
                         guard let uid = authManager?.auth?.uid else { return nil }
-                        return "users/\(uid)/ingredient_templates"
+                        return "users/\(uid)/foods"
                     }
                 ),
                 managerKey: Keys.foodManagerKey,
@@ -683,6 +715,7 @@ struct Dependencies {
         container.register(ExerciseModelManager.self, service: exerciseModelManager)
         container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
         container.register(WorkoutSettingsManager.self, service: workoutSettingsManager)
+        container.register(FoodLogSettingsManager.self, service: foodLogSettingsManager)
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
         container.register(TrainingProgramManager.self, service: trainingProgramManager)

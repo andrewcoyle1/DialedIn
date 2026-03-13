@@ -6,6 +6,7 @@ struct IngredientListBuilderDelegate {
 
     var onIngredientSelectionChanged: ((FoodModel) -> Void)?
     var onMealItemConfirmed: ((MealItemModel) -> Void)?
+    var onRecipeIngredientConfirmed: ((RecipeIngredientModel) -> Void)?
     /// Optional list of ingredient templates that should display as "selected" in the UI.
     /// If `nil`, no selection state is shown.
     var selectedFoods: [FoodModel]?
@@ -14,11 +15,13 @@ struct IngredientListBuilderDelegate {
         mealItems: Binding<[MealItemModel]>? = nil,
         onIngredientSelectionChanged: ((FoodModel) -> Void)? = nil,
         onMealItemConfirmed: ((MealItemModel) -> Void)? = nil,
+        onRecipeIngredientConfirmed: ((RecipeIngredientModel) -> Void)? = nil,
         selectedFoods: [FoodModel]? = nil
     ) {
         self.mealItems = mealItems
         self.onIngredientSelectionChanged = onIngredientSelectionChanged
         self.onMealItemConfirmed = onMealItemConfirmed
+        self.onRecipeIngredientConfirmed = onRecipeIngredientConfirmed
         self.selectedFoods = selectedFoods
     }
 }
@@ -68,11 +71,15 @@ struct IngredientListBuilderView: View {
                     delegate: FoodLibraryPickerRowDelegate(
                         item: ingredient,
                         onAdd: {
-                            presenter.navToMealItemAmountView(food: ingredient, delegate: delegate)
+                            presenter.navToIngredientAmountView(food: ingredient, delegate: delegate)
                         },
                         onQuickAdd: {
                             presenter.quickAdd(food: ingredient, delegate: delegate)
-                        }
+                        },
+                        showImage: presenter.showFoodImageInLogger,
+                        showCalories: presenter.showCaloriesInLogger,
+                        showMacros: presenter.showMacrosInLogger,
+                        showPortion: presenter.showPortionInLogger
                     )
                 )
             }
@@ -88,11 +95,15 @@ struct IngredientListBuilderView: View {
                     delegate: FoodLibraryPickerRowDelegate(
                         item: ingredient,
                         onAdd: {
-                            presenter.navToMealItemAmountView(food: ingredient, delegate: delegate)
+                            presenter.navToIngredientAmountView(food: ingredient, delegate: delegate)
                         },
                         onQuickAdd: {
                             presenter.quickAdd(food: ingredient, delegate: delegate)
-                        }
+                        },
+                        showImage: presenter.showFoodImageInLogger,
+                        showCalories: presenter.showCaloriesInLogger,
+                        showMacros: presenter.showMacrosInLogger,
+                        showPortion: presenter.showPortionInLogger
                     )
                 )
             }
@@ -108,11 +119,15 @@ struct IngredientListBuilderView: View {
                     delegate: FoodLibraryPickerRowDelegate(
                         item: ingredient,
                         onAdd: {
-                            presenter.navToMealItemAmountView(food: ingredient, delegate: delegate)
+                            presenter.navToIngredientAmountView(food: ingredient, delegate: delegate)
                         },
                         onQuickAdd: {
                             presenter.quickAdd(food: ingredient, delegate: delegate)
-                        }
+                        },
+                        showImage: presenter.showFoodImageInLogger,
+                        showCalories: presenter.showCaloriesInLogger,
+                        showMacros: presenter.showMacrosInLogger,
+                        showPortion: presenter.showPortionInLogger
                     )
                 )
             }
@@ -137,7 +152,7 @@ extension CoreBuilder {
 extension CoreRouter {
     
     func showIngredientListBuilderView(delegate: IngredientListBuilderDelegate) {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.ingredientListBuilderView(router: router, delegate: delegate)
         }
     }

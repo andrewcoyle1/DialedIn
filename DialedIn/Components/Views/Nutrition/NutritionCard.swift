@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct NutritionCard: View {
-
+    
     let calories: Double
     let calorieTarget: Double
     let proteinGrams: Double
@@ -11,61 +11,67 @@ struct NutritionCard: View {
     let fatGrams: Double
     let fatTarget: Double
     let onLogMealTapped: () -> Void
-
+    
     @Environment(\.colorScheme) private var colorScheme
-
+    
     var body: some View {
         VStack(alignment: .leading) {
             Text("Today's Nutrition")
                 .font(.headline)
                 .foregroundStyle(.secondary)
                 .padding(.leading)
-
-            VStack(spacing: 16) {
-                HStack(alignment: .center, spacing: 24) {
-                    ActivityRingView(
-                        text: "\(Int(calories))",
-                        imageName: "flame.fill",
-                        progress: calorieTarget > 0 ? min(calories / calorieTarget, 1) : 0,
-                        color: .orange,
-                        size: 80
-                    )
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        macroBar(label: "Protein", value: proteinGrams, target: proteinTarget, color: .blue)
-                        macroBar(label: "Carbs", value: carbGrams, target: carbTarget, color: .green)
-                        macroBar(label: "Fat", value: fatGrams, target: fatTarget, color: .yellow)
-                    }
-                    .frame(maxWidth: .infinity)
+            
+            cardItem
+        }
+        .frame(height: 200)
+        .padding(.horizontal)
+    }
+    
+    private var cardItem: some View {
+        VStack(spacing: 16) {
+            HStack(alignment: .center, spacing: 24) {
+                ActivityRingView(
+                    text: "\(Int(calories))",
+                    imageName: "flame.fill",
+                    progress: calorieTarget > 0 ? min(calories / calorieTarget, 1) : 0,
+                    color: .orange,
+                    size: 80
+                )
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    macroBar(label: "Protein", value: proteinGrams, target: proteinTarget, color: .blue)
+                    macroBar(label: "Carbs", value: carbGrams, target: carbTarget, color: .green)
+                    macroBar(label: "Fat", value: fatGrams, target: fatTarget, color: .yellow)
                 }
-
-                if calorieTarget > 0 {
-                    HStack {
-                        Text("\(Int(calories)) / \(Int(calorieTarget)) kcal")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        let remaining = calorieTarget - calories
-                        Text(remaining > 0 ? "\(Int(remaining)) remaining" : "Goal reached!")
-                            .font(.caption)
-                            .foregroundStyle(remaining > 0 ? Color.secondary : Color.orange)
-                    }
-                }
-
-                Button(action: onLogMealTapped) {
-                    Text("Log a Meal")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
+                .frame(maxWidth: .infinity)
             }
-            .padding()
-            .frame(height: 200)
-            .background(colorScheme.backgroundPrimary)
-            .cornerRadius(24)
+            
+            if calorieTarget > 0 {
+                HStack {
+                    Text("\(Int(calories)) / \(Int(calorieTarget)) kcal")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    let remaining = calorieTarget - calories
+                    Text(remaining > 0 ? "\(Int(remaining)) remaining" : "Goal reached!")
+                        .font(.caption)
+                        .foregroundStyle(remaining > 0 ? Color.secondary : Color.orange)
+                }
+            }
+            
+            Button(action: onLogMealTapped) {
+                Text("Log a Meal")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
         }
         .padding()
+        .background(colorScheme.backgroundPrimary, in: .rect)
+        .cornerRadius(24)
+        .padding(.bottom)
+//        .frame(height: 200)
     }
-
+    
     private func macroBar(label: String, value: Double, target: Double, color: Color) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack {
@@ -84,15 +90,54 @@ struct NutritionCard: View {
 }
 
 #Preview {
-    NutritionCard(
-        calories: 1450,
-        calorieTarget: 2200,
-        proteinGrams: 110,
-        proteinTarget: 150,
-        carbGrams: 180,
-        carbTarget: 250,
-        fatGrams: 45,
-        fatTarget: 70,
-        onLogMealTapped: {}
-    )
+    List {
+        Section {
+            TabView {
+                Tab {
+                    NutritionCard(
+                        calories: 1450,
+                        calorieTarget: 2200,
+                        proteinGrams: 110,
+                        proteinTarget: 150,
+                        carbGrams: 180,
+                        carbTarget: 250,
+                        fatGrams: 45,
+                        fatTarget: 70,
+                        onLogMealTapped: {}
+                    )
+                }
+                Tab {
+                    NutritionCard(
+                        calories: 1450,
+                        calorieTarget: 2200,
+                        proteinGrams: 110,
+                        proteinTarget: 150,
+                        carbGrams: 180,
+                        carbTarget: 250,
+                        fatGrams: 45,
+                        fatTarget: 70,
+                        onLogMealTapped: {}
+                    )
+                }
+                Tab {
+                    NutritionCard(
+                        calories: 1450,
+                        calorieTarget: 2200,
+                        proteinGrams: 110,
+                        proteinTarget: 150,
+                        carbGrams: 180,
+                        carbTarget: 250,
+                        fatGrams: 45,
+                        fatTarget: 70,
+                        onLogMealTapped: {}
+                    )
+                }
+            }
+            .tabViewStyle(.page)
+        }
+        .frame(height: 240)
+        .listSectionMargins(.horizontal, 0)
+        .removeListRowFormatting()
+        .listRowSeparator(.hidden)
+    }
 }

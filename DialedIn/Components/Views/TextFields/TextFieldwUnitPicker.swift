@@ -25,7 +25,7 @@ struct TextFieldwUnitPicker<T: PickableUnit & CaseIterable>: View {  // Add Case
     var body: some View {
         HStack {
             AutoSelectNumberField(prompt: prompt, value: $value, alignment: .leading)
-                .textFieldStyle(.roundedBorder)
+                .textFieldStyle(.plain)
                 .padding(.trailing, -16)
             Picker("", selection: $unit) {
                 ForEach(Array(T.allCases), id: \.id) { unitValue in  // Renamed for clarity

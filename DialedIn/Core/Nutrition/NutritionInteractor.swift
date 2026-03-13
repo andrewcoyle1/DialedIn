@@ -14,6 +14,7 @@ protocol NutritionInteractor: GlobalInteractor {
     var draftMeal: MealLogModel? { get }
     var currentDietPlan: DietPlan? { get }
     var userImageUrl: String? { get }
+    var foodLogSettings: FoodLogSettings { get }
     func getMeals(for dayKey: String) throws -> [MealLogModel]
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?

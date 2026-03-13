@@ -1,5 +1,14 @@
 import SwiftUI
 
+struct MealItemContributor: Identifiable {
+    var id: String { displayName }
+    let displayName: String
+    let calories: Double
+    let proteinGrams: Double
+    let carbGrams: Double
+    let fatGrams: Double
+}
+
 @Observable
 @MainActor
 class NutritionOverviewPresenter {
@@ -8,6 +17,7 @@ class NutritionOverviewPresenter {
     private let router: NutritionOverviewRouter
 
     var showsContributors: Bool = false
+    private var dayKey: String = ""
 
     private(set) var totals: DailyMacroTarget = DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0)
     private(set) var target: DailyMacroTarget?
@@ -29,6 +39,7 @@ class NutritionOverviewPresenter {
 
     private func loadData(delegate: NutritionOverviewDelegate) {
         let dayKey = delegate.dayKey
+        self.dayKey = dayKey
         totals = (try? interactor.getDailyTotals(dayKey: dayKey)) ?? totals
         breakdown = (try? interactor.getDailyNutritionBreakdown(dayKey: dayKey)) ?? .empty
         guard let userId = interactor.userId else { return }
@@ -58,6 +69,31 @@ class NutritionOverviewPresenter {
     var fatProgress: Double {
         guard let fatTarget = target?.fatGrams, fatTarget > 0 else { return 0 }
         return min(totals.fatGrams / fatTarget, 1)
+    }
+
+    var topContributors: [MealItemContributor] {
+        guard showsContributors else { return [] }
+        let meals = (try? interactor.getMeals(for: dayKey)) ?? []
+        // swiftlint:disable:next large_tuple
+        var totals: [String: (cal: Double, pro: Double, carb: Double, fat: Double)] = [:]
+        for item in meals.flatMap(\.items) {
+            let key = item.displayName
+            totals[key, default: (0, 0, 0, 0)].cal  += item.calories ?? 0
+            totals[key, default: (0, 0, 0, 0)].pro  += item.proteinGrams ?? 0
+            totals[key, default: (0, 0, 0, 0)].carb += item.carbGrams ?? 0
+            totals[key, default: (0, 0, 0, 0)].fat  += item.fatGrams ?? 0
+        }
+        return totals
+            .map { name, vals in
+                MealItemContributor(
+                    displayName: name,
+                    calories: vals.cal,
+                    proteinGrams: vals.pro,
+                    carbGrams: vals.carb,
+                    fatGrams: vals.fat
+                )
+            }
+            .sorted { $0.calories > $1.calories }
     }
 }
 
