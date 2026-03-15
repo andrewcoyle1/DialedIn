@@ -259,7 +259,9 @@ extension CoreRouter {
         remote: MockRemoteCollectionGroupService(),
         managerKey: Keys.followingWorkoutSessionsManagerKey
     )
+    let mockLikeService = MockWorkoutSessionLikeService()
     let workoutSessionManager = WorkoutSessionManager(
+        likeService: mockLikeService,
         activeWorkoutSessionPersistence: activeWorkoutSessionPersistence,
         userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
         followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine

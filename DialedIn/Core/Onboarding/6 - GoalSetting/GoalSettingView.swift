@@ -17,11 +17,11 @@ struct GoalSettingView: View {
         }
         .navigationTitle("Goal Setting")
         .navigationBarBackButtonHidden()
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.onContinuePressed()
@@ -29,6 +29,7 @@ struct GoalSettingView: View {
                 Text("Continue")
             }
             .accessibilityIdentifier("Continue")
+            .padding(.bottom)
         }
     }
     

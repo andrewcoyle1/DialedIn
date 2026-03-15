@@ -36,11 +36,11 @@ struct CalorieDistributionView: View {
             itemSection
         }
         .navigationTitle("Calorie distribution")
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.navigateToProteinIntake(delegate: delegate)
@@ -49,6 +49,7 @@ struct CalorieDistributionView: View {
             }
             .accessibilityIdentifier("Continue")
             .disabled(presenter.selectedCalorieDistribution == nil)
+            .padding(.bottom)
         }
     }
     

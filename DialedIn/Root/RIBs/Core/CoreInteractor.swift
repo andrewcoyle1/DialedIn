@@ -105,7 +105,7 @@ struct CoreInteractor: GlobalInteractor {
         async let stepsSignIn: () = stepsManager.signIn()
         async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
         async let gymProfileSignIn: () = gymProfileManager.signIn()
-        async let trainingProgramSignIn: () = trainingProgramManager.signIn(programId: userManager.currentUser?.submittedActiveTrainingProgramId ?? "")
+        async let trainingProgramSignIn: () = trainingProgramManager.signIn(userId: user.uid)
         let followingIds = userManager.currentUser?.followingIds ?? []
         async let workoutSessionSignIn: () = workoutSessionManager.signIn(userId: user.uid, followingIds: followingIds)
         async let followingUsersSignIn: () = userManager.refreshFollowingUsers(followingIds: followingIds)

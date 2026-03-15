@@ -20,7 +20,6 @@ protocol TrainingInteractor: GlobalInteractor {
     
     func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws
 
-    func deleteTrainingProgram(programId: String) async throws
     func deleteActiveSession() throws
     func getPreference(templateId: String) -> ExerciseUnitPreference
 }

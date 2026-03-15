@@ -106,24 +106,18 @@ struct FoodDefinitionView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
-                Button {
+                CallToActionButton(isPrimaryAction: true) {
                     presenter.onCreateAndAddPressed(delegate: delegate)
                 } label: {
                     Text("Create & Add")
-                        .padding()
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glassProminent)
-                Button {
+                CallToActionButton(isPrimaryAction: false) {
                     presenter.onCreatePressed(delegate: delegate)
                 } label: {
                     Text("Create")
-                        .padding()
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glass)
             }
-            .padding(.horizontal)
+            .padding(.bottom)
         }
     }
     

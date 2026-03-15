@@ -109,15 +109,12 @@ struct GymProfileView: View {
         }
         .safeAreaInset(edge: .bottom) {
             if delegate.onCompleted != nil {
-                Button {
+                CallToActionButton {
                     presenter.onContinuePressed(delegate: delegate)
                 } label: {
                     Text("Continue")
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glassProminent)
-                .padding(.horizontal)
+                .padding(.bottom)
             }
         }
     }

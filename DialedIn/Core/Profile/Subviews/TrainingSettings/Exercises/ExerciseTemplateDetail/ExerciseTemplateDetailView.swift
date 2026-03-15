@@ -257,7 +257,7 @@ private extension ExerciseModelDetailView {
             ScrollView(.horizontal) {
                 HStack {
                     ForEach(muscles, id: \.key) { muscle, isSecondary in
-                        Text("\(muscle.name): \(isSecondary ? "Secondary" : "Primary")")
+                        Text("\(muscle.name): \(isSecondary == .secondary ? "Secondary" : "Primary")")
                     }
                 }
             }

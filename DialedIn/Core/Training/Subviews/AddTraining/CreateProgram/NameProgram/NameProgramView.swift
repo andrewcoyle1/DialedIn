@@ -40,16 +40,13 @@ struct NameProgramView: View {
             presenter.onViewDisappear()
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onNextPressed(delegate: delegate)
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
             .disabled(!presenter.canSave)
-            .padding(.horizontal)
+            .padding(.bottom)
         }
     }
 }

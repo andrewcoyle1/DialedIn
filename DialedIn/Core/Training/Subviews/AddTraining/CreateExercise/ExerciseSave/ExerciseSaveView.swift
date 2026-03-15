@@ -8,7 +8,7 @@ struct ExerciseSaveDelegate {
     var type: ExerciseType?
     let laterality: Laterality?
 
-    let targetMuscles: [Muscles: Bool]
+    let targetMuscles: [Muscles: MuscleTargetType]
 
     let isBodyweight: Bool
     let resistanceEquipment: [EquipmentRef]
@@ -71,20 +71,18 @@ struct ExerciseSaveView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
-                Text("Create & Add")
-                    .callToActionButton(isPrimaryAction: true)
-                    .padding(.horizontal)
-                    .anyButton(.press) {
-                        presenter.onCreateAndAddPressed(delegate: delegate)
-                    }
-                Text("Create")
-                    .callToActionButton(isPrimaryAction: false)
-                    .padding(.horizontal)
-                    .anyButton(.press) {
-                        presenter.onCreatePressed(delegate: delegate)
-                    }
-
+                CallToActionButton {
+                    presenter.onCreateAndAddPressed(delegate: delegate)
+                } label: {
+                    Text("Create & Add")
+                }
+                CallToActionButton(isPrimaryAction: false) {
+                    presenter.onCreatePressed(delegate: delegate)
+                } label: {
+                    Text("Create")
+                }
             }
+            .padding(.bottom)
         }
     }
 
@@ -189,8 +187,8 @@ struct ExerciseSaveView: View {
         return Section {
             ScrollView(.horizontal) {
                 HStack {
-                    ForEach(muscles, id: \.key) { muscle, isPrimary in
-                        Text("\(muscle.name): \(isPrimary ? "Primary" : "Secondary")")
+                    ForEach(muscles, id: \.key) { muscle, targetType in
+                        Text("\(muscle.name): \(targetType == .primary ? "Primary" : "Secondary")")
                     }
                 }
             }
@@ -321,9 +319,9 @@ struct ExerciseSaveView: View {
         type: .compoundUpper,
         laterality: .bilateral,
         targetMuscles: [
-            .chest: false,
-            .frontDelts: true,
-            .triceps: true
+            .chest: .primary,
+            .frontDelts: .secondary,
+            .triceps: .secondary
         ],
         isBodyweight: false, 
         resistanceEquipment: [],

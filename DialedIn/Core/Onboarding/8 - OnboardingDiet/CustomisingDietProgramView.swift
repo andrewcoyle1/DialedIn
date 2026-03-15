@@ -16,11 +16,11 @@ struct CustomisingDietProgramView: View {
             dietSection
         }
         .navigationTitle("Customise Program")
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.navigateToPreferredDiet()
@@ -28,6 +28,7 @@ struct CustomisingDietProgramView: View {
                 Text("Continue")
             }
             .accessibilityIdentifier("Continue")
+            .padding(.bottom)
         }
     }
         

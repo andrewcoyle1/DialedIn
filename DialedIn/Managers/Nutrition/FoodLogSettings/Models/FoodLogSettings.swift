@@ -80,4 +80,8 @@ struct FoodLogSettings: DataSyncModelProtocol {
     }
 
     var eventParameters: [String: Any] { [:] }
+    
+    static var mock: FoodLogSettings {
+        FoodLogSettings(authorId: "mock_user_123")
+    }
 }

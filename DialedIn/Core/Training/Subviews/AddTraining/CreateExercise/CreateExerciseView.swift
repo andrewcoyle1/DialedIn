@@ -34,14 +34,14 @@ struct CreateExerciseView: View {
             toolbarContent
         }
         .safeAreaInset(edge: .bottom) {
-            Text("Next")
-                .callToActionButton(isPrimaryAction: true)
-                .padding(.horizontal)
-                .anyButton(.press) {
-                    presenter.onNextPressed()
-                }
-                .opacity(presenter.canSave ? 1 : 0.3)
-                .disabled(!presenter.canSave)
+            CallToActionButton {
+                presenter.onNextPressed()
+            } label: {
+                Text("Next")
+            }
+            .padding(.bottom)
+            .opacity(presenter.canSave ? 1 : 0.3)
+            .disabled(!presenter.canSave)
         }
     }
 

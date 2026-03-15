@@ -47,11 +47,11 @@ struct DietPlanView: View {
             }
         }
         .navigationTitle("Your Diet Plan")
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.navigate()
@@ -59,6 +59,7 @@ struct DietPlanView: View {
                 Text("Continue")
             }
             .accessibilityIdentifier("Continue")
+            .padding(.bottom)
         }
         .onAppear {
             presenter.createPlan(delegate: delegate)

@@ -7,7 +7,7 @@ class MuscleGroupPickerPresenter {
     private let interactor: MuscleGroupPickerInteractor
     private let router: MuscleGroupPickerRouter
     
-    var selectedMuscleGroups: [Muscles: Bool] = [:]
+    var selectedMuscleGroups: [Muscles: MuscleTargetType] = [:]
     
     init(interactor: MuscleGroupPickerInteractor, router: MuscleGroupPickerRouter) {
         self.interactor = interactor
@@ -35,22 +35,18 @@ class MuscleGroupPickerPresenter {
     }
     
     var primaryCount: Int {
-        selectedMuscleGroups.values.filter { !$0 }.count
+        selectedMuscleGroups.values.filter { $0 == .primary }.count
     }
 
     var secondaryCount: Int {
-        selectedMuscleGroups.values.filter { $0 }.count
+        selectedMuscleGroups.values.filter { $0 == .secondary }.count
     }
-    
+
     func onMuscleGroupPressed(muscle: Muscles) {
-        if let isSecondary = selectedMuscleGroups[muscle] {
-            if isSecondary {
-                selectedMuscleGroups.removeValue(forKey: muscle)
-            } else {
-                selectedMuscleGroups[muscle] = true
-            }
-        } else {
-            selectedMuscleGroups[muscle] = false
+        switch selectedMuscleGroups[muscle] {
+        case nil:        selectedMuscleGroups[muscle] = .primary
+        case .primary:   selectedMuscleGroups[muscle] = .secondary
+        case .secondary: selectedMuscleGroups.removeValue(forKey: muscle)
         }
     }
     

@@ -11,7 +11,7 @@ import Foundation
 enum MuscleGroupSetsAggregator {
 
     /// Returns last 7 days of sets per muscle (index 0 = 7 days ago, index 6 = today) and total sets.
-    /// Primary muscles (bool false) contribute full sets; secondary muscles (bool true) contribute at 0.5 factor.
+    /// Primary muscles contribute full sets; secondary muscles contribute at 0.5 factor.
     static func aggregate(
         sessions: [WorkoutSessionModel],
         templates: [String: ExerciseModel],
@@ -35,14 +35,14 @@ enum MuscleGroupSetsAggregator {
 
                 for exercise in session.exercises {
                     guard let template = templates[exercise.templateId] else { continue }
-                    guard let isSecondary = template.muscleGroups[muscle] else { continue }
+                    guard let targetType = template.muscleGroups[muscle] else { continue }
 
                     let completedSets = exercise.sets
                         .filter { !$0.isWarmup && $0.completedAt != nil }
                         .count
 
                     if completedSets > 0 {
-                        let factor: Double = isSecondary ? 0.5 : 1.0
+                        let factor: Double = targetType == .secondary ? 0.5 : 1.0
                         let weightedSets = Double(completedSets) * factor
                         total += weightedSets
                         for iteration in 0..<7 {

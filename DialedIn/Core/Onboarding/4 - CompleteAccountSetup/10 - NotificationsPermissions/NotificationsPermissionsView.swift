@@ -20,11 +20,11 @@ struct NotificationsPermissionsView: View {
         .navigationTitle("Notifications")
         .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(true)
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .onAppear {
             presenter.onViewAppear()
         }
@@ -47,6 +47,7 @@ struct NotificationsPermissionsView: View {
                 }
                 .accessibilityIdentifier("SkipForNow")
             }
+            .padding(.bottom)
         }
     }
     

@@ -39,7 +39,7 @@ class DefineWorkoutPresenter {
             
             var seenInThisExercise = Set<Muscles>()
             for (muscle, isSecondary) in workoutExercise.exercise.muscleGroups {
-                let factor: Double = isSecondary ? 0.5 : 1.0
+                let factor: Double = isSecondary == .secondary ? 0.5 : 1.0
                 weightedSetCounts[muscle, default: 0] += (setCount * factor)
                 
                 if !seenInThisExercise.contains(muscle) {

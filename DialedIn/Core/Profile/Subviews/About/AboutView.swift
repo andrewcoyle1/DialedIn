@@ -13,27 +13,27 @@ struct AboutView: View {
     
     var body: some View {
         VStack {
-            Text("DialedIn is a XXX. You are currently on version \(presenter.appVersion) (\(presenter.appBuild))")
+            Text("Compound is your training and nutrition platform. Every session builds on the last. You are currently on version \(presenter.appVersion) (\(presenter.appBuild)).")
                 .lineLimit(4)
                 .padding(.horizontal)
             Spacer()
         }
-        .navigationTitle("About DialedIn")
+        .navigationTitle("About Compound")
         .toolbarTitleDisplayMode(.inlineLarge)
         .safeAreaInset(edge: .bottom) {
             VStack {
-                Text("View Licences")
-                    .callToActionButton(isPrimaryAction: false)
-                    .anyButton {
-                        presenter.onLicencesPressed()
-                    }
-                Text("Go Back")
-                    .callToActionButton(isPrimaryAction: true)
-                    .anyButton {
-                        presenter.onDismissPressed()
-                    }
+                CallToActionButton(isPrimaryAction: false) {
+                    presenter.onLicencesPressed()
+                } label: {
+                    Text("View Licences")
+                }
+                CallToActionButton {
+                    presenter.onDismissPressed()
+                } label: {
+                    Text("Go Back")
+                }
             }
-            .padding(.horizontal)
+            .padding(.bottom)
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

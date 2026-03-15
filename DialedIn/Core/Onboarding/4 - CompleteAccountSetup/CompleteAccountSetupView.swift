@@ -33,6 +33,7 @@ struct CompleteAccountSetupView: View {
                 Text("Continue")
             }
             .accessibilityIdentifier("Continue")
+            .padding(.bottom)
         }
     }
     

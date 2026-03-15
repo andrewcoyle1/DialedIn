@@ -25,15 +25,12 @@ struct CreateRecipeView: View {
             toolbarContent
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onNextPressed()
             } label: {
                 Text("Next")
-                    .padding(.vertical)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .padding()
+            .padding(.bottom)
         }
     }
     

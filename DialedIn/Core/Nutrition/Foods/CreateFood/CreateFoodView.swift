@@ -45,16 +45,13 @@ struct CreateFoodView: View {
             toolbarContent
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onNextPressed(delegate: delegate)
             } label: {
                 Text("Next")
-                    .padding()
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
             .disabled(!presenter.canSave)
-            .padding()
+            .padding(.bottom)
         }
         .onChange(of: presenter.selectedPhotoItem) {
             guard let newItem = presenter.selectedPhotoItem else { return }

@@ -43,16 +43,13 @@ struct CreateGymProfileView: View {
             presenter.onViewDisappear(delegate: delegate)
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed(oldDelegate: delegate)
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
             .disabled(!presenter.canSave)
-            .padding(.horizontal)
+            .padding(.bottom)
         }
     }
 }

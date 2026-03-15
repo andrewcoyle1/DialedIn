@@ -6,7 +6,7 @@ struct ExerciseEquipmentDelegate {
     let trackableMetricB: TrackableExerciseMetric?
     let exerciseType: ExerciseType?
     let laterality: Laterality?
-    let muscleGroups: [Muscles: Bool]
+    let muscleGroups: [Muscles: MuscleTargetType]
 }
 
 struct ExerciseEquipmentView: View {
@@ -55,15 +55,14 @@ struct ExerciseEquipmentView: View {
             presenter.onViewDisappear()
         }
         .safeAreaInset(edge: .bottom) {
-            Text("Next")
-                .callToActionButton(isPrimaryAction: true)
-                .padding(.horizontal)
-                .anyButton(.press) {
-                    presenter.onNextPressed(delegate: delegate)
-                }
-                .opacity(presenter.canContinue ? 1 : 0.3)
-                .disabled(!presenter.canContinue)
-
+            CallToActionButton {
+                presenter.onNextPressed(delegate: delegate)
+            } label: {
+                Text("Next")
+            }
+            .padding(.bottom)
+            .opacity(presenter.canContinue ? 1 : 0.3)
+            .disabled(!presenter.canContinue)
         }
     }
 }

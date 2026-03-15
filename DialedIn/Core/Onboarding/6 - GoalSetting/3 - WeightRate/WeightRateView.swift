@@ -41,11 +41,11 @@ struct WeightRateView: View {
         .onFirstAppear {
             presenter.onAppear(delegate: delegate)
         }
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
@@ -53,6 +53,7 @@ struct WeightRateView: View {
                 Text("Continue")
             }
             .accessibilityIdentifier("Continue")
+            .padding(.bottom)
         }
     }
     

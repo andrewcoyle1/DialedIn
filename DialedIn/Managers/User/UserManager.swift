@@ -7,12 +7,12 @@
 
 import SwiftUI
 import SwiftfulAuthenticating
-@preconcurrency import FirebaseFirestore
 
 @Observable
 @MainActor
 class UserManager {
-    
+
+    private let queryService: any UserQueryService
     private let userSyncEngine: DocumentSyncEngine<UserModel>
     private let followingUsersSyncEngine: CollectionSyncEngine<UserModel>
 
@@ -23,9 +23,11 @@ class UserManager {
     }
 
     init(
+        queryService: any UserQueryService,
         userSyncEngine: DocumentSyncEngine<UserModel>,
         followingUsersSyncEngine: CollectionSyncEngine<UserModel>
     ) {
+        self.queryService = queryService
         self.userSyncEngine = userSyncEngine
         self.followingUsersSyncEngine = followingUsersSyncEngine
     }
@@ -217,28 +219,13 @@ class UserManager {
     // MARK: - User Followers
 
     func fetchFollowers(userId: String) async throws -> [UserModel] {
-        try await Firestore.firestore()
-            .collection("users")
-            .whereField(UserModel.CodingKeys.followingIds.rawValue, arrayContains: userId)
-            .limit(to: 200)
-            .getAllDocuments()
+        try await queryService.fetchFollowers(userId: userId)
     }
 
     // MARK: - User Search
 
     func searchUsers(query: String) async throws -> [UserModel] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return [] }
-
-        let capitalizedQuery = trimmed.prefix(1).uppercased() + trimmed.dropFirst()
-        let field = UserModel.CodingKeys.submittedFirstName.rawValue
-
-        return try await Firestore.firestore()
-            .collection("users")
-            .whereField(field, isGreaterThanOrEqualTo: capitalizedQuery)
-            .whereField(field, isLessThan: capitalizedQuery + "\u{f8ff}")
-            .limit(to: 20)
-            .getAllDocuments()
+        try await queryService.searchUsers(query: query)
     }
 
     // MARK: - User Blocking

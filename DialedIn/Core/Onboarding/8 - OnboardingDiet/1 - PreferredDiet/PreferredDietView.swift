@@ -39,11 +39,11 @@ struct PreferredDietView: View {
             }
         }
         .navigationTitle("Choose your diet")
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.navigateToCalorieFloor()
@@ -52,6 +52,7 @@ struct PreferredDietView: View {
             }
             .accessibilityIdentifier("Continue")
             .disabled(presenter.selectedDiet == nil)
+            .padding(.bottom)
         }
     }
     

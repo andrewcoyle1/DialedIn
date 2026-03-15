@@ -152,28 +152,22 @@ struct ProgramDesignView<DefineWorkout: View>: View {
     private var bottomSafeAreaSection: some View {
         VStack {
             if !presenter.isProgramActive {
-                Button {
+                CallToActionButton {
                     presenter.onActivatePressed(delegate: delegate)
                 } label: {
                     Text("Activate Program")
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glassProminent)
             }
 
             if delegate.onComplete == nil {
-                Button {
+                CallToActionButton(isPrimaryAction: false) {
                     presenter.onSavePressed(delegate: delegate)
                 } label: {
                     Text("Save Program")
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glass)
             }
         }
-        .padding(.horizontal)
+        .padding(.bottom)
     }
     
     private var dayOptionBar: some View {

@@ -35,11 +35,11 @@ struct TargetWeightView: View {
         .onFirstAppear {
             presenter.onAppear(delegate: delegate)
         }
-#if DEBUG || MOCK
-        .toolbar {
-            toolbarContent
-        }
-#endif
+        #if DEBUG || MOCK
+                .toolbar {
+                    toolbarContent
+                }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
@@ -48,6 +48,7 @@ struct TargetWeightView: View {
             }
             .accessibilityIdentifier("Continue")
             .disabled(!presenter.canContinue)
+            .padding(.bottom)
         }
     }
     

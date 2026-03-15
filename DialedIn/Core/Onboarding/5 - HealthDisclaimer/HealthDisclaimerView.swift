@@ -22,11 +22,11 @@ struct HealthDisclaimerView: View {
         .safeAreaInset(edge: .bottom) {
             buttonSection
         }
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
     }
     
     private var disclaimerSection: some View {

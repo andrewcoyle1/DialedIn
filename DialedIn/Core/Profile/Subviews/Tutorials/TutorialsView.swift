@@ -22,12 +22,12 @@ struct TutorialsView: View {
         .navigationTitle("Tutorials")
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            Text("Reset Tutorials")
-                .callToActionButton(isPrimaryAction: true)
-                .anyButton {
-                    presenter.onResetTutorialsPressed()
-                }
-                .padding(.horizontal)
+            CallToActionButton {
+                presenter.onResetTutorialsPressed()
+            } label: {
+                Text("Reset Tutorials")
+            }
+            .padding(.bottom)
         }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)

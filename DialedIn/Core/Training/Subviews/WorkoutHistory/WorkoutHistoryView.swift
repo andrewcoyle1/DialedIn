@@ -183,8 +183,16 @@ extension CoreRouter {
     )
     
     let activeWorkoutSessionPersistence = FileManagerDocumentPersistence<WorkoutSessionModel>()
-    
-    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(activeWorkoutSessionPersistence: activeWorkoutSessionPersistence, userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine, followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine))
+    let mockLikeService = MockWorkoutSessionLikeService()
+    container.register(
+        WorkoutSessionManager.self,
+        service: WorkoutSessionManager(
+            likeService: mockLikeService,
+            activeWorkoutSessionPersistence: activeWorkoutSessionPersistence,
+            userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
+            followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine
+        )
+    )
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     return RouterView { router in
         builder.workoutHistoryView(router: router)

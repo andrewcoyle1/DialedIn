@@ -47,11 +47,11 @@ struct CardioFitnessView: View {
             cardioFitnessSection
         }
         .navigationTitle("Cardio Fitness")
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)

@@ -99,9 +99,9 @@ struct DashboardView<
     private var workoutFeedSection: some View {
         if presenter.feedSessions.isEmpty {
             ContentUnavailableView(
-                "No Workout History",
+                "No Activity Yet",
                 systemImage: "exclamationmark.triangle",
-                description: Text("Log a workout or follow some friends to see their sessions.")
+                description: Text("Follow athletes you admire. Progress is more fun shared.")
             )
         } else {
             ForEach(presenter.feedSessions) { session in

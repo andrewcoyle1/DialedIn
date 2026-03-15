@@ -52,19 +52,16 @@ struct WorkoutListViewBuilder: View {
     }
     
     private func workoutRow(_ workout: WorkoutTemplateModel) -> some View {
-        let subtitle = workout.exercises.map { "\($0.exercise.name)"}.joined(separator: ", ")
-        return CustomListCellView(
-            imageName: workout.imageURL,
-            title: workout.name,
-            subtitle: subtitle
-        )
+        HStack {
+            WorkoutTemplateRow(workoutTemplate: workout)
+            Image(systemName: "chevron.right")
+        }
         .anyButton(.highlight) {
             presenter.onWorkoutPressed(
                 workout: workout,
                 onWorkoutPressed: delegate.onWorkoutSelectionChanged
             )
         }
-        .removeListRowFormatting()
     }
     
     private var systemWorkoutTemplatesSection: some View {

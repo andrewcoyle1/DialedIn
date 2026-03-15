@@ -18,11 +18,11 @@ struct OverarchingObjectiveView: View {
             objectiveSection
         }
         .navigationTitle("What is your goal?")
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.onContinuePressed()
@@ -31,6 +31,7 @@ struct OverarchingObjectiveView: View {
             }
             .accessibilityIdentifier("Continue")
             .disabled(!presenter.canContinue)
+            .padding(.bottom)
         }
     }
     

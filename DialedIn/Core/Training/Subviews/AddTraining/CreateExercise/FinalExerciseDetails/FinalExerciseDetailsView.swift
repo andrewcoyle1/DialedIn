@@ -6,7 +6,7 @@ struct FinalExerciseDetailsDelegate {
     let trackableMetricB: TrackableExerciseMetric?
     let exerciseType: ExerciseType?
     let laterality: Laterality?
-    let targetMuscles: [Muscles: Bool]
+    let targetMuscles: [Muscles: MuscleTargetType]
 
     let isBodyweight: Bool
     let resistanceEquipment: [EquipmentRef]
@@ -43,12 +43,12 @@ struct FinalExerciseDetailsView: View {
             presenter.onViewDisappear(delegate: delegate)
         }
         .safeAreaInset(edge: .bottom) {
-            Text("Next")
-                .callToActionButton(isPrimaryAction: true)
-                .padding(.horizontal)
-                .anyButton(.press) {
-                    presenter.onNextPressed(delegate: delegate)
-                }
+            CallToActionButton {
+                presenter.onNextPressed(delegate: delegate)
+            } label: {
+                Text("Next")
+            }
+            .padding(.bottom)
         }
     }
 
@@ -149,7 +149,7 @@ struct FinalExerciseDetailsView: View {
         trackableMetricB: .weight,
         exerciseType: .compoundUpper,
         laterality: .bilateral,
-        targetMuscles: [.chest: false, .frontDelts: true, .triceps: true],
+        targetMuscles: [.chest: .primary, .frontDelts: .secondary, .triceps: .secondary],
         isBodyweight: false, 
         resistanceEquipment: [],
         supportEquipment: []

@@ -68,13 +68,13 @@ struct WelcomeView: View {
 
     private var titleSection: some View {
         VStack(spacing: 8) {
-            Image(systemName: "gauge.with.needle.fill")
+            Image(systemName: "chart.bar.fill")
                 .font(.system(size: 40))
                 .foregroundStyle(Color.accent)
-            Text("Dialed")
+            Text("Compound")
                 .font(.largeTitle)
                 .fontWeight(.semibold)
-            Text("A better way to manage your training")
+            Text("Every rep compounds.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             

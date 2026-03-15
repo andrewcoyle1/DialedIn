@@ -15,6 +15,16 @@ struct CallToActionButton<Content: View>: View {
     var action: () -> Void
     var label: () -> Content
     
+    init(
+        isPrimaryAction: Bool = true,
+        action: @escaping () -> Void,
+        label: @escaping () -> Content
+    ) {
+        self.isPrimaryAction = isPrimaryAction
+        self.action = action
+        self.label = label
+    }
+    
     var body: some View {
         ZStack {
             if isPrimaryAction {

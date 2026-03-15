@@ -37,7 +37,7 @@ struct ProteinIntakeView: View {
             pickerSection
         }
         .navigationTitle("Protein Intake")
-#if DEBUG || MOCK
+        #if DEBUG || MOCK
         .toolbar {
             toolbarContent
         }
@@ -50,6 +50,7 @@ struct ProteinIntakeView: View {
             }
             .accessibilityIdentifier("Continue")
             .disabled(presenter.selectedProteinIntake == nil)
+            .padding(.bottom)
         }
     }
     

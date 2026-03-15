@@ -51,7 +51,7 @@ struct OnboardingCompletedView: View {
                 .font(.title)
                 .bold()
                 .padding(.bottom, 8)
-            Text("You're ready to start training with Dialed!")
+            Text("You're ready to start compounding.")
                 .font(.title3)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

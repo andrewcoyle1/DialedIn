@@ -73,7 +73,7 @@ struct Dependencies {
                     enableLocalPersistence: true,
                     logger: logManager
                 )
-                userManager = UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+                userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
                 purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
                 appState = AppState(startingModuleId: Constants.onboardingModuleId)
             case .existingSignedOut:
@@ -90,7 +90,7 @@ struct Dependencies {
                     enableLocalPersistence: true,
                     logger: logManager
                 )
-                userManager = UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+                userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
                 purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
                 appState = AppState(startingModuleId: Constants.onboardingModuleId)
             case .existingSignedIn:
@@ -107,7 +107,7 @@ struct Dependencies {
                     enableLocalPersistence: true,
                     logger: logManager
                 )
-                userManager = UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+                userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
                 purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
                 appState = AppState(startingModuleId: Constants.tabBarModuleId)
             }
@@ -157,6 +157,7 @@ struct Dependencies {
                 logger: logManager
             )
             workoutSessionManager = WorkoutSessionManager(
+                likeService: MockWorkoutSessionLikeService(),
                 activeWorkoutSessionPersistence: activeWorkoutSessionPersistence,
                 userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
                 followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine
@@ -167,7 +168,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine)
+            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, logManager: logManager)
                 
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
                 remote: MockRemoteCollectionService(),
@@ -239,9 +240,8 @@ struct Dependencies {
                 logger: logManager
             )
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            hkWorkoutManager = HKWorkoutManager(logger: logManager)
             liveActivityManager = LiveActivityManager(logger: logManager)
-            hkWorkoutManager.liveActivityUpdater = liveActivityManager
+            hkWorkoutManager = HKWorkoutManager(logger: logManager, liveActivityUpdater: liveActivityManager)
             #endif
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
             pushManager = PushManager(logManager: logManager)
@@ -272,7 +272,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            userManager = UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+            userManager = UserManager(queryService: FirebaseUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
             abTestManager = ABTestManager(service: LocalABTestService(), logger: logManager)
             purchaseManager = PurchaseManager(service: RevenueCatPurchaseService(apiKey: Keys.revenueCatAPIKey), logger: logManager)
             let userExerciseSyncEngine = CollectionSyncEngine<ExerciseModel>(
@@ -345,6 +345,7 @@ struct Dependencies {
                 logger: logManager
             )
             workoutSessionManager = WorkoutSessionManager(
+                likeService: FirebaseWorkoutSessionLikeService(),
                 activeWorkoutSessionPersistence: activeWorkoutSessionPersistence,
                 userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
                 followingWorkoutSessionSyncEngine: followingWorkoutSessionsSyncEngine
@@ -360,7 +361,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine)
+            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, logManager: logManager)
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
@@ -467,9 +468,8 @@ struct Dependencies {
                 logger: logManager
             )
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            hkWorkoutManager = HKWorkoutManager(logger: logManager)
             liveActivityManager = LiveActivityManager(logger: logManager)
-            hkWorkoutManager.liveActivityUpdater = liveActivityManager
+            hkWorkoutManager = HKWorkoutManager(logger: logManager, liveActivityUpdater: liveActivityManager)
             #endif
             appState = AppState()
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
@@ -500,7 +500,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            userManager = UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+            userManager = UserManager(queryService: FirebaseUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
             abTestManager = ABTestManager(service: FirebaseABTestService(), logger: logManager)
             purchaseManager = PurchaseManager(service: StoreKitPurchaseService())
             let userExerciseSyncEngine = CollectionSyncEngine<ExerciseModel>(
@@ -568,6 +568,7 @@ struct Dependencies {
                 logger: logManager
             )
             workoutSessionManager = WorkoutSessionManager(
+                likeService: FirebaseWorkoutSessionLikeService(),
                 activeWorkoutSessionPersistence: activeWorkoutSessionPersistence,
                 userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
                 followingWorkoutSessionSyncEngine: followingWorkoutSessionsSyncEngine
@@ -583,7 +584,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine)
+            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, logManager: logManager)
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
@@ -690,9 +691,8 @@ struct Dependencies {
                 logger: logManager
             )
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            hkWorkoutManager = HKWorkoutManager(logger: logManager)
             liveActivityManager = LiveActivityManager(logger: logManager)
-            hkWorkoutManager.liveActivityUpdater = liveActivityManager
+            hkWorkoutManager = HKWorkoutManager(logger: logManager, liveActivityUpdater: liveActivityManager)
             #endif
             appState = AppState()
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())

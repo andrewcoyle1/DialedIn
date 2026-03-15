@@ -22,7 +22,6 @@ struct LiveActivityView: View {
             }
         }
         .padding()
-        .background(Color.black)
     }
     
     private var workoutSummaryView: some View {
@@ -31,7 +30,7 @@ struct LiveActivityView: View {
             workoutSummaryHeader
             // Summary metrics grid
             summaryMetricsGrid
-            Text("Workout Complete!")
+            Text("Session complete. Progress compounds.")
                 .font(.subheadline)
                 .foregroundStyle(.green)
         }
@@ -229,7 +228,7 @@ struct LiveActivityView: View {
                 .frame(width: 38, height: 38)
             
             VStack(alignment: .leading, spacing: 0) {
-                Text("Workout Complete")
+                Text("Session complete. Progress compounds.")
                     .font(.headline)
                     .fontWeight(.medium)
                     .foregroundStyle(.green)
@@ -248,30 +247,28 @@ struct LiveActivityView: View {
             HStack {
                 Button(intent: AdjustRestTimerIntent(adjustment: -15)) {
                     Text("-15s")
-                        .padding(8)
-                        .background(
-                            Capsule()
-                                .fill(Color.secondary.opacity(0.2))
-                        )
+                        .padding(2)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
+                .tint(.accent)
                 .disabled(context.state.isProcessingIntent)
                 .opacity(context.state.isProcessingIntent ? 0.5 : 1.0)
                 Spacer()
-                Text("Rest: ")
-                Text(timerInterval: Date()...restEndsAt)
-                    .monospacedDigit()
-                    .frame(maxWidth: 40)
+                HStack {
+                    Text("Rest: ")
+                    Text(timerInterval: Date()...restEndsAt)
+                        .monospacedDigit()
+                        .frame(maxWidth: 40)
+                }
                 Spacer()
                 Button(intent: AdjustRestTimerIntent(adjustment: 15)) {
                     Text("+15s")
-                        .padding(8)
-                        .background(
-                            Capsule()
-                                .fill(Color.secondary.opacity(0.2))
-                        )
+                        .padding(2)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
+                .tint(.accent)
                 .disabled(context.state.isProcessingIntent)
                 .opacity(context.state.isProcessingIntent ? 0.5 : 1.0)
                 
@@ -282,9 +279,12 @@ struct LiveActivityView: View {
                     } else {
                         Text("Skip")
                             .foregroundStyle(Color.white)
+                            .padding(2)
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.circle)
+                .tint(.accent)
                 .disabled(context.state.isProcessingIntent)
             }
         }
@@ -299,18 +299,10 @@ struct LiveActivityView: View {
                     .foregroundStyle(.green)
                 Spacer()
                 Button(intent: CompleteWorkoutIntent()) {
-                    if context.state.isProcessingIntent {
-                        ProgressView()
-                            .tint(.white)
-                    } else {
-                        HStack(spacing: 4) {
-                            Image(systemName: "checkmark.circle.fill")
-                            Text("Finish")
-                        }
-                        .foregroundStyle(Color.white)
-                    }
+                    Label("Finis", systemImage: "checkmark.circle.fill")
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(.accent)
                 .disabled(context.state.isProcessingIntent)
             } else {
                 // Show target and complete set button
@@ -336,16 +328,12 @@ struct LiveActivityView: View {
                 }
                 Spacer()
                 Button(intent: CompleteSetIntent()) {
-                    if context.state.isProcessingIntent {
-                        
-                        Image(systemName: "checkmark")
-                            .foregroundStyle(Color.secondary)
-                    } else {
-                        Image(systemName: "checkmark")
-                            .foregroundStyle(Color.white)
-                    }
+                    Image(systemName: "checkmark")
+                        .padding(2)
                 }
+                .buttonBorderShape(.circle)
                 .buttonStyle(.borderedProminent)
+                .tint(.accent)
                 .disabled(context.state.targetSetId == nil || context.state.isProcessingIntent)
             }
         }
@@ -371,7 +359,7 @@ struct LiveActivityView: View {
         if let status = context.state.statusMessage, !status.isEmpty {
             return status
         }
-        return context.state.isActive ? "In progress" : "Paused"
+        return context.state.isActive ? "Compounding." : "Paused"
     }
     
     private func formatDuration(_ seconds: TimeInterval) -> String {

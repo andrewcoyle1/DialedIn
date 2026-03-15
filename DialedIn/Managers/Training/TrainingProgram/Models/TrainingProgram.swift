@@ -84,10 +84,32 @@ struct TrainingProgram: DataSyncModelProtocol {
         [
             TrainingProgram(
                 id: UUID().uuidString,
-                authorId: "user123",
-                name: "Mock Training Program",
+                authorId: "mock_user_123",
+                name: "Block 1",
                 icon: "dumbbell",
                 colour: Color.red.asHex(),
+                numMicrocycles: 8,
+                deload: .none,
+                periodisation: false,
+                workoutTemplates: WorkoutTemplateModel.mocks
+            ),
+            TrainingProgram(
+                id: UUID().uuidString,
+                authorId: "mock_user_123",
+                name: "Block 2",
+                icon: "pencil",
+                colour: Color.blue.asHex(),
+                numMicrocycles: 8,
+                deload: .end,
+                periodisation: false,
+                workoutTemplates: WorkoutTemplateModel.mocks
+            ),
+            TrainingProgram(
+                id: UUID().uuidString,
+                authorId: "mock_user_123",
+                name: "Block 3",
+                icon: "flag",
+                colour: Color.green.asHex(),
                 numMicrocycles: 8,
                 deload: .none,
                 periodisation: false,

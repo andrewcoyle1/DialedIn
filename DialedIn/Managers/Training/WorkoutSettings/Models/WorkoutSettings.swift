@@ -70,6 +70,10 @@ struct WorkoutSettings: DataSyncModelProtocol {
         [:]
     }
     
+    static var mock: Self {
+        WorkoutSettings(authorId: "mock_user_123")
+    }
+    
 }
 
 enum PreviousWorkoutReferenceOption: String, DataSyncModelProtocol {

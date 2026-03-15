@@ -7,6 +7,11 @@
 
 import Foundation
 
+enum MuscleTargetType: String, Codable {
+    case primary
+    case secondary
+}
+
 struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
     var id: String
     var authorId: String
@@ -16,7 +21,7 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
     var trackableMetrics: [TrackableExerciseMetric]
     var type: ExerciseType?
     var laterality: Laterality?
-    var muscleGroups: [Muscles: Bool]
+    var muscleGroups: [Muscles: MuscleTargetType]
     var isBodyweight: Bool
     var resistanceEquipment: [EquipmentRef]
     var supportEquipment: [EquipmentRef]
@@ -65,7 +70,7 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
         trackableMetrics: [TrackableExerciseMetric],
         type: ExerciseType?,
         laterality: Laterality?,
-        muscleGroups: [Muscles: Bool],
+        muscleGroups: [Muscles: MuscleTargetType],
         isBodyweight: Bool,
         resistanceEquipment: [EquipmentRef],
         supportEquipment: [EquipmentRef],
@@ -122,9 +127,9 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .chest: false,
-                    .triceps: true,
-                    .frontDelts: true
+                    .chest: .primary,
+                    .triceps: .secondary,
+                    .frontDelts: .secondary
                 ],
                 isBodyweight: false,
                 resistanceEquipment: [
@@ -146,9 +151,9 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .forearms: true,
-                    .biceps: true,
-                    .lats: false
+                    .forearms: .secondary,
+                    .biceps: .secondary,
+                    .lats: .primary
                 ],
                 isBodyweight: true,
                 resistanceEquipment: [],
@@ -168,9 +173,9 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundLower,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .quads: false,
-                    .glutes: false,
-                    .hamstrings: false
+                    .quads: .primary,
+                    .glutes: .primary,
+                    .hamstrings: .primary
                 ],
                 isBodyweight: false,
                 resistanceEquipment: [
@@ -192,10 +197,10 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundLower,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .hamstrings: false,
-                    .glutes: true,
-                    .upperTraps: true,
-                    .lowerBack: false
+                    .hamstrings: .primary,
+                    .glutes: .secondary,
+                    .upperTraps: .secondary,
+                    .lowerBack: .primary
                 ],
                 isBodyweight: false,
                 resistanceEquipment: [
@@ -215,8 +220,8 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .core,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .abs: false,
-                    .frontDelts: true
+                    .abs: .primary,
+                    .frontDelts: .secondary
                 ],
                 isBodyweight: true,
                 resistanceEquipment: [],
@@ -234,9 +239,9 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .upperTraps: false,
-                    .triceps: true,
-                    .chest: true
+                    .upperTraps: .primary,
+                    .triceps: .secondary,
+                    .chest: .secondary
                 ],
                 isBodyweight: false,
                 resistanceEquipment: [
@@ -256,9 +261,9 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundLower,
                 laterality: .unilateral,
                 muscleGroups: [
-                    .quads: true,
-                    .glutes: true,
-                    .hamstrings: false
+                    .quads: .secondary,
+                    .glutes: .secondary,
+                    .hamstrings: .primary
                 ],
                 isBodyweight: false,
                 resistanceEquipment: [
@@ -280,9 +285,9 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .chest: true,
-                    .triceps: true,
-                    .frontDelts: false
+                    .chest: .secondary,
+                    .triceps: .secondary,
+                    .frontDelts: .primary
                 ],
                 isBodyweight: true,
                 resistanceEquipment: [],
@@ -300,8 +305,8 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .lats: false,
-                    .biceps: true
+                    .lats: .primary,
+                    .biceps: .secondary
                 ],
                 isBodyweight: false,
                 resistanceEquipment: [
@@ -321,7 +326,7 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .isolationLower,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .calves: true
+                    .calves: .secondary
                 ],
                 isBodyweight: true,
                 resistanceEquipment: [],
