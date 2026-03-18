@@ -2,25 +2,25 @@
 //  WorkoutExerciseEquipmentSheetView.swift
 //  DialedIn
 //
-//  Sheet that displays choosable equipment for an exercise and highlights currently chosen equipment.
+//  Sheet that displays equipment variations for an exercise and lets the user pick one.
 //
 
 import SwiftUI
 
 struct WorkoutExerciseEquipmentSheetDelegate {
     let exercise: Binding<WorkoutExerciseModel>
-    let onSelect: ([EquipmentRef], [EquipmentRef]) -> Void
+    let onSelect: (String?) -> Void
 }
 
 struct WorkoutExerciseEquipmentSheetView: View {
-    
+
     @State var presenter: WorkoutExerciseEquipmentSheetPresenter
     let delegate: WorkoutExerciseEquipmentSheetDelegate
 
     var body: some View {
         Group {
             if presenter.isLoading {
-                ProgressView("Loading equipment...")
+                ProgressView("Loading variations...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = presenter.loadError {
                 VStack(spacing: 12) {
@@ -33,30 +33,12 @@ struct WorkoutExerciseEquipmentSheetView: View {
                 .padding()
             } else {
                 List {
-                    if !presenter.choosableResistance.isEmpty {
-                        Section("Resistance") {
-                            ForEach(presenter.choosableResistance, id: \.ref) { item in
-                                equipmentRow(item: item, isChosen: presenter.chosenResistance.contains(item.ref)) {
-                                    presenter.toggleResistance(ref: item.ref)
-                                }
-                            }
+                    Section {
+                        ForEach(presenter.variationItems) { item in
+                            variationRow(item: item)
                         }
                     }
-                    if !presenter.choosableSupport.isEmpty {
-                        Section("Support") {
-                            ForEach(presenter.choosableSupport, id: \.ref) { item in
-                                equipmentRow(item: item, isChosen: presenter.chosenSupport.contains(item.ref)) {
-                                    presenter.toggleSupport(ref: item.ref)
-                                }
-                            }
-                        }
-                    }
-                    if presenter.choosableResistance.isEmpty && presenter.choosableSupport.isEmpty {
-                        Section {
-                            Text("No equipment options for this exercise.")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    .listSectionMargins(.top, 0)
                 }
                 .listStyle(.insetGrouped)
             }
@@ -65,41 +47,47 @@ struct WorkoutExerciseEquipmentSheetView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
+                Button(role: .close) {
                     presenter.onCancelPressed()
                 }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Done") {
+                Button(role: .confirm) {
                     presenter.onDonePressed(onSelect: delegate.onSelect)
                 }
             }
         }
-        .onAppear {
-            presenter.chosenResistance = delegate.exercise.wrappedValue.chosenResistanceEquipment
-            presenter.chosenSupport = delegate.exercise.wrappedValue.chosenSupportEquipment
-        }
         .task {
-            await presenter.loadChoosableEquipment(exerciseModelId: delegate.exercise.wrappedValue.templateId)
+            await presenter.loadVariations(exercise: delegate.exercise.wrappedValue)
+        }
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
         }
     }
 
-    private func equipmentRow(item: AnyEquipment, isChosen: Bool, onTap: @escaping () -> Void) -> some View {
-        Button(action: onTap) {
+    private func variationRow(item: VariationDisplayItem) -> some View {
+        let isChosen = presenter.chosenVariationId == item.id
+        return Button {
+            presenter.onSelectVariation(id: item.id)
+        } label: {
             HStack {
-                if let imageName = item.imageName {
-                    ImageLoaderView(urlString: imageName)
-                        .frame(width: 40, height: 40)
-                } else {
-                    Rectangle()
-                        .fill(Color.secondary.opacity(0.2))
-                        .frame(width: 40, height: 40)
-                        .cornerRadius(8)
-                }
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(item.name)
                         .font(.body)
                         .foregroundStyle(.primary)
+                    if item.resistanceSummary != "None" {
+                        Text("Resistance: \(item.resistanceSummary)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    if item.supportSummary != "None" {
+                        Text("Support: \(item.supportSummary)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 Spacer()
                 if isChosen {
@@ -116,10 +104,8 @@ struct WorkoutExerciseEquipmentSheetView: View {
     @Previewable @State var exercise: WorkoutExerciseModel = .mock
     let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    
-    let delegate = WorkoutExerciseEquipmentSheetDelegate(exercise: $exercise) { _, _ in
-        
-    }
+
+    let delegate = WorkoutExerciseEquipmentSheetDelegate(exercise: $exercise) { _ in }
     RouterView { router in
         builder.workoutExerciseEquipmentSheetView(router: router, delegate: delegate)
     }

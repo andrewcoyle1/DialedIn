@@ -1,5 +1,5 @@
 //
-//  ProgramManagementView.swift
+//  TrainingProgramLibraryView.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 18/10/2025.
@@ -7,11 +7,13 @@
 
 import SwiftUI
 
-struct ProgramManagementView: View {
+struct TrainingProgramLibraryView<ProgramDisclosureGroup: View, InactiveSection: View>: View {
 
-    @Environment(\.scenePhase) private var scenePhase
-    @State var presenter: ProgramManagementPresenter
+    @State var presenter: TrainingProgramLibraryPresenter
 
+    @ViewBuilder var trainingProgramDisclosueGroup: (TrainingProgramDisclosureGroupDelegate) -> ProgramDisclosureGroup
+    @ViewBuilder var inactiveProgramSection: (InactiveTrainingProgramDelegate) -> InactiveSection
+    
     var body: some View {
         List {
             if let activeTrainingProgram = presenter.activeTrainingProgram {
@@ -33,7 +35,7 @@ struct ProgramManagementView: View {
     
     private func activeTrainingProgramSection(activeTrainingProgram: TrainingProgram) -> some View {
         Section {
-            savedProgramRow(activeTrainingProgram)
+            trainingProgramDisclosueGroup(TrainingProgramDisclosureGroupDelegate(trainingProgram: activeTrainingProgram))
         } header: {
             Text("Active Training Program")
         }
@@ -41,14 +43,15 @@ struct ProgramManagementView: View {
 
     private var savedProgramsSection: some View {
         Section {
-            ForEach(presenter.nonActiveTrainingPrograms) { program in
-                savedProgramRow(program)
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            presenter.showDeleteAlert(program: program)
-                        }
-                    }
-            }
+            inactiveProgramSection(InactiveTrainingProgramDelegate(inactivePrograms: presenter.nonActiveTrainingPrograms))
+//            ForEach(presenter.nonActiveTrainingPrograms) { program in
+//                savedProgramRow(program)
+//                    .swipeActions(edge: .trailing) {
+//                        Button(role: .destructive) {
+//                            presenter.showDeleteAlert(program: program)
+//                        }
+//                    }
+//            }
         } header: {
             Text("Saved Programs")
         } footer: {
@@ -115,17 +118,29 @@ struct ProgramManagementView: View {
 }
 
 extension CoreBuilder {
-    func programManagementView(router: AnyRouter) -> some View {
-        ProgramManagementView(
-            presenter: ProgramManagementPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+    func trainingProgramLibraryView(router: AnyRouter) -> some View {
+        TrainingProgramLibraryView(
+            presenter: TrainingProgramLibraryPresenter(
+                interactor: interactor,
+                router: CoreRouter(
+                    router: router,
+                    builder: self
+                )
+            ),
+            trainingProgramDisclosueGroup: { delegate in
+                self.trainingProgramDisclosureGroupView(router: router, delegate: delegate)
+            },
+            inactiveProgramSection: { delegate in
+                self.inactiveTrainingProgramView(router: router, delegate: delegate)
+            }
         )
     }
 }
 
 extension CoreRouter {
-    func showProgramManagementView() {
+    func showTrainingProgramLibraryView() {
         router.showScreen(.sheet) { router in
-            builder.programManagementView(router: router)
+            builder.trainingProgramLibraryView(router: router)
         }
     }
 }
@@ -135,7 +150,7 @@ extension CoreRouter {
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
-        builder.programManagementView(router: router)
+        builder.trainingProgramLibraryView(router: router)
     }
     
 }

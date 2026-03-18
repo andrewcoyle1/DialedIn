@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol InactiveTrainingProgramRouter: GlobalRouter {
-    
-}
+protocol InactiveTrainingProgramRouter: GlobalRouter { }
 
 extension CoreRouter: InactiveTrainingProgramRouter { }

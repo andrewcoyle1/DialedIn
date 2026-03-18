@@ -27,6 +27,10 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
         .toolbarRole(.browser)
         .scrollIndicators(.hidden)
         .environment(\.editMode, $presenter.editMode)
+        .onChange(of: presenter.pendingSelectedTemplates) { _, newValue in
+            guard !newValue.isEmpty else { return }
+            presenter.addSelectedExercises()
+        }
         .toolbar {
             toolbarContent
         }
@@ -126,6 +130,15 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                         get: { presenter.expandedExerciseId == exerciseId },
                         set: { presenter.onExerciseExpansionChanged(exerciseId: exerciseId, isExpanded: $0) }
                     )
+                    let supersetLabel: String? = {
+                        guard let groupId = exercise.supersetGroupId else { return nil }
+                        let group = presenter.workoutSession.exercises.filter { $0.supersetGroupId == groupId }
+                        let letters = ["A", "B", "C", "D", "E", "F"]
+                        guard let idx = group.firstIndex(where: { $0.id == exercise.id }),
+                              idx < letters.count else { return nil }
+                        let prefix = group.count > 2 ? "Circuit" : "Superset"
+                        return "\(prefix) \(letters[idx])"
+                    }()
                     let delegate = ExerciseTrackerDelegate(
                         exercise: $exercise,
                         lastExercise: presenter.previousWorkoutSession?.exercises.first(
@@ -133,7 +146,15 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                                 previousExercise.templateId == exercise.templateId
                             }
                         ),
-                        isExpanded: isExpanded
+                        isExpanded: isExpanded,
+                        allWorkoutExercises: presenter.workoutSession.exercises,
+                        supersetLabel: supersetLabel,
+                        onSetSupersetGroup: { exerciseId, groupId in
+                            presenter.setSupersetGroupId(groupId, forExerciseId: exerciseId)
+                        },
+                        onDeleteExercise: {
+                            presenter.deleteExercise(exerciseId)
+                        }
                     )
                     exerciseTrackerView(delegate, { duration in
                         presenter.startRestTimer(durationSeconds: duration)
@@ -144,7 +165,17 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                 }
             }
         } header: {
-            Text("Exercises")
+            HStack {
+                Text("Exercises")
+                Spacer()
+                Button {
+                    presenter.presentAddExercise()
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
+            }
         }
     }
     
@@ -248,39 +279,11 @@ extension CoreRouter {
     }
 }
 
-#Preview("With Exercises") {
-    let container = DevPreview.shared.container()
-    let activeWorkoutSessionPersistence = MockLocalDocumentPersistence<WorkoutSessionModel>(document: WorkoutSessionModel.mock)
-    let userWorkoutSessionSyncEngine = CollectionSyncEngine<WorkoutSessionModel>(
-        remote: MockRemoteCollectionService(),
-        managerKey: Keys.userWorkoutSessionManagerKey
-    )
-    let followingWorkoutSessionSyncEngine = CollectionGroupSyncEngine<WorkoutSessionModel>(
-        remote: MockRemoteCollectionGroupService(),
-        managerKey: Keys.followingWorkoutSessionsManagerKey
-    )
-    let mockLikeService = MockWorkoutSessionLikeService()
-    let workoutSessionManager = WorkoutSessionManager(
-        likeService: mockLikeService,
-        activeWorkoutSessionPersistence: activeWorkoutSessionPersistence,
-        userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
-        followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine
-    )
-    container.register(WorkoutSessionManager.self, service: workoutSessionManager)
-    let interactor = CoreInteractor(container: container)
-    let builder = CoreBuilder(interactor: interactor)
-    return RouterView { router in
-        try? builder.workoutTrackerView(router: router)
-    }
-    
-}
-
-#Preview ("No Exercises"){
+#Preview {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         try? builder.workoutTrackerView(router: router)
     }
-    
 }

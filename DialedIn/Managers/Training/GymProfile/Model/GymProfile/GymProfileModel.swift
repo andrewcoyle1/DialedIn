@@ -132,6 +132,22 @@ struct GymProfileModel: DataSyncModelProtocol {
 }
 
 extension GymProfileModel {
+    static var allEquipmentCatalog: [AnyEquipment] {
+        [
+            FreeWeights.defaultFreeWeights.map(AnyEquipment.init),
+            LoadableBars.defaultLoadableBars.map(AnyEquipment.init),
+            FixedWeightBars.defaultFixedWeightBars.map(AnyEquipment.init),
+            Bands.defaultBands.map(AnyEquipment.init),
+            BodyWeights.defaultBodyWeights.map(AnyEquipment.init),
+            SupportEquipment.defaultSupportEquipment.map(AnyEquipment.init),
+            AccessoryEquipment.defaultAccessoryEquipment.map(AnyEquipment.init),
+            LoadableAccessoryEquipment.defaultLoadableAccessoryEquipment.map(AnyEquipment.init),
+            CableMachine.defaultCableMachines.map(AnyEquipment.init),
+            PlateLoadedMachine.defaultPlateLoadedMachines.map(AnyEquipment.init),
+            PinLoadedMachine.defaultPinLoadedMachines.map(AnyEquipment.init)
+        ].flatMap { $0 }
+    }
+
     var allEquipment: [AnyEquipment] {
         [
             freeWeights.map(AnyEquipment.init),

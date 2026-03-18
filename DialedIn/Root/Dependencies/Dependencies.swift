@@ -26,6 +26,7 @@ struct Dependencies {
         let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
         let workoutSettingsManager: WorkoutSettingsManager
         let foodLogSettingsManager: FoodLogSettingsManager
+        let exerciseSettingsManager: ExerciseSettingsManager
         let workoutTemplateManager: WorkoutTemplateManager
         let workoutSessionManager: WorkoutSessionManager
         let trainingProgramManager: TrainingProgramManager
@@ -62,19 +63,18 @@ struct Dependencies {
             case .newAnonymous:
                 authManager = AuthManager(service: MockAuthService(scenario: .newAnonymous))
                 let userSyncEngine = DocumentSyncEngine<UserModel>(
-                    remote: MockRemoteDocumentService(),
+                    remote: MockRemoteDocumentService(document: nil),
                     managerKey: Keys.userManagerKey,
                     enableLocalPersistence: true,
                     logger: logManager
                 )
                 let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
-                    remote: MockRemoteCollectionService(),
+                    remote: MockRemoteCollectionService(collection: []),
                     managerKey: Keys.followingUsersManagerKey,
                     enableLocalPersistence: true,
                     logger: logManager
                 )
                 userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
-                purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
                 appState = AppState(startingModuleId: Constants.onboardingModuleId)
             case .existingSignedOut:
                 authManager = AuthManager(service: MockAuthService(scenario: .existingSignedOut))
@@ -91,29 +91,28 @@ struct Dependencies {
                     logger: logManager
                 )
                 userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
-                purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
                 appState = AppState(startingModuleId: Constants.onboardingModuleId)
             case .existingSignedIn:
                 authManager = AuthManager(service: MockAuthService(scenario: .existingSignedIn))
                 let userSyncEngine = DocumentSyncEngine<UserModel>(
-                    remote: MockRemoteDocumentService(),
+                    remote: MockRemoteDocumentService(document: UserModel.mockExisting),
                     managerKey: Keys.userManagerKey,
                     enableLocalPersistence: true,
                     logger: logManager
                 )
                 let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
-                    remote: MockRemoteCollectionService(),
+                    remote: MockRemoteCollectionService(collection: UserModel.mocks),
                     managerKey: Keys.followingUsersManagerKey,
                     enableLocalPersistence: true,
                     logger: logManager
                 )
                 userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
-                purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
                 appState = AppState(startingModuleId: Constants.tabBarModuleId)
             }
+            purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
             abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
             let userExerciseSyncEngine = CollectionSyncEngine<ExerciseModel>(
-                remote: MockRemoteCollectionService(),
+                remote: MockRemoteCollectionService(collection: ExerciseModel.mocks),
                 managerKey: Keys.userExerciseManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -122,36 +121,43 @@ struct Dependencies {
             exerciseModelManager = ExerciseModelManager(userExerciseSyncEngine: userExerciseSyncEngine, systemExercisePersistence: systemExercisePersistence)
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             let workoutSettingsSyncEngine = DocumentSyncEngine<WorkoutSettings>(
-                remote: MockRemoteDocumentService(),
+                remote: MockRemoteDocumentService(document: WorkoutSettings.mock),
                 managerKey: Keys.workoutSettingsManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
             workoutSettingsManager = WorkoutSettingsManager(workoutSettingsSyncEngine: workoutSettingsSyncEngine)
+            let exerciseSettingsSyncEngineMock = CollectionSyncEngine<ExerciseSettingsModel>(
+                remote: MockRemoteCollectionService(collection: []),
+                managerKey: Keys.exerciseSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            exerciseSettingsManager = ExerciseSettingsManager(syncEngine: exerciseSettingsSyncEngineMock)
             let foodLogSettingsSyncEngine = DocumentSyncEngine<FoodLogSettings>(
-                remote: MockRemoteDocumentService(),
+                remote: MockRemoteDocumentService(document: FoodLogSettings.mock),
                 managerKey: Keys.foodLogSettingsManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
             foodLogSettingsManager = FoodLogSettingsManager(foodLogSettingsSyncEngine: foodLogSettingsSyncEngine)
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
-                remote: MockRemoteCollectionService(),
+                remote: MockRemoteCollectionService(collection: WorkoutTemplateModel.mocks),
                 managerKey: Keys.workoutTemplateManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            let systemWorkoutTemplatePersistence = MockLocalCollectionPersistence<WorkoutTemplateModel>()
+            let systemWorkoutTemplatePersistence = MockLocalCollectionPersistence<WorkoutTemplateModel>(collection: WorkoutTemplateModel.mocks)
             workoutTemplateManager = WorkoutTemplateManager(userWorkoutTemplateSyncEngine: userWorkoutTemplateSyncEngine, systemWorkoutTemplatePersistence: systemWorkoutTemplatePersistence)
             let activeWorkoutSessionPersistence = MockLocalDocumentPersistence<WorkoutSessionModel>()
             let userWorkoutSessionSyncEngine = CollectionSyncEngine<WorkoutSessionModel>(
-                remote: MockRemoteCollectionService(),
+                remote: MockRemoteCollectionService(collection: WorkoutSessionModel.mocks),
                 managerKey: Keys.userWorkoutSessionManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
             let followingWorkoutSessionSyncEngine = CollectionGroupSyncEngine<WorkoutSessionModel>(
-                remote: MockRemoteCollectionGroupService(),
+                remote: MockRemoteCollectionGroupService(collection: WorkoutSessionModel.mocks),
                 managerKey: Keys.followingWorkoutSessionsManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -163,7 +169,7 @@ struct Dependencies {
                 followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine
             )
             let trainingProgramSyncEngine = CollectionSyncEngine<TrainingProgram>(
-                remote: MockRemoteCollectionService(),
+                remote: MockRemoteCollectionService(collection: TrainingProgram.mocks),
                 managerKey: Keys.trainingProgramManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -171,7 +177,7 @@ struct Dependencies {
             trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, logManager: logManager)
                 
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
-                remote: MockRemoteCollectionService(),
+                remote: MockRemoteCollectionService(collection: GymProfileModel.mocks),
                 managerKey: Keys.gymProfileManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -179,7 +185,7 @@ struct Dependencies {
             gymProfileManager = GymProfileManager(gymProfileSyncEngine: gymProfileSyncEngine)
 
             let foodSyncEngine = CollectionSyncEngine<FoodModel>(
-                remote: MockRemoteCollectionService(),
+                remote: MockRemoteCollectionService(collection: FoodModel.mocks),
                 managerKey: Keys.foodManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -187,14 +193,14 @@ struct Dependencies {
             foodManager = FoodManager(foodSyncEngine: foodSyncEngine)
             
             let userRecipeTemplateSyncEngine = CollectionSyncEngine<RecipeTemplateModel>(
-                remote: MockRemoteCollectionService(),
+                remote: MockRemoteCollectionService(collection: RecipeTemplateModel.mocks),
                 managerKey: Keys.recipeTemplateManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
             recipeTemplateManager = RecipeTemplateManager(userRecipeTemplateSyncEngine: userRecipeTemplateSyncEngine)
             let dietPlanSyncEngine = DocumentSyncEngine<DietPlan>(
-                remote: MockRemoteDocumentService(),
+                remote: MockRemoteDocumentService(document: DietPlan.mock),
                 managerKey: Keys.dietPlanManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -211,7 +217,7 @@ struct Dependencies {
             aiManager = AIManager(service: MockAIService())
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
             let bodyMeasurementsSyncEngine = CollectionSyncEngine<BodyMeasurementEntry>(
-                remote: MockRemoteCollectionService(),
+                remote: MockRemoteCollectionService(collection: BodyMeasurementEntry.mocks),
                 managerKey: Keys.bodyMeasurementsManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -221,14 +227,14 @@ struct Dependencies {
                 healthKitService: ProductionHealthKitWeightService()
             )
             let stepsSyncEngine = CollectionSyncEngine<StepsModel>(
-                remote: MockRemoteCollectionService(),
+                remote: MockRemoteCollectionService(collection: StepsModel.mocks),
                 managerKey: Keys.stepsManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
             stepsManager = StepsManager(stepsSyncEngine: stepsSyncEngine, healthKitService: MockHealthKitStepsService())
             let userGoalSyncEngine = DocumentSyncEngine<WeightGoal>(
-                remote: MockRemoteDocumentService(),
+                remote: MockRemoteDocumentService(document: WeightGoal.mock()),
                 managerKey: Keys.userGoalManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -300,6 +306,18 @@ struct Dependencies {
                 logger: logManager
             )
             workoutSettingsManager = WorkoutSettingsManager(workoutSettingsSyncEngine: workoutSettingsSyncEngine)
+            let exerciseSettingsSyncEngineDev = CollectionSyncEngine<ExerciseSettingsModel>(
+                remote: FirebaseRemoteCollectionService(
+                    collectionPath: { [weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/exercise_settings"
+                    }
+                ),
+                managerKey: Keys.exerciseSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            exerciseSettingsManager = ExerciseSettingsManager(syncEngine: exerciseSettingsSyncEngineDev)
             let foodLogSettingsSyncEngineDev = DocumentSyncEngine<FoodLogSettings>(
                 remote: FirebaseRemoteDocumentService(
                     collectionPath: {[weak authManager] in
@@ -524,6 +542,18 @@ struct Dependencies {
                 logger: logManager
             )
             workoutSettingsManager = WorkoutSettingsManager(workoutSettingsSyncEngine: workoutSettingsSyncEngine)
+            let exerciseSettingsSyncEngineProd = CollectionSyncEngine<ExerciseSettingsModel>(
+                remote: FirebaseRemoteCollectionService(
+                    collectionPath: { [weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/exercise_settings"
+                    }
+                ),
+                managerKey: Keys.exerciseSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            exerciseSettingsManager = ExerciseSettingsManager(syncEngine: exerciseSettingsSyncEngineProd)
             let foodLogSettingsSyncEngineProd = DocumentSyncEngine<FoodLogSettings>(
                 remote: FirebaseRemoteDocumentService(
                     collectionPath: {[weak authManager] in
@@ -716,6 +746,7 @@ struct Dependencies {
         container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
         container.register(WorkoutSettingsManager.self, service: workoutSettingsManager)
         container.register(FoodLogSettingsManager.self, service: foodLogSettingsManager)
+        container.register(ExerciseSettingsManager.self, service: exerciseSettingsManager)
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
         container.register(TrainingProgramManager.self, service: trainingProgramManager)

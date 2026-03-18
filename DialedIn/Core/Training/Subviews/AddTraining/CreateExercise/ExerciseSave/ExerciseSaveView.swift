@@ -11,8 +11,7 @@ struct ExerciseSaveDelegate {
     let targetMuscles: [Muscles: MuscleTargetType]
 
     let isBodyweight: Bool
-    let resistanceEquipment: [EquipmentRef]
-    let supportEquipment: [EquipmentRef]
+    let equipmentVariations: [EquipmentVariation]
 
     let rangeOfMotion: Int
     let stability: Int
@@ -56,9 +55,7 @@ struct ExerciseSaveView: View {
                 stabilitySection
             }
 
-            resistanceEquipmentSection
-
-            supportEquipmentSection
+            equipmentVariationsSection
 
             detailsSection
         }
@@ -231,49 +228,35 @@ struct ExerciseSaveView: View {
         }
     }
 
-    private var resistanceEquipmentSection: some View {
-        Section {
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(delegate.resistanceEquipment, id: \.self) { equipment in
-                        VStack {
-                            ImageLoaderView()
-                                .frame(height: 200)
+    private var equipmentVariationsSection: some View {
+        ForEach(Array(delegate.equipmentVariations.enumerated()), id: \.element.id) { index, variation in
+            Section {
+                if variation.resistanceEquipment.isEmpty && variation.supportEquipment.isEmpty {
+                    Text("No equipment selected")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(variation.resistanceEquipment, id: \.self) { equipment in
+                        HStack {
+                            Text("Resistance:")
+                                .foregroundStyle(.secondary)
                             Text(equipment.equipmentId)
                         }
                     }
-
-                }
-            }
-        } header: {
-            HStack {
-                Text("Resistance Equipment")
-                Spacer()
-                Text("Final")
-                    .font(.caption)
-            }
-        }
-    }
-
-    private var supportEquipmentSection: some View {
-        Section {
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(delegate.supportEquipment, id: \.self) { equipment in
-                        VStack {
-                            ImageLoaderView()
-                                .frame(height: 200)
+                    ForEach(variation.supportEquipment, id: \.self) { equipment in
+                        HStack {
+                            Text("Support:")
+                                .foregroundStyle(.secondary)
                             Text(equipment.equipmentId)
                         }
                     }
                 }
-            }
-        } header: {
-            HStack {
-                Text("Support Equipment")
-                Spacer()
-                Text("Final")
-                    .font(.caption)
+            } header: {
+                HStack {
+                    Text("Variation \(index + 1)")
+                    Spacer()
+                    Text("Final")
+                        .font(.caption)
+                }
             }
         }
     }
@@ -323,9 +306,8 @@ struct ExerciseSaveView: View {
             .frontDelts: .secondary,
             .triceps: .secondary
         ],
-        isBodyweight: false, 
-        resistanceEquipment: [],
-        supportEquipment: [],
+        isBodyweight: false,
+        equipmentVariations: [],
         rangeOfMotion: 4,
         stability: 5,
         bodyweightContribution: 75,
@@ -375,8 +357,7 @@ extension ExerciseModel {
         self.laterality = delegate.laterality
         self.muscleGroups = delegate.targetMuscles
         self.isBodyweight = delegate.isBodyweight
-        self.resistanceEquipment = delegate.resistanceEquipment
-        self.supportEquipment = delegate.supportEquipment
+        self.equipmentVariations = delegate.equipmentVariations
         self.rangeOfMotion = delegate.rangeOfMotion
         self.stability = delegate.stability
         self.bodyWeightContribution = delegate.bodyweightContribution

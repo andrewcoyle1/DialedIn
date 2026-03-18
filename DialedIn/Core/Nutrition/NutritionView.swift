@@ -90,6 +90,8 @@ struct NutritionView<
             Section {
                 mealHourHeader(MealHourHeaderDelegate(hour: hour, meals: hourssMeals))
             }
+            .listSectionMargins(.horizontal, 0)
+            .padding(.horizontal)
             ForEach(hourssMeals) { meal in
                 Section {
                     ForEach(meal.items) { item in

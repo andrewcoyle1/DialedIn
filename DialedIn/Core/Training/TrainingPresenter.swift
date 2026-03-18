@@ -99,6 +99,42 @@ class TrainingPresenter {
         sessionsForDate(date).count
     }
         
+    func onStartEmptyWorkoutPressed() {
+        router.showCreateWorkoutView(delegate: CreateWorkoutDelegate(
+            onWorkoutCreated: { [weak self] template in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    if activeSession != nil {
+                        router.showAlert(
+                            title: "Active Workout",
+                            subtitle: "You already have an active workout.",
+                            buttons: {
+                                AnyView(VStack {
+                                    Button("Resume") { self.router.showWorkoutTrackerView() }
+                                    Button("Discard & Start New") {
+                                        try? self.interactor.deleteActiveSession()
+                                        Task {
+                                            try? await self.interactor.startWorkout(for: template, in: nil)
+                                            self.router.showWorkoutTrackerView()
+                                        }
+                                    }
+                                    Button("Cancel", role: .cancel) {}
+                                })
+                            }
+                        )
+                    } else {
+                        do {
+                            try await interactor.startWorkout(for: template, in: nil)
+                            router.showWorkoutTrackerView()
+                        } catch {
+                            router.showSimpleAlert(title: "Could Not Start Workout", subtitle: "Please try again.")
+                        }
+                    }
+                }
+            }
+        ))
+    }
+    
     func onDatePressed(date: Date) {
         self.selectedDate = date.startOfDay
         let sessions = sessionsForDate(date)
@@ -156,11 +192,11 @@ class TrainingPresenter {
     // MARK: - Library Navigation
     
     func onTrainingProgramLibraryView() {
-        router.showProgramManagementView()
+        router.showTrainingProgramLibraryView()
     }
     
     func onChooseProgramPressed() {
-        router.showProgramManagementView()
+        router.showTrainingProgramLibraryView()
     }
     
     func onWorkoutLibraryPressed() {

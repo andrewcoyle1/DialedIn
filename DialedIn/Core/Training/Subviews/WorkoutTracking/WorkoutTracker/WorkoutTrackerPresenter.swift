@@ -706,8 +706,8 @@ class WorkoutTrackerPresenter {
                 imageName: imageName,
                 sets: defaultSets,
                 setTargets: template.setTargets,
-                chosenResistanceEquipment: exercise.resistanceEquipment,
-                chosenSupportEquipment: exercise.supportEquipment
+                chosenVariationId: nil,
+                equipmentVariations: exercise.equipmentVariations
             )
             updated.append(newExercise)
         }
@@ -774,6 +774,11 @@ class WorkoutTrackerPresenter {
             elapsedTime: elapsedTime
         ))
         #endif
+    }
+
+    func setSupersetGroupId(_ groupId: String?, forExerciseId exerciseId: String) {
+        guard let idx = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) else { return }
+        workoutSession.exercises[idx].supersetGroupId = groupId
     }
 
     func reorderExercises(from sourceIndex: Int, to targetIndex: Int) {

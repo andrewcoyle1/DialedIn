@@ -29,11 +29,97 @@ class SetTrackerPresenter {
     }
 
     func onExerciseEquipmentPressed(_ exercise: Binding<WorkoutExerciseModel>) {
-        let delegate = WorkoutExerciseEquipmentSheetDelegate(exercise: exercise) { resistance, support in
-            exercise.wrappedValue.chosenResistanceEquipment = resistance
-            exercise.wrappedValue.chosenSupportEquipment = support
+        let delegate = WorkoutExerciseEquipmentSheetDelegate(exercise: exercise) { variationId in
+            exercise.wrappedValue.chosenVariationId = variationId
         }
         router.showWorkoutExerciseEquipmentSheetView(delegate: delegate)
+    }
+    
+    func onWarmupSetsPressed(_ exercise: Binding<WorkoutExerciseModel>) {
+        router.showWarmupSetsView(delegate: WarmupSetsDelegate(exercise: exercise))
+    }
+    
+    func onExerciseSettingsPressed(exercise: WorkoutExerciseModel) {
+        guard let exerciseModel = interactor.allExercises.first(where: { $0.id == exercise.templateId }) else { return }
+        router.showExerciseSettingsView(delegate: ExerciseSettingsDelegate(exercise: exerciseModel))
+    }
+
+    func deleteExercise(_ exercise: Binding<WorkoutExerciseModel>, onDelete: @escaping @Sendable () -> Void) {
+        let name = exercise.wrappedValue.name
+        router.showAlert(title: "Delete Exercise?", subtitle: "Remove '\(name)' from this workout?") {
+            AnyView(VStack(spacing: 8) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) { onDelete() }
+            })
+        }
+    }
+
+    func onTargetsPressed(_ exercise: Binding<WorkoutExerciseModel>) {
+        guard let model = interactor.allExercises.first(where: { $0.id == exercise.wrappedValue.templateId }) else { return }
+        let adapted = Binding<WorkoutTemplateExercise>(
+            get: { WorkoutTemplateExercise(exercise: model, setTargets: exercise.wrappedValue.setTargets, setRestTimers: false) },
+            set: { exercise.wrappedValue.setTargets = $0.setTargets }
+        )
+        router.showSetTargetView(delegate: SetTargetDelegate(exercise: adapted))
+    }
+
+    func onSwapPressed(_ exercise: Binding<WorkoutExerciseModel>) {
+        router.showSwapExercisePickerView { [weak self] newExercise in
+            guard let self, let userId = self.interactor.userId else { return }
+            let newMode = WorkoutSessionModel.trackingMode(for: newExercise)
+            exercise.wrappedValue.templateId = newExercise.id
+            exercise.wrappedValue.name = newExercise.name
+            exercise.wrappedValue.trackingMode = newMode
+            exercise.wrappedValue.equipmentVariations = newExercise.equipmentVariations
+            exercise.wrappedValue.imageName = Constants.exerciseImageName(for: newExercise.name)
+            exercise.wrappedValue.sets = WorkoutSessionModel.defaultSets(trackingMode: newMode, authorId: userId, targetCount: 3)
+            exercise.wrappedValue.setTargets = [SetTarget(setNumber: 1, setType: .standard)]
+            exercise.wrappedValue.chosenVariationId = nil
+        }
+    }
+
+    func onSupersetPressed(
+        exercise: Binding<WorkoutExerciseModel>,
+        allWorkoutExercises: [WorkoutExerciseModel],
+        onSetSupersetGroup: @Sendable @escaping (String, String?) -> Void
+    ) {
+        let current = exercise.wrappedValue
+        // Remove from existing group
+        if let groupId = current.supersetGroupId {
+            exercise.wrappedValue.supersetGroupId = nil
+            let remaining = allWorkoutExercises.filter { $0.supersetGroupId == groupId && $0.id != current.id }
+            // If only 1 remains, dissolve — a solo exercise can't be a superset
+            if remaining.count == 1, let lastId = remaining.first?.id {
+                onSetSupersetGroup(lastId, nil)
+            }
+            return
+        }
+        // No group — show all other exercises to pair with
+        let available = allWorkoutExercises.filter { $0.id != current.id }
+        guard !available.isEmpty else {
+            router.showSimpleAlert(title: "No Exercises Available", subtitle: "Add more exercises to create a superset or circuit.")
+            return
+        }
+        router.showAlert(title: "Add to Group", subtitle: "Pair '\(current.name)' with:") {
+            AnyView(VStack(spacing: 8) {
+                ForEach(available, id: \.id) { partner in
+                    let partnerGroupId = partner.supersetGroupId
+                    let partnerId = partner.id
+                    Button(partner.name) {
+                        if let existingGroupId = partnerGroupId {
+                            // Join the partner's existing group (builds a circuit)
+                            exercise.wrappedValue.supersetGroupId = existingGroupId
+                        } else {
+                            // Create a new pair
+                            let newGroupId = UUID().uuidString
+                            exercise.wrappedValue.supersetGroupId = newGroupId
+                            onSetSupersetGroup(partnerId, newGroupId)
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            })
+        }
     }
 
     func getUnitPreference(for exercise: WorkoutExerciseModel) -> (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit) {
@@ -161,9 +247,11 @@ class SetTrackerPresenter {
             let weightInNewUnit = UnitConversion.convertWeight(weightKg, to: newUnit)
             let weightKgAsNewUnit = UnitConversion.convertWeightToKg(weightInNewUnit, from: newUnit)
 
+            let exerciseTemplate = interactor.allExercises.first(where: { $0.id == exercise.wrappedValue.templateId })
             let roundedWeightKg = WorkoutSessionModel.roundWeightToEquipmentIncrement(
                 weightKg: weightKgAsNewUnit,
                 workoutExercise: exercise.wrappedValue,
+                exerciseTemplate: exerciseTemplate,
                 gymProfile: interactor.workoutGymProfile,
                 preferredWeightUnit: newUnit
             )

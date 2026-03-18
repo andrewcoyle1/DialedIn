@@ -1,16 +1,16 @@
 //
-//  ProgramManagementInteractor.swift
+//  TrainingProgramLibraryInteractor.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
 @MainActor
-protocol ProgramManagementInteractor: GlobalInteractor {
+protocol TrainingProgramLibraryInteractor: GlobalInteractor {
     var activeTrainingProgram: TrainingProgram? { get }
     var trainingPrograms: [TrainingProgram] { get }
     func setActiveTrainingProgram(programId: String) async throws
     func deleteTrainingProgram(programId: String) async throws
 }
 
-extension CoreInteractor: ProgramManagementInteractor { }
+extension CoreInteractor: TrainingProgramLibraryInteractor { }

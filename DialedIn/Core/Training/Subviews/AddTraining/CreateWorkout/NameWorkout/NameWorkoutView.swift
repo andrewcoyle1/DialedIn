@@ -10,6 +10,7 @@ import PhotosUI
 
 struct NameWorkoutDelegate {
     var workoutTemplate: WorkoutTemplateModel?
+    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
 struct NameWorkoutView: View {
@@ -20,33 +21,20 @@ struct NameWorkoutView: View {
 
     var body: some View {
         List {
-            nameSection
+            Section {
+                TextField("Enter workout name", text: $presenter.workoutName)
+            } header: {
+                Text("Workout name")
+            }
         }
         .navigationTitle("Name Workout")
-        .toolbar {
-            toolbarContent
-        }
-    }
-    
-    private var nameSection: some View {
-        Section {
-            TextField("Enter workout name", text: $presenter.workoutName)
-        } header: {
-            Text("Workout name")
-        }
-    }
-
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.onContinuePressed()
+        .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .bottom) {
+            CallToActionButton {
+                presenter.onContinuePressed(delegate: delegate)
             } label: {
-                Image(systemName: "chevron.right")
+                Text("Continue")
             }
-            .buttonStyle(.glassProminent)
             .disabled(!presenter.canSave || presenter.isSaving)
         }
     }

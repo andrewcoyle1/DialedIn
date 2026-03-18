@@ -1,71 +1,111 @@
 import SwiftUI
 
+struct EquipmentVariationDraft: Identifiable {
+    var id: String = UUID().uuidString
+    var resistanceEquipment: [EquipmentRef] = []
+    var supportEquipment: [EquipmentRef] = []
+}
+
 @Observable
 @MainActor
 class ExerciseEquipmentPresenter {
-    
+
     private let interactor: ExerciseEquipmentInteractor
     private let router: ExerciseEquipmentRouter
-    
-    var favouriteGymProfile: GymProfileModel? {
-        interactor.favouriteGymProfile
+
+    var variations: [EquipmentVariationDraft] = [EquipmentVariationDraft()]
+    var bodyweightExercise: Bool = false
+    private var equipmentIndex: [EquipmentRef: AnyEquipment] = [:]
+
+    var canContinue: Bool {
+        bodyweightExercise || variations.contains { !$0.resistanceEquipment.isEmpty }
     }
-    
+
     init(interactor: ExerciseEquipmentInteractor, router: ExerciseEquipmentRouter) {
         self.interactor = interactor
         self.router = router
     }
-    
+
     func onViewAppear() {
         interactor.trackScreenEvent(event: Event.onAppear)
+        equipmentIndex = Dictionary(
+            uniqueKeysWithValues: interactor.allEquipmentTypes.map { ($0.ref, $0) }
+        )
     }
-    
+
     func onViewDisappear() {
         interactor.trackEvent(event: Event.onDisappear)
     }
 
-    var bodyweightExercise: Bool = false
-     
-    var chosenResistanceEquipment: [EquipmentRef] = []
-    var chosenSupportEquipment: [EquipmentRef] = []
-
-    private var equipmentIndex: [EquipmentRef: AnyEquipment] = [:]
-    
-    var canContinue: Bool {
-        self.bodyweightExercise || !self.chosenResistanceEquipment.isEmpty
+    func variationName(for index: Int) -> String {
+        "Variation \(index + 1)"
     }
 
-    var resistanceSubtitle: String? {
-        let array: [String] = chosenResistanceEquipment.isEmpty
-        ? ["Equipment that adds load to the exercise"]
-        : chosenResistanceEquipment.map { name(for: $0) }
-        
-        if !array.isEmpty {
-            return "\(array.joined(separator: ", "))"
-        } else {
-            return nil
+    func onAddVariationPressed() {
+        variations.append(EquipmentVariationDraft())
+    }
+
+    func onDeleteVariationPressed(id: String) {
+        guard variations.count > 1 else { return }
+        variations.removeAll { $0.id == id }
+    }
+
+    func onAddResistancePressed(variationId: String) {
+        guard let idx = variations.firstIndex(where: { $0.id == variationId }) else { return }
+
+        let chosenBinding = Binding<[EquipmentRef]>(
+            get: { self.variations[idx].resistanceEquipment },
+            set: { self.variations[idx].resistanceEquipment = $0 }
+        )
+
+        let equipmentItems = interactor.allEquipmentTypes.filter {
+            $0.ref.kind != .supportEquipment && $0.ref.kind != .accessoryEquipment
         }
+        let delegate = EquipmentPickerDelegate(
+            items: equipmentItems,
+            headerTitle: "Resistance Equipment",
+            chosenItem: chosenBinding
+        )
+        router.showEquipmentPickerView(delegate: delegate)
     }
 
-    var resistanceSubsubtitle: String? {
-        chosenResistanceEquipment.isEmpty ? "Required" : nil
-    }
+    func onAddSupportPressed(variationId: String) {
+        guard let idx = variations.firstIndex(where: { $0.id == variationId }) else { return }
 
-    var supportSubtitle: String? {
-        let array: [String] = chosenSupportEquipment.isEmpty ? ["Equipment that assists, stabilize, or makes the movement possible, without adding resistance."] : chosenSupportEquipment.map { name(for: $0)}
+        let chosenBinding = Binding<[EquipmentRef]>(
+            get: { self.variations[idx].supportEquipment },
+            set: { self.variations[idx].supportEquipment = $0 }
+        )
 
-        if !array.isEmpty {
-            return "\(array.joined(separator: ", "))"
-        } else {
-            return nil
+        let equipmentItems = interactor.allEquipmentTypes.filter {
+            $0.ref.kind == .supportEquipment || $0.ref.kind == .accessoryEquipment
         }
+        let delegate = EquipmentPickerDelegate(
+            items: equipmentItems,
+            headerTitle: "Support Equipment",
+            chosenItem: chosenBinding
+        )
+        router.showEquipmentPickerView(delegate: delegate)
     }
 
-    var supportSubsubtitle: String? {
-        chosenSupportEquipment.isEmpty ? "Optional" : nil
+    func resistanceSubtitle(for variation: EquipmentVariationDraft) -> String {
+        guard !variation.resistanceEquipment.isEmpty else {
+            return "Equipment that adds load to the exercise"
+        }
+        return variation.resistanceEquipment.map { name(for: $0) }.joined(separator: ", ")
+    }
+
+    func supportSubtitle(for variation: EquipmentVariationDraft) -> String {
+        guard !variation.supportEquipment.isEmpty else {
+            return "Equipment that assists, stabilizes, or makes the movement possible"
+        }
+        return variation.supportEquipment.map { name(for: $0) }.joined(separator: ", ")
     }
 
     func onNextPressed(delegate: ExerciseEquipmentDelegate) {
+        let finalVariations = variations.map {
+            EquipmentVariation(id: $0.id, resistanceEquipment: $0.resistanceEquipment, supportEquipment: $0.supportEquipment)
+        }
         router.showFinalExerciseDetailsView(
             delegate: FinalExerciseDetailsDelegate(
                 name: delegate.name,
@@ -74,82 +114,36 @@ class ExerciseEquipmentPresenter {
                 exerciseType: delegate.exerciseType,
                 laterality: delegate.laterality,
                 targetMuscles: delegate.muscleGroups,
-                isBodyweight: self.bodyweightExercise,
-                resistanceEquipment: self.chosenResistanceEquipment,
-                supportEquipment: self.chosenSupportEquipment
+                isBodyweight: bodyweightExercise,
+                equipmentVariations: finalVariations
             )
         )
     }
-    
-    func onAddResistancePressed() {
-        guard let gymProfile = favouriteGymProfile else { return }
 
-        equipmentIndex = gymProfile.equipmentIndex
-        
-        let chosenBinding = Binding<[EquipmentRef]>(
-            get: { self.chosenResistanceEquipment },
-            set: { self.chosenResistanceEquipment = $0 }
-        )
-        
-        let equipmentItems = gymProfile.allEquipment.filter {
-            $0.ref.kind != .supportEquipment && $0.ref.kind != .accessoryEquipment
-        }
-        let delegate = EquipmentPickerDelegate(
-            items: equipmentItems,
-            headerTitle: "Resistance Equipment",
-            chosenItem: chosenBinding
-        )
-        
-        router.showEquipmentPickerView(delegate: delegate)
+    private func name(for ref: EquipmentRef) -> String {
+        equipmentIndex[ref]?.name ?? ref.equipmentId
     }
-    
-    func onAddSupportPressed() {
-        guard let gymProfile = favouriteGymProfile else { return }
-        
-        equipmentIndex = gymProfile.equipmentIndex
-        
-        let chosenBinding = Binding<[EquipmentRef]>(
-            get: { self.chosenSupportEquipment },
-            set: { self.chosenSupportEquipment = $0 }
-        )
-        
-        let equipmentItems = gymProfile.allEquipment.filter {
-            $0.ref.kind != .supportEquipment || $0.ref.kind != .accessoryEquipment
-        }
-        let delegate = EquipmentPickerDelegate(
-            items: equipmentItems,
-            headerTitle: "Support Equipment",
-            chosenItem: chosenBinding
-        )
-        
-        router.showEquipmentPickerView(delegate: delegate)
-    }
-    
-    private func name(for equipmentRef: EquipmentRef) -> String {
-        equipmentIndex[equipmentRef]?.name ?? equipmentRef.equipmentId
-    }
-    
 }
 
 extension ExerciseEquipmentPresenter {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
-        
+
         var eventName: String {
             switch self {
             case .onAppear: return "ExerciseEquipmentView_Appear"
             case .onDisappear: return "ExerciseEquipmentView_Disappear"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
             default:
                 return nil
             }
         }
-        
+
         var type: LogType {
             switch self {
             default:

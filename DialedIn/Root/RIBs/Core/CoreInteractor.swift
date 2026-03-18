@@ -25,6 +25,7 @@ struct CoreInteractor: GlobalInteractor {
     let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
     let workoutSettingsManager: WorkoutSettingsManager
     let foodLogSettingsManager: FoodLogSettingsManager
+    let exerciseSettingsManager: ExerciseSettingsManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let trainingProgramManager: TrainingProgramManager
@@ -64,6 +65,7 @@ struct CoreInteractor: GlobalInteractor {
         self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
         self.workoutSettingsManager = container.resolve(WorkoutSettingsManager.self)!
         self.foodLogSettingsManager = container.resolve(FoodLogSettingsManager.self)!
+        self.exerciseSettingsManager = container.resolve(ExerciseSettingsManager.self)!
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.trainingProgramManager = container.resolve(TrainingProgramManager.self)!
@@ -102,6 +104,7 @@ struct CoreInteractor: GlobalInteractor {
         try await userManager.signIn(auth: user, isNewUser: isNewUser)
         async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: user.uid)
         async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: user.uid)
+        async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: user.uid)
         async let stepsSignIn: () = stepsManager.signIn()
         async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
         async let gymProfileSignIn: () = gymProfileManager.signIn()
@@ -120,6 +123,7 @@ struct CoreInteractor: GlobalInteractor {
 
         try await workoutSettingsSignIn
         try await foodLogSettingsSignIn
+        await exerciseSettingsSignIn
         await trainingProgramSignIn
         try await nutritionSignIn
         try await goalSignIn
@@ -166,6 +170,7 @@ struct CoreInteractor: GlobalInteractor {
         exerciseModelManager.signOut()
         workoutSettingsManager.signOut()
         foodLogSettingsManager.signOut()
+        exerciseSettingsManager.signOut()
         recipeTemplateManager.signOut()
         foodManager.signOut()
         nutritionManager.signOut()

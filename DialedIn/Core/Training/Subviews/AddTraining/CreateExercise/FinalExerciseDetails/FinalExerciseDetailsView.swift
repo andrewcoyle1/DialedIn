@@ -9,8 +9,7 @@ struct FinalExerciseDetailsDelegate {
     let targetMuscles: [Muscles: MuscleTargetType]
 
     let isBodyweight: Bool
-    let resistanceEquipment: [EquipmentRef]
-    let supportEquipment: [EquipmentRef]
+    let equipmentVariations: [EquipmentVariation]
 
     var eventParameters: [String: Any]? {
         nil
@@ -150,9 +149,8 @@ struct FinalExerciseDetailsView: View {
         exerciseType: .compoundUpper,
         laterality: .bilateral,
         targetMuscles: [.chest: .primary, .frontDelts: .secondary, .triceps: .secondary],
-        isBodyweight: false, 
-        resistanceEquipment: [],
-        supportEquipment: []
+        isBodyweight: false,
+        equipmentVariations: []
     )
 
     return RouterView { router in

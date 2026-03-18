@@ -1,5 +1,5 @@
 //
-//  ProgramManagementRouter.swift
+//  TrainingProgramLibraryRouter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 27/11/2025.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @MainActor
-protocol ProgramManagementRouter: GlobalRouter {
+protocol TrainingProgramLibraryRouter: GlobalRouter {
 #if DEV || MOCK
 func showDevSettingsView()
 #endif
@@ -17,4 +17,4 @@ func showDevSettingsView()
     func showEditTrainingProgramView(delegate: EditTrainingProgramDelegate)
 }
 
-extension CoreRouter: ProgramManagementRouter { }
+extension CoreRouter: TrainingProgramLibraryRouter { }

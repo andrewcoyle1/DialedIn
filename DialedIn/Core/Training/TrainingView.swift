@@ -106,6 +106,13 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
                             presenter.onWorkoutLibraryPressed()
                         }
 
+                    Label("Start Empty Workout", systemImage: "plus")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                        .tappableBackground()
+                        .anyButton {
+                            presenter.onStartEmptyWorkoutPressed()
+                        }
+
                     Label("Workout History", systemImage: "list.bullet")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                         .tappableBackground()

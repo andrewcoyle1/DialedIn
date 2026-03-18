@@ -1,30 +1,29 @@
 import SwiftUI
 
 struct InactiveTrainingProgramDelegate {
+    
+    var inactivePrograms: [TrainingProgram]
+    
     var eventParameters: [String: Any]? {
         nil
     }
 }
 
-struct InactiveTrainingProgramView: View {
+struct InactiveTrainingProgramView<ProgramDisclosureGroup: View>: View {
     
     @State var presenter: InactiveTrainingProgramPresenter
     let delegate: InactiveTrainingProgramDelegate
     
+    @ViewBuilder var trainingProgramDisclosureGroup: (TrainingProgramDisclosureGroupDelegate) -> ProgramDisclosureGroup
+    
     var body: some View {
-        List {
-            ForEach(presenter.trainingPrograms) { program in
-                DisclosureGroup {
-                    ForEach(program.workoutTemplates) { workout in
-                        HStack {
-                            WorkoutTemplateRow(workoutTemplate: workout)
-                            Image(systemName: "chevron.right")
-                        }
-                    }
-                    .listRowInsets(.leading, 0)
-                } label: {
-                    TrainingProgramHeader(program: program)
-                }
+        Group {
+            ForEach(delegate.inactivePrograms) { program in
+                trainingProgramDisclosureGroup(
+                    TrainingProgramDisclosureGroupDelegate(
+                        trainingProgram: program
+                    )
+                )
             }
         }
         .onAppear {
@@ -40,10 +39,12 @@ struct InactiveTrainingProgramView: View {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
-    let delegate = InactiveTrainingProgramDelegate()
+    let delegate = InactiveTrainingProgramDelegate(inactivePrograms: TrainingProgram.mocks)
     
     return RouterView { router in
-        builder.inactiveTrainingProgramView(router: router, delegate: delegate)
+        List {
+            builder.inactiveTrainingProgramView(router: router, delegate: delegate)
+        }
     }
 }
 
@@ -55,7 +56,10 @@ extension CoreBuilder {
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
             ),
-            delegate: delegate
+            delegate: delegate,
+            trainingProgramDisclosureGroup: { delegate in
+                self.trainingProgramDisclosureGroupView(router: router, delegate: delegate)
+            }
         )
     }
     

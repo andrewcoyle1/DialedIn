@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol WorkoutExerciseEquipmentSheetInteractor {
+protocol WorkoutExerciseEquipmentSheetInteractor: GlobalInteractor {
     var userId: String? { get }
     var workoutGymProfile: GymProfileModel? { get }
     var allExercises: [ExerciseModel] { get }

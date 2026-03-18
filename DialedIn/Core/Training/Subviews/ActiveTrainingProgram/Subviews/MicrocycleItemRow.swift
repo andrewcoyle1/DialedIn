@@ -16,7 +16,6 @@ struct MicrocycleItemRow: View {
             WorkoutTemplateRow(workoutTemplate: item.workoutTemplate)
             Spacer()
             Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
-//                .foregroundStyle(item.isCompleted ? .green : .secondary)
         }
         .opacity(item.isCompleted ? 0.3 : 1)
     }

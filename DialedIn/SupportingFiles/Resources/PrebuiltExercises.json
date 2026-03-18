@@ -18,16 +18,25 @@
         "triceps": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "loadableBar",
-          "id": "barbell"
-        }
-      ],
-      "support_equipment": [
+          "id": "system-barbell-bench-press-v1",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "flat_bench_press_station" }
+          ]
+        },
         {
-          "kind": "supportEquipment",
-          "id": "flat_bench_press_station"
+          "id": "system-barbell-bench-press-v2",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "power_rack" },
+            { "kind": "supportEquipment", "id": "flat_bench" }
+          ]
         }
       ],
       "range_of_motion": 4,
@@ -62,16 +71,25 @@
         "triceps": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "loadableBar",
-          "id": "barbell"
-        }
-      ],
-      "support_equipment": [
+          "id": "system-barbell-incline-bench-press-v1",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "incline_bench_press_station" }
+          ]
+        },
         {
-          "kind": "supportEquipment",
-          "id": "incline_bench_press_station"
+          "id": "system-barbell-incline-bench-press-v2",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "power_rack" },
+            { "kind": "supportEquipment", "id": "adjustable_bench" }
+          ]
         }
       ],
       "range_of_motion": 4,
@@ -106,13 +124,15 @@
         "upperBack": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "loadableBar",
-          "id": "barbell"
+          "id": "system-barbell-romanian-deadlift-v1",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -147,13 +167,15 @@
         "lowerBack": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "loadableBar",
-          "id": "barbell"
+          "id": "system-barbell-sumo-deadlift-v1",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -184,25 +206,36 @@
         "forearms": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_single_cable_machine"
+          "id": "system-cable-bicep-curl-straight-bar-v1",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_dual_cable_machine"
+          "id": "system-cable-bicep-curl-straight-bar-v2",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_single_cable_machine"
+          "id": "system-cable-bicep-curl-straight-bar-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_dual_cable_machine"
+          "id": "system-cable-bicep-curl-straight-bar-v4",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 5,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -233,25 +266,36 @@
         "triceps": "primary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_single_cable_machine"
+          "id": "system-cable-pushdown-straight-bar-v1",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_dual_cable_machine"
+          "id": "system-cable-pushdown-straight-bar-v2",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_single_cable_machine"
+          "id": "system-cable-pushdown-straight-bar-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_dual_cable_machine"
+          "id": "system-cable-pushdown-straight-bar-v4",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -282,17 +326,22 @@
         "calves": "primary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "pinLoadedMachine",
-          "id": "pin-loaded_leg_press_machine"
+          "id": "system-calf-press-leg-press-v1",
+          "resistance_equipment": [
+            { "kind": "pinLoadedMachine", "id": "pin-loaded_leg_press_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_leg_press_machine"
+          "id": "system-calf-press-leg-press-v2",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_leg_press_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 3,
       "stability": 5,
       "body_weight_contribution": 0,
@@ -325,11 +374,13 @@
         "triceps": "secondary"
       },
       "is_bodyweight": true,
-      "resistance_equipment": [],
-      "support_equipment": [
+      "equipment_variations": [
         {
-          "kind": "supportEquipment",
-          "id": "parallel_bars"
+          "id": "system-chest-dip-v1",
+          "resistance_equipment": [],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "parallel_bars" }
+          ]
         }
       ],
       "range_of_motion": 4,
@@ -363,16 +414,15 @@
         "frontDelts": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "freeWeight",
-          "id": "dumbbells"
-        }
-      ],
-      "support_equipment": [
-        {
-          "kind": "supportEquipment",
-          "id": "adjustable_bench"
+          "id": "system-dumbbell-incline-fly-v1",
+          "resistance_equipment": [
+            { "kind": "freeWeight", "id": "dumbbells" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "adjustable_bench" }
+          ]
         }
       ],
       "range_of_motion": 5,
@@ -407,16 +457,15 @@
         "triceps": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "freeWeight",
-          "id": "dumbbells"
-        }
-      ],
-      "support_equipment": [
-        {
-          "kind": "supportEquipment",
-          "id": "flat_bench"
+          "id": "system-dumbbell-bench-press-v1",
+          "resistance_equipment": [
+            { "kind": "freeWeight", "id": "dumbbells" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "flat_bench" }
+          ]
         }
       ],
       "range_of_motion": 4,
@@ -451,16 +500,24 @@
         "upperTraps": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "freeWeight",
-          "id": "dumbbells"
-        }
-      ],
-      "support_equipment": [
+          "id": "system-dumbbell-seated-shoulder-press-v1",
+          "resistance_equipment": [
+            { "kind": "freeWeight", "id": "dumbbells" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "seated_bench" }
+          ]
+        },
         {
-          "kind": "supportEquipment",
-          "id": "seated_bench"
+          "id": "system-dumbbell-seated-shoulder-press-v2",
+          "resistance_equipment": [
+            { "kind": "freeWeight", "id": "dumbbells" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "adjustable_bench" }
+          ]
         }
       ],
       "range_of_motion": 4,
@@ -494,16 +551,15 @@
         "forearms": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "loadableBar",
-          "id": "ez_bar"
-        }
-      ],
-      "support_equipment": [
-        {
-          "kind": "supportEquipment",
-          "id": "preacher_curl_bench"
+          "id": "system-ez-barbell-preacher-curl-v1",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "ez_bar" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "preacher_curl_bench" }
+          ]
         }
       ],
       "range_of_motion": 4,
@@ -537,13 +593,15 @@
         "hamstrings": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "plateLoadedMachine",
-          "id": "hack_squat_machine"
+          "id": "system-hack-squat-v1",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "hack_squat_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 5,
       "body_weight_contribution": 0,
@@ -576,21 +634,29 @@
         "forearms": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "cableMachine",
-          "id": "cable_lat_pulldown_machine"
+          "id": "system-lat-prayer-straight-bar-v1",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "cable_lat_pulldown_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "pinLoadedMachine",
-          "id": "pin-loaded_pulldown_machine"
+          "id": "system-lat-prayer-straight-bar-v2",
+          "resistance_equipment": [
+            { "kind": "pinLoadedMachine", "id": "pin-loaded_pulldown_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_pulldown_machine"
+          "id": "system-lat-prayer-straight-bar-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_pulldown_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 5,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -621,25 +687,36 @@
         "triceps": "primary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_single_cable_machine"
+          "id": "system-overhead-extension-straight-bar-v1",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_dual_cable_machine"
+          "id": "system-overhead-extension-straight-bar-v2",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_single_cable_machine"
+          "id": "system-overhead-extension-straight-bar-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_dual_cable_machine"
+          "id": "system-overhead-extension-straight-bar-v4",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -670,13 +747,15 @@
         "upperBack": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "pinLoadedMachine",
-          "id": "pec_deck"
+          "id": "system-reverse-fly-v1",
+          "resistance_equipment": [
+            { "kind": "pinLoadedMachine", "id": "pec_deck" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 5,
       "body_weight_contribution": 0,
@@ -707,17 +786,22 @@
         "quads": "primary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "pinLoadedMachine",
-          "id": "pin-loaded_leg_extension_machine"
+          "id": "system-seated-leg-extension-v1",
+          "resistance_equipment": [
+            { "kind": "pinLoadedMachine", "id": "pin-loaded_leg_extension_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_leg_extension_machine"
+          "id": "system-seated-leg-extension-v2",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_leg_extension_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 5,
       "body_weight_contribution": 0,
@@ -748,25 +832,36 @@
         "upperTraps": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_single_cable_machine"
+          "id": "system-standing-lateral-raise-cable-v1",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_dual_cable_machine"
+          "id": "system-standing-lateral-raise-cable-v2",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_single_cable_machine"
+          "id": "system-standing-lateral-raise-cable-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_dual_cable_machine"
+          "id": "system-standing-lateral-raise-cable-v4",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 5,
       "stability": 3,
       "body_weight_contribution": 0,
@@ -799,16 +894,24 @@
         "lowerBack": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "loadableBar",
-          "id": "barbell"
-        }
-      ],
-      "support_equipment": [
+          "id": "system-barbell-squat-v1",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "power_rack" }
+          ]
+        },
         {
-          "kind": "supportEquipment",
-          "id": "power_rack"
+          "id": "system-barbell-squat-v2",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "squat_rack" }
+          ]
         }
       ],
       "range_of_motion": 5,
@@ -843,16 +946,24 @@
         "hamstrings": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "freeWeight",
-          "id": "dumbbells"
-        }
-      ],
-      "support_equipment": [
+          "id": "system-bulgarian-split-squat-v1",
+          "resistance_equipment": [
+            { "kind": "freeWeight", "id": "dumbbells" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "flat_bench" }
+          ]
+        },
         {
-          "kind": "supportEquipment",
-          "id": "flat_bench"
+          "id": "system-bulgarian-split-squat-v2",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "flat_bench" }
+          ]
         }
       ],
       "range_of_motion": 4,
@@ -884,21 +995,29 @@
         "hamstrings": "primary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "pinLoadedMachine",
-          "id": "lying_pin-loaded_leg_curl_machine"
+          "id": "system-lying-leg-curl-v1",
+          "resistance_equipment": [
+            { "kind": "pinLoadedMachine", "id": "lying_pin-loaded_leg_curl_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "pinLoadedMachine",
-          "id": "seated_pin-loaded_leg_curl_machine"
+          "id": "system-lying-leg-curl-v2",
+          "resistance_equipment": [
+            { "kind": "pinLoadedMachine", "id": "seated_pin-loaded_leg_curl_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "lying_plate-loaded_leg_curl_machine"
+          "id": "system-lying-leg-curl-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "lying_plate-loaded_leg_curl_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 5,
       "body_weight_contribution": 0,
@@ -931,21 +1050,29 @@
         "forearms": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "cableMachine",
-          "id": "seated_cable_row_machine"
+          "id": "system-seated-row-v1",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "seated_cable_row_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "pinLoadedMachine",
-          "id": "chest-supported_pin-loaded_row_machine"
+          "id": "system-seated-row-v2",
+          "resistance_equipment": [
+            { "kind": "pinLoadedMachine", "id": "chest-supported_pin-loaded_row_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "chest-supported_plate-loaded_row_machine"
+          "id": "system-seated-row-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "chest-supported_plate-loaded_row_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -978,16 +1105,15 @@
         "forearms": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "freeWeight",
-          "id": "dumbbells"
-        }
-      ],
-      "support_equipment": [
-        {
-          "kind": "supportEquipment",
-          "id": "flat_bench"
+          "id": "system-single-arm-row-v1",
+          "resistance_equipment": [
+            { "kind": "freeWeight", "id": "dumbbells" }
+          ],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "flat_bench" }
+          ]
         }
       ],
       "range_of_motion": 4,
@@ -1023,17 +1149,22 @@
         "forearms": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "loadableBar",
-          "id": "barbell"
+          "id": "system-t-bar-row-v1",
+          "resistance_equipment": [
+            { "kind": "loadableBar", "id": "barbell" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "chest-supported_t-bar_row_machine"
+          "id": "system-t-bar-row-v2",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "chest-supported_t-bar_row_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 3,
       "body_weight_contribution": 0,
@@ -1067,21 +1198,29 @@
         "forearms": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "cableMachine",
-          "id": "cable_lat_pulldown_machine"
+          "id": "system-cable-neutral-grip-lat-pulldown-v1",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "cable_lat_pulldown_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "pinLoadedMachine",
-          "id": "pin-loaded_pulldown_machine"
+          "id": "system-cable-neutral-grip-lat-pulldown-v2",
+          "resistance_equipment": [
+            { "kind": "pinLoadedMachine", "id": "pin-loaded_pulldown_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_pulldown_machine"
+          "id": "system-cable-neutral-grip-lat-pulldown-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_pulldown_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 5,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -1112,25 +1251,36 @@
         "triceps": "primary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_single_cable_machine"
+          "id": "system-cable-overhead-triceps-extension-v1",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_dual_cable_machine"
+          "id": "system-cable-overhead-triceps-extension-v2",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_single_cable_machine"
+          "id": "system-cable-overhead-triceps-extension-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_dual_cable_machine"
+          "id": "system-cable-overhead-triceps-extension-v4",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -1163,25 +1313,36 @@
         "biceps": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_single_cable_machine"
+          "id": "system-cable-standing-supinated-face-pull-v1",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "cableMachine",
-          "id": "pin-loaded_dual_cable_machine"
+          "id": "system-cable-standing-supinated-face-pull-v2",
+          "resistance_equipment": [
+            { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_single_cable_machine"
+          "id": "system-cable-standing-supinated-face-pull-v3",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" }
+          ],
+          "support_equipment": []
         },
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_dual_cable_machine"
+          "id": "system-cable-standing-supinated-face-pull-v4",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 5,
       "stability": 4,
       "body_weight_contribution": 0,
@@ -1214,13 +1375,15 @@
         "lowerBack": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "plateLoadedMachine",
-          "id": "plate-loaded_hip_thrust_machine_starting_from_the_top"
+          "id": "system-lever-hip-thrust-v1",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "plate-loaded_hip_thrust_machine_starting_from_the_top" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 5,
       "body_weight_contribution": 0,
@@ -1253,13 +1416,15 @@
         "triceps": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "plateLoadedMachine",
-          "id": "incline_chest_press_machine"
+          "id": "system-lever-incline-hammer-chest-press-v1",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "incline_chest_press_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 4,
       "stability": 5,
       "body_weight_contribution": 0,
@@ -1291,13 +1456,15 @@
         "frontDelts": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "plateLoadedMachine",
-          "id": "pec_deck_machine"
+          "id": "system-lever-pec-deck-fly-chest-v1",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "pec_deck_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 5,
       "stability": 5,
       "body_weight_contribution": 0,
@@ -1330,13 +1497,15 @@
         "hamstrings": "secondary"
       },
       "is_bodyweight": false,
-      "resistance_equipment": [
+      "equipment_variations": [
         {
-          "kind": "plateLoadedMachine",
-          "id": "pendulum_squat_machine"
+          "id": "system-lever-pendulum-squat-v1",
+          "resistance_equipment": [
+            { "kind": "plateLoadedMachine", "id": "pendulum_squat_machine" }
+          ],
+          "support_equipment": []
         }
       ],
-      "support_equipment": [],
       "range_of_motion": 5,
       "stability": 5,
       "body_weight_contribution": 0,
@@ -1370,15 +1539,20 @@
         "forearms": "secondary"
       },
       "is_bodyweight": true,
-      "resistance_equipment": [],
-      "support_equipment": [
+      "equipment_variations": [
         {
-          "kind": "supportEquipment",
-          "id": "parallel_bars"
+          "id": "system-weighted-hammer-grip-pull-up-on-dip-v1",
+          "resistance_equipment": [],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "parallel_bars" }
+          ]
         },
         {
-          "kind": "supportEquipment",
-          "id": "multi-grip_pull-up_bar"
+          "id": "system-weighted-hammer-grip-pull-up-on-dip-v2",
+          "resistance_equipment": [],
+          "support_equipment": [
+            { "kind": "supportEquipment", "id": "multi-grip_pull-up_bar" }
+          ]
         }
       ],
       "range_of_motion": 4,

@@ -17,6 +17,10 @@ protocol SetTrackerRouter: GlobalRouter {
         minutesSelection: Binding<Int>,
         secondsSelection: Binding<Int>
     )
+    func showWarmupSetsView(delegate: WarmupSetsDelegate)
+    func showExerciseSettingsView(delegate: ExerciseSettingsDelegate)
+    func showSetTargetView(delegate: SetTargetDelegate)
+    func showSwapExercisePickerView(onSelect: @escaping (ExerciseModel) -> Void)
 }
 
 extension CoreRouter: SetTrackerRouter { }

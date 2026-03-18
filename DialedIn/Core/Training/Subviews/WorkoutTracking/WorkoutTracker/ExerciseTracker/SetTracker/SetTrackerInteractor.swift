@@ -10,6 +10,9 @@ protocol SetTrackerInteractor: GlobalInteractor {
     var userId: String? { get }
     var currentUser: UserModel? { get }
 
+    var systemExercises: [ExerciseModel] { get }
+    var userExercises: [ExerciseModel] { get }
+    
     /// Load unit preferences for an exercise template.
     func getPreference(templateId: String) -> ExerciseUnitPreference
 
@@ -21,6 +24,7 @@ protocol SetTrackerInteractor: GlobalInteractor {
 
     var favouriteGymProfile: GymProfileModel? { get }
     var workoutGymProfile: GymProfileModel? { get }
+    var allExercises: [ExerciseModel] { get }
 
     var workoutSettings: WorkoutSettings { get }
 

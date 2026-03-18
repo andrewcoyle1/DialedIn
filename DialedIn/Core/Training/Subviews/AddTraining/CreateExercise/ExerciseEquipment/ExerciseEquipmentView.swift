@@ -10,41 +10,75 @@ struct ExerciseEquipmentDelegate {
 }
 
 struct ExerciseEquipmentView: View {
-    
+
     @State var presenter: ExerciseEquipmentPresenter
     let delegate: ExerciseEquipmentDelegate
-    
+
     var body: some View {
         List {
             Section {
                 ActionRow(title: "Bodyweight Exercise", subtitle: "This exercise is performed with bodyweight, without additional resistance.") {
                     Toggle(isOn: $presenter.bodyweightExercise) { }
                 }
-
-                ActionRow(title: "Resistance", subtitle: presenter.resistanceSubtitle, subsubtitle: presenter.resistanceSubsubtitle) {
-                    Text("Add")
-                        .padding(.vertical, 8)
-                        .padding(.horizontal)
-                        .background(Color.secondary.opacity(0.5), in: .capsule)
-                        .anyButton(.press) {
-                            presenter.onAddResistancePressed()
-                        }
-                        .disabled(presenter.bodyweightExercise ? true : false)
-                }
-                .opacity(presenter.bodyweightExercise ? 0.4 : 1)
-
-                ActionRow(title: "Support", subtitle: presenter.supportSubtitle, subsubtitle: presenter.supportSubsubtitle) {
-                    Text("Add")
-                        .padding(.vertical, 8)
-                        .padding(.horizontal)
-                        .background(Color.secondary.opacity(0.5), in: .capsule)
-                        .anyButton(.press) {
-                            presenter.onAddSupportPressed()
-                        }
-
-                }
             }
             .listSectionMargins(.top, 0)
+
+            if !presenter.bodyweightExercise {
+                ForEach(Array(presenter.variations.enumerated()), id: \.element.id) { index, variation in
+                    Section {
+                        ActionRow(
+                            title: "Resistance",
+                            subtitle: presenter.resistanceSubtitle(for: variation),
+                            subsubtitle: variation.resistanceEquipment.isEmpty ? "Required" : nil
+                        ) {
+                            Text("Add")
+                                .padding(.vertical, 8)
+                                .padding(.horizontal)
+                                .background(Color.secondary.opacity(0.5), in: .capsule)
+                                .anyButton(.press) {
+                                    presenter.onAddResistancePressed(variationId: variation.id)
+                                }
+                        }
+
+                        ActionRow(
+                            title: "Support",
+                            subtitle: presenter.supportSubtitle(for: variation),
+                            subsubtitle: variation.supportEquipment.isEmpty ? "Optional" : nil
+                        ) {
+                            Text("Add")
+                                .padding(.vertical, 8)
+                                .padding(.horizontal)
+                                .background(Color.secondary.opacity(0.5), in: .capsule)
+                                .anyButton(.press) {
+                                    presenter.onAddSupportPressed(variationId: variation.id)
+                                }
+                        }
+                    } header: {
+                        HStack {
+                            Text(presenter.variationName(for: index))
+                            Spacer()
+                            if presenter.variations.count > 1 {
+                                Button(role: .destructive) {
+                                    presenter.onDeleteVariationPressed(id: variation.id)
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .font(.caption)
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.red)
+                            }
+                        }
+                    }
+                }
+
+                Section {
+                    Button {
+                        presenter.onAddVariationPressed()
+                    } label: {
+                        Label("Add Variation", systemImage: "plus.circle")
+                    }
+                }
+            }
         }
         .navigationTitle("Select Equipment")
         .navigationBarTitleDisplayMode(.inline)
@@ -68,12 +102,12 @@ struct ExerciseEquipmentView: View {
 }
 
 struct ActionRow<ActionArea: View>: View {
-    
+
     var title: String
     var subtitle: String?
     var subsubtitle: String?
     var actionArea: () -> ActionArea
-    
+
     var body: some View {
         HStack {
             VStack(alignment: .leading) {
@@ -97,7 +131,7 @@ struct ActionRow<ActionArea: View>: View {
 }
 
 extension CoreBuilder {
-    
+
     func exerciseEquipmentView(router: AnyRouter, delegate: ExerciseEquipmentDelegate) -> some View {
         ExerciseEquipmentView(
             presenter: ExerciseEquipmentPresenter(
@@ -107,17 +141,17 @@ extension CoreBuilder {
             delegate: delegate
         )
     }
-    
+
 }
 
 extension CoreRouter {
-    
+
     func showExerciseEquipmentView(delegate: ExerciseEquipmentDelegate) {
         router.showScreen(.push) { router in
             builder.exerciseEquipmentView(router: router, delegate: delegate)
         }
     }
-    
+
 }
 
 #Preview {
@@ -131,9 +165,9 @@ extension CoreRouter {
         laterality: .bilateral,
         muscleGroups: [:]
     )
-    
+
     return RouterView { router in
         builder.exerciseEquipmentView(router: router, delegate: delegate)
     }
-    
+
 }

@@ -83,7 +83,7 @@ struct TrainingProgram: DataSyncModelProtocol {
     static var mocks: [TrainingProgram] {
         [
             TrainingProgram(
-                id: UUID().uuidString,
+                id: "training-program-1",
                 authorId: "mock_user_123",
                 name: "Block 1",
                 icon: "dumbbell",
@@ -94,7 +94,7 @@ struct TrainingProgram: DataSyncModelProtocol {
                 workoutTemplates: WorkoutTemplateModel.mocks
             ),
             TrainingProgram(
-                id: UUID().uuidString,
+                id: "training-program-2",
                 authorId: "mock_user_123",
                 name: "Block 2",
                 icon: "pencil",
@@ -105,7 +105,7 @@ struct TrainingProgram: DataSyncModelProtocol {
                 workoutTemplates: WorkoutTemplateModel.mocks
             ),
             TrainingProgram(
-                id: UUID().uuidString,
+                id: "training-program-3",
                 authorId: "mock_user_123",
                 name: "Block 3",
                 icon: "flag",

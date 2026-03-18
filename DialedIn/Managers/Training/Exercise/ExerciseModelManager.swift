@@ -17,7 +17,7 @@ class ExerciseModelManager {
     private let userDefaults = UserDefaults.standard
     private static let hasSeededKey = "hasSeededPrebuiltExercisesV2"
     private static let seedingVersionKey = "prebuiltExercisesSeedingVersionV2"
-    private static let currentSeedingVersion = 13
+    private static let currentSeedingVersion = 14
 
     /// Check if exercises have already been seeded
     var hasSeeded: Bool {

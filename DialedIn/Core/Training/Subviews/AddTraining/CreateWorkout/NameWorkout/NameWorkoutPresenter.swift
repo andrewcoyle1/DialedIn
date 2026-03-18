@@ -29,8 +29,8 @@ class NameWorkoutPresenter {
         self.router = router
     }
         
-    func onContinuePressed() {
-        router.showChooseGymProfileView(delegate: ChooseGymProfileDelegate(name: workoutName))
+    func onContinuePressed(delegate: NameWorkoutDelegate) {
+        router.showChooseGymProfileView(delegate: ChooseGymProfileDelegate(name: workoutName, onWorkoutCreated: delegate.onWorkoutCreated))
     }
 
 }

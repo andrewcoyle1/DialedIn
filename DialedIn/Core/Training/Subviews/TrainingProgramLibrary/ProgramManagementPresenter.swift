@@ -1,5 +1,5 @@
 //
-//  ProgramManagementPresenter.swift
+//  TrainingProgramLibraryPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 21/10/2025.
@@ -9,9 +9,9 @@ import SwiftUI
 
 @Observable
 @MainActor
-class ProgramManagementPresenter {
-    private let interactor: ProgramManagementInteractor
-    private let router: ProgramManagementRouter
+class TrainingProgramLibraryPresenter {
+    private let interactor: TrainingProgramLibraryInteractor
+    private let router: TrainingProgramLibraryRouter
     
     var activeTrainingProgram: TrainingProgram? {
         interactor.activeTrainingProgram
@@ -26,8 +26,8 @@ class ProgramManagementPresenter {
     }
     
     init(
-        interactor: ProgramManagementInteractor,
-        router: ProgramManagementRouter
+        interactor: TrainingProgramLibraryInteractor,
+        router: TrainingProgramLibraryRouter
     ) {
         self.interactor = interactor
         self.router = router
@@ -81,7 +81,7 @@ func onDevSettingsPressed() {
     }
 }
 
-extension ProgramManagementPresenter {
+extension TrainingProgramLibraryPresenter {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
@@ -91,11 +91,11 @@ extension ProgramManagementPresenter {
 
         var eventName: String {
             switch self {
-            case .onAppear:             return "ProgramManagementView_Appear"
-            case .onDisappear:          return "ProgramManagementView_Disappear"
-            case .deleteProgramStart:   return "ProgramManagementView_Start"
-            case .deleteProgramSuccess: return "ProgramManagementView_Success"
-            case .deleteProgramFail:    return "ProgramManagementView_Fail"
+            case .onAppear:             return "TrainingProgramLibraryView_Appear"
+            case .onDisappear:          return "TrainingProgramLibraryView_Disappear"
+            case .deleteProgramStart:   return "TrainingProgramLibraryView_Start"
+            case .deleteProgramSuccess: return "TrainingProgramLibraryView_Success"
+            case .deleteProgramFail:    return "TrainingProgramLibraryView_Fail"
             }
         }
         
