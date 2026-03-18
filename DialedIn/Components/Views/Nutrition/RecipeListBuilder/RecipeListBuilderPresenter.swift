@@ -33,7 +33,12 @@ class RecipeListBuilderPresenter {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    
+
+    var showFoodImageInLogger: Bool { interactor.foodLogSettings.showFoodImageInLogger }
+    var showCaloriesInLogger: Bool { interactor.foodLogSettings.showCaloriesInLogger }
+    var showMacrosInLogger: Bool { interactor.foodLogSettings.showMacrosInLogger }
+    var showPortionInLogger: Bool { interactor.foodLogSettings.showPortionInLogger }
+
     init(interactor: RecipeListBuilderInteractor, router: RecipeListBuilderRouter) {
         self.interactor = interactor
         self.router = router
@@ -53,6 +58,41 @@ class RecipeListBuilderPresenter {
 
     func onRecipePressed(recipe: RecipeTemplateModel, onRecipePressed: ((RecipeTemplateModel) -> Void)? = nil) {
         onRecipePressed?(recipe)
+    }
+
+    func navToRecipeAmountView(recipe: RecipeTemplateModel, delegate: RecipeListBuilderDelegate) {
+        router.showRecipeAmountView(delegate: RecipeAmountDelegate(
+            recipe: recipe,
+            onPick: { delegate.onMealItemConfirmed?($0) }
+        ))
+    }
+
+    func quickAdd(recipe: RecipeTemplateModel, delegate: RecipeListBuilderDelegate) {
+        var nutrients = NutrientMap()
+        for recipeIngredient in recipe.ingredients {
+            let grams: Double
+            switch recipeIngredient.unit {
+            case .grams: grams = recipeIngredient.amount
+            case .milliliters: grams = recipeIngredient.amount
+            case .units: grams = recipeIngredient.amount * 100
+            }
+            for (key, value) in recipeIngredient.ingredient.nutrients {
+                nutrients[key, default: 0] += value * (grams / 100.0)
+            }
+        }
+        let perServing = nutrients.mapValues { $0 / max(recipe.servingQuantity, 1) }
+        let item = MealItemModel(
+            itemId: UUID().uuidString,
+            sourceType: .recipe,
+            sourceId: recipe.recipeId,
+            displayName: recipe.name,
+            amount: 1,
+            unit: "serving",
+            resolvedGrams: nil,
+            resolvedMilliliters: nil,
+            nutrients: perServing
+        )
+        delegate.onMealItemConfirmed?(item)
     }
 
     enum Event: LoggableEvent {

@@ -8,11 +8,10 @@ struct ExerciseSaveDelegate {
     var type: ExerciseType?
     let laterality: Laterality?
 
-    let targetMuscles: [Muscles: Bool]
+    let targetMuscles: [Muscles: MuscleTargetType]
 
     let isBodyweight: Bool
-    let resistanceEquipment: [EquipmentRef]
-    let supportEquipment: [EquipmentRef]
+    let equipmentVariations: [EquipmentVariation]
 
     let rangeOfMotion: Int
     let stability: Int
@@ -56,9 +55,7 @@ struct ExerciseSaveView: View {
                 stabilitySection
             }
 
-            resistanceEquipmentSection
-
-            supportEquipmentSection
+            equipmentVariationsSection
 
             detailsSection
         }
@@ -71,20 +68,18 @@ struct ExerciseSaveView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
-                Text("Create & Add")
-                    .callToActionButton(isPrimaryAction: true)
-                    .padding(.horizontal)
-                    .anyButton(.press) {
-                        presenter.onCreateAndAddPressed(delegate: delegate)
-                    }
-                Text("Create")
-                    .callToActionButton(isPrimaryAction: false)
-                    .padding(.horizontal)
-                    .anyButton(.press) {
-                        presenter.onCreatePressed(delegate: delegate)
-                    }
-
+                CallToActionButton {
+                    presenter.onCreateAndAddPressed(delegate: delegate)
+                } label: {
+                    Text("Create & Add")
+                }
+                CallToActionButton(isPrimaryAction: false) {
+                    presenter.onCreatePressed(delegate: delegate)
+                } label: {
+                    Text("Create")
+                }
             }
+            .padding(.bottom)
         }
     }
 
@@ -189,8 +184,8 @@ struct ExerciseSaveView: View {
         return Section {
             ScrollView(.horizontal) {
                 HStack {
-                    ForEach(muscles, id: \.key) { muscle, isPrimary in
-                        Text("\(muscle.name): \(isPrimary ? "Primary" : "Secondary")")
+                    ForEach(muscles, id: \.key) { muscle, targetType in
+                        Text("\(muscle.name): \(targetType == .primary ? "Primary" : "Secondary")")
                     }
                 }
             }
@@ -233,49 +228,35 @@ struct ExerciseSaveView: View {
         }
     }
 
-    private var resistanceEquipmentSection: some View {
-        Section {
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(delegate.resistanceEquipment, id: \.self) { equipment in
-                        VStack {
-                            ImageLoaderView()
-                                .frame(height: 200)
+    private var equipmentVariationsSection: some View {
+        ForEach(Array(delegate.equipmentVariations.enumerated()), id: \.element.id) { index, variation in
+            Section {
+                if variation.resistanceEquipment.isEmpty && variation.supportEquipment.isEmpty {
+                    Text("No equipment selected")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(variation.resistanceEquipment, id: \.self) { equipment in
+                        HStack {
+                            Text("Resistance:")
+                                .foregroundStyle(.secondary)
                             Text(equipment.equipmentId)
                         }
                     }
-
-                }
-            }
-        } header: {
-            HStack {
-                Text("Resistance Equipment")
-                Spacer()
-                Text("Final")
-                    .font(.caption)
-            }
-        }
-    }
-
-    private var supportEquipmentSection: some View {
-        Section {
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(delegate.supportEquipment, id: \.self) { equipment in
-                        VStack {
-                            ImageLoaderView()
-                                .frame(height: 200)
+                    ForEach(variation.supportEquipment, id: \.self) { equipment in
+                        HStack {
+                            Text("Support:")
+                                .foregroundStyle(.secondary)
                             Text(equipment.equipmentId)
                         }
                     }
                 }
-            }
-        } header: {
-            HStack {
-                Text("Support Equipment")
-                Spacer()
-                Text("Final")
-                    .font(.caption)
+            } header: {
+                HStack {
+                    Text("Variation \(index + 1)")
+                    Spacer()
+                    Text("Final")
+                        .font(.caption)
+                }
             }
         }
     }
@@ -321,13 +302,12 @@ struct ExerciseSaveView: View {
         type: .compoundUpper,
         laterality: .bilateral,
         targetMuscles: [
-            .chest: false,
-            .frontDelts: true,
-            .triceps: true
+            .chest: .primary,
+            .frontDelts: .secondary,
+            .triceps: .secondary
         ],
-        isBodyweight: false, 
-        resistanceEquipment: [],
-        supportEquipment: [],
+        isBodyweight: false,
+        equipmentVariations: [],
         rangeOfMotion: 4,
         stability: 5,
         bodyweightContribution: 75,
@@ -377,8 +357,7 @@ extension ExerciseModel {
         self.laterality = delegate.laterality
         self.muscleGroups = delegate.targetMuscles
         self.isBodyweight = delegate.isBodyweight
-        self.resistanceEquipment = delegate.resistanceEquipment
-        self.supportEquipment = delegate.supportEquipment
+        self.equipmentVariations = delegate.equipmentVariations
         self.rangeOfMotion = delegate.rangeOfMotion
         self.stability = delegate.stability
         self.bodyWeightContribution = delegate.bodyweightContribution

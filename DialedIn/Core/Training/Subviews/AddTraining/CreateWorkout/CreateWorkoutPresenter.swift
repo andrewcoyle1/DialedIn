@@ -23,8 +23,8 @@ class CreateWorkoutPresenter {
         self.router = router
     }
     
-    func onContinuePressed() {
-        router.showNameWorkoutView(delegate: NameWorkoutDelegate())
+    func onContinuePressed(delegate: CreateWorkoutDelegate) {
+        router.showNameWorkoutView(delegate: NameWorkoutDelegate(onWorkoutCreated: delegate.onWorkoutCreated))
     }
     
     func cancel() {

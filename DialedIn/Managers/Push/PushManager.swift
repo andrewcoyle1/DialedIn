@@ -93,14 +93,49 @@ class PushManager {
         try await LocalNotifications.scheduleNotification(content: content, trigger: trigger)
     }
 
+    static let mealReminderIDs = ["meal_reminder_breakfast", "meal_reminder_lunch", "meal_reminder_dinner"]
+
+    func scheduleMealReminderNotifications() async throws {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: Self.mealReminderIDs)
+
+        // swiftlint:disable:next large_tuple
+        let reminders: [(id: String, title: String, body: String, hour: Int, minute: Int)] = [
+            ("meal_reminder_breakfast", "Time for Breakfast 🍳", "Don't forget to log your breakfast.", 8, 0),
+            ("meal_reminder_lunch", "Lunch Time 🥗", "Log your lunch to stay on track.", 12, 30),
+            ("meal_reminder_dinner", "Dinner Reminder 🍽️", "Time to log your dinner.", 18, 30)
+        ]
+
+        for reminder in reminders {
+            let content = UNMutableNotificationContent()
+            content.title = reminder.title
+            content.body = reminder.body
+            content.sound = .default
+
+            var components = DateComponents()
+            components.hour = reminder.hour
+            components.minute = reminder.minute
+
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+            let request = UNNotificationRequest(identifier: reminder.id, content: content, trigger: trigger)
+            try await UNUserNotificationCenter.current().add(request)
+        }
+        logManager?.trackEvent(event: Event.mealRemindersScheduled)
+    }
+
+    func cancelMealReminderNotifications() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: Self.mealReminderIDs)
+    }
+
     enum Event: LoggableEvent {
         case weekScheduledSuccess
         case weekScheduledFail(error: Error)
+        case mealRemindersScheduled
 
         var eventName: String {
             switch self {
             case .weekScheduledSuccess:  return "PushMan_WeekScheduled_Success"
             case .weekScheduledFail:     return "PushMan_WeekScheduled_Fail"
+            case .mealRemindersScheduled: return "PushMan_MealReminders_Scheduled"
             }
         }
 
@@ -159,6 +194,14 @@ extension CoreInteractor {
 
     func clearAllDeliveredNotifications() {
         pushManager.clearAllDeliveredNotifications()
+    }
+
+    func scheduleMealReminderNotifications() async throws {
+        try await pushManager.scheduleMealReminderNotifications()
+    }
+
+    func cancelMealReminderNotifications() {
+        pushManager.cancelMealReminderNotifications()
     }
 
 }

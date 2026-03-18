@@ -66,11 +66,11 @@ struct ProgramSettingsView: View {
                         .foregroundStyle(.secondary.opacity(0.2))
                 }
                 .anyButton(.press) {
-                    
+                    presenter.onEditNamePressed(program: $program)
                 }
         }
     }
-    
+
     private var editCycleCount: some View {
         Stepper(value: $program.numMicrocycles, in: 1...16) {
             HStack {
@@ -105,12 +105,12 @@ struct ProgramSettingsView: View {
                         .foregroundStyle(.secondary.opacity(0.2))
                 }
                 .anyButton(.press) {
-                    
+                    presenter.onEditColourIconPressed(program: $program)
                 }
 
         }
     }
-    
+
     private var editDayOrder: some View {
         HStack {
             Image(systemName: "calendar")
@@ -130,11 +130,11 @@ struct ProgramSettingsView: View {
                         .foregroundStyle(.secondary.opacity(0.2))
                 }
                 .anyButton(.press) {
-                    
+                    presenter.onEditDayOrderPressed(program: $program)
                 }
         }
     }
-    
+
     private var editDeload: some View {
         HStack {
             Image(systemName: "cloud.fill")
@@ -154,11 +154,11 @@ struct ProgramSettingsView: View {
                         .foregroundStyle(.secondary.opacity(0.2))
                 }
                 .anyButton(.press) {
-                    
+                    presenter.onEditDeloadPressed(program: $program)
                 }
         }
     }
-    
+
     private var editPeriodisation: some View {
         Toggle(isOn: $program.periodisation) {
             HStack {

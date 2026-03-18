@@ -83,11 +83,33 @@ struct TrainingProgram: DataSyncModelProtocol {
     static var mocks: [TrainingProgram] {
         [
             TrainingProgram(
-                id: UUID().uuidString,
-                authorId: "user123",
-                name: "Mock Training Program",
+                id: "training-program-1",
+                authorId: "mock_user_123",
+                name: "Block 1",
                 icon: "dumbbell",
                 colour: Color.red.asHex(),
+                numMicrocycles: 8,
+                deload: .none,
+                periodisation: false,
+                workoutTemplates: WorkoutTemplateModel.mocks
+            ),
+            TrainingProgram(
+                id: "training-program-2",
+                authorId: "mock_user_123",
+                name: "Block 2",
+                icon: "pencil",
+                colour: Color.blue.asHex(),
+                numMicrocycles: 8,
+                deload: .end,
+                periodisation: false,
+                workoutTemplates: WorkoutTemplateModel.mocks
+            ),
+            TrainingProgram(
+                id: "training-program-3",
+                authorId: "mock_user_123",
+                name: "Block 3",
+                icon: "flag",
+                colour: Color.green.asHex(),
                 numMicrocycles: 8,
                 deload: .none,
                 periodisation: false,
@@ -98,7 +120,37 @@ struct TrainingProgram: DataSyncModelProtocol {
 
 }
 
-enum DeloadType: String, Hashable, Codable {
+enum PeriodisationPhase {
+    case hypertrophy
+    case strength
+    case power
+
+    var repRange: ClosedRange<Int> {
+        switch self {
+        case .hypertrophy: return 8...15
+        case .strength:    return 5...8
+        case .power:       return 1...5
+        }
+    }
+
+    var weightMultiplier: Double {
+        switch self {
+        case .hypertrophy: return 0.65
+        case .strength:    return 0.80
+        case .power:       return 0.90
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .hypertrophy: return "Hypertrophy Phase"
+        case .strength:    return "Strength Phase"
+        case .power:       return "Power Phase"
+        }
+    }
+}
+
+enum DeloadType: String, Hashable, Codable, CaseIterable {
     case none
     case start
     case end

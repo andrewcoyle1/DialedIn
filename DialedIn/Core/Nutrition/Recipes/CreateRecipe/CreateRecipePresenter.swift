@@ -47,42 +47,36 @@ class CreateRecipePresenter {
     #endif
 
     func onNextPressed() {
-        router.showRecipePreparationView(delegate: RecipePreparationDelegate())
+        guard let servingQuantity else {
+            router.showSimpleAlert(
+                title: "Enter all required details",
+                subtitle: "Please specify the serving quantity of the dish"
+            )
+            return
+        }
+        let name = recipeName.capitalized
+        
+        let delegate = RecipePreparationDelegate(
+            recipeName: name,
+            servingQuantity: servingQuantity,
+            recipeTotalWeight: recipeTotalWeight ?? 0.0,
+            ingredients: ingredients
+        )
+        router.showRecipePreparationView(delegate: delegate)
     }
         
     func onAddIngredientPressed() {
-        let selectedIngredientsBinding = Binding<[FoodModel]>(
-            get: { [weak self] in
-                guard let self = self else { return [] }
-                return self.ingredients.map { $0.ingredient }
-            },
-            set: { [weak self] newTemplates in
-                guard let self = self else { return }
-                
-                var currentMap = Dictionary(
-                    uniqueKeysWithValues: self.ingredients.map {
-                        ($0.ingredient.id, $0)
+        router.showIngredientListBuilderView(
+            delegate: IngredientListBuilderDelegate(
+                onRecipeIngredientConfirmed: { [weak self] (recipeIngredient: RecipeIngredientModel) in
+                    guard let self else { return }
+                    if let idx = self.ingredients.firstIndex(where: { $0.id == recipeIngredient.id }) {
+                        self.ingredients[idx] = recipeIngredient
+                    } else {
+                        self.ingredients.append(recipeIngredient)
                     }
-                )
-                
-                for tmpl in newTemplates where currentMap[tmpl.id] == nil {
-                    currentMap[tmpl.id] = RecipeIngredientModel(
-                        ingredient: tmpl,
-                        amount: 1
-                    )
-                }
-                
-                let newIds = Set(newTemplates.map { $0.id })
-                
-                currentMap = currentMap.filter { newIds.contains($0.key) }
-                
-                self.ingredients = Array(currentMap.values)
-            }
-        )
-        
-        router.showAddIngredientView(
-            delegate: AddFoodDelegate(
-                selectedIngredients: selectedIngredientsBinding
+                },
+                selectedFoods: ingredients.map { $0.ingredient }
             )
         )
     }

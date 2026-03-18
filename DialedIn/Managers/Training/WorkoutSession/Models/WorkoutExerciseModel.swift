@@ -10,16 +10,17 @@ import Foundation
 struct WorkoutExerciseModel: Identifiable, DataSyncModelProtocol, Equatable {
     let id: String
     let authorId: String
-    let templateId: String
-    let name: String
-    let trackingMode: TrackingMode
+    var templateId: String
+    var name: String
+    var trackingMode: TrackingMode
     var index: Int
     var notes: String?
     var imageName: String?
     var sets: [WorkoutSetModel]
     var setTargets: [SetTarget]
-    var chosenResistanceEquipment: [EquipmentRef]
-    var chosenSupportEquipment: [EquipmentRef]
+    var chosenVariationId: String?
+    var equipmentVariations: [EquipmentVariation]
+    var supersetGroupId: String?
 
     init(
         id: String,
@@ -32,8 +33,9 @@ struct WorkoutExerciseModel: Identifiable, DataSyncModelProtocol, Equatable {
         imageName: String? = nil,
         sets: [WorkoutSetModel],
         setTargets: [SetTarget] = [],
-        chosenResistanceEquipment: [EquipmentRef] = [],
-        chosenSupportEquipment: [EquipmentRef] = []
+        chosenVariationId: String? = nil,
+        equipmentVariations: [EquipmentVariation] = [],
+        supersetGroupId: String? = nil
     ) {
         self.id = id
         self.authorId = authorId
@@ -45,8 +47,9 @@ struct WorkoutExerciseModel: Identifiable, DataSyncModelProtocol, Equatable {
         self.imageName = imageName
         self.sets = sets
         self.setTargets = setTargets
-        self.chosenResistanceEquipment = chosenResistanceEquipment
-        self.chosenSupportEquipment = chosenSupportEquipment
+        self.chosenVariationId = chosenVariationId
+        self.equipmentVariations = equipmentVariations
+        self.supersetGroupId = supersetGroupId
     }
 
     enum CodingKeys: String, CodingKey {
@@ -60,8 +63,9 @@ struct WorkoutExerciseModel: Identifiable, DataSyncModelProtocol, Equatable {
         case imageName = "image_name"
         case sets
         case setTargets = "set_targets"
-        case chosenResistanceEquipment = "chosen_resistance_equipment"
-        case chosenSupportEquipment = "chosen_support_equipment"
+        case chosenVariationId = "chosen_variation_id"
+        case equipmentVariations = "equipment_variations"
+        case supersetGroupId = "superset_group_id"
     }
 
     init(from decoder: Decoder) throws {
@@ -76,20 +80,38 @@ struct WorkoutExerciseModel: Identifiable, DataSyncModelProtocol, Equatable {
         imageName = try container.decodeIfPresent(String.self, forKey: .imageName)
         sets = try container.decode([WorkoutSetModel].self, forKey: .sets)
         setTargets = try container.decodeIfPresent([SetTarget].self, forKey: .setTargets) ?? []
-        chosenResistanceEquipment = try container.decodeIfPresent([EquipmentRef].self, forKey: .chosenResistanceEquipment) ?? []
-        chosenSupportEquipment = try container.decodeIfPresent([EquipmentRef].self, forKey: .chosenSupportEquipment) ?? []
+        chosenVariationId = try container.decodeIfPresent(String.self, forKey: .chosenVariationId)
+        equipmentVariations = try container.decodeIfPresent([EquipmentVariation].self, forKey: .equipmentVariations) ?? []
+        supersetGroupId = try container.decodeIfPresent(String.self, forKey: .supersetGroupId)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(authorId, forKey: .authorId)
+        try container.encode(templateId, forKey: .templateId)
+        try container.encode(name, forKey: .name)
+        try container.encode(trackingMode, forKey: .trackingMode)
+        try container.encode(index, forKey: .index)
+        try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encodeIfPresent(imageName, forKey: .imageName)
+        try container.encode(sets, forKey: .sets)
+        try container.encode(setTargets, forKey: .setTargets)
+        try container.encodeIfPresent(chosenVariationId, forKey: .chosenVariationId)
+        try container.encode(equipmentVariations, forKey: .equipmentVariations)
+        try container.encodeIfPresent(supersetGroupId, forKey: .supersetGroupId)
     }
 
     var completedSetsCount: Int {
         return sets.filter { set in
-            return set.completedAt != nil
+            return set.completedAt != nil && !set.isWarmup
         }.count
     }
-    
+
     static var mock: WorkoutExerciseModel {
         mocks[0]
     }
-    
+
     static var mocks: [WorkoutExerciseModel] {
         [
             WorkoutExerciseModel(id: "1", authorId: "1", templateId: "1", name: "Bench Press", trackingMode: .weightReps, index: 1, notes: "Notes", sets: [WorkoutSetModel.mocks[0]]),

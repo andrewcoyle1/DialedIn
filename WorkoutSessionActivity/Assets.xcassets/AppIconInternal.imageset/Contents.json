@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "DialedDefaultIcon@1x.png",
+      "filename" : "CompoundDefault.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "DialedDefaultIcon@2x.png",
+      "filename" : "CompoundDefault 1.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "DialedDefaultIcon@3x.png",
+      "filename" : "CompoundDefault 2.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

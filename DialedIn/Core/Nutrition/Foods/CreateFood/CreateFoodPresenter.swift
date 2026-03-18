@@ -133,6 +133,7 @@ class CreateFoodPresenter {
     }
     
     func onBarcodeScannerPressed() {
+        
         router.showBarcodeScannerView(
             delegate: BarcodeScannerDelegate(
                 onBarcodeScanned: { barcode in

@@ -7,6 +7,11 @@
 
 import Foundation
 
+enum MuscleTargetType: String, Codable {
+    case primary
+    case secondary
+}
+
 struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
     var id: String
     var authorId: String
@@ -16,10 +21,9 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
     var trackableMetrics: [TrackableExerciseMetric]
     var type: ExerciseType?
     var laterality: Laterality?
-    var muscleGroups: [Muscles: Bool]
+    var muscleGroups: [Muscles: MuscleTargetType]
     var isBodyweight: Bool
-    var resistanceEquipment: [EquipmentRef]
-    var supportEquipment: [EquipmentRef]
+    var equipmentVariations: [EquipmentVariation]
     var rangeOfMotion: Int
     var stability: Int
     var bodyWeightContribution: Int
@@ -42,8 +46,7 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
         case laterality
         case muscleGroups = "muscle_groups"
         case isBodyweight = "is_bodyweight"
-        case resistanceEquipment = "resistance_equipment"
-        case supportEquipment = "support_equipment"
+        case equipmentVariations = "equipment_variations"
         case rangeOfMotion = "range_of_motion"
         case stability = "stability"
         case bodyWeightContribution = "body_weight_contribution"
@@ -65,10 +68,9 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
         trackableMetrics: [TrackableExerciseMetric],
         type: ExerciseType?,
         laterality: Laterality?,
-        muscleGroups: [Muscles: Bool],
+        muscleGroups: [Muscles: MuscleTargetType],
         isBodyweight: Bool,
-        resistanceEquipment: [EquipmentRef],
-        supportEquipment: [EquipmentRef],
+        equipmentVariations: [EquipmentVariation] = [],
         rangeOfMotion: Int,
         stability: Int,
         bodyWeightContribution: Int,
@@ -90,8 +92,7 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
         self.laterality = laterality
         self.muscleGroups = muscleGroups
         self.isBodyweight = isBodyweight
-        self.resistanceEquipment = resistanceEquipment
-        self.supportEquipment = supportEquipment
+        self.equipmentVariations = equipmentVariations
         self.rangeOfMotion = rangeOfMotion
         self.stability = stability
         self.bodyWeightContribution = bodyWeightContribution
@@ -122,16 +123,16 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .chest: false,
-                    .triceps: true,
-                    .frontDelts: true
+                    .chest: .primary,
+                    .triceps: .secondary,
+                    .frontDelts: .secondary
                 ],
                 isBodyweight: false,
-                resistanceEquipment: [
-                    EquipmentRef(kind: .loadableBar, id: "barbell")
-                ],
-                supportEquipment: [
-                    EquipmentRef(kind: .supportEquipment, id: "flat_bench")
+                equipmentVariations: [
+                    EquipmentVariation(
+                        resistanceEquipment: [EquipmentRef(kind: .loadableBar, id: "barbell")],
+                        supportEquipment: [EquipmentRef(kind: .supportEquipment, id: "flat_bench")]
+                    )
                 ],
                 rangeOfMotion: 4,
                 stability: 5,
@@ -146,14 +147,16 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .forearms: true,
-                    .biceps: true,
-                    .lats: false
+                    .forearms: .secondary,
+                    .biceps: .secondary,
+                    .lats: .primary
                 ],
                 isBodyweight: true,
-                resistanceEquipment: [],
-                supportEquipment: [
-                    EquipmentRef(kind: .accessoryEquipment, id: "pull_up_bar")
+                equipmentVariations: [
+                    EquipmentVariation(
+                        resistanceEquipment: [],
+                        supportEquipment: [EquipmentRef(kind: .accessoryEquipment, id: "pull_up_bar")]
+                    )
                 ],
                 rangeOfMotion: 5,
                 stability: 4,
@@ -168,16 +171,16 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundLower,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .quads: false,
-                    .glutes: false,
-                    .hamstrings: false
+                    .quads: .primary,
+                    .glutes: .primary,
+                    .hamstrings: .primary
                 ],
                 isBodyweight: false,
-                resistanceEquipment: [
-                    EquipmentRef(kind: .loadableBar, id: "barbell")
-                ],
-                supportEquipment: [
-                    EquipmentRef(kind: .supportEquipment, id: "power_rack")
+                equipmentVariations: [
+                    EquipmentVariation(
+                        resistanceEquipment: [EquipmentRef(kind: .loadableBar, id: "barbell")],
+                        supportEquipment: [EquipmentRef(kind: .supportEquipment, id: "power_rack")]
+                    )
                 ],
                 rangeOfMotion: 5,
                 stability: 3,
@@ -192,16 +195,18 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundLower,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .hamstrings: false,
-                    .glutes: true,
-                    .upperTraps: true,
-                    .lowerBack: false
+                    .hamstrings: .primary,
+                    .glutes: .secondary,
+                    .upperTraps: .secondary,
+                    .lowerBack: .primary
                 ],
                 isBodyweight: false,
-                resistanceEquipment: [
-                    EquipmentRef(kind: .loadableBar, id: "barbell")
+                equipmentVariations: [
+                    EquipmentVariation(
+                        resistanceEquipment: [EquipmentRef(kind: .loadableBar, id: "barbell")],
+                        supportEquipment: []
+                    )
                 ],
-                supportEquipment: [],
                 rangeOfMotion: 4,
                 stability: 4,
                 bodyWeightContribution: 0,
@@ -215,12 +220,11 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .core,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .abs: false,
-                    .frontDelts: true
+                    .abs: .primary,
+                    .frontDelts: .secondary
                 ],
                 isBodyweight: true,
-                resistanceEquipment: [],
-                supportEquipment: [],
+                equipmentVariations: [],
                 rangeOfMotion: 1,
                 stability: 5,
                 bodyWeightContribution: 100,
@@ -234,15 +238,17 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .upperTraps: false,
-                    .triceps: true,
-                    .chest: true
+                    .upperTraps: .primary,
+                    .triceps: .secondary,
+                    .chest: .secondary
                 ],
                 isBodyweight: false,
-                resistanceEquipment: [
-                    EquipmentRef(kind: .loadableBar, id: "barbell")
+                equipmentVariations: [
+                    EquipmentVariation(
+                        resistanceEquipment: [EquipmentRef(kind: .loadableBar, id: "barbell")],
+                        supportEquipment: []
+                    )
                 ],
-                supportEquipment: [],
                 rangeOfMotion: 3,
                 stability: 3,
                 bodyWeightContribution: 0,
@@ -256,16 +262,16 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundLower,
                 laterality: .unilateral,
                 muscleGroups: [
-                    .quads: true,
-                    .glutes: true,
-                    .hamstrings: false
+                    .quads: .secondary,
+                    .glutes: .secondary,
+                    .hamstrings: .primary
                 ],
                 isBodyweight: false,
-                resistanceEquipment: [
-                    EquipmentRef(kind: .freeWeight, id: "dumbbells")
-                ],
-                supportEquipment: [
-                    EquipmentRef(kind: .supportEquipment, id: "flat_bench")
+                equipmentVariations: [
+                    EquipmentVariation(
+                        resistanceEquipment: [EquipmentRef(kind: .freeWeight, id: "dumbbells")],
+                        supportEquipment: [EquipmentRef(kind: .supportEquipment, id: "flat_bench")]
+                    )
                 ],
                 rangeOfMotion: 4,
                 stability: 2,
@@ -280,13 +286,12 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .chest: true,
-                    .triceps: true,
-                    .frontDelts: false
+                    .chest: .secondary,
+                    .triceps: .secondary,
+                    .frontDelts: .primary
                 ],
                 isBodyweight: true,
-                resistanceEquipment: [],
-                supportEquipment: [],
+                equipmentVariations: [],
                 rangeOfMotion: 4,
                 stability: 3,
                 bodyWeightContribution: 100,
@@ -300,14 +305,16 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .compoundUpper,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .lats: false,
-                    .biceps: true
+                    .lats: .primary,
+                    .biceps: .secondary
                 ],
                 isBodyweight: false,
-                resistanceEquipment: [
-                    EquipmentRef(kind: .cableMachine, id: "cable_lat_pulldown_machine")
+                equipmentVariations: [
+                    EquipmentVariation(
+                        resistanceEquipment: [EquipmentRef(kind: .cableMachine, id: "cable_lat_pulldown_machine")],
+                        supportEquipment: []
+                    )
                 ],
-                supportEquipment: [],
                 rangeOfMotion: 5,
                 stability: 4,
                 bodyWeightContribution: 0,
@@ -321,12 +328,14 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
                 type: .isolationLower,
                 laterality: .bilateral,
                 muscleGroups: [
-                    .calves: true
+                    .calves: .secondary
                 ],
                 isBodyweight: true,
-                resistanceEquipment: [],
-                supportEquipment: [
-                    EquipmentRef(kind: .accessoryEquipment, id: "calf_raise_block")
+                equipmentVariations: [
+                    EquipmentVariation(
+                        resistanceEquipment: [],
+                        supportEquipment: [EquipmentRef(kind: .accessoryEquipment, id: "calf_raise_block")]
+                    )
                 ],
                 rangeOfMotion: 3,
                 stability: 4,

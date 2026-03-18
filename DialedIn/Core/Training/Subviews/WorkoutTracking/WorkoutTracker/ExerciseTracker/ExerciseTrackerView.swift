@@ -11,6 +11,10 @@ struct ExerciseTrackerDelegate {
     let exercise: Binding<WorkoutExerciseModel>
     let lastExercise: WorkoutExerciseModel?
     var isExpanded: Binding<Bool> = .constant(false)
+    var allWorkoutExercises: [WorkoutExerciseModel] = []
+    var supersetLabel: String?
+    var onSetSupersetGroup: @Sendable (String, String?) -> Void = { _, _ in }
+    var onDeleteExercise: @Sendable () -> Void = { }
 }
 
 struct ExerciseTrackerView<SetTracker: View>: View {
@@ -22,11 +26,14 @@ struct ExerciseTrackerView<SetTracker: View>: View {
 
     var body: some View {
         DisclosureGroup(isExpanded: delegate.isExpanded) {
-            let delegate = SetTrackerDelegate(
+            let setDelegate = SetTrackerDelegate(
                 exercise: delegate.exercise,
-                lastExercise: delegate.lastExercise
+                lastExercise: delegate.lastExercise,
+                allWorkoutExercises: delegate.allWorkoutExercises,
+                onSetSupersetGroup: delegate.onSetSupersetGroup,
+                onDeleteExercise: delegate.onDeleteExercise
             )
-            setTracker(delegate)
+            setTracker(setDelegate)
         } label: {
             exerciseHeader(delegate.exercise.wrappedValue)
         }
@@ -35,13 +42,28 @@ struct ExerciseTrackerView<SetTracker: View>: View {
     @ViewBuilder
     func exerciseHeader(_ exercise: WorkoutExerciseModel) -> some View {
         HStack(alignment: .center) {
-            VStack(alignment: .leading) {
-                Text(exercise.name)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                    .multilineTextAlignment(.leading)
+            ImageLoaderView(urlString: exercise.imageName ?? Constants.randomImage, resizingMode: .fit)
+                .frame(width: 40, height: 40)
 
-                Text("Set \(exercise.completedSetsCount)/\(exercise.sets.count)")
+            VStack(alignment: .leading) {
+                HStack(spacing: 6) {
+                    Text(exercise.name)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
+
+                    if let label = delegate.supersetLabel {
+                        Text(label)
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.orange)
+                            .clipShape(Capsule())
+                    }
+                }
+
+                Text("Set \(min(exercise.completedSetsCount + 1, exercise.sets.filter { !$0.isWarmup }.count))/\(exercise.sets.filter { !$0.isWarmup }.count)")
                     .font(.caption)
                     .foregroundColor(exercise.completedSetsCount == exercise.sets.count ? .green : .secondary)
             }

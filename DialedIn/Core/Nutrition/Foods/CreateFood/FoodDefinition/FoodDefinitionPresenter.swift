@@ -123,50 +123,67 @@ class FoodDefinitionPresenter {
     }
     
     private func createFood(userId: String, delegate: FoodDefinitionDelegate) async throws -> FoodModel {
+        var nutrients: NutrientMap = NutrientMap()
+        func set(_ key: NutrientKey, _ value: Double?) {
+            if let val = value { nutrients[key] = val }
+        }
+        set(.calories, self.energy)
+        set(.protein, self.protein)
+        set(.carbs, self.carbs)
+        set(.fatTotal, self.fats)
+        set(.fatSaturated, self.saturatedFats)
+        set(.fatMonounsaturated, self.monounsaturatedFats)
+        set(.fatPolyunsaturated, self.polyunsaturatedFats)
+        set(.fiber, self.fiber)
+        set(.sugar, self.sugars)
+        set(.sodiumMg, self.sodium)
+        set(.potassiumMg, self.potassium)
+        set(.calciumMg, self.calcium)
+        set(.ironMg, self.iron)
+        set(.vitaminAMcg, self.vitaminA)
+        set(.vitaminB6Mg, self.b6Pyridoxine)
+        set(.vitaminB12Mcg, self.b12Cobalamin)
+        set(.vitaminCMg, self.vitaminC)
+        set(.vitaminDMcg, self.vitaminD)
+        set(.vitaminEMg, self.vitaminE)
+        set(.vitaminKMcg, self.vitaminK)
+        set(.magnesiumMg, self.magnesium)
+        set(.zincMg, self.zinc)
+        set(.copperMg, self.copper)
+        set(.folateMcg, self.folate)
+        set(.niacinMg, self.b3Niacin)
+        set(.thiaminMg, self.b1Thiamine)
+        set(.caffeineMg, self.caffeine)
+        set(.seleniumMcg, self.selenium)
+        set(.manganeseMg, self.manganese)
+        set(.phosphorusMg, self.phosphorus)
+        set(.riboflavinMg, self.b2Riboflavin)
+        set(.cholesterolMg, self.cholesterol)
+        set(.pantothenicAcidMg, self.b5PantothenicAcid)
+
+        // Normalize to per-100g so all downstream callers work correctly
+        if case .serving = delegate.nutritionDefinitionOption,
+           let weight = delegate.servingWeight, weight > 0 {
+            nutrients = nutrients.mapValues { $0 * (100.0 / weight) }
+        }
+
         let ingredient = FoodModel(
             authorId: userId,
             name: delegate.name,
             brandName: delegate.brandName,
             description: nil,
             measurementMethod: .weight,
-            calories: self.energy,
-            protein: self.protein,
-            carbs: self.carbs,
-            fatTotal: self.fats,
-            fatSaturated: self.saturatedFats,
-            fatMonounsaturated: self.monounsaturatedFats,
-            fatPolyunsaturated: self.polyunsaturatedFats,
-            fiber: self.fiber,
-            sugar: self.sugars,
-            sodiumMg: self.sodium,
-            potassiumMg: self.potassium,
-            calciumMg: self.calcium,
-            ironMg: self.iron,
-            vitaminAMcg: self.vitaminA,
-            vitaminB6Mg: self.b6Pyridoxine,
-            vitaminB12Mcg: self.b12Cobalamin,
-            vitaminCMg: self.vitaminC,
-            vitaminDMcg: self.vitaminD,
-            vitaminEMg: self.vitaminE,
-            vitaminKMcg: self.vitaminK,
-            magnesiumMg: self.magnesium,
-            zincMg: self.zinc,
-            biotinMcg: nil,
-            copperMg: self.copper,
-            folateMcg: self.folate,
-            iodineMcg: nil,
-            niacinMg: self.b3Niacin,
-            thiaminMg: self.b1Thiamine,
-            caffeineMg: self.caffeine,
-            chlorideMg: nil,
-            chromiumMcg: nil,
-            seleniumMcg: self.selenium,
-            manganeseMg: self.manganese,
-            molybdenumMcg: nil,
-            phosphorusMg: self.phosphorus,
-            riboflavinMg: self.b2Riboflavin,
-            cholesterolMg: self.cholesterol,
-            pantothenicAcidMg: self.b5PantothenicAcid
+            nutrients: nutrients,
+            barcode: delegate.barcode,
+            servingWeight: delegate.servingWeight,
+            portionSize: delegate.portionSize,
+            portionName: delegate.portionName,
+            portionWeight: delegate.portionWeight,
+            weightPortionSize: delegate.weightPortionSize,
+            weightPortionName: delegate.weightPortionName,
+            portionVolume: delegate.portionVolume,
+            volumePortionSize: delegate.volumePortionSize,
+            volumePortionName: delegate.volumePortionName
         )
         try await interactor.saveFood(ingredient, image: delegate.image)
         return ingredient

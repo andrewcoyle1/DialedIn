@@ -36,8 +36,8 @@ class ChooseGymProfilePresenter {
         interactor.trackEvent(event: Event.onDisappear)
     }
 
-    func onGymProfilePressed(name: String, profile: GymProfileModel) {
-        router.showDefineWorkoutWrapperView(delegate: DefineWorkoutWrapperDelegate(name: name, gymProfile: profile))
+    func onGymProfilePressed(name: String, profile: GymProfileModel, delegate: ChooseGymProfileDelegate) {
+        router.showDefineWorkoutWrapperView(delegate: DefineWorkoutWrapperDelegate(name: name, gymProfile: profile, onWorkoutCreated: delegate.onWorkoutCreated))
     }
     
     enum Event: LoggableEvent {

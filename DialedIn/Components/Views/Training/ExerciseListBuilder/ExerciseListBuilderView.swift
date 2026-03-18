@@ -20,9 +20,7 @@ struct ExerciseListBuilderView: View {
     var body: some View {
         List {
             if presenter.searchText.isEmpty {
-                if !presenter.userExercises.isEmpty {
-                    userExercisesSection
-                }
+                userExercisesSection
                 systemExercisesSection
             } else {
                 filteredExercisesSection
@@ -117,21 +115,39 @@ struct ExerciseListBuilderView: View {
 
     private var userExercisesSection: some View {
         Section {
-            ForEach(presenter.userExercises) { exercise in
-                CustomListCellView(
-                    imageName: exercise.imageURL,
-                    title: exercise.name,
-                    subtitle: exercise.description,
-                    isSelected: isExerciseSelected(exercise),
-                    resizingMode: .fit
-                )
-                .anyButton(.highlight) {
-                    delegate.onExerciseSelectionChanged?(exercise)
+            if !presenter.userExercises.isEmpty {
+                ForEach(presenter.userExercises) { exercise in
+                    CustomListCellView(
+                        imageName: exercise.imageURL,
+                        title: exercise.name,
+                        subtitle: exercise.description,
+                        isSelected: isExerciseSelected(exercise),
+                        resizingMode: .fit
+                    )
+                    .anyButton(.highlight) {
+                        delegate.onExerciseSelectionChanged?(exercise)
+                    }
+                    .removeListRowFormatting()
                 }
-                .removeListRowFormatting()
+            } else {
+                ContentUnavailableView(
+                    "No Custom Exercises",
+                    systemImage: "dumbbell",
+                    description: Text("You have no custom exercises.")
+                )
             }
         } header: {
-            Text("Custom Exercises")
+            HStack {
+                Text("Custom Exercises")
+            Spacer()
+                Button {
+                    presenter.onAddExercisePressed()
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
+            }
         }
     }
 

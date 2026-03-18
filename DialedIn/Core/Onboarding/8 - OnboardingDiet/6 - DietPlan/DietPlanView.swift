@@ -12,12 +12,14 @@ struct DietPlanDelegate {
     let calorieFloor: CalorieFloor
     let calorieDistribution: CalorieDistribution
     let proteinIntake: ProteinIntake
-    
+    var isFromSettings: Bool
+
     init(oldDelegate delegate: ProteinIntakeDelegate, proteinIntake: ProteinIntake) {
         self.preferredDiet = delegate.preferredDiet
         self.calorieFloor = delegate.calorieFloor
         self.calorieDistribution = delegate.calorieDistrubtion
         self.proteinIntake = proteinIntake
+        self.isFromSettings = delegate.isFromSettings
     }
     
     static var mock: Self {
@@ -45,11 +47,11 @@ struct DietPlanView: View {
             }
         }
         .navigationTitle("Your Diet Plan")
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.navigate()
@@ -57,6 +59,7 @@ struct DietPlanView: View {
                 Text("Continue")
             }
             .accessibilityIdentifier("Continue")
+            .padding(.bottom)
         }
         .onAppear {
             presenter.createPlan(delegate: delegate)

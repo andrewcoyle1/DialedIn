@@ -40,13 +40,12 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
     
     var body: some View {
         List {
-            Section {
-                authorHeader(AuthorHeaderDelegate(author: .mock, date: session.dateCreated))
-            }
-            .listSectionMargins(.top, 0)
-            headerSection(session: session, endedAt: session.endedAt)
-            exercisesSection
-            deleteSection
+            authorHeaderSection
+//            headerSection(session: session, endedAt: session.endedAt)
+            workoutDetailsSection
+            exerciseDetailsSection
+//            exercisesSection
+//            deleteSection
         }
         .navigationTitle(session.name)
         .navigationSubtitle(session.dateCreated.formatted(date: .long, time: .shortened))
@@ -57,6 +56,96 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         }
         .onAppear {
             presenter.loadUnitPreferences(for: session)
+        }
+    }
+    
+    private var authorHeaderSection: some View {
+        Section {
+            authorHeader(AuthorHeaderDelegate(author: .mock, date: session.dateCreated))
+        }
+        .listSectionMargins(.top, 0)
+    }
+    
+    private var workoutDetailsSection: some View {
+        Section {
+            CustomLabelButtonView(symbolName: "scalemass", title: "Volume") {
+                Text(presenter.volumeFormatted(session: session))
+            }
+            CustomLabelButtonView(
+                symbolName: "arrow.right",
+                title: "Start Time",
+                subtitle: session.dateCreated.formatted(date: .long, time: .shortened)
+            ) {
+                Text("Edit")
+                    .padding(.horizontal, 8)
+                    .padding(8)
+                    .background(Color.secondary.opacity(0.2), in: .capsule)
+                    .anyButton(.press) {
+
+                    }
+            }
+            if let duration = session.endedAt?.timeIntervalSince(session.dateCreated) {
+                CustomLabelButtonView(
+                    symbolName: "clock",
+                    title: "Duration",
+                    subtitle: Date.formatDuration(duration)
+                ) {
+                    Text("Edit")
+                        .padding(.horizontal, 8)
+                        .padding(8)
+                        .background(Color.secondary.opacity(0.2), in: .capsule)
+                        .anyButton(.press) {
+
+                        }
+                }
+            }
+
+            CustomLabelButtonView(
+                symbolName: "pencil",
+                title: "Edit Workout",
+                subtitle: "Go to the workout editor"
+            ) {
+                Text("Edit")
+                    .padding(.horizontal, 8)
+                    .padding(8)
+                    .background(Color.secondary.opacity(0.2), in: .capsule)
+                    .anyButton(.press) {
+                        presenter.enterEditMode(session: session)
+                    }
+            }
+        } header: {
+            Text("Workout Details")
+        }
+
+    }
+
+    private var exerciseDetailsSection: some View {
+        Section {
+            ForEach(session.exercises) { exercise in
+                DisclosureGroup {
+                    ForEach(exercise.sets.filter { !$0.isWarmup }.enumerated(), id: \.element.id) { setIndex, set in
+                        SetDetailRow(set: set, index: setIndex + 1, trackingMode: exercise.trackingMode)
+                    }
+                } label: {
+                    let volume: Double = exercise.sets
+                        .filter { !$0.isWarmup }
+                        .compactMap { set -> Double? in
+                            guard let weight = set.weightKg, let reps = set.reps else { return nil }
+                            return weight * Double(reps)
+                        }
+                        .reduce(0.0, +)
+
+                    return CustomListCellView(
+                        imageName: exercise.imageName ?? Constants.randomImage,
+                        title: exercise.name,
+                        subtitle: "\(String.countCaption(count: session.exercises.count, unit: "set")) - \(String(format: "%g", volume)) kg volume"
+                    )
+                }
+                .listRowInsets(.vertical, 0)
+                .listRowInsets(.leading, 0)
+            }
+        } header: {
+            Text("Exercise Details")
         }
     }
 
@@ -191,19 +280,44 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         }
         
         if presenter.isAuthor(sessionAuthorId: session.authorId) {
+//            ToolbarItem(placement: .topBarTrailing) {
+//                if presenter.isEditMode {
+//                    Button(role: .confirm) {
+//                        Task { await presenter.saveChanges(initialSession: delegate.initialSession, session: $session) }
+//                    }
+//                    .disabled(presenter.isLoading || !presenter.hasUnsavedChanges(session: delegate.initialSession, editedSession: session))
+//                    .fontWeight(.semibold)
+//                } else {
+//                    Button {
+//                        presenter.enterEditMode(session: session)
+//                    } label: {
+//                        Image(systemName: "pencil")
+//                    }
+//                }
+//            }
             ToolbarItem(placement: .topBarTrailing) {
-                if presenter.isEditMode {
-                    Button(role: .confirm) {
-                        Task { await presenter.saveChanges(initialSession: delegate.initialSession, session: $session) }
+                Menu {
+                    if presenter.isEditMode {
+                        Button(role: .confirm) {
+                            Task { await presenter.saveChanges(initialSession: delegate.initialSession, session: $session) }
+                        }
+                        .disabled(presenter.isLoading || !presenter.hasUnsavedChanges(session: delegate.initialSession, editedSession: session))
+                        .fontWeight(.semibold)
+                    } else {
+                        Button {
+                            presenter.enterEditMode(session: session)
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
                     }
-                    .disabled(presenter.isLoading || !presenter.hasUnsavedChanges(session: delegate.initialSession, editedSession: session))
-                    .fontWeight(.semibold)
-                } else {
-                    Button {
-                        presenter.enterEditMode(session: session)
+
+                    Button(role: .destructive) {
+                        presenter.onDeletePressed(session: session)
                     } label: {
-                        Image(systemName: "pencil")
+                        Label("Delete", systemImage: "trash")
                     }
+                } label: {
+                    Label("More", systemImage: "ellipsis")
                 }
             }
         }

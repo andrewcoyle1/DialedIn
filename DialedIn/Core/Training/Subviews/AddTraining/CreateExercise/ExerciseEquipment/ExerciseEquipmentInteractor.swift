@@ -2,7 +2,11 @@ import SwiftUI
 
 @MainActor
 protocol ExerciseEquipmentInteractor: GlobalInteractor {
-    var favouriteGymProfile: GymProfileModel? { get }
+    var allEquipmentTypes: [AnyEquipment] { get }
 }
 
-extension CoreInteractor: ExerciseEquipmentInteractor { }
+extension CoreInteractor: ExerciseEquipmentInteractor {
+    var allEquipmentTypes: [AnyEquipment] {
+        GymProfileModel.allEquipmentCatalog
+    }
+}

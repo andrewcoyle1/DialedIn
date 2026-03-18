@@ -28,17 +28,22 @@ class HKWorkoutManager: NSObject {
     private var isDiscarding = false
     private var workout: HKWorkout?
     private var activeSessionModel: WorkoutSessionModel?
-    
+
+    // Pending completions from widget, surfaced as observable properties
+    private(set) var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion?
+    private(set) var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion?
+
     // Weak reference to avoid circular dependency
-    weak var liveActivityUpdater: LiveActivityUpdating?
+    private weak var liveActivityUpdater: LiveActivityUpdating?
 
     // Buffers a single newest element; ensures async operations are serialized
     // since the loop doesn't start the next iteration until consumeSessionStateChange returns.
     private let asyncStreamTuple = AsyncStream.makeStream(of: SessionStateChange.self,
                                                           bufferingPolicy: .bufferingNewest(1))
 
-    init(logger: LogManager) {
+    init(logger: LogManager, liveActivityUpdater: LiveActivityUpdating? = nil) {
         self.logger = logger
+        self.liveActivityUpdater = liveActivityUpdater
         super.init()
         // Capture stream locally so the Task does not capture `self` before NSObject init completes.
         // The next value in the stream won't start processing until `consumeSessionStateChange` returns,
@@ -237,6 +242,7 @@ class HKWorkoutManager: NSObject {
             Task { @MainActor in
                 self.metrics.elapsedTime = self.builder?.elapsedTime ?? 0
                 self.syncRestEndTimeFromSharedStorage()
+                self.syncPendingCompletionsFromSharedStorage()
             }
         }
     }
@@ -302,6 +308,29 @@ extension HKWorkoutManager: HKLiveWorkoutBuilderDelegate {
 
 // MARK: - Rest Timer Management
 extension HKWorkoutManager {
+    /// Sync pending set/workout completions from shared storage (called by timer to pick up widget writes).
+    func syncPendingCompletionsFromSharedStorage() {
+        let newSetCompletion = SharedWorkoutStorage.pendingSetCompletion
+        if pendingSetCompletion?.setId != newSetCompletion?.setId {
+            pendingSetCompletion = newSetCompletion
+        }
+
+        let newWorkoutCompletion = SharedWorkoutStorage.pendingWorkoutCompletion
+        if pendingWorkoutCompletion?.sessionId != newWorkoutCompletion?.sessionId {
+            pendingWorkoutCompletion = newWorkoutCompletion
+        }
+    }
+
+    func clearPendingSetCompletion() {
+        SharedWorkoutStorage.clearPendingSetCompletion()
+        pendingSetCompletion = nil
+    }
+
+    func clearPendingWorkoutCompletion() {
+        SharedWorkoutStorage.clearPendingWorkoutCompletion()
+        pendingWorkoutCompletion = nil
+    }
+
     /// Sync rest end time from shared storage (called by timer to pick up widget changes)
     func syncRestEndTimeFromSharedStorage() {
         let sharedRestEndTime = SharedWorkoutStorage.restEndTime
@@ -552,6 +581,7 @@ extension CoreInteractor {
     func cancelRest() {
         hkWorkoutManager.cancelRest()
     }
+
 }
 #endif
 

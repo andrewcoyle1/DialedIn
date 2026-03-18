@@ -59,7 +59,7 @@ struct RecipeAmountView: View {
                         onConfirm: delegate.onPick
                     )
                 }
-                    .disabled(presenter.servings <= 0)
+                .disabled(presenter.servings <= 0)
             }
         }
     }

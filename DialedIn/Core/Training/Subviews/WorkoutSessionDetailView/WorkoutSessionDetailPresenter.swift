@@ -227,7 +227,8 @@ class WorkoutSessionDetailPresenter {
                 index: index,
                 notes: nil,
                 imageName: imageName,
-                sets: defaultSets
+                sets: defaultSets,
+                equipmentVariations: template.exercise.equipmentVariations
             )
             updated.append(newExercise)
         }

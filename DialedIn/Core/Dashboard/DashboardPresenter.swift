@@ -7,6 +7,9 @@ class DashboardPresenter {
     private let interactor: DashboardInteractor
     private let router: DashboardRouter
     
+    private(set) var nutritionTotals: DailyMacroTarget?
+    private(set) var nutritionTarget: DailyMacroTarget?
+
     var activityNotifications: [ActivityNotificationModel] {
         interactor.activityNotifications
     }
@@ -21,77 +24,77 @@ class DashboardPresenter {
         interactor.userImageUrl
     }
 
-    private var completedTrainingDays: Set<Date> {
-        let calendar = Calendar.current
-        let now = Date()
-        return Set(
-            interactor.workoutSessions.compactMap { session -> Date? in
-                guard session.endedAt != nil else { return nil }
-                if session.isRestDay, session.dateCreated > now { return nil }
-                return calendar.startOfDay(for: session.dateCreated)
-            }
-        )
-    }
+//    private var completedTrainingDays: Set<Date> {
+//        let calendar = Calendar.current
+//        let now = Date()
+//        return Set(
+//            interactor.workoutSessions.compactMap { session -> Date? in
+//                guard session.endedAt != nil else { return nil }
+//                if session.isRestDay, session.dateCreated > now { return nil }
+//                return calendar.startOfDay(for: session.dateCreated)
+//            }
+//        )
+//    }
 
-    var workoutStreakCount: Int {
-        let days = completedTrainingDays.sorted()
-        guard !days.isEmpty else { return 0 }
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        // If the user hasn't worked out today, start from yesterday (streak is "at risk" but still alive)
-        var day = days.contains(today) ? today : calendar.date(byAdding: .day, value: -1, to: today) ?? today
-        var streak = 0
-        while days.contains(day) {
-            streak += 1
-            guard let prev = calendar.date(byAdding: .day, value: -1, to: day) else { break }
-            day = prev
-        }
-        return streak
-    }
-
-    var isStreakActive: Bool {
-        let today = Calendar.current.startOfDay(for: Date())
-        return completedTrainingDays.contains(today)
-    }
-
-    var isStreakAtRisk: Bool {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        guard !completedTrainingDays.contains(today) else { return false }
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
-        return completedTrainingDays.contains(yesterday)
-    }
-
-    var longestStreak: Int {
-        let days = completedTrainingDays.sorted()
-        guard !days.isEmpty else { return 0 }
-        let calendar = Calendar.current
-        var longest = 1, current = 1
-        for index in 1..<days.count {
-            if calendar.dateComponents([.day], from: days[index - 1], to: days[index]).day == 1 {
-                current += 1
-                longest = max(longest, current)
-            } else {
-                current = 1
-            }
-        }
-        return longest
-    }
-
-    var totalWorkouts: Int {
-        interactor.workoutSessions.filter { $0.endedAt != nil && !$0.isRestDay }.count
-    }
-
-    var workoutDaysThisWeek: Set<Date> {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekdayIndex = calendar.component(.weekday, from: today) - 1
-        let weekStart = calendar.date(byAdding: .day, value: -weekdayIndex, to: today) ?? today
-        let weekDays = Set((0..<7).compactMap {
-            calendar.date(byAdding: .day, value: $0, to: weekStart)
-        })
-        return completedTrainingDays.intersection(weekDays)
-    }
+//    var workoutStreakCount: Int {
+//        let days = completedTrainingDays.sorted()
+//        guard !days.isEmpty else { return 0 }
+//        let calendar = Calendar.current
+//        let today = calendar.startOfDay(for: Date())
+//        // If the user hasn't worked out today, start from yesterday (streak is "at risk" but still alive)
+//        var day = days.contains(today) ? today : calendar.date(byAdding: .day, value: -1, to: today) ?? today
+//        var streak = 0
+//        while days.contains(day) {
+//            streak += 1
+//            guard let prev = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+//            day = prev
+//        }
+//        return streak
+//    }
+//
+//    var isStreakActive: Bool {
+//        let today = Calendar.current.startOfDay(for: Date())
+//        return completedTrainingDays.contains(today)
+//    }
+//
+//    var isStreakAtRisk: Bool {
+//        let calendar = Calendar.current
+//        let today = calendar.startOfDay(for: Date())
+//        guard !completedTrainingDays.contains(today) else { return false }
+//        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+//        return completedTrainingDays.contains(yesterday)
+//    }
+//
+//    var longestStreak: Int {
+//        let days = completedTrainingDays.sorted()
+//        guard !days.isEmpty else { return 0 }
+//        let calendar = Calendar.current
+//        var longest = 1, current = 1
+//        for index in 1..<days.count {
+//            if calendar.dateComponents([.day], from: days[index - 1], to: days[index]).day == 1 {
+//                current += 1
+//                longest = max(longest, current)
+//            } else {
+//                current = 1
+//            }
+//        }
+//        return longest
+//    }
+//
+//    var totalWorkouts: Int {
+//        interactor.workoutSessions.filter { $0.endedAt != nil && !$0.isRestDay }.count
+//    }
+//
+//    var workoutDaysThisWeek: Set<Date> {
+//        let calendar = Calendar.current
+//        let today = calendar.startOfDay(for: Date())
+//        let weekdayIndex = calendar.component(.weekday, from: today) - 1
+//        let weekStart = calendar.date(byAdding: .day, value: -weekdayIndex, to: today) ?? today
+//        let weekDays = Set((0..<7).compactMap {
+//            calendar.date(byAdding: .day, value: $0, to: weekStart)
+//        })
+//        return completedTrainingDays.intersection(weekDays)
+//    }
 
     var hasActiveProgram: Bool {
         interactor.activeTrainingProgram != nil
@@ -99,10 +102,6 @@ class DashboardPresenter {
 
     var todaysWorkoutTemplate: WorkoutTemplateModel? {
         todaysScheduledItem?.dayPlan
-    }
-
-    var isTodayRestDay: Bool {
-        todaysWorkoutTemplate?.exercises.isEmpty == true
     }
 
     var isTodayCompleted: Bool {
@@ -190,22 +189,6 @@ class DashboardPresenter {
         return interactor.followingUsers.first { $0.userId == session.authorId }
     }
 
-    func onTodaysWorkoutPressed() {
-        guard let template = todaysWorkoutTemplate, !isTodayRestDay else { return }
-        let programId = interactor.activeTrainingProgram?.id
-        router.showWorkoutTemplateDetailView(
-            delegate: WorkoutTemplateDetailDelegate(
-                workoutTemplate: template,
-                trainingProgramId: programId,
-                onStartWorkoutPressed: { [weak self] in
-                    Task { @MainActor in
-                        self?.router.showWorkoutTrackerView()
-                    }
-                }
-            )
-        )
-    }
-
     init(interactor: DashboardInteractor, router: DashboardRouter) {
         self.interactor = interactor
         self.router = router
@@ -213,6 +196,7 @@ class DashboardPresenter {
     
     func onViewAppear(delegate: DashboardDelegate) {
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+        loadNutrition()
     }
     
     func onViewDisappear(delegate: DashboardDelegate) {
@@ -237,6 +221,60 @@ class DashboardPresenter {
         try? await interactor.fetchActivityNotifications()
     }
 
+    func onLogMealPressed() {
+        guard let userId = interactor.currentUser?.userId else { return }
+        if let meal = interactor.draftMeal {
+            router.showAlert(
+                title: "Unable to add new meal",
+                subtitle: "You already have an draft meal.",
+                buttons: {
+                    AnyView(
+                        VStack {
+                            Button("Continue editing") {
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(mealLog: meal)
+                                )
+                            }
+                            Button("Delete drafted meal", role: .destructive) {
+                                try? self.interactor.deleteDraftMeal()
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(
+                                        mealLog: MealLogModel(
+                                            authorId: userId,
+                                            dayKey: Date().dayKey,
+                                            date: Date(),
+                                            items: []
+                                        )
+                                    )
+                                )
+                            }
+                            Button("Cancel", role: .cancel) { }
+                        }
+                    )
+                }
+            )
+        } else {
+            self.router.showAddMealView(
+                delegate: AddMealDelegate(
+                    mealLog: MealLogModel(
+                        authorId: userId,
+                        dayKey: Date().dayKey,
+                        date: Date(),
+                        items: []
+                    )
+                )
+            )
+        }
+    }
+
+    private func loadNutrition() {
+        let dayKey = Date().dayKey
+        nutritionTotals = try? interactor.getDailyTotals(dayKey: dayKey)
+        guard let userId = interactor.userId else { return }
+        Task {
+            nutritionTarget = try? await interactor.getDailyTarget(for: Date(), userId: userId)
+        }
+    }
 }
 
 extension DashboardPresenter {

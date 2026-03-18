@@ -13,7 +13,7 @@ protocol TrainingRouter: GlobalRouter {
 func showDevSettingsView()
 #endif
     func showWorkoutStartModal(delegate: WorkoutStartDelegate)
-    func showProgramManagementView()
+    func showTrainingProgramLibraryView()
     func showWorkoutsView(delegate: WorkoutsDelegate)
     func showWorkoutHistoryView()
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate)

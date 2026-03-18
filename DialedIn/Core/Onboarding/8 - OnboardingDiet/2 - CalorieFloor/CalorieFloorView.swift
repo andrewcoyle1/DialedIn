@@ -9,7 +9,8 @@ import SwiftUI
 
 struct CalorieFloorDelegate {
     let preferredDiet: PreferredDiet
-    
+    var isFromSettings: Bool = false
+
     static var mock: Self {
         Self(preferredDiet: .balanced)
     }
@@ -34,11 +35,11 @@ struct CalorieFloorView: View {
         }
         .navigationTitle("Calorie floor")
         .navigationBarTitleDisplayMode(.large)
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
@@ -47,6 +48,7 @@ struct CalorieFloorView: View {
             }
             .accessibilityIdentifier("Continue")
             .disabled(presenter.selectedFloor == nil)
+            .padding(.bottom)
         }
     }
     

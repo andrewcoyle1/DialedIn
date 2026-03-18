@@ -10,6 +10,7 @@ import PhotosUI
 
 struct CreateWorkoutDelegate {
     var workoutTemplate: WorkoutTemplateModel?
+    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
 struct CreateWorkoutView: View {
@@ -33,26 +34,18 @@ struct CreateWorkoutView: View {
             .frame(maxWidth: .infinity)
             Spacer()
         }
-        .toolbar {
-            toolbarContent
-        }
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
-            Button(role: .close) {
-                presenter.cancel()
+        .safeAreaInset(edge: .bottom) {
+            CallToActionButton {
+                presenter.onContinuePressed(delegate: delegate)
+            } label: {
+                Text("Continue")
             }
         }
-        
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.onContinuePressed()
-            } label: {
-                Image(systemName: "chevron.right")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(role: .close) {
+                    presenter.cancel()
+                }
             }
         }
     }

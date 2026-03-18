@@ -1,21 +1,27 @@
 import SwiftUI
 
 struct IngredientListBuilderDelegate {
-    
+
     let mealItems: Binding<[MealItemModel]>?
-    
+
     var onIngredientSelectionChanged: ((FoodModel) -> Void)?
+    var onMealItemConfirmed: ((MealItemModel) -> Void)?
+    var onRecipeIngredientConfirmed: ((RecipeIngredientModel) -> Void)?
     /// Optional list of ingredient templates that should display as "selected" in the UI.
     /// If `nil`, no selection state is shown.
     var selectedFoods: [FoodModel]?
-    
+
     init(
         mealItems: Binding<[MealItemModel]>? = nil,
         onIngredientSelectionChanged: ((FoodModel) -> Void)? = nil,
+        onMealItemConfirmed: ((MealItemModel) -> Void)? = nil,
+        onRecipeIngredientConfirmed: ((RecipeIngredientModel) -> Void)? = nil,
         selectedFoods: [FoodModel]? = nil
     ) {
         self.mealItems = mealItems
         self.onIngredientSelectionChanged = onIngredientSelectionChanged
+        self.onMealItemConfirmed = onMealItemConfirmed
+        self.onRecipeIngredientConfirmed = onRecipeIngredientConfirmed
         self.selectedFoods = selectedFoods
     }
 }
@@ -26,10 +32,6 @@ struct IngredientListBuilderView: View {
     
     let delegate: IngredientListBuilderDelegate
     
-    private func isFoodSelected(_ food: FoodModel) -> Bool {
-        delegate.selectedFoods?.contains(food) ?? false
-    }
-
     var body: some View {
         List {
             if presenter.searchText.isEmpty {
@@ -65,16 +67,21 @@ struct IngredientListBuilderView: View {
     private var userFoodsSection: some View {
         Section {
             ForEach(presenter.userFoods) { ingredient in
-                CustomListCellView(
-                    imageName: ingredient.imageURL,
-                    title: ingredient.name,
-                    subtitle: ingredient.description,
-                    isSelected: isFoodSelected(ingredient)
+                FoodLibraryPickerRowView(
+                    delegate: FoodLibraryPickerRowDelegate(
+                        item: ingredient,
+                        onAdd: {
+                            presenter.navToIngredientAmountView(food: ingredient, delegate: delegate)
+                        },
+                        onQuickAdd: {
+                            presenter.quickAdd(food: ingredient, delegate: delegate)
+                        },
+                        showImage: presenter.showFoodImageInLogger,
+                        showCalories: presenter.showCaloriesInLogger,
+                        showMacros: presenter.showMacrosInLogger,
+                        showPortion: presenter.showPortionInLogger
+                    )
                 )
-                .anyButton(.highlight) {
-                    delegate.onIngredientSelectionChanged?(ingredient)
-                }
-                .removeListRowFormatting()
             }
         } header: {
             Text("Custom Foods")
@@ -84,16 +91,21 @@ struct IngredientListBuilderView: View {
     private var systemFoodsSection: some View {
         Section {
             ForEach(presenter.systemFoods) { ingredient in
-                CustomListCellView(
-                    imageName: ingredient.imageURL,
-                    title: ingredient.name,
-                    subtitle: ingredient.description,
-                    isSelected: isFoodSelected(ingredient)
+                FoodLibraryPickerRowView(
+                    delegate: FoodLibraryPickerRowDelegate(
+                        item: ingredient,
+                        onAdd: {
+                            presenter.navToIngredientAmountView(food: ingredient, delegate: delegate)
+                        },
+                        onQuickAdd: {
+                            presenter.quickAdd(food: ingredient, delegate: delegate)
+                        },
+                        showImage: presenter.showFoodImageInLogger,
+                        showCalories: presenter.showCaloriesInLogger,
+                        showMacros: presenter.showMacrosInLogger,
+                        showPortion: presenter.showPortionInLogger
+                    )
                 )
-                .anyButton(.highlight) {
-                    delegate.onIngredientSelectionChanged?(ingredient)
-                }
-                .removeListRowFormatting()
             }
         } header: {
             Text("System Foods")
@@ -103,16 +115,21 @@ struct IngredientListBuilderView: View {
     private var filteredFoodsSection: some View {
         Section {
             ForEach(presenter.filteredFoods) { ingredient in
-                CustomListCellView(
-                    imageName: ingredient.imageURL,
-                    title: ingredient.name,
-                    subtitle: ingredient.description,
-                    isSelected: isFoodSelected(ingredient)
+                FoodLibraryPickerRowView(
+                    delegate: FoodLibraryPickerRowDelegate(
+                        item: ingredient,
+                        onAdd: {
+                            presenter.navToIngredientAmountView(food: ingredient, delegate: delegate)
+                        },
+                        onQuickAdd: {
+                            presenter.quickAdd(food: ingredient, delegate: delegate)
+                        },
+                        showImage: presenter.showFoodImageInLogger,
+                        showCalories: presenter.showCaloriesInLogger,
+                        showMacros: presenter.showMacrosInLogger,
+                        showPortion: presenter.showPortionInLogger
+                    )
                 )
-                .anyButton(.highlight) {
-                    delegate.onIngredientSelectionChanged?(ingredient)
-                }
-                .removeListRowFormatting()
             }
         }
     }
@@ -135,7 +152,7 @@ extension CoreBuilder {
 extension CoreRouter {
     
     func showIngredientListBuilderView(delegate: IngredientListBuilderDelegate) {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.ingredientListBuilderView(router: router, delegate: delegate)
         }
     }

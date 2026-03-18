@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ChooseGymProfileDelegate {
     let name: String
+    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
 struct ChooseGymProfileView: View {
@@ -19,7 +20,7 @@ struct ChooseGymProfileView: View {
                         subtitle: equipmentSubtitle(for: profile)
                     )
                     .anyButton {
-                        presenter.onGymProfilePressed(name: delegate.name, profile: profile)
+                        presenter.onGymProfilePressed(name: delegate.name, profile: profile, delegate: delegate)
                     }
                 }
                 .removeListRowFormatting()

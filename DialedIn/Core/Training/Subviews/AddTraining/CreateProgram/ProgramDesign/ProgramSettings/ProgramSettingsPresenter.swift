@@ -24,6 +24,38 @@ class ProgramSettingsPresenter {
         router.dismissScreen()
     }
 
+    func onEditNamePressed(program: Binding<TrainingProgram>) {
+        router.showRenameProgramView(delegate: RenameWorkoutTemplateModelDelegate(
+            initialName: program.wrappedValue.name,
+            onSave: { program.wrappedValue.name = $0 }
+        ))
+    }
+
+    func onEditColourIconPressed(program: Binding<TrainingProgram>) {
+        router.showEditProgramColourIconView(
+            colour: program.wrappedValue.colour,
+            icon: program.wrappedValue.icon,
+            onSave: { colour, icon in
+                program.wrappedValue.colour = colour
+                program.wrappedValue.icon = icon
+            }
+        )
+    }
+
+    func onEditDayOrderPressed(program: Binding<TrainingProgram>) {
+        router.showEditDayOrderView(
+            dayPlans: program.wrappedValue.workoutTemplates,
+            onSave: { program.wrappedValue.workoutTemplates = $0 }
+        )
+    }
+
+    func onEditDeloadPressed(program: Binding<TrainingProgram>) {
+        router.showEditDeloadView(
+            selected: program.wrappedValue.deload,
+            onSave: { program.wrappedValue.deload = $0 }
+        )
+    }
+
     func onActivatePressed(program: TrainingProgram) {
         Task {
             do {

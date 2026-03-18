@@ -20,7 +20,7 @@ struct TimelineActionsView: View {
                 CustomToggleView(symbolName: "chevron.up", title: "Hide Food Details", bool: .constant(false))
                 CustomToggleView(symbolName: "hourglass", title: "Hide Empty Hours", bool: .constant(false))
             }
-            .listSectionMargins(.top, 0)
+            .listSectionMargins(.vertical, 0)
         }
         .navigationTitle("Timeline Actions")
         .navigationBarTitleDisplayMode(.inline)

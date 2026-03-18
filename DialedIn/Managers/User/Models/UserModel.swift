@@ -353,6 +353,8 @@ extension UserModel {
             submittedDailyActivityLevel: .active,
             submittedCardioFitnessLevel: .intermediate,
             submittedCurrentGoalId: "goal1",
+            submittedActiveTrainingProgramId: TrainingProgram.mock.id,
+            submittedFavouriteGymProfileId: GymProfileModel.mock.id,
             didCompleteOnboarding: true,
             acceptedHealthDisclaimerVersion: "2025.10.05"
         )

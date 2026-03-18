@@ -10,6 +10,9 @@ import SwiftUI
 struct SetTrackerDelegate {
     let exercise: Binding<WorkoutExerciseModel>
     let lastExercise: WorkoutExerciseModel?
+    var allWorkoutExercises: [WorkoutExerciseModel] = []
+    var onSetSupersetGroup: @Sendable (String, String?) -> Void = { _, _ in }
+    var onDeleteExercise: @Sendable () -> Void = { }
 }
 
 struct SetTrackerView<SetTrackerRow: View>: View {
@@ -25,7 +28,7 @@ struct SetTrackerView<SetTrackerRow: View>: View {
                 equipmentButton
                 columnHeaders
             }
-            ForEach(delegate.exercise.sets) { set in
+            ForEach(delegate.exercise.sets.filter { $0.wrappedValue.completedAt == nil || !$0.wrappedValue.isWarmup }) { set in
                 let lastSet = delegate.lastExercise?.sets.first { previousSet in
                     previousSet.index == set.wrappedValue.index
                 }
@@ -51,44 +54,64 @@ struct SetTrackerView<SetTrackerRow: View>: View {
         ScrollView(.horizontal) {
             HStack {
                 Group {
-                    Button {
-                        presenter.onExerciseEquipmentPressed(delegate.exercise)
-                    } label: {
-                        Label("Equipment", systemImage: "scalemass")
+                    if !delegate.exercise.wrappedValue.equipmentVariations.isEmpty {
+                        Button {
+                            presenter.onExerciseEquipmentPressed(delegate.exercise)
+                        } label: {
+                            Label("Equipment", systemImage: "scalemass")
+                        }
                     }
-                    
+
                     Button {
-                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                        presenter.onWarmupSetsPressed(delegate.exercise)
                     } label: {
                         Label("Warmup", systemImage: "target")
                     }
 
                     Button {
-                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                        presenter.onTargetsPressed(delegate.exercise)
                     } label: {
-                        Label("Targets", systemImage: "target")
+                        Label("Targets", systemImage: "scope")
                     }
-                    
+
                     Button {
-                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                        presenter.onSwapPressed(delegate.exercise)
                     } label: {
                         Label("Swap", systemImage: "arrow.left.arrow.right")
                     }
 
                     Button {
-                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                        presenter.onSupersetPressed(
+                            exercise: delegate.exercise,
+                            allWorkoutExercises: delegate.allWorkoutExercises,
+                            onSetSupersetGroup: delegate.onSetSupersetGroup
+                        )
                     } label: {
-                        Label("Superset", systemImage: "arrow.left.arrow.right")
+                        let groupLabel: String = {
+                            guard let groupId = delegate.exercise.wrappedValue.supersetGroupId else { return "Superset" }
+                            let count = delegate.allWorkoutExercises.filter { $0.supersetGroupId == groupId }.count
+                            return count > 2 ? "Remove Circuit" : "Remove Superset"
+                        }()
+                        Label(groupLabel, systemImage: "arrow.2.circlepath")
                     }
-                    Button {
-                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                    Menu {
+                        Button {
+                            presenter.onExerciseSettingsPressed(exercise: delegate.exercise.wrappedValue)
+                        } label: {
+                            Label("Exercise Settings", systemImage: "slider.horizontal.3")
+                        }
+                        
+                        Button(role: .destructive) {
+                            presenter.deleteExercise(delegate.exercise, onDelete: delegate.onDeleteExercise)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+
                     } label: {
                         Label("More", systemImage: "ellipsis")
                     }
-
                 }
                 .font(.caption)
-
                 .buttonStyle(.bordered)
                 .tint(.secondary)
                 .buttonBorderShape(.capsule)

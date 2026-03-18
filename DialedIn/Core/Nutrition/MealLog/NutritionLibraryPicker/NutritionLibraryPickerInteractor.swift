@@ -8,6 +8,13 @@
 @MainActor
 protocol NutritionLibraryPickerInteractor: GlobalInteractor {
     var foods: [FoodModel] { get }
+    func saveExternalFood(_ food: FoodModel) async
 }
 
-extension CoreInteractor: NutritionLibraryPickerInteractor { }
+extension CoreInteractor: NutritionLibraryPickerInteractor {
+    func saveExternalFood(_ food: FoodModel) async {
+        guard let uid = userId else { return }
+        let owned = food.withAuthorId(uid)
+        try? await saveFood(owned, image: nil)
+    }
+}

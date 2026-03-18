@@ -1,0 +1,67 @@
+import SwiftUI
+
+struct EditDeloadView: View {
+
+    @State var presenter: EditDeloadPresenter
+
+    var body: some View {
+        List {
+            ForEach(presenter.allCases, id: \.self) { type in
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(type.title)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Text(type.description)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if type == presenter.selected {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(.accent)
+                    }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    presenter.onSelect(type)
+                }
+            }
+        }
+        .navigationTitle("Deload")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { presenter.onCancelPressed() }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") { presenter.onSavePressed() }
+            }
+        }
+    }
+}
+
+extension CoreBuilder {
+    func editDeloadView(router: AnyRouter, selected: DeloadType, onSave: @escaping (DeloadType) -> Void) -> some View {
+        let coreRouter = CoreRouter(router: router, builder: self)
+        return EditDeloadView(
+            presenter: EditDeloadPresenter(
+                selected: selected,
+                onSave: onSave,
+                router: coreRouter
+            )
+        )
+    }
+}
+
+#Preview {
+    let container = DevPreview.shared.container()
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+    RouterView { router in
+        builder.editDeloadView(
+            router: router,
+            selected: .none,
+            onSave: { _ in }
+        )
+    }
+}

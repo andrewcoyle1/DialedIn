@@ -2,11 +2,9 @@ import SwiftUI
 import VisionKit
 
 struct BarcodeScannerDelegate {
-    
+    var onFoodFound: ((FoodModel) -> Void)?
     var onBarcodeScanned: ((String) -> Void)?
-    var eventParameters: [String: Any]? {
-        nil
-    }
+    var eventParameters: [String: Any]? { nil }
 }
 
 struct BarcodeScannerView: View {
@@ -37,10 +35,13 @@ struct BarcodeScannerView: View {
                     }
                 }
 
-                if presenter.parsedIngredient != nil || (presenter.isParsingLabel == false && presenter.labelError != nil) {
+                let showOverlay = presenter.parsedIngredient != nil
+                    || (presenter.scanningMode == .label && !presenter.isParsingLabel && presenter.labelError != nil)
+                    || (presenter.scanningMode == .barcode && presenter.barcodeError != nil)
+                if showOverlay {
                     parsedIngredientOverlay
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .animation(.spring(duration: 0.3), value: presenter.parsedIngredient != nil)
+                        .animation(.spring(duration: 0.3), value: showOverlay)
                 }
             } else {
                 Text("Scanner not supported on this device.")
@@ -54,9 +55,8 @@ struct BarcodeScannerView: View {
             presenter.onRescanPressed()
         }
         .onChange(of: presenter.scannedCode) { _, newValue in
-            guard let code = newValue else { return }
-            delegate.onBarcodeScanned?(code)
-            presenter.onDismissPressed()
+            guard let code = newValue, presenter.scanningMode == .barcode else { return }
+            presenter.onBarcodeDetected(code)
         }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
@@ -100,13 +100,25 @@ struct BarcodeScannerView: View {
 
     @ViewBuilder
     private var barcodeBottomDisplay: some View {
-        if let code = presenter.scannedCode {
-            Text("Scanned: \(code)")
+        if presenter.isLookingUpBarcode {
+            HStack(spacing: 10) {
+                ProgressView()
+                Text("Looking up product...")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(.regularMaterial, in: Capsule())
+            .padding(.bottom, 32)
+        } else if presenter.scannedCode == nil {
+            Text("Point camera at a barcode")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .padding()
-                .background(.secondary, in: .capsule)
-                .padding(.bottom)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(.regularMaterial, in: Capsule())
+                .padding(.bottom, 32)
         }
     }
 
@@ -225,6 +237,11 @@ struct BarcodeScannerView: View {
                     }
                 }
 
+            } else if let error = presenter.barcodeError, presenter.scanningMode == .barcode {
+                Label(error, systemImage: "barcode.viewfinder")
+                    .font(.subheadline)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.leading)
             } else if let error = presenter.labelError {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .font(.subheadline)
@@ -233,27 +250,44 @@ struct BarcodeScannerView: View {
             }
 
             // Action buttons
-            HStack(spacing: 12) {
-                Button("Dismiss") {
-                    presenter.onDismissLabelResultPressed()
-                }
-                .buttonStyle(.bordered)
-                .frame(maxWidth: .infinity)
+            if presenter.scanningMode == .barcode {
+                HStack(spacing: 12) {
+                    Button("Re-scan", action: presenter.onRescanPressed)
+                        .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity)
 
-                if presenter.parsedIngredient != nil {
-                    Button {
-                        Task { await presenter.onSaveIngredientPressed() }
-                    } label: {
-                        if presenter.isSavingIngredient {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text("Save to Library")
-                                .frame(maxWidth: .infinity)
+                    if let ingredient = presenter.parsedIngredient {
+                        Button("Use This Food") {
+                            delegate.onFoodFound?(ingredient)
+                            presenter.onDismissPressed()
                         }
+                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(presenter.isSavingIngredient)
+                }
+            } else {
+                HStack(spacing: 12) {
+                    Button("Dismiss") {
+                        presenter.onDismissLabelResultPressed()
+                    }
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity)
+
+                    if presenter.parsedIngredient != nil {
+                        Button {
+                            Task { await presenter.onSaveIngredientPressed() }
+                        } label: {
+                            if presenter.isSavingIngredient {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Text("Save to Library")
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(presenter.isSavingIngredient)
+                    }
                 }
             }
         }

@@ -50,29 +50,32 @@ struct GoalSummaryView: View {
         .onAppear {
             presenter.onDismiss = dismissFlow
         }
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
-            if presenter.isStandaloneMode {
-                CallToActionButton {
-                    presenter.onCompletePressed(delegate: delegate)
-                } label: {
-                    Text("Complete")
+            Group {
+                if presenter.isStandaloneMode {
+                    CallToActionButton {
+                        presenter.onCompletePressed(delegate: delegate)
+                    } label: {
+                        Text("Complete")
+                    }
+                    .accessibilityIdentifier("Complete")
+                    .disabled(presenter.isLoading || !presenter.goalCreated)
+                } else {
+                    CallToActionButton {
+                        presenter.onContinuePressed(delegate: delegate)
+                    } label: {
+                        Text("Continue")
+                    }
+                    .accessibilityIdentifier("Continue")
+                    .disabled(presenter.isLoading)
                 }
-                .accessibilityIdentifier("Complete")
-                .disabled(presenter.isLoading || !presenter.goalCreated)
-            } else {
-                CallToActionButton {
-                    presenter.onContinuePressed(delegate: delegate)
-                } label: {
-                    Text("Continue")
-                }
-                .accessibilityIdentifier("Continue")
-                .disabled(presenter.isLoading)
             }
+            .padding(.bottom)
         }
     }
     

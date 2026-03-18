@@ -49,7 +49,7 @@ struct AuthView: View {
         ImageLoaderView()
             .ignoresSafeArea()
             .overlay(alignment: .topLeading) {
-                Text("DialedIn")
+                Text("Compound")
                     .font(.system(size: 64))
                     .fontDesign(.default)
                     .fontWeight(.heavy)

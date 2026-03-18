@@ -28,11 +28,11 @@ struct OnboardingHealthDataView: View {
         }
         .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(true)
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             VStack {
                 CallToActionButton {
@@ -49,6 +49,7 @@ struct OnboardingHealthDataView: View {
                 }
                 .accessibilityIdentifier("SkipForNow")
             }
+            .padding(.bottom)
         }
     }
     
@@ -77,7 +78,7 @@ struct OnboardingHealthDataView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Why We Request Health Data Access")
                         .font(.headline)
-                    Text("Dialed needs permission to read and write your weight data in Apple Health. This allows us to automatically track your progress, update your weight logs, and provide you with accurate charts and insights.")
+                    Text("Compound needs permission to read and write your weight data in Apple Health. This allows us to automatically track your progress, update your weight logs, and provide you with accurate charts and insights.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -90,13 +91,13 @@ struct OnboardingHealthDataView: View {
     private var whatYouGetSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 4) {
-                Label("Sync your weight entries seamlessly between Dialed and Apple Health.", systemImage: "arrow.triangle.2.circlepath")
+                Label("Sync your weight entries seamlessly between Compound and Apple Health.", systemImage: "arrow.triangle.2.circlepath")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Label("See all your progress in one place, even if you use other health apps.", systemImage: "chart.line.uptrend.xyaxis")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                Label("Let Dialed update your Health data when you log new weights.", systemImage: "plus.circle")
+                Label("Let Compound update your Health data when you log new weights.", systemImage: "plus.circle")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

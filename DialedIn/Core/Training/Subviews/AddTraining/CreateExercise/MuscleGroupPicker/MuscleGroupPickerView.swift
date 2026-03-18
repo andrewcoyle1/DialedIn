@@ -45,15 +45,15 @@ struct MuscleGroupPickerView: View {
                 }
                 .padding(.vertical, 8)
                 .padding(.horizontal)
-                Text(!presenter.selectedMuscleGroups.isEmpty ? "Next" : "Skip")
-                    .callToActionButton(isPrimaryAction: !presenter.selectedMuscleGroups.isEmpty ? true : false)
-                    .padding(.horizontal)
-                    .anyButton(.press) {
-                        presenter.onNextPressed(delegate: delegate)
-                    }
-                    .opacity(presenter.canSave ? 1 : 0.3)
-                    .disabled(!presenter.canSave)
+                CallToActionButton(isPrimaryAction: !presenter.selectedMuscleGroups.isEmpty ? true : false) {
+                    presenter.onNextPressed(delegate: delegate)
+                } label: {
+                    Text(!presenter.selectedMuscleGroups.isEmpty ? "Next" : "Skip")
+                }
+                .opacity(presenter.canSave ? 1 : 0.3)
+                .disabled(!presenter.canSave)
             }
+            .padding(.bottom)
             .background(.bar)
         }
     }
@@ -100,7 +100,7 @@ struct MuscleGroupPickerView: View {
                 ZStack {
                     Circle()
                         .foregroundStyle(colorScheme.backgroundPrimary)
-                    Text(selected == false ? "P" : "S")
+                    Text(selected == .primary ? "P" : "S")
                         .font(.caption)
                         .foregroundStyle(.primary)
                 }

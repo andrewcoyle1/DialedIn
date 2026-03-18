@@ -11,6 +11,8 @@ struct WorkoutTemplateDetailDelegate {
     let workoutTemplate: WorkoutTemplateModel
     let trainingProgramId: String?
     let onStartWorkoutPressed: (@Sendable () -> Void)?
+    var isDeloadCycle: Bool = false
+    var periodisationPhase: PeriodisationPhase?
 }
 
 struct WorkoutTemplateDetailView: View {
@@ -37,52 +39,50 @@ struct WorkoutTemplateDetailView: View {
             toolbarContent
         }
         #endif
-.safeAreaInset(edge: .bottom) {
-            Button {
+        .safeAreaInset(edge: .bottom) {
+            CallToActionButton(isPrimaryAction: true) {
                 presenter.onStartWorkoutPressed(
                     onStartWorkout: delegate.onStartWorkoutPressed,
                     workoutTemplate: delegate.workoutTemplate,
                     trainingProgramId: delegate.trainingProgramId,
+                    isDeloadCycle: delegate.isDeloadCycle
                 )
             } label: {
                 Text("Start Workout")
-                    .padding(.vertical)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .padding()
+            .padding(.bottom)
         }
     }
 
-#if DEBUG || MOCK
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         // Show edit button when not in edit mode
-//        if isAuthor {
-//            ToolbarItem(placement: .topBarLeading) {
-//                Button {
-//                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
-//                } label: {
-//                    Image(systemName: "pencil")
-//                }
-//            }
-//        }
-//
-//        // Show delete button only in edit mode
-//        if isAuthor {
-//            ToolbarItem(placement: .topBarLeading) {
-//                Button(role: .destructive) {
-//                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
-//                } label: {
-//                    if presenter.isDeleting {
-//                        ProgressView()
-//                    } else {
-//                        Image(systemName: "trash")
-//                    }
-//                }
-//                .disabled(presenter.isDeleting)
-//            }
-//        }
+        //        if isAuthor {
+        //            ToolbarItem(placement: .topBarLeading) {
+        //                Button {
+        //                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
+        //                } label: {
+        //                    Image(systemName: "pencil")
+        //                }
+        //            }
+        //        }
+        //
+        //        // Show delete button only in edit mode
+        //        if isAuthor {
+        //            ToolbarItem(placement: .topBarLeading) {
+        //                Button(role: .destructive) {
+        //                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
+        //                } label: {
+        //                    if presenter.isDeleting {
+        //                        ProgressView()
+        //                    } else {
+        //                        Image(systemName: "trash")
+        //                    }
+        //                }
+        //                .disabled(presenter.isDeleting)
+        //            }
+        //        }
 
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
@@ -165,7 +165,7 @@ struct WorkoutTemplateDetailView: View {
                                         .lineLimit(1)
                                         .padding(4)
                                         .padding(.horizontal, 4)
-                                        .background(value ? Color.secondary.opacity(0.2) : Color.secondary.opacity(0.4), in: Capsule())
+                                        .background(value == .secondary ? Color.secondary.opacity(0.2) : Color.secondary.opacity(0.4), in: Capsule())
                                 }
                             }
                         }

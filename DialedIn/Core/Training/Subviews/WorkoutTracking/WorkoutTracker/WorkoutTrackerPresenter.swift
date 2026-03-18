@@ -59,9 +59,6 @@ class WorkoutTrackerPresenter {
     var previousWorkoutSession: WorkoutSessionModel?
     var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
 
-    // Internal timers
-    var widgetSyncTimer: Timer?
-
     // Prevents handleWorkoutSessionChange from double-processing when updateSet() is the caller
     private var isProcessingUpdateSet = false
     
@@ -126,7 +123,9 @@ class WorkoutTrackerPresenter {
             expandedExerciseId = workoutSession.exercises.first?.id
         }
         
-        // Check for pending widget completions that happened while backgrounded
+        // Check for pending widget completions that happened while backgrounded.
+        // Force a storage read first because the HKWorkoutManager timer hasn't started yet.
+        interactor.syncPendingCompletionsFromSharedStorage()
         syncPendingSetCompletionFromWidget()
 
     }
@@ -194,41 +193,38 @@ class WorkoutTrackerPresenter {
     var showRIRTracking: Bool { interactor.workoutSettings.rirTracking }
 
     // MARK: - Lifecycle
-    @MainActor
-    deinit {
-        stopWidgetSyncTimer()
-    }
-    
+
     func onAppear() async {
-        startWidgetSyncTimer()
+        startObservingPendingCompletions()
         loadPreviousWorkoutSession()
-        
-        // Ensure HealthKit authorization before starting HK session
-        let healthKitManager = HealthKitManager()
-        if healthKitManager.canRequestAuthorisation() && healthKitManager.needsAuthorisationForRequiredTypes() {
-            do {
-                try await healthKitManager.requestAuthorisation()
-            } catch { }
-        }
-        
-        // Apply keep-alive setting
         UIApplication.shared.isIdleTimerDisabled = interactor.workoutSettings.keepAlive
 
-        // Verify workout write permission before starting
-        guard !HealthKitService().needsAuthorisationForRequiredTypes() else { return }
-
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        // Avoid starting the same HK workout session multiple times for this workout.
-        if SharedWorkoutStorage.hkStartedSessionId == workoutSession.id { return }
+        // Return early if the HK session is already started — nothing more to do.
+        guard SharedWorkoutStorage.hkStartedSessionId != workoutSession.id else { return }
+
+        // Only request HealthKit auth if we're about to start a new HK session.
+        if interactor.canRequestHealthDataAuthorisation() && interactor.needsAuthorisationForRequiredTypes() {
+            do {
+                try await interactor.requestHealthKitAuthorisation()
+            } catch { }
+        }
+
+        guard !interactor.needsAuthorisationForRequiredTypes() else { return }
+
         interactor.setWorkoutConfiguration(activityType: .traditionalStrengthTraining, location: .indoor)
         interactor.startWorkout(workout: workoutSession)
         SharedWorkoutStorage.hkStartedSessionId = workoutSession.id
         #endif
     }
-    
+
     func onScenePhaseChange(oldPhase: ScenePhase, newPhase: ScenePhase) {
         if newPhase == .active && oldPhase == .background {
+            // Force an immediate read from shared storage so pending completions are
+            // processed without waiting for the next HKWorkoutManager timer tick.
+            interactor.syncPendingCompletionsFromSharedStorage()
             syncPendingSetCompletionFromWidget()
+            syncPendingWorkoutCompletionFromWidget()
         }
     }
 
@@ -273,7 +269,6 @@ class WorkoutTrackerPresenter {
     // MARK: - Workout Actions
     
     private func discardWorkout() {
-        stopWidgetSyncTimer()
         interactor.setActiveWorkoutGymProfile(nil)
         try? interactor.deleteActiveSession()
         UIApplication.shared.isIdleTimerDisabled = false
@@ -307,7 +302,6 @@ class WorkoutTrackerPresenter {
     }
 
     func minimizeSession() {
-        stopWidgetSyncTimer()
         router.dismissScreen()
     }
     
@@ -466,36 +460,36 @@ class WorkoutTrackerPresenter {
     }
 
     // MARK: - Widget Sync
-    func startWidgetSyncTimer() {
-        if widgetSyncTimer != nil { return }
-        widgetSyncTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+
+    /// Begins observing `interactor.pendingSetCompletion` and `pendingWorkoutCompletion` using Swift
+    /// Observation. The HKWorkoutManager timer updates these properties from shared storage every
+    /// second, so the presenter never needs to poll SharedWorkoutStorage directly.
+    private func startObservingPendingCompletions() {
+        withObservationTracking {
+            _ = interactor.pendingSetCompletion
+            _ = interactor.pendingWorkoutCompletion
+        } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 self?.syncPendingSetCompletionFromWidget()
                 self?.syncPendingWorkoutCompletionFromWidget()
+                // Re-register after each change to keep observing.
+                self?.startObservingPendingCompletions()
             }
         }
     }
 
-    func stopWidgetSyncTimer() {
-        guard widgetSyncTimer != nil else {
-            return
-        }
-        widgetSyncTimer?.invalidate()
-        widgetSyncTimer = nil
-    }
-
     func syncPendingSetCompletionFromWidget() {
-        guard let pending = SharedWorkoutStorage.pendingSetCompletion else { return }
+        guard let pending = interactor.pendingSetCompletion else { return }
 
         guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { exercise in
             exercise.sets.contains { $0.id == pending.setId }
         }) else {
-            SharedWorkoutStorage.clearPendingSetCompletion()
+            interactor.clearPendingSetCompletion()
             return
         }
 
         guard let setIndex = workoutSession.exercises[exerciseIndex].sets.firstIndex(where: { $0.id == pending.setId }) else {
-            SharedWorkoutStorage.clearPendingSetCompletion()
+            interactor.clearPendingSetCompletion()
             return
         }
 
@@ -508,7 +502,7 @@ class WorkoutTrackerPresenter {
         if let duration = pending.durationSec { updatedSet.durationSec = duration }
         updatedSet.completedAt = pending.completedAt
 
-        SharedWorkoutStorage.clearPendingSetCompletion()
+        interactor.clearPendingSetCompletion()
         updateSet(updatedSet, in: exercise.id)
     }
 
@@ -668,14 +662,14 @@ class WorkoutTrackerPresenter {
     }
 
     func syncPendingWorkoutCompletionFromWidget() {
-        guard let pending = SharedWorkoutStorage.pendingWorkoutCompletion else { return }
+        guard let pending = interactor.pendingWorkoutCompletion else { return }
 
         guard pending.sessionId == workoutSession.id else {
-            SharedWorkoutStorage.clearPendingWorkoutCompletion()
+            interactor.clearPendingWorkoutCompletion()
             return
         }
 
-        SharedWorkoutStorage.clearPendingWorkoutCompletion()
+        interactor.clearPendingWorkoutCompletion()
     }
 
     func onGymProfilePressed() {
@@ -712,8 +706,8 @@ class WorkoutTrackerPresenter {
                 imageName: imageName,
                 sets: defaultSets,
                 setTargets: template.setTargets,
-                chosenResistanceEquipment: exercise.resistanceEquipment,
-                chosenSupportEquipment: exercise.supportEquipment
+                chosenVariationId: nil,
+                equipmentVariations: exercise.equipmentVariations
             )
             updated.append(newExercise)
         }
@@ -780,6 +774,11 @@ class WorkoutTrackerPresenter {
             elapsedTime: elapsedTime
         ))
         #endif
+    }
+
+    func setSupersetGroupId(_ groupId: String?, forExerciseId exerciseId: String) {
+        guard let idx = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) else { return }
+        workoutSession.exercises[idx].supersetGroupId = groupId
     }
 
     func reorderExercises(from sourceIndex: Int, to targetIndex: Int) {
@@ -886,7 +885,6 @@ class WorkoutTrackerPresenter {
     }
 
     func finishWorkout() {
-        stopWidgetSyncTimer()
         interactor.setActiveWorkoutGymProfile(nil)
         workoutSession.endSession(at: Date())
         UIApplication.shared.isIdleTimerDisabled = false

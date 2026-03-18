@@ -12,8 +12,8 @@ import AppIntents
 
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 struct WorkoutSessionActivity: Widget {
+    
     var body: some WidgetConfiguration {
-        
         ActivityConfiguration(for: WorkoutActivityAttributes.self) { context in
             LiveActivityView(context: context)
         } dynamicIsland: { context in
@@ -106,45 +106,45 @@ struct WorkoutSessionActivity: Widget {
                                 VStack {
                                     ProgressView(timerInterval: Date()...restEndsAt)
                                         .labelsHidden()
+                                        .tint(.accent)
+
                                     HStack {
                                         Button(intent: AdjustRestTimerIntent(adjustment: -15)) {
                                             Text("-15s")
-                                                .padding(8)
-                                                .background(
-                                                    Capsule()
-                                                        .fill(Color.secondary.opacity(0.2))
-                                                )
+                                                .padding(2)
                                         }
-                                        .buttonStyle(.plain)
+                                        .buttonStyle(.bordered)
+                                        .buttonBorderShape(.circle)
+                                        .tint(.accent)
                                         .disabled(context.state.isProcessingIntent)
                                         .opacity(context.state.isProcessingIntent ? 0.5 : 1.0)
+                                        
                                         Spacer()
+                                        
                                         Text("Rest: ")
                                         Text(timerInterval: Date()...restEndsAt)
                                             .monospacedDigit()
                                             .frame(maxWidth: 40)
+                                        
                                         Spacer()
+                                        
                                         Button(intent: AdjustRestTimerIntent(adjustment: 15)) {
                                             Text("+15s")
-                                                .padding(8)
-                                                .background(
-                                                    Capsule()
-                                                        .fill(Color.secondary.opacity(0.2))
-                                                )
+                                                .padding(2)
                                         }
-                                        .buttonStyle(.plain)
+                                        .buttonStyle(.bordered)
+                                        .buttonBorderShape(.circle)
+                                        .tint(.accent)
                                         .disabled(context.state.isProcessingIntent)
                                         .opacity(context.state.isProcessingIntent ? 0.5 : 1.0)
+                                        
                                         Button(intent: SkipRestTimerIntent()) {
-                                            if context.state.isProcessingIntent {
-                                                ProgressView()
-                                                    .tint(.white)
-                                            } else {
-                                                Text("Skip")
-                                                    .foregroundStyle(Color.white)
-                                            }
+                                            Text("Skip")
+                                                .padding(2)
                                         }
-                                        .buttonStyle(.borderedProminent)
+                                        .buttonStyle(.bordered)
+                                        .buttonBorderShape(.circle)
+                                        .tint(.accent)
                                         .disabled(context.state.isProcessingIntent)
                                     }
                                 }
@@ -157,16 +157,8 @@ struct WorkoutSessionActivity: Widget {
                                             .foregroundStyle(.green)
                                         Spacer()
                                         Button(intent: CompleteWorkoutIntent()) {
-                                            if context.state.isProcessingIntent {
-                                                ProgressView()
-                                                    .tint(.white)
-                                            } else {
-                                                HStack(spacing: 4) {
-                                                    Image(systemName: "checkmark.circle.fill")
-                                                    Text("Finish")
-                                                }
-                                                .foregroundStyle(Color.white)
-                                            }
+                                            Label("Finish", systemImage: "checkmark.circle.fill")
+                                                .padding(2)
                                         }
                                         .buttonStyle(.borderedProminent)
                                         .disabled(context.state.isProcessingIntent)
@@ -194,15 +186,12 @@ struct WorkoutSessionActivity: Widget {
                                         }
                                         Spacer()
                                         Button(intent: CompleteSetIntent()) {
-                                            if context.state.isProcessingIntent {
-                                                Image(systemName: "checkmark")
-                                                    .foregroundStyle(Color.secondary)
-                                            } else {
-                                                Image(systemName: "checkmark")
-                                                    .foregroundStyle(Color.white)
-                                            }
+                                            Image(systemName: "checkmark")
+                                                .padding(2)
                                         }
-                                        .buttonStyle(.borderedProminent)
+                                        .buttonStyle(.bordered)
+                                        .buttonBorderShape(.circle)
+                                        .tint(.accent)
                                         .disabled(context.state.targetSetId == nil || context.state.isProcessingIntent)
                                     }
                                 }

@@ -7,49 +7,48 @@
 
 import SwiftUI
 
-struct LabeledTextFieldWithUnit<T: PickableUnit>: View {
-    
-    @Environment(\.colorScheme) var colorScheme
-    
+struct LabeledTextField: View {
+        
     let label: String
+    var prompt: String = ""
+    let text: Binding<String>
+    
+    var body: some View {
+        Section {
+            TextField(prompt, text: text)
+        } header: {
+            Text(label)
+        }
+    }
+}
+
+struct LabeledTextFieldWithUnit<T: PickableUnit>: View {
+        
+    let label: String
+    var prompt: String = ""
     let value: Binding<Double?>
     let unit: T
     
     var body: some View {
-        VStack(alignment: .leading) {
+        Section {
+            TextFieldwUnit<T>(prompt: prompt, value: value, unit: unit)
+        } header: {
             Text(label)
-                .fontWeight(.medium)
-                .foregroundStyle(.secondary)
-            TextFieldwUnit<T>(value: value, unit: unit)
-                .background(colorScheme.backgroundPrimary, in: .containerRelative)
         }
     }
-    
-    static func == (lhs: LabeledTextFieldWithUnit, rhs: LabeledTextFieldWithUnit) -> Bool {
-        lhs.label == rhs.label
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(label)
-    }
-
 }
 
 struct LabeledTextFieldWithUnitPicker<T: PickableUnit>: View {
-    
-    @Environment(\.colorScheme) var colorScheme
-    
+        
     let label: String
     let value: Binding<Double?>
     let unit: Binding<T>
     
     var body: some View {
-        VStack(alignment: .leading) {
-            Text(label)
-                .fontWeight(.medium)
-                .foregroundStyle(.secondary)
+        Section {
             TextFieldwUnitPicker<T>(value: value, unit: unit)
-                .background(colorScheme.backgroundPrimary, in: .containerRelative)
+        } header: {
+            Text(label)
         }
     }
 }
@@ -61,5 +60,10 @@ struct LabeledTextFieldWithUnitPicker<T: PickableUnit>: View {
     List {
         LabeledTextFieldWithUnit(label: "Weight", value: $value, unit: unit)
         LabeledTextFieldWithUnitPicker(label: "Weight", value: $value, unit: $unit)
+        LabeledTextField(
+            label: "Labelled Text Field",
+            prompt: "Labelled Text Field Prompt",
+            text: .constant("")
+        )
     }
 }

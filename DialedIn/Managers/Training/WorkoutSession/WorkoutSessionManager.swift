@@ -6,15 +6,14 @@
 //
 
 import SwiftUI
-import FirebaseFirestore
 
 @Observable
 @MainActor
 class WorkoutSessionManager {
 
-    private let db = Firestore.firestore()
+    private let likeService: any WorkoutSessionLikeService
     private let activeWorkoutSessionPersistence: any LocalDocumentPersistence<WorkoutSessionModel>
-    
+
     private let userWorkoutSessionSyncEngine: CollectionSyncEngine<WorkoutSessionModel>
     private let followingWorkoutSessionSyncEngine: CollectionGroupSyncEngine<WorkoutSessionModel>
     
@@ -35,10 +34,12 @@ class WorkoutSessionManager {
     // MARK: - Init
 
     init(
+        likeService: any WorkoutSessionLikeService,
         activeWorkoutSessionPersistence: any LocalDocumentPersistence<WorkoutSessionModel>,
         userWorkoutSessionSyncEngine: CollectionSyncEngine<WorkoutSessionModel>,
         followingWorkoutSessionSyncEngine: CollectionGroupSyncEngine<WorkoutSessionModel>
     ) {
+        self.likeService = likeService
         self.activeWorkoutSessionPersistence = activeWorkoutSessionPersistence
         self.userWorkoutSessionSyncEngine = userWorkoutSessionSyncEngine
         self.followingWorkoutSessionSyncEngine = followingWorkoutSessionSyncEngine
@@ -108,11 +109,16 @@ class WorkoutSessionManager {
     }
 
     func deleteAllWorkoutSessionsForAuthor(authorId: String) async throws {
-        for workoutSession in workoutSessions.filter({ $0.authorId == authorId }) {
-            try await userWorkoutSessionSyncEngine.deleteDocument(id: workoutSession.id)
+        await withTaskGroup(of: Void.self) { group in
+            for workoutSession in workoutSessions.filter({ $0.authorId == authorId }) {
+                group.addTask {
+                    try? await self.deleteWorkoutSession(id: workoutSession.id)
+                }
+            }
+            await group.waitForAll()
         }
     }
-
+    
     // MARK: - Read
 
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel {
@@ -142,15 +148,11 @@ class WorkoutSessionManager {
     }
 
     func likeSession(sessionId: String, authorId: String, userId: String) async throws {
-        let ref = db.collection("users").document(authorId)
-            .collection("workout_sessions").document(sessionId)
-        try await ref.updateData(["liked_by_user_ids": FieldValue.arrayUnion([userId])])
+        try await likeService.likeSession(sessionId: sessionId, authorId: authorId, userId: userId)
     }
 
     func unlikeSession(sessionId: String, authorId: String, userId: String) async throws {
-        let ref = db.collection("users").document(authorId)
-            .collection("workout_sessions").document(sessionId)
-        try await ref.updateData(["liked_by_user_ids": FieldValue.arrayRemove([userId])])
+        try await likeService.unlikeSession(sessionId: sessionId, authorId: authorId, userId: userId)
     }
 
     func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
@@ -191,6 +193,40 @@ extension CoreInteractor {
         return hkWorkoutManager.restEndTime
         #else
         return workoutSessionManager.restEndTime
+        #endif
+    }
+
+    var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion? {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        return hkWorkoutManager.pendingSetCompletion
+        #else
+        return nil
+        #endif
+    }
+
+    var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion? {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        return hkWorkoutManager.pendingWorkoutCompletion
+        #else
+        return nil
+        #endif
+    }
+
+    func syncPendingCompletionsFromSharedStorage() {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        hkWorkoutManager.syncPendingCompletionsFromSharedStorage()
+        #endif
+    }
+
+    func clearPendingSetCompletion() {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        hkWorkoutManager.clearPendingSetCompletion()
+        #endif
+    }
+
+    func clearPendingWorkoutCompletion() {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        hkWorkoutManager.clearPendingWorkoutCompletion()
         #endif
     }
 

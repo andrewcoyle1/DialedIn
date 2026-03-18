@@ -720,4 +720,3 @@ struct ActivityViewState: Sendable {
         return activityState == .stale
     }
 }
-

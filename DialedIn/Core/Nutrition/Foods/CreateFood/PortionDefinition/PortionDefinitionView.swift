@@ -63,16 +63,13 @@ struct PortionDefinitionView: View {
         .navigationTitle("Create Food")
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onNextPressed(delegate: delegate)
             } label: {
                 Text("Next")
-                    .padding()
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
             .disabled(!presenter.canSave)
-            .padding(.horizontal)
+            .padding(.bottom)
         }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)

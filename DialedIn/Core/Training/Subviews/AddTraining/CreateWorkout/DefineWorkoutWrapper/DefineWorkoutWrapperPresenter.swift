@@ -8,7 +8,8 @@ class DefineWorkoutWrapperPresenter {
     private let router: DefineWorkoutWrapperRouter
     
     var exercises: [WorkoutTemplateExercise] = []
-    
+    var saveToLibrary: Bool = false
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -37,16 +38,42 @@ class DefineWorkoutWrapperPresenter {
             dateModified: Date.now,
             exercises: exercises
         )
-        
-        defer {
+
+        if let onWorkoutCreated = delegate.onWorkoutCreated {
+            router.showAlert(
+                title: "Save Workout?",
+                subtitle: "Would you like to save this workout template to your library?",
+                buttons: {
+                    AnyView(
+                        HStack {
+                            Button("No") { self.saveToLibrary = false }
+                            
+                            Button("Yes") { self.saveToLibrary = true }
+                        }
+                    )
+                }
+            )
+            if saveToLibrary {
+                Task {
+                    do {
+                        try await interactor.saveWorkoutTemplate(workoutTemplate: workout, image: nil)
+                    } catch {
+                        router.showSimpleAlert(title: "Unable to Save Workout", subtitle: "Please try again.")
+                    }
+                }
+            }
             router.dismissEnvironment()
-        }
-        
-        Task {
-            do {
-                try await interactor.saveWorkoutTemplate(workoutTemplate: workout, image: nil)
-            } catch {
-                router.showSimpleAlert(title: "Unable to Create Workout", subtitle: "Please try again.")
+            onWorkoutCreated(workout)
+        } else {
+            defer {
+                router.dismissEnvironment()
+            }
+            Task {
+                do {
+                    try await interactor.saveWorkoutTemplate(workoutTemplate: workout, image: nil)
+                } catch {
+                    router.showSimpleAlert(title: "Unable to Create Workout", subtitle: "Please try again.")
+                }
             }
         }
     }

@@ -37,11 +37,11 @@ struct HeightView: View {
             }
         }
         .navigationTitle("How tall are you?")
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)

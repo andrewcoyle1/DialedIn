@@ -83,7 +83,7 @@ class MuscleGroupDetailPresenter {
                     .filter { !$0.isWarmup && $0.completedAt != nil }
                     .count
                 if completedSets > 0 {
-                    let factor: Double = isSecondary ? 0.5 : 1.0
+                    let factor: Double = isSecondary == .secondary ? 0.5 : 1.0
                     setsByDay[day, default: 0] += Double(completedSets) * factor
                 }
             }

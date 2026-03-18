@@ -49,8 +49,7 @@ struct ExerciseModelDetailView: View {
 
             movementQualitySection
 
-            resistanceEquipmentSection
-            supportEquipmentSection
+            equipmentVariationsSection
 
             detailsSection
             
@@ -257,7 +256,7 @@ private extension ExerciseModelDetailView {
             ScrollView(.horizontal) {
                 HStack {
                     ForEach(muscles, id: \.key) { muscle, isSecondary in
-                        Text("\(muscle.name): \(isSecondary ? "Secondary" : "Primary")")
+                        Text("\(muscle.name): \(isSecondary == .secondary ? "Secondary" : "Primary")")
                     }
                 }
             }
@@ -310,60 +309,54 @@ private extension ExerciseModelDetailView {
         }
     }
 
-    var resistanceEquipmentSection: some View {
-        Section {
-            if delegate.exerciseModel.resistanceEquipment.isEmpty {
-                Text("None")
-                    .foregroundStyle(.secondary)
-            } else {
-                ScrollView(.horizontal) {
+    var equipmentVariationsSection: some View {
+        let variations = delegate.exerciseModel.equipmentVariations
+        return Group {
+            if variations.isEmpty {
+                Section {
+                    Text("None")
+                        .foregroundStyle(.secondary)
+                } header: {
                     HStack {
-                        ForEach(delegate.exerciseModel.resistanceEquipment, id: \.self) { equipment in
-                            VStack {
-                                ImageLoaderView()
-                                    .frame(height: 200)
-                                Text("\(equipment.kind.rawValue): \(equipment.equipmentId)")
+                        Text("Equipment")
+                        Spacer()
+                        Text("Template")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } else {
+                ForEach(Array(variations.enumerated()), id: \.element.id) { index, variation in
+                    Section {
+                        if variation.resistanceEquipment.isEmpty && variation.supportEquipment.isEmpty {
+                            Text("No equipment selected")
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(variation.resistanceEquipment, id: \.self) { equipment in
+                                HStack {
+                                    Text("Resistance:")
+                                        .foregroundStyle(.secondary)
+                                    Text(equipment.equipmentId)
+                                }
                             }
+                            ForEach(variation.supportEquipment, id: \.self) { equipment in
+                                HStack {
+                                    Text("Support:")
+                                        .foregroundStyle(.secondary)
+                                    Text(equipment.equipmentId)
+                                }
+                            }
+                        }
+                    } header: {
+                        HStack {
+                            Text("Variation \(index + 1)")
+                            Spacer()
+                            Text("Template")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
-            }
-        } header: {
-            HStack {
-                Text("Resistance Equipment")
-                Spacer()
-                Text("Template")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    var supportEquipmentSection: some View {
-        Section {
-            if delegate.exerciseModel.supportEquipment.isEmpty {
-                Text("None")
-                    .foregroundStyle(.secondary)
-            } else {
-                ScrollView(.horizontal) {
-                    HStack {
-                        ForEach(delegate.exerciseModel.supportEquipment, id: \.self) { equipment in
-                            VStack {
-                                ImageLoaderView()
-                                    .frame(height: 200)
-                                Text("\(equipment.kind.rawValue): \(equipment.equipmentId)")
-                            }
-                        }
-                    }
-                }
-            }
-        } header: {
-            HStack {
-                Text("Support Equipment")
-                Spacer()
-                Text("Template")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
         }
     }

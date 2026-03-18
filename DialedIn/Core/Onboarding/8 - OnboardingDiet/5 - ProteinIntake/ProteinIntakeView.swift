@@ -11,11 +11,13 @@ struct ProteinIntakeDelegate {
     let preferredDiet: PreferredDiet
     let calorieFloor: CalorieFloor
     let calorieDistrubtion: CalorieDistribution
-    
+    var isFromSettings: Bool
+
     init(delegate: CalorieDistributionDelegate, calorieDistribution: CalorieDistribution) {
         self.preferredDiet = delegate.preferredDiet
         self.calorieFloor = delegate.calorieFloor
         self.calorieDistrubtion = calorieDistribution
+        self.isFromSettings = delegate.isFromSettings
     }
     
     static var mock: Self {
@@ -35,7 +37,7 @@ struct ProteinIntakeView: View {
             pickerSection
         }
         .navigationTitle("Protein Intake")
-#if DEBUG || MOCK
+        #if DEBUG || MOCK
         .toolbar {
             toolbarContent
         }
@@ -48,6 +50,7 @@ struct ProteinIntakeView: View {
             }
             .accessibilityIdentifier("Continue")
             .disabled(presenter.selectedProteinIntake == nil)
+            .padding(.bottom)
         }
     }
     

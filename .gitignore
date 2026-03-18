@@ -32,6 +32,9 @@ fastlane/test_output/
 # macOS
 .DS_Store
 
+# Node / Firebase Functions
+functions/node_modules/
+
 # Sensitive configuration files
 DialedIn/GoogleServicePLists/GoogleService-Info-Dev.plist
 DialedIn/GoogleServicePLists/GoogleService-Info-Prod.plist

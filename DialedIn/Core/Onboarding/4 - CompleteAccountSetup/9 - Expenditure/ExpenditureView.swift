@@ -58,11 +58,11 @@ struct ExpenditureView: View {
         .onFirstAppear {
             presenter.estimateExpenditure(delegate: delegate)
         }
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)

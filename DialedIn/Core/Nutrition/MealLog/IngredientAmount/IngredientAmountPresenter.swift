@@ -40,6 +40,10 @@ class IngredientAmountPresenter {
     func add(ingredient: FoodModel, onConfirm: @escaping (MealItemModel) -> Void) {
         let resolvedGrams = ingredient.measurementMethod == .weight ? amountValue : nil
         let resolvedMl = ingredient.measurementMethod == .volume ? amountValue : nil
+        var scaledNutrients: NutrientMap = NutrientMap()
+        for (key, value) in ingredient.nutrients {
+            scaledNutrients[key] = value * scale
+        }
         let item = MealItemModel(
             itemId: UUID().uuidString,
             sourceType: .ingredient,
@@ -49,10 +53,7 @@ class IngredientAmountPresenter {
             unit: unitLabel(ingredient: ingredient),
             resolvedGrams: resolvedGrams,
             resolvedMilliliters: resolvedMl,
-            calories: calories(ingredient: ingredient),
-            proteinGrams: protein(ingredient: ingredient),
-            carbGrams: carbs(ingredient: ingredient),
-            fatGrams: fat(ingredient: ingredient)
+            nutrients: scaledNutrients
         )
         onConfirm(item)
     }

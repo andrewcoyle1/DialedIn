@@ -208,8 +208,8 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                 imageName: imageName,
                 sets: reindexedSets,
                 setTargets: exerciseModel.setTargets,
-                chosenResistanceEquipment: exerciseModel.exercise.resistanceEquipment,
-                chosenSupportEquipment: exerciseModel.exercise.supportEquipment
+                chosenVariationId: nil,
+                equipmentVariations: exerciseModel.exercise.equipmentVariations
             )
         }
     }
@@ -243,6 +243,16 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         self.dateModified = Date()
     }
     
+    mutating func applyDeloadWeightReduction() {
+        for iindex in exercises.indices {
+            for jindex in exercises[iindex].sets.indices {
+                if let weight = exercises[iindex].sets[jindex].weightKg {
+                    exercises[iindex].sets[jindex].weightKg = weight * 0.65
+                }
+            }
+        }
+    }
+
     mutating func endSession(at date: Date) {
         self.endedAt = date
         self.dateModified = date
@@ -280,25 +290,30 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         gymProfile: GymProfileModel?,
         preferredWeightUnit: ExerciseWeightUnit? = nil
     ) -> Double {
-        roundWeightToEquipmentIncrement(
+        let firstVariation = exercise.equipmentVariations.first
+        let refs = firstVariation?.resistanceEquipment ?? []
+        return roundWeightToEquipmentIncrement(
             weightKg: weightKg,
-            equipmentRefs: exercise.resistanceEquipment,
+            equipmentRefs: refs,
             gymProfile: gymProfile,
             preferredWeightUnit: preferredWeightUnit
         )
     }
 
-    /// Rounds weight using the workout exercise's chosen resistance equipment.
+    /// Rounds weight using the workout exercise's chosen variation resistance equipment.
     /// Uses first range whose unit matches preferredWeightUnit; if none, uses default or first active range.
-    /// Returns rounded weight in kg, or original weight if chosen equipment is empty or no matching range.
+    /// Returns rounded weight in kg, or original weight if no variation or equipment found.
     @MainActor
     static func roundWeightToEquipmentIncrement(
         weightKg: Double,
         workoutExercise: WorkoutExerciseModel,
+        exerciseTemplate: ExerciseModel?,
         gymProfile: GymProfileModel?,
         preferredWeightUnit: ExerciseWeightUnit?
     ) -> Double {
-        let refs = workoutExercise.chosenResistanceEquipment
+        let variation = exerciseTemplate?.equipmentVariations.first(where: { $0.id == workoutExercise.chosenVariationId })
+            ?? exerciseTemplate?.equipmentVariations.first
+        let refs = variation?.resistanceEquipment ?? []
         guard !refs.isEmpty else {
             return weightKg
         }
@@ -443,7 +458,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     @MainActor
     static var mocks: [WorkoutSessionModel] {
         // Ensure mock sessions belong to the preview/mock user and are completed so they appear in history
-        let uid = "uid"
+        let uid = "mock_user_123"
         var session1 = WorkoutSessionModel(id: "session-1", authorId: uid, template: WorkoutTemplateModel.mocks[0])
         session1.endSession(at: session1.dateCreated.addingTimeInterval(45 * 60))
         var session2 = WorkoutSessionModel(id: "session-2", authorId: uid, template: WorkoutTemplateModel.mocks[1])

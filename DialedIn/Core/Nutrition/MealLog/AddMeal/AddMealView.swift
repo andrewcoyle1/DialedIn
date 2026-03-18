@@ -32,6 +32,12 @@ struct AddMealView: View {
             CustomToggleView(symbolName: "carrot", title: "Show all nutrients", subtitle: nil, bool: $presenter.showAllNutrients)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -66,14 +72,44 @@ struct AddMealView: View {
                 }
             } else {
                 ForEach(presenter.mealLog.items) { mealItem in
-                    CustomListCellView(title: mealItem.displayName)
-                        .removeListRowFormatting()
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                guard let index = presenter.mealLog.items.firstIndex(of: mealItem) else { return }
-                                presenter.mealLog.items.remove(at: index)
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(mealItem.displayName)
+                                .font(.subheadline)
+                            HStack(spacing: 4) {
+                                Text("\(Int(mealItem.calories ?? 0)) kcal")
+                                Text("·")
+                                Text(String(format: "%.1f P", mealItem.proteinGrams ?? 0))
+                                Text("·")
+                                Text(String(format: "%.1f F", mealItem.fatGrams ?? 0))
+                                Text("·")
+                                Text(String(format: "%.1f C", mealItem.carbGrams ?? 0))
                             }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(String(format: "%g %@", mealItem.amount, mealItem.unit))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Button {
+                                presenter.onEditMealItem(mealItem)
+                            } label: {
+                                Image(systemName: "pencil")
+                            }
+                            .buttonStyle(.bordered)
+                            .buttonBorderShape(.circle)
+                        }
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            guard let index = presenter.mealLog.items.firstIndex(of: mealItem) else { return }
+                            presenter.mealLog.items.remove(at: index)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                 }
             }
         } header: {
@@ -86,31 +122,47 @@ struct AddMealView: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
                 AnalyticsCard(
                     title: "Calories",
-                    subtitle: "791 kcal in plate",
+                    subtitle: "\(Int(presenter.displayCalories)) kcal \(presenter.scopeLabel)",
                     subsubtitle: "",
                     subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .blue)
+                        MacroProgressChart(
+                            current: presenter.displayCalories,
+                            target: presenter.targetCalories,
+                            maxValue: max(presenter.targetCalories * 1.2, presenter.displayCalories + 1),
+                            color: .blue)
                     }
                 AnalyticsCard(
                     title: "Protein",
-                    subtitle: "65.1 g in plate",
+                    subtitle: "\(presenter.displayProtein.formatted(.number.precision(.fractionLength(1)))) g \(presenter.scopeLabel)",
                     subsubtitle: "",
                     subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .proteinColor)
+                        MacroProgressChart(
+                            current: presenter.displayProtein,
+                            target: presenter.targetProtein,
+                            maxValue: max(presenter.targetProtein * 1.2, presenter.displayProtein + 1),
+                            color: .proteinColor)
                     }
                 AnalyticsCard(
                     title: "Fat",
-                    subtitle: "38.4 g in plate",
+                    subtitle: "\(presenter.displayFat.formatted(.number.precision(.fractionLength(1)))) g \(presenter.scopeLabel)",
                     subsubtitle: "",
                     subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .fatColor)
+                        MacroProgressChart(
+                            current: presenter.displayFat,
+                            target: presenter.targetFat,
+                            maxValue: max(presenter.targetFat * 1.2, presenter.displayFat + 1),
+                            color: .fatColor)
                     }
                 AnalyticsCard(
                     title: "Carbs",
-                    subtitle: "23.4 g in plate",
+                    subtitle: "\(presenter.displayCarbs.formatted(.number.precision(.fractionLength(1)))) g \(presenter.scopeLabel)",
                     subsubtitle: "",
                     subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .carbsColor)
+                        MacroProgressChart(
+                            current: presenter.displayCarbs,
+                            target: presenter.targetCarbs,
+                            maxValue: max(presenter.targetCarbs * 1.2, presenter.displayCarbs + 1),
+                            color: .carbsColor)
                     }
             }
             .removeListRowFormatting()
@@ -202,10 +254,10 @@ struct AddMealView: View {
             }
             .removeListRowFormatting()
         } header: {
-            Text("Carb Breakdown")
+            Text("Fat Breakdown")
         }
     }
-    
+
     private var proteinBreakdownSection: some View {
         Section {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
@@ -240,10 +292,10 @@ struct AddMealView: View {
             }
             .removeListRowFormatting()
         } header: {
-            Text("Carb Breakdown")
+            Text("Protein Breakdown")
         }
     }
-    
+
     private var vitaminBreakdownSection: some View {
         Section {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
@@ -278,10 +330,10 @@ struct AddMealView: View {
             }
             .removeListRowFormatting()
         } header: {
-            Text("Carb Breakdown")
+            Text("Vitamin Breakdown")
         }
     }
-    
+
     private var mineralBreakdownSection: some View {
         Section {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
@@ -316,10 +368,10 @@ struct AddMealView: View {
             }
             .removeListRowFormatting()
         } header: {
-            Text("Carb Breakdown")
+            Text("Mineral Breakdown")
         }
     }
-    
+
     private var otherBreakdownSection: some View {
         Section {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
@@ -354,7 +406,7 @@ struct AddMealView: View {
             }
             .removeListRowFormatting()
         } header: {
-            Text("Carb Breakdown")
+            Text("Other Nutrients")
         }
     }
 
@@ -386,9 +438,9 @@ struct AddMealView: View {
 
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                
+
             } label: {
-                Text("0/1985")
+                Text(presenter.calorieLabel)
                     .font(.subheadline)
             }
         }

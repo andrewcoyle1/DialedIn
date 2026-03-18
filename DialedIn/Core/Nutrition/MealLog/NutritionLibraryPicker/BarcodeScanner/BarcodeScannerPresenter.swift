@@ -21,6 +21,10 @@ class BarcodeScannerPresenter {
     private(set) var isSavingIngredient: Bool = false
     private(set) var savedSuccessfully: Bool = false
 
+    // MARK: Barcode lookup state
+    private(set) var isLookingUpBarcode: Bool = false
+    private(set) var barcodeError: String?
+
     init(interactor: BarcodeScannerInteractor, router: BarcodeScannerRouter) {
         self.interactor = interactor
         self.router = router
@@ -85,9 +89,34 @@ class BarcodeScannerPresenter {
         scannedCode = nil
         parsedIngredient = nil
         labelError = nil
+        barcodeError = nil
+        isLookingUpBarcode = false
         isScanning = true
     }
-    
+
+    func onBarcodeDetected(_ code: String) {
+        scannedCode = code
+        isLookingUpBarcode = true
+        barcodeError = nil
+        parsedIngredient = nil
+        interactor.trackEvent(event: Event.onBarcodeDetected(code: code))
+        Task {
+            defer { isLookingUpBarcode = false }
+            do {
+                if let local = interactor.findLocalFood(withBarcode: code) {
+                    parsedIngredient = local
+                    return
+                }
+                let food = try await interactor.lookupBarcode(code)
+                try? await interactor.saveFood(food.withAuthorId(interactor.currentUser?.userId ?? ""), image: nil)
+                parsedIngredient = food
+            } catch {
+                barcodeError = error.localizedDescription
+                interactor.trackEvent(event: Event.onBarcodeError(message: error.localizedDescription))
+            }
+        }
+    }
+
     func onDismissPressed() {
         router.dismissScreen()
     }
@@ -101,14 +130,18 @@ extension BarcodeScannerPresenter {
         case onParseLabel
         case onSaveIngredient(name: String)
         case onLabelError(message: String)
+        case onBarcodeDetected(code: String)
+        case onBarcodeError(message: String)
 
         var eventName: String {
             switch self {
-            case .onAppear:          return "BarcodeScannerView_Appear"
-            case .onDisappear:       return "BarcodeScannerView_Disappear"
-            case .onParseLabel:      return "BarcodeScanner_ParseLabel"
-            case .onSaveIngredient:  return "BarcodeScanner_SaveIngredient"
-            case .onLabelError:      return "BarcodeScanner_LabelError"
+            case .onAppear:           return "BarcodeScannerView_Appear"
+            case .onDisappear:        return "BarcodeScannerView_Disappear"
+            case .onParseLabel:       return "BarcodeScanner_ParseLabel"
+            case .onSaveIngredient:   return "BarcodeScanner_SaveIngredient"
+            case .onLabelError:       return "BarcodeScanner_LabelError"
+            case .onBarcodeDetected:  return "BarcodeScanner_BarcodeDetected"
+            case .onBarcodeError:     return "BarcodeScanner_BarcodeError"
             }
         }
 
@@ -120,6 +153,10 @@ extension BarcodeScannerPresenter {
                 return ["ingredient_name": name]
             case .onLabelError(let message):
                 return ["error": message]
+            case .onBarcodeDetected(let code):
+                return ["code": code]
+            case .onBarcodeError(let message):
+                return ["error": message]
             default:
                 return nil
             }
@@ -127,8 +164,8 @@ extension BarcodeScannerPresenter {
 
         var type: LogType {
             switch self {
-            case .onLabelError: return .severe
-            default:            return .analytic
+            case .onLabelError, .onBarcodeError: return .severe
+            default:                              return .analytic
             }
         }
     }
@@ -167,22 +204,27 @@ private struct NutritionLabelResponse: Decodable {
     func toFood(authorId: String?) -> FoodModel {
         let method: MeasurementMethod = measurementMethod == "volume" ? .volume : .weight
         let now = Date()
+        var nutrients: NutrientMap = NutrientMap()
+        func set(_ key: NutrientKey, _ value: Double?) {
+            if let val = value { nutrients[key] = val }
+        }
+        set(.calories, calories)
+        set(.protein, protein)
+        set(.carbs, carbs)
+        set(.fatTotal, fatTotal)
+        set(.fatSaturated, fatSaturated)
+        set(.fiber, fiber)
+        set(.sugar, sugar)
+        set(.sodiumMg, sodiumMg)
+        set(.potassiumMg, potassiumMg)
+        set(.calciumMg, calciumMg)
+        set(.ironMg, ironMg)
         return FoodModel(
             ingredientId: UUID().uuidString,
             authorId: authorId,
             name: name,
             measurementMethod: method,
-            calories: calories,
-            protein: protein,
-            carbs: carbs,
-            fatTotal: fatTotal,
-            fatSaturated: fatSaturated,
-            fiber: fiber,
-            sugar: sugar,
-            sodiumMg: sodiumMg,
-            potassiumMg: potassiumMg,
-            calciumMg: calciumMg,
-            ironMg: ironMg,
+            nutrients: nutrients,
             dateCreated: now,
             dateModified: now
         )

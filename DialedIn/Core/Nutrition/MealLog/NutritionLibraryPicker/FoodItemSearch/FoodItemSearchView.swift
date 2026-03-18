@@ -1,24 +1,26 @@
 import SwiftUI
 
 struct FoodItemSearchDelegate {
-    var eventParameters: [String: Any]? {
-        nil
-    }
+    var onFoodSelected: ((FoodModel) -> Void)?
+    var eventParameters: [String: Any]? { nil }
 }
 
 struct FoodItemSearchView: View {
-    
+
     @State var presenter: FoodItemSearchPresenter
     let delegate: FoodItemSearchDelegate
-    
+
     var body: some View {
         List {
-            fromHistorySection
-            fromCommonSection
-            fromBrandedSection
-            fromOpenFoodFactsSection
+            if !presenter.historyFoods.isEmpty && presenter.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+                historySection
+            }
+            openFoodFactsSection
         }
         .searchable(text: $presenter.searchText)
+        .onChange(of: presenter.searchText) { _, newValue in
+            presenter.onSearchTextChanged(newValue)
+        }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
@@ -26,60 +28,51 @@ struct FoodItemSearchView: View {
             presenter.onViewDisappear(delegate: delegate)
         }
     }
-    
-    private var fromHistorySection: some View {
-        listSectionBuilder(
-            header: "From History",
-            items: presenter.fromHistoryFoodItems
-        )
-    }
-    
-    private var fromCommonSection: some View {
-        listSectionBuilder(
-            header: "Common",
-            items: presenter.fromCommonFoodItems
-        )
-    }
-    
-    private var fromBrandedSection: some View {
-        listSectionBuilder(
-            header: "Branded",
-            items: presenter.fromBrandedFoodItems
-        )
-    }
-    
-    private var fromOpenFoodFactsSection: some View {
-        listSectionBuilder(
-            header: "Open Food Facts",
-            items: presenter.fromOpenFoodFactsFoodItems
-        )
-    }
-    
-    @ViewBuilder
-    private func listSectionBuilder(header: String, items: [MealLogModel]) -> some View {
+
+    private var historySection: some View {
         Section {
-            ForEach(items) { foodItem in
-                foodItemCard(item: foodItem)
+            ForEach(presenter.historyFoods) { food in
+                foodRow(food)
             }
             .removeListRowFormatting()
         } header: {
-            HStack(alignment: .firstTextBaseline) {
-                Text(header)
-                Spacer()
-                Text("See 15 more")
-                    .font(.subheadline)
-                    .underline()
+            Text("Recent")
+        }
+    }
+
+    @ViewBuilder
+    private var openFoodFactsSection: some View {
+        let trimmed = presenter.searchText.trimmingCharacters(in: .whitespaces)
+        if !trimmed.isEmpty || !presenter.openFoodFactsFoods.isEmpty {
+            Section {
+                if presenter.isSearching {
+                    HStack {
+                        ProgressView()
+                        Text("Searching...")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                } else if presenter.openFoodFactsFoods.isEmpty && !trimmed.isEmpty {
+                    Text("No results found")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(presenter.openFoodFactsFoods) { food in
+                        foodRow(food)
+                    }
+                    .removeListRowFormatting()
+                }
+            } header: {
+                Text("Open Food Facts")
             }
         }
     }
-    
-    @ViewBuilder
-    private func foodItemCard(item: MealLogModel) -> some View {
-        CustomListCellView(
-            imageName: Constants.randomImage,
-            title: "Original Salted Potato Rings by Hula Hoops",
-            subtitle: "120 kcal 1P 6F 17C - 1 pack (24 g)"
-        )
+
+    private func foodRow(_ food: FoodModel) -> some View {
+        FoodLibraryPickerRowView(delegate: FoodLibraryPickerRowDelegate(
+            item: food,
+            onAdd: { delegate.onFoodSelected?(food) },
+            onQuickAdd: { delegate.onFoodSelected?(food) }
+        ))
     }
 }
 
@@ -88,14 +81,14 @@ struct FoodItemSearchView: View {
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     let delegate = FoodItemSearchDelegate()
-    
+
     return RouterView { router in
         builder.foodItemSearchView(router: router, delegate: delegate)
     }
 }
 
 extension CoreBuilder {
-    
+
     func foodItemSearchView(router: AnyRouter, delegate: FoodItemSearchDelegate) -> some View {
         FoodItemSearchView(
             presenter: FoodItemSearchPresenter(
@@ -105,15 +98,15 @@ extension CoreBuilder {
             delegate: delegate
         )
     }
-    
+
 }
 
 extension CoreRouter {
-    
+
     func showFoodItemSearchView(delegate: FoodItemSearchDelegate) {
         router.showScreen(.push) { router in
             builder.foodItemSearchView(router: router, delegate: delegate)
         }
     }
-    
+
 }

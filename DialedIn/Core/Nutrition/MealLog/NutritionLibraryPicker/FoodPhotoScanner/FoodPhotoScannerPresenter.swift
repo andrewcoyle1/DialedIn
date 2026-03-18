@@ -12,6 +12,7 @@ struct FoodAnalysisItem: Identifiable, Decodable {
     let proteinGrams: Double?
     let carbGrams: Double?
     let fatGrams: Double?
+    let ingredientId: String?
 }
 
 @Observable
@@ -65,19 +66,21 @@ class FoodPhotoScannerPresenter {
 
     func makeMealItem(from item: FoodAnalysisItem) -> MealItemModel {
         interactor.trackEvent(event: Event.onAddItem(name: item.name))
+        var nutrients = NutrientMap()
+        if let val = item.calories { nutrients[.calories] = val }
+        if let val = item.proteinGrams { nutrients[.protein] = val }
+        if let val = item.carbGrams { nutrients[.carbs] = val }
+        if let val = item.fatGrams { nutrients[.fatTotal] = val }
         return MealItemModel(
             itemId: UUID().uuidString,
             sourceType: .ingredient,
-            sourceId: UUID().uuidString,
+            sourceId: item.ingredientId ?? UUID().uuidString,
             displayName: item.name,
             amount: item.amountGrams,
             unit: "g",
             resolvedGrams: item.amountGrams,
             resolvedMilliliters: nil,
-            calories: item.calories,
-            proteinGrams: item.proteinGrams,
-            carbGrams: item.carbGrams,
-            fatGrams: item.fatGrams
+            nutrients: nutrients
         )
     }
 }

@@ -90,21 +90,19 @@ struct CustomPaywallView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Button {
+            CallToActionButton {
                 guard let product = selectedProduct else { return }
                 onPurchaseProductPressed(product)
             } label: {
                 Text("Subscribe")
             }
-            .callToActionButton(isPrimaryAction: true)
-            Button {
+            CallToActionButton(isPrimaryAction: false) {
                 
             } label: {
                 Text("Restore Subscription")
             }
-            .callToActionButton()
         }
-        .padding(.horizontal)
+        .padding(.bottom)
     }
     
     @ToolbarContentBuilder

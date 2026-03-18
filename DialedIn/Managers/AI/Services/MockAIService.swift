@@ -46,6 +46,18 @@ struct MockAIService: AIService {
         """
     }
 
+    func describeMeal(text: String) async throws -> String {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+        return """
+        {"items":[
+          {"id":"1","name":"Grilled Chicken Breast","amountGrams":150,"calories":248,"proteinGrams":46.5,"carbGrams":0,"fatGrams":5.4},
+          {"id":"2","name":"Brown Rice","amountGrams":100,"calories":111,"proteinGrams":2.6,"carbGrams":23,"fatGrams":0.9},
+          {"id":"3","name":"Steamed Broccoli","amountGrams":80,"calories":27,"proteinGrams":2.4,"carbGrams":5,"fatGrams":0.3}
+        ]}
+        """
+    }
+
     func analyzeNutritionLabel(text: String) async throws -> String {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()

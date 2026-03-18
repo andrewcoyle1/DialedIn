@@ -38,9 +38,27 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     
     /// The current rest end time for the active session, if any.
     var restEndTime: Date? { get }
+
+    /// Pending set completion written by the widget, if any.
+    var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion? { get }
+
+    /// Pending workout completion written by the widget, if any.
+    var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion? { get }
+
+    /// Force an immediate read of pending completions from shared storage (e.g. on foreground).
+    func syncPendingCompletionsFromSharedStorage()
+
+    func clearPendingSetCompletion()
+    func clearPendingWorkoutCompletion()
     
     /// The current active workout session, if any.
     var activeSession: WorkoutSessionModel? { get }
+
+    // MARK: - HealthKit Authorization
+
+    func canRequestHealthDataAuthorisation() -> Bool
+    func requestHealthKitAuthorisation() async throws
+    func needsAuthorisationForRequiredTypes() -> Bool
 
     // MARK: - Workout Session Configuration & Lifecycle
 

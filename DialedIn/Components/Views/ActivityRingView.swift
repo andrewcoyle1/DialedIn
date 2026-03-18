@@ -47,7 +47,7 @@ struct ActivityRingView: View {
             if progress > 0 {
                 Circle()
                     .fill(color)
-                    .shadow(radius: 5, x: 0, y: 2)
+//                    .shadow(radius: 5, x: 0, y: 2)
                     .shadow(radius: 5)
                     .frame(width: size / 10, height: size / 10)
                     .offset(y: -size / 2)

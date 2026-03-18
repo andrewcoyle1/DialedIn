@@ -16,6 +16,7 @@ class DietPlanPresenter {
     private(set) var plan: DietPlan?
     var trainingProgramName: String?
     var trainingDaysPerWeek: Int?
+    private var isFromSettings: Bool = false
     
     init(
         interactor: DietPlanInteractor,
@@ -31,6 +32,7 @@ class DietPlanPresenter {
     }
 
     func createPlan(delegate: DietPlanDelegate) {
+        isFromSettings = delegate.isFromSettings
         plan = interactor.computeDietPlan(user: currentUser, delegate: delegate)
     }
     
@@ -44,7 +46,11 @@ class DietPlanPresenter {
                 try await interactor.saveDietPlan(plan)
                 interactor.trackEvent(event: Event.saveDietPlanSuccess)
                 interactor.trackEvent(event: Event.navigate)
-                router.showOnboardingCompletedView()
+                if isFromSettings {
+                    router.dismissScreen()
+                } else {
+                    router.showStravaConnectView()
+                }
             } catch {
                 router.showSimpleAlert(title: "Unable to update your profile", subtitle: "Please check your internet connection and try again")
                 interactor.trackEvent(event: Event.saveDietPlanFail(error: error))

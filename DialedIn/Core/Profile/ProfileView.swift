@@ -317,7 +317,8 @@ extension CoreRouter {
         enableLocalPersistence: true,
         logger: nil
     )
-    container.register(UserManager.self, service: UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine))
+    let userQueryService = MockUserQueryService()
+    container.register(UserManager.self, service: UserManager(queryService: userQueryService, userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine))
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     return RouterView { router in
         builder.profileView(router: router)

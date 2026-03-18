@@ -10,10 +10,12 @@ import SwiftUI
 struct CalorieDistributionDelegate {
     let preferredDiet: PreferredDiet
     let calorieFloor: CalorieFloor
-    
+    var isFromSettings: Bool
+
     init(delegate: CalorieFloorDelegate, calorieFloor: CalorieFloor) {
         self.preferredDiet = delegate.preferredDiet
         self.calorieFloor = calorieFloor
+        self.isFromSettings = delegate.isFromSettings
     }
     
     static var mock: Self {
@@ -34,11 +36,11 @@ struct CalorieDistributionView: View {
             itemSection
         }
         .navigationTitle("Calorie distribution")
-#if DEBUG || MOCK
-.toolbar {
-    toolbarContent
-}
-#endif
+        #if DEBUG || MOCK
+        .toolbar {
+            toolbarContent
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.navigateToProteinIntake(delegate: delegate)
@@ -47,6 +49,7 @@ struct CalorieDistributionView: View {
             }
             .accessibilityIdentifier("Continue")
             .disabled(presenter.selectedCalorieDistribution == nil)
+            .padding(.bottom)
         }
     }
     

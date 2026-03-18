@@ -136,7 +136,7 @@ struct DefineWorkoutView: View {
                                         .lineLimit(1)
                                         .padding(4)
                                         .padding(.horizontal, 4)
-                                        .background(value ? Color.secondary.opacity(0.2) : Color.secondary.opacity(0.4), in: Capsule())
+                                        .background(value == .secondary ? Color.secondary.opacity(0.2) : Color.secondary.opacity(0.4), in: Capsule())
                                 }
                             }
                         }

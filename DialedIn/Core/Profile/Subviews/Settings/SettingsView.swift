@@ -15,6 +15,7 @@ struct SettingsView: View {
         List {
             accountSection
             purchaseSection
+            nutritionSection
             applicationSection
         }
         .navigationTitle("Settings")
@@ -97,6 +98,18 @@ struct SettingsView: View {
             .removeListRowFormatting()
         } header: {
             Text("Data Management")
+        }
+    }
+
+    private var nutritionSection: some View {
+        Section {
+            Button {
+                presenter.onNutritionPlanPressed()
+            } label: {
+                Label("Nutrition Plan", systemImage: "fork.knife")
+            }
+        } header: {
+            Text("Nutrition")
         }
     }
 

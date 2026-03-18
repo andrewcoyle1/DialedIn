@@ -62,13 +62,7 @@ struct FoodPackagingView: View {
             Section {
                 Text("How these photos are used.")
                     .bold()
-                +
-                Text(" Photos for each new product submission and edit are used by DialedIn and ")
-                +
-                Text("Open Food Facts")
-                    .underline()
-                +
-                Text(" to increase the quality of the global barcode database. Photos will be made public, but won't be stored in your custom food.")
+                Text(usageAttributedText)
             } footer: {
                 HStack {
                     Text("Don't ask for product images again")
@@ -86,18 +80,23 @@ struct FoodPackagingView: View {
             presenter.onViewDisappear(delegate: delegate)
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onNextPressed(delegate: delegate)
             } label: {
                 Text("Next")
-                    .padding()
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .padding()
+            .padding(.bottom)
         }
         .photosPicker(isPresented: $presenter.isFrontImagePickerPresented, selection: $presenter.selectedFrontPhotoItem, matching: .images)
         .photosPicker(isPresented: $presenter.isRearImagePickerPresented, selection: $presenter.selectedRearPhotoItem, matching: .images)
+    }
+    
+    private var usageAttributedText: AttributedString {
+        var attributed = AttributedString(" Photos for each new product submission and edit are used by Compound and Open Food Facts to increase the quality of the global barcode database. Photos will be made public, but won't be stored in your custom food.")
+        if let range = attributed.range(of: "Open Food Facts") {
+            attributed[range].underlineStyle = .single
+        }
+        return attributed
     }
 }
 

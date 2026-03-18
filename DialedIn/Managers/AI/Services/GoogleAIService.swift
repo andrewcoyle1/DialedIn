@@ -75,6 +75,16 @@ struct GoogleAIService: AIService {
         return json
     }
 
+    func describeMeal(text: String) async throws -> String {
+        let payload: [String: Any] = ["description": text]
+        let result = try await functions.httpsCallable("mealDescribe").call(payload)
+        guard let dict = result.data as? [String: Any],
+              let json = dict["result"] as? String else {
+            throw GoogleAIError.invalidResponse
+        }
+        return json
+    }
+
     enum GoogleAIError: LocalizedError {
         case invalidResponse
     }

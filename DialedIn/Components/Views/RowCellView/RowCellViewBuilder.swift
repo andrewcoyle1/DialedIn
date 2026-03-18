@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-@preconcurrency import FirebaseFirestore
 
 struct RowCellViewBuilder: View {
     

@@ -40,15 +40,12 @@ struct CreateProgramView: View {
             toolbarContent
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onNextPressed(delegate: delegate)
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .padding(.horizontal)
+            .padding(.bottom)
         }
     }
     

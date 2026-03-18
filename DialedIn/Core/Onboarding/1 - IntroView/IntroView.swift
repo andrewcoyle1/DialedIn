@@ -17,7 +17,7 @@ struct IntroView: View {
             nutritionSection
             weightTracking
         }
-        .navigationTitle("Welcome to Dialed.")
+        .navigationTitle("Welcome to Compound.")
         .navigationBarTitleDisplayMode(.large)
 #if DEBUG || MOCK
 .toolbar {

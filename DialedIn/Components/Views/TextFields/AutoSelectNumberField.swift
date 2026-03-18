@@ -44,7 +44,7 @@ struct AutoSelectNumberField: View {
             }
             .onChange(of: value) { _, newValue in
                 if !isFocused {
-                    text = value.map(\.description) ?? ""
+                    text = newValue.map(\.description) ?? ""
                 }
             }
             .onAppear {

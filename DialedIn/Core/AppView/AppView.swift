@@ -95,7 +95,8 @@ struct AppView<Content: View>: View {
         enableLocalPersistence: true,
         logger: nil
     )
-    container.register(UserManager.self, service: UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine))
+    let userQueryService = MockUserQueryService()
+    container.register(UserManager.self, service: UserManager(queryService: userQueryService, userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine))
     container.register(AuthManager.self, service: AuthManager(service: MockAuthService(scenario: .newAnonymous)))
     container.register(AppState.self, service: AppState(startingModuleId: Constants.onboardingModuleId))
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))

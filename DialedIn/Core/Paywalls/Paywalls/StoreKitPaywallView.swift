@@ -16,7 +16,7 @@ struct StoreKitPaywallView: View {
     var body: some View {
         SubscriptionStoreView(productIDs: productIds) {
             VStack(spacing: 8) {
-                Text("DialedIn Pro")
+                Text("Compound Pro")
                     .font(.largeTitle)
                     .fontWeight(.semibold)
                 

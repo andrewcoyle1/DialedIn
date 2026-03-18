@@ -22,24 +22,18 @@ struct FoodItemQuickAddView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
-                Button {
+                CallToActionButton {
                     
                 } label: {
                     Text("Quick Add")
-                        .padding(.vertical)
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glassProminent)
-                Button {
+                CallToActionButton(isPrimaryAction: false) {
                     
                 } label: {
                     Text("Log Food")
-                        .padding(.vertical)
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glass)
             }
-            .padding(.horizontal)
+            .padding(.bottom)
         }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
