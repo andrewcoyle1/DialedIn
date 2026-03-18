@@ -25,7 +25,6 @@ final class DialedInUITests: XCTestCase {
         app.launch()        
     }
     
-    // swiftlint:disable:next function_body_length
     func testSignedOutExample() throws {
         let app = XCUIApplication()
         app.launchArguments = ["UI_TESTING"]

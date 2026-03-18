@@ -157,8 +157,8 @@ class AnalyticsPresenter {
         router.showPaywall()
     }
 
-    func onProfilePressed() {
-        router.showProfileView()
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
 
     func onScaleWeightPressed(themeColor: Color?) {

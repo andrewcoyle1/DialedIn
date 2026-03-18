@@ -16,8 +16,8 @@ protocol NutritionRouter: GlobalRouter {
     func showAddMealView(delegate: AddMealDelegate)
     func showMealDetailView(delegate: MealDetailDelegate)
     func showMealItemAmountViewView(delegate: MealItemAmountViewDelegate)
-    func showProfileView()
-    
+    func showProfileViewZoom(transitionId: String?, namespace: Namespace.ID)
+
     func showTimelineActionsView(delegate: TimelineActionsDelegate)
     func showFoodLogSettingsView(delegate: FoodLogSettingsDelegate)
     func showNutritionOverviewView(delegate: NutritionOverviewDelegate)

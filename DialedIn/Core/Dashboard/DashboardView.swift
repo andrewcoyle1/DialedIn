@@ -16,9 +16,13 @@ struct DashboardView<
     @State var presenter: DashboardPresenter
     let delegate: DashboardDelegate
 
+    let profileTransitionId: String = "profile_button_transition"
+    
     @ViewBuilder var workoutSessionRow: (WorkoutSessionRowDelegate) -> WorkoutSessionRow
     @ViewBuilder var todaysWorkoutCard: (TodaysWorkoutCardDelegate) -> TodaysCard
     @ViewBuilder var workoutStreakCard: (WorkoutStreakDelegate) -> StreakCard
+    
+    @Namespace private var namespace
     
     var body: some View {
         List {
@@ -35,8 +39,7 @@ struct DashboardView<
         .scrollIndicators(.hidden)
         .navigationTitle("Dashboard")
         .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
-        .toolbarTitleDisplayMode(.inlineLarge)
-        .toolbarRole(.browser)
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
@@ -140,24 +143,17 @@ struct DashboardView<
             .badge(presenter.activityNotifications.filter({ !$0.isRead }).count)
         }
         
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+        
         ToolbarItem(placement: .topBarTrailing) {
-            let avatarSize: CGFloat = 44
-
-            Button {
-                presenter.onProfilePressed()
-            } label: {
-                ZStack {
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 24))
-                    if let urlString = presenter.userImageUrl {
-                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                            .frame(width: avatarSize, height: avatarSize)
-                            .contentShape(Circle())
-                    }
-                }
-            }
+            ProfileButton(
+                action: {
+                    presenter.onProfilePressed(transitionId: profileTransitionId, namespace: namespace)
+                },
+                imageUrl: presenter.userImageUrl
+            )
+            .matchedTransitionSource(id: profileTransitionId, in: namespace)
         }
-        .sharedBackgroundVisibility(.hidden)
     }
 }
 

@@ -29,10 +29,10 @@ struct CalendarHeaderView: View {
             .scrollTargetBehavior(.viewAligned)
         }
         .frame(height: 70)
-        .padding(.horizontal)
-        .glassEffect()
+        .padding(.bottom, 8)
         .padding(.horizontal)
         .matchedTransitionSource(id: "calendar-header", in: namespace)
+        .background(.bar)
     }
     
     @ViewBuilder
@@ -151,7 +151,8 @@ extension CoreRouter {
         List {
             Text("Hello")
         }
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .navigationTitle("Calendar Header Preview")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
@@ -163,6 +164,7 @@ extension CoreRouter {
         }
         .safeAreaInset(edge: .top) {
             builder.calendarHeaderView(router: router, delegate: delegate)
+                .background(.bar)
         }
     }
 }

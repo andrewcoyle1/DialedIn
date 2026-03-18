@@ -23,29 +23,23 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
     let delegate: WorkoutSessionDetailDelegate
 
     @ViewBuilder var authorHeader: (AuthorHeaderDelegate) -> AuthorHeader
-    @ViewBuilder var editableExerciseCardWrapper: (EditableExerciseCardWrapperDelegate) -> AnyView
 
     init(
         presenter: WorkoutSessionDetailPresenter,
         delegate: WorkoutSessionDetailDelegate,
         authorHeader: @escaping (AuthorHeaderDelegate) -> AuthorHeader,
-        editableExerciseCardWrapper: @escaping (EditableExerciseCardWrapperDelegate) -> AnyView
     ) {
         self._presenter = State(initialValue: presenter)
         self._session = State(initialValue: delegate.initialSession)
         self.delegate = delegate
         self.authorHeader = authorHeader
-        self.editableExerciseCardWrapper = editableExerciseCardWrapper
     }
     
     var body: some View {
         List {
             authorHeaderSection
-//            headerSection(session: session, endedAt: session.endedAt)
             workoutDetailsSection
             exerciseDetailsSection
-//            exercisesSection
-//            deleteSection
         }
         .navigationTitle(session.name)
         .navigationSubtitle(session.dateCreated.formatted(date: .long, time: .shortened))
@@ -198,74 +192,6 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         }
     }
         
-    private var exercisesSection: some View {
-        Section {
-            if presenter.isEditMode {
-                ForEach(0..<session.exercises.count, id: \.self) { index in
-                    let exercise = session.exercises[index]
-                    let preference = presenter.getUnitPreference(for: exercise.templateId)
-                    editableExerciseCardWrapper(
-                        EditableExerciseCardWrapperDelegate(
-                            exercise: exercise,
-                            index: index + 1,
-                            weightUnit: preference.weightUnit,
-                            distanceUnit: preference.distanceUnit,
-                            onExerciseUpdate: { updated in
-                                presenter.updateExercise(session: $session, at: index, with: updated)
-                            },
-                            onAddSet: {
-                                presenter.addSet(session: $session, to: exercise.id)
-                            },
-                            onDeleteSet: { setId in
-                                presenter.deleteSet(session: $session, setId, from: exercise.id)
-                            },
-                            onWeightUnitChange: { unit in
-                                presenter.updateWeightUnit(unit, for: exercise.templateId)
-                            },
-                            onDistanceUnitChange: { unit in
-                                presenter.updateDistanceUnit(unit, for: exercise.templateId)
-                            }
-                        )
-                    )
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            presenter.deleteExercise(session: $session, id: exercise.id)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                }
-
-                Button {
-                    presenter.onAddExercisePressed()
-                } label: {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Add Exercise")
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(Color.accentColor)
-                }
-            } else {
-                ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, exercise in
-                    ExerciseDetailCard(exercise: exercise, index: index + 1)
-                }
-            }
-        } header: {
-            Text("Exercises")
-        }
-    }
-    
-    private var deleteSection: some View {
-        Section {
-            Button(role: .destructive) {
-                presenter.onDeletePressed(session: session)
-            }
-            .foregroundStyle(.red)
-            .disabled(presenter.isLoading)
-        }
-    }
-    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         
@@ -373,10 +299,6 @@ extension CoreBuilder {
             delegate: delegate,
             authorHeader: { delegate in
                 self.authorHeaderView(router: router, delegate: delegate)
-            },
-            editableExerciseCardWrapper: { delegate in
-                self.editableExerciseCardWrapper(delegate: delegate)
-                    .any()
             }
         )
     }

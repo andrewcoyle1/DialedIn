@@ -24,9 +24,13 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
     @State var presenter: TrainingPresenter
     let delegate: TrainingDelegate
 
+    let profileTransitionId: String = "profile_button_transition"
+    
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
     @ViewBuilder var activeProgramContent: (TrainingProgram) -> ActiveProgramView
 
+    @Namespace private var namespace
+    
     var body: some View {
         List {
             if let program = presenter.activeTrainingProgram {
@@ -38,12 +42,11 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             moreSection
         }
         .navigationTitle("Training")
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
-        .toolbarRole(.browser)
         .safeAreaInset(edge: .top) {
             calendarHeader(
                 CalendarHeaderDelegate(
@@ -147,26 +150,18 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
                 Image(systemName: "plus")
             }
         }
-
+        
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+        
         ToolbarItem(placement: .topBarTrailing) {
-            let avatarSize: CGFloat = 44
-
-            Button {
-                presenter.onProfilePressed()
-            } label: {
-                ZStack {
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 24))
-                    if let urlString = presenter.userImageUrl {
-                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                            .frame(width: avatarSize, height: avatarSize)
-                            .contentShape(Circle())
-                    }
-                }
-            }
+            ProfileButton(
+                action: {
+                    presenter.onProfilePressed(transitionId: profileTransitionId, namespace: namespace)
+                },
+                imageUrl: presenter.userImageUrl
+            )
+            .matchedTransitionSource(id: profileTransitionId, in: namespace)
         }
-        .sharedBackgroundVisibility(.hidden)
-
     }
 }
 

@@ -23,6 +23,8 @@ struct NutritionView<
     
     @State var presenter: NutritionPresenter
     let delegate: NutritionDelegate
+    let profileTransitionId: String = "profile_button_transition"
+    
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
     @ViewBuilder var mealHourHeader: (MealHourHeaderDelegate) -> MealHeader
     @Namespace private var namespace
@@ -35,13 +37,12 @@ struct NutritionView<
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear { presenter.onViewAppear(delegate: delegate) }
         .onDisappear { presenter.onViewDisappear(delegate: delegate) }
         .toolbar {
             toolbarContent
         }
-        .toolbarRole(.browser)
         .safeAreaInset(edge: .top) {
             topSafeAreaSection
         }
@@ -168,25 +169,16 @@ struct NutritionView<
                 Image(systemName: "line.3.horizontal")
             }
         }
-        
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
         ToolbarItem(placement: .topBarTrailing) {
-            let avatarSize: CGFloat = 44
-            
-            Button {
-                presenter.onProfilePressed()
-            } label: {
-                ZStack {
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 24))
-                    if let urlString = presenter.userImageUrl {
-                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                            .frame(width: avatarSize, height: avatarSize)
-                            .contentShape(Circle())
-                    }
-                }
-            }
+            ProfileButton(
+                action: {
+                    presenter.onProfilePressed(transitionId: profileTransitionId, namespace: namespace)
+                },
+                imageUrl: presenter.userImageUrl
+            )
+            .matchedTransitionSource(id: profileTransitionId, in: namespace)
         }
-        .sharedBackgroundVisibility(.hidden)
     }
 }
 

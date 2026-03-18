@@ -2,7 +2,8 @@ import SwiftUI
 
 @MainActor
 protocol DashboardRouter: GlobalRouter {
-    func showProfileView()
+//    func showProfileView()
+    func showProfileViewZoom(transitionId: String?, namespace: Namespace.ID)
     func showNotificationsView()
     func showNutritionView()
     func showAddMealView(delegate: AddMealDelegate)

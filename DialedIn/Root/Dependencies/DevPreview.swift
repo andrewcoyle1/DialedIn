@@ -36,6 +36,7 @@ class DevPreview {
         container.register(StepsManager.self, service: stepsManager)
         container.register(GoalManager.self, service: goalManager)
         container.register(StreakManager.self, service: streakManager)
+        container.register(ExerciseSettingsManager.self, service: exerciseSettingsManager)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
@@ -59,6 +60,7 @@ class DevPreview {
     let exerciseModelManager: ExerciseModelManager
     let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
     let workoutSettingsManager: WorkoutSettingsManager
+    let exerciseSettingsManager: ExerciseSettingsManager
     let foodLogSettingsManager: FoodLogSettingsManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
@@ -207,6 +209,14 @@ class DevPreview {
             logger: logManager
         )
         self.mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
+        
+        let exerciseSettingsSyncEngineMock = CollectionSyncEngine<ExerciseSettingsModel>(
+            remote: MockRemoteCollectionService(collection: []),
+            managerKey: Keys.exerciseSettingsManagerKey,
+            enableLocalPersistence: true,
+            logger: logManager
+        )
+        self.exerciseSettingsManager = ExerciseSettingsManager(syncEngine: exerciseSettingsSyncEngineMock)
         self.aiManager = AIManager(service: MockAIService())
         self.pushManager = PushManager(logManager: logManager)
         self.logManager = logManager
@@ -259,6 +269,7 @@ class DevPreview {
                 let mockUser = UserAuthInfo.mock(isAnonymous: false)
                 try? await userManager.signIn(auth: mockUser, isNewUser: false)
                 async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: mockUser.uid)
+                async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: mockUser.uid)
                 async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: mockUser.uid)
                 async let stepsSignIn: () = stepsManager.signIn()
                 async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
@@ -273,6 +284,7 @@ class DevPreview {
                 async let bodyMeasurementsSignIn: () = bodyMeasurementsManager.signIn(userId: mockUser.uid)
                 async let goalSignIn: () = goalManager.signIn(userId: mockUser.uid)
                 try? await workoutSettingsSignIn
+                await exerciseSettingsSignIn
                 try? await foodLogSettingsSignIn
                 await stepsSignIn
                 await workoutTemplatesSignIn

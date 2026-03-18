@@ -12,7 +12,6 @@ protocol TrainingRouter: GlobalRouter {
 #if DEV || MOCK
 func showDevSettingsView()
 #endif
-    func showWorkoutStartModal(delegate: WorkoutStartDelegate)
     func showTrainingProgramLibraryView()
     func showWorkoutsView(delegate: WorkoutsDelegate)
     func showWorkoutHistoryView()
@@ -23,7 +22,7 @@ func showDevSettingsView()
     func showCreateProgramView(delegate: CreateProgramDelegate)
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
     func showCreateExerciseView()
-    func showProfileView()
+    func showProfileViewZoom(transitionId: String?, namespace: Namespace.ID)
     func showEditTrainingProgramView(delegate: EditTrainingProgramDelegate)
 }
 

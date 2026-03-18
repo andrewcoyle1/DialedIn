@@ -203,8 +203,8 @@ class DashboardPresenter {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
     
-    func onProfilePressed() {
-        router.showProfileView()
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
 
     func onPushNotificationsPressed() {
