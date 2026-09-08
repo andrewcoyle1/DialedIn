@@ -43,7 +43,6 @@ struct TabBarView<TrainingTabAccessory: View, MealTabAccessory: View, Search: Vi
             } label: {
                 Image(systemName: "plus")
             }
-
         }
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)

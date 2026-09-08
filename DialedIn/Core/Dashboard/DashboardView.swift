@@ -26,14 +26,7 @@ struct DashboardView<
     
     var body: some View {
         List {
-            Group {
-                cardsSection
-                Section { } header: {
-                    Text("Workout Feed")
-                }
-                .listSectionMargins(.vertical, 0)
-            }
-            .listSectionSpacing(0)
+            cardsSection
             workoutFeedSection
         }
         .scrollIndicators(.hidden)
@@ -52,6 +45,22 @@ struct DashboardView<
         }
     }
     
+    @ViewBuilder
+    private func workoutCardBuilder(first: Bool, @ViewBuilder content: () -> some View) -> some View {
+        if first {
+            Section {
+                content()
+            } header: {
+                Text("Workout Feed")
+            }
+            .listSectionMargins(.top, 0)
+        } else {
+            Section {
+                content()
+            }
+        }
+    }
+    
     private var cardsSection: some View {
         Section {
             TabView {
@@ -62,7 +71,7 @@ struct DashboardView<
                                 todaysWorkoutTemplate: todaysWorkoutTemplate
                             )
                         )
-                        .padding(.bottom)
+                        .padding(.bottom, 8)
                     }
                 }
 
@@ -108,7 +117,7 @@ struct DashboardView<
             )
         } else {
             ForEach(presenter.feedSessions) { session in
-                Section {
+                workoutCardBuilder(first: true) {
                     if let author = presenter.author(for: session) {
                         let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
                         workoutSessionRow(rowDelegate)
@@ -116,6 +125,7 @@ struct DashboardView<
                     }
                 }
             }
+            
         }
     }
     

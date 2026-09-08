@@ -36,9 +36,9 @@ fastlane/test_output/
 functions/node_modules/
 
 # Sensitive configuration files
-DialedIn/GoogleServicePLists/GoogleService-Info-Dev.plist
-DialedIn/GoogleServicePLists/GoogleService-Info-Prod.plist
-!DialedIn/GoogleServicePLists/GoogleService-Info-Example.plist
+DialedIn/SupportingFiles/GoogleServicePLists/GoogleService-Info-Dev.plist
+DialedIn/SupportingFiles/GoogleServicePLists/GoogleService-Info-Prod.plist
+!DialedIn/SupportingFiles/GoogleServicePLists/GoogleService-Info-Example.plist
 
 DialedIn/Info.plist
 !DialedIn/Info.plist.example

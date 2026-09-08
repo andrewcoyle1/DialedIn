@@ -10,6 +10,10 @@ import Foundation
 import ActivityKit
 // Models used to populate attributes live within the same target
 
+// ActivityKit's Activity is a thread-safe handle but the SDK does not mark it Sendable,
+// so strict concurrency rejects update/end calls made from the main actor.
+extension Activity: @retroactive @unchecked Sendable {}
+
 @Observable
 @MainActor
 class LiveActivityManager: LiveActivityUpdating {
