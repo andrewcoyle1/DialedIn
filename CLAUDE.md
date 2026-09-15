@@ -4,17 +4,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build & Development
 
-**Package manager**: CocoaPods. Open `DialedIn.xcworkspace` (not `.xcodeproj`) after running:
-```bash
-pod install
-```
+**Package manager**: Swift Package Manager only — there is no Podfile and no `.xcworkspace`. Open
+`DialedIn.xcodeproj` directly; Xcode resolves packages on open.
 
-**Build via Xcode**: Select the `DialedIn` scheme and target device, then build with ⌘B or run with ⌘R.
+**Schemes** (there is no scheme called plain `DialedIn`):
+
+| Scheme | Configuration | Backend |
+|---|---|---|
+| `DialedIn - Development` | Debug | Firebase dev project |
+| `DialedIn - Mock` | Mock | All mock services, no Firebase |
+| `DialedIn - Production` | Release | Firebase prod project |
+
+**Build from the command line**:
+```bash
+xcodebuild -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
+  -destination 'platform=iOS Simulator,name=iPhone 17' build
+```
 
 **Run tests**:
 ```bash
-xcodebuild test -workspace DialedIn.xcworkspace -scheme DialedIn -destination 'platform=iOS Simulator,name=iPhone 16'
+xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
+
+⚠️ **The unit test target currently does not compile**, so this command fails before running
+anything. Eight of the 22 files in `DialedInUnitTests/` reference types that earlier refactors
+deleted (`MockUserServices`, `MockExerciseModelServices`, `GymProfileServices`,
+`RemoteGymProfileService`, `ExerciseModelModel`, `ExerciseCategory`, `MockGymProfilePersistence`),
+mostly under `Services/Training/ExerciseTemplate/`, `Services/Training/GymProfile*` and
+`Services/User/`. Do not read a `TEST FAILED` here as a regression from your change — verify with
+a `build` first, and fix or delete the stale files if you are asked to get tests green.
+
+If a build fails with `build.db is locked`, Xcode is building the same DerivedData
+concurrently — wait and retry rather than changing anything.
+
+**Deployment target**: iOS 26.0 (26.1 for some targets). The project-level Swift language
+version is 6.0; the test and extension targets are still on 5.0.
 
 **Lint** (SwiftLint must be installed):
 ```bash
@@ -25,10 +50,34 @@ SwiftLint config (`.swiftlint.yml`): line limit 300, type body 500 lines, file l
 
 ## First-Time Setup
 
-Copy example files and fill in credentials:
-- `DialedIn/Utilities/Keys.swift.example` → `DialedIn/Utilities/Keys.swift` (OpenAI, Mixpanel, RevenueCat, Strava keys, plus the manager keys used for local persistence paths)
-- `DialedIn/Info.plist.example` → `DialedIn/Info.plist` (URL schemes: the `REVERSED_CLIENT_ID` from each GoogleService-Info plist, plus the `compound` deep link. Google Sign-In fails at runtime without them)
-- `DialedIn/SupportingFiles/GoogleServicePLists/GoogleService-Info-Example.plist` → `GoogleService-Info-Dev.plist` and `GoogleService-Info-Prod.plist` (same folder)
+Copy example files and fill in credentials. All three destinations are gitignored, and the app
+will not build or sign in without them:
+
+- `DialedIn/Utilities/Keys.swift.example` → `DialedIn/Utilities/Keys.swift` — 27 constants:
+  OpenAI, Mixpanel, RevenueCat, the two Strava values, and 22 `*ManagerKey` strings used as
+  local-persistence path names. The manager keys are arbitrary but must stay stable: changing
+  one orphans data already persisted under the old name.
+- `DialedIn/Info.plist.example` → `DialedIn/Info.plist` — already contains the real reversed
+  client IDs for both Firebase projects and the `compound` deep-link scheme, so this is a
+  straight copy. Google Sign-In fails at runtime without it.
+- `DialedIn/SupportingFiles/GoogleServicePLists/GoogleService-Info-Example.plist` →
+  `GoogleService-Info-Dev.plist` and `GoogleService-Info-Prod.plist` (same folder)
+
+## Repository Layout
+
+```
+DialedIn/                    # the app target (Core, Components, Managers, Root, Extensions,
+                             #   Utilities, SupportingFiles)
+WorkoutSessionActivity/      # Live Activity / Dynamic Island widget extension
+Shared/                      # code shared between the app and the widget extension
+DialedInUnitTests/           # unit tests (target productName is DialedInTests)
+DialedInUITests/             # UI tests
+functions/                   # Firebase Cloud Functions (Node, Genkit/Vertex AI)
+DialedInWatchApp/            # NOT in the Xcode project — orphaned source, does not build
+```
+
+`DialedInWatchApp/` is linted but has zero references in `project.pbxproj`, so changes there
+affect nothing. Do not treat it as a shipping target.
 
 ## Architecture
 
@@ -113,33 +162,79 @@ Use `DevPreview.shared` to get a pre-configured mock container:
 
 All event tracking uses types conforming to `LoggableEvent` (eventName, parameters, LogType).
 
+## Package-Provided Infrastructure
+
+Most of the infrastructure layer is **not in this repo**. It comes from the `Swiftful*` SPM
+packages and is surfaced through `*+Alias.swift` typealias files so app code never imports the
+packages directly:
+
+| Alias file | Provides |
+|---|---|
+| `Managers/Auth/SwiftfulAuthenticating+Alias.swift` | `AuthManager`, `UserAuthInfo`, `SignInOption`, `MockAuthService` |
+| `Managers/Logs/SwiftfulLogging+Alias.swift` | `LogManager`, `LoggableEvent`, `LogType`, the analytics services |
+| `Managers/Purchases/SwiftfulPurchasing+Alias.swift` | `PurchaseManager`, `AnyProduct`, `PurchasedEntitlement` |
+| `Managers/Routing/SwiftfulRouting+Alias.swift` | `AnyRouter`, `RouterView`, `ResizableSheetConfig` |
+| `Managers/DataManagers/SwiftfulDataManagers+Alias.swift` | `CollectionSyncEngine`, `DocumentSyncEngine`, `DataSyncModelProtocol`, the persistence types |
+| `Managers/Gamification/SwiftfulGamification+Alias.swift` | `StreakManager`, `ProgressManager`, `ExperiencePointsManager` |
+| `Managers/Haptics`, `SoundEffects`, `Utilities` | `HapticManager`, `SoundEffectManager`, `Utilities` |
+
+So when a symbol like `AuthManager` or `CollectionSyncEngine` cannot be found in this
+repository, it is a package type — look in the alias file, then the package source. Editing its
+behaviour means changing the package, not the app.
+
+**Several of these packages are forks under `andrewcoyle1/`** rather than upstream
+`SwiftfulThinking/`: SwiftfulAuthenticating (+Firebase), SwiftfulGamification (+Firebase),
+SwiftfulDataManagers (+Firebase), SwiftfulRouting. The forks carry changes the app depends on,
+and each `*Firebase` wrapper fork must point its dependency at the matching fork or SwiftPM
+reports a conflicting-identity warning for that package.
+
 ## Key Managers
 
-All managers live in `DialedIn/Managers/` and are accessed through `CoreInteractor`:
+App-owned managers live in `DialedIn/Managers/` and are accessed through `CoreInteractor`.
+Those marked *(package)* are aliases from the section above, not code in this repo:
 
 | Manager | Purpose |
 |---|---|
-| `AuthManager` | Firebase auth (Apple, Google, anonymous) |
+| `AuthManager` *(package)* | Firebase auth (Apple, Google, anonymous) |
 | `UserManager` | Firestore user profile |
 | `WorkoutSessionManager` | Logging and syncing workout sessions |
-| `WorkoutTemplateManager` | Workout template CRUD |
-| `ExerciseTemplateManager` | Exercise library (local SwiftData + Firestore) |
+| `WorkoutTemplateManager` | Workout template CRUD + prebuilt seeding |
+| `ExerciseModelManager` | Exercise library (local SwiftData + Firestore) + prebuilt seeding |
+| `ExerciseUnitPreferenceManager` | Per-exercise weight/distance unit preferences |
 | `TrainingProgramManager` | Training programs with local/remote sync |
+| `GymProfileManager` | Available equipment per gym |
 | `NutritionManager` / `MealLogManager` | Food logging and nutrition targets |
-| `IngredientTemplateManager` / `RecipeTemplateManager` | Food library |
+| `FoodManager` / `RecipeTemplateManager` | Food and recipe library |
 | `BodyMeasurementsManager` | Body measurements and scale weight |
+| `StepsManager` | Daily step history |
+| `GoalManager` | User goals |
+| `StreakManager` / `ProgressManager` / `ExperiencePointsManager` *(package)* | Gamification |
 | `HealthKitManager` / `HKWorkoutManager` | HealthKit read/write |
 | `LiveActivityManager` | Dynamic Island / Lock Screen workout tracking |
-| `PurchaseManager` | RevenueCat (dev) / StoreKit (prod) |
-| `LogManager` | Multi-service analytics (Console, Firebase, Mixpanel, Crashlytics) |
+| `StravaManager` | Strava OAuth and activity import |
+| `PurchaseManager` *(package)* | RevenueCat (dev) / StoreKit (prod) |
+| `LogManager` *(package)* | Multi-service analytics (Console, Firebase, Mixpanel, Crashlytics) |
 | `ABTestManager` | A/B tests via Firebase Remote Config (prod) or local (dev) |
-| `AIManager` | Google AI / OpenAI integration |
+| `AIManager` | Google AI / OpenAI integration via Cloud Functions |
+| `PushManager` / `ImageUploadManager` / `ReportManager` | Notifications, image upload, reporting |
+| `WorkoutSettingsManager` / `ExerciseSettingsManager` / `FoodLogSettingsManager` | User-facing settings |
+| `HapticManager` / `SoundEffectManager` *(package)* | Feedback |
+
+The full registration list is in `Dependencies.init(config:)`; `CoreInteractor` resolves each one
+from the container by type.
 
 Each manager has `Mock*Services` and `Production*Services` implementations selected in `Dependencies.swift`.
 
 ## Data Sync Pattern
 
-`CoreInteractor.syncAllRemoteDataIfLoggedIn()` performs a full remote→local sync for workout sessions, meal logs, training programs, steps, and body measurements. It posts `Constants.remoteDataSyncDidComplete` via `NotificationCenter` when complete.
+Each manager owns one or more `CollectionSyncEngine` / `DocumentSyncEngine` instances (from
+SwiftfulDataManagers) that listen to Firestore and mirror into local persistence, so screens read
+the manager's in-memory collection rather than fetching.
+
+`CoreInteractor.syncAllRemoteDataIfLoggedIn()` no longer performs a sync itself — the listeners
+already keep data current, so it only posts `Constants.remoteDataSyncDidComplete` via
+`NotificationCenter` for screens that want to refresh derived state. Treat it as "tell everyone
+to re-read", not "go fetch".
 
 ## Live Activities
 
@@ -147,4 +242,50 @@ Each manager has `Mock*Services` and `Production*Services` implementations selec
 
 ## Onboarding Flow
 
-9-step onboarding under `Core/Onboarding/` (numbered 0–9). Each step is its own VIPER module. Progress is persisted to Firestore. After completion, `AppState.startingModuleId` is updated to `Constants.tabBarModuleId`.
+Onboarding lives under `Core/Onboarding/`, in folders numbered by step: `0 - WelcomeView`
+through `9 - OnboardingCompleted` (there is no `7 -`, and both `9 - StravaConnect` and
+`9 - OnboardingCompleted` share the 9 prefix). Each step is its own VIPER module. Progress is
+persisted to Firestore. After completion, `AppState.startingModuleId` is updated to
+`Constants.tabBarModuleId`.
+
+`UserModel.inferredOnboardingStep` derives the resume point from the stored profile, and any
+screen that needs to resume onboarding routes via **`OnboardingStepRouter`**
+(`Core/Onboarding/OnboardingStepRouter.swift`): a protocol whose extension holds the single
+`routeToOnboardingStep(_:onComplete:)` switch. Six presenters used to carry their own copies of
+that switch and had drifted out of sync. Add new steps there, not in a presenter.
+
+## Backend (Cloud Functions)
+
+`functions/` holds Firebase Cloud Functions v2 (Node, ES modules) using Genkit with Vertex AI.
+Six `onCall` callables, all in `us-central1`: `foodAnalyze`, `mealDescribe`,
+`nutritionLabelAnalyze`, `chatGenerate`, `imageGenerate`, `foodSearch`.
+
+All six share `CALLABLE_OPTIONS = { region: REGION, enforceAppCheck: true }` and call
+`requireAuth(request)`, which throws `unauthenticated` when `request.auth` is missing. Keep both
+on any new callable — they are the only thing stopping an arbitrary rebuilt client from calling
+the backend, since the API keys in the bundled plists are public by design.
+
+App Check on the client is wired in `DialedIn/Utilities/AppCheckProviderFactory.swift`:
+App Attest where available, DeviceCheck as fallback, and a debug provider for simulators. A
+simulator debug token must be registered in the **dev** Firebase project only, never prod.
+
+Two things live outside the code and are easy to miss:
+- App Check **enforcement** is a per-service toggle in the Firebase console, separate from the
+  `enforceAppCheck` flag here.
+- Enabling enforcement breaks already-shipped app versions that predate the App Check wiring.
+  Check App Check metrics for unverified traffic before turning it on.
+
+Deploy with `firebase deploy --only functions` — this is not part of the Xcode build, so changes
+under `functions/` have no effect until deployed.
+
+## Code Health Baseline
+
+As of the latest commit on `fix/xcode26-build-and-appcheck`, all three schemes build with **zero
+warnings** and `swiftlint` reports **zero violations**. Treat any new warning as something to fix
+rather than accumulate.
+
+Two deliberate suppressions exist, each documented at the site:
+- `Dependencies.swift` disables `type_body_length`/`file_length` — it is one long DI root whose
+  switch arms bind ~32 locals that a shared registration block consumes.
+- `StravaManager.swift` scopes an iOS 26 deprecation on `presentationAnchor(for:)`, because every
+  spelling of a scene-less `UIWindow` is deprecated and Swift has no per-call suppression.
