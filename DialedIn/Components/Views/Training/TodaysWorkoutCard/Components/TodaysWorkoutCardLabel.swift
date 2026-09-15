@@ -15,7 +15,7 @@ struct TodaysWorkoutCardLabel: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            HStack(spacing: -10) {
+            HStack(spacing: -24) {
                 ForEach(template.exercises.prefix(4)) { exercise in
                     exerciseCircle(exercise: exercise.exercise)
                 }
