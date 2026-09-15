@@ -1,5 +1,5 @@
 {
-  "originHash" : "183ee3a44efc5d22ff72f016314e20f6bb4f95cba6f2b458423c6919b3a36048",
+  "originHash" : "b1a7c9c4900315331090afe2d7c35b46ba5132b5dc74196f967a08cfb0912b43",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -222,17 +222,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/andrewcoyle1/SwiftfulAuthenticating.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "55bef97b9ad4583cabffdd6f78fc06c4094a9cd3"
+        "revision" : "55bef97b9ad4583cabffdd6f78fc06c4094a9cd3",
+        "version" : "1.0.16"
       }
     },
     {
       "identity" : "swiftfulauthenticatingfirebase",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SwiftfulThinking/SwiftfulAuthenticatingFirebase.git",
+      "location" : "https://github.com/andrewcoyle1/SwiftfulAuthenticatingFirebase.git",
       "state" : {
-        "revision" : "54ea8c8fd45e353bf9d2b3f4e03741af7ff1587a",
-        "version" : "1.0.12"
+        "revision" : "f9e1e62bf32e1a214eb3316e55e64852cacb6a55",
+        "version" : "1.0.14"
       }
     },
     {
@@ -276,8 +276,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/andrewcoyle1/SwiftfulGamificationFirebase.git",
       "state" : {
-        "revision" : "906b5a4c6b41dd74fa1bbd78828e0f4c9297594f",
-        "version" : "1.0.0"
+        "revision" : "25afc2fa0c9a28c48707ab02e189ca9220977fbd",
+        "version" : "1.0.1"
       }
     },
     {
