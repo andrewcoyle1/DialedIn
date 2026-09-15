@@ -212,23 +212,20 @@ struct BarcodeScannerView: View {
                 }
 
                 // Secondary nutrients
-                let secondaryItems: [(String, Double?, String)] = [
-                    ("Fiber", ingredient.fiber, "g"),
-                    ("Sugar", ingredient.sugar, "g"),
-                    ("Sat fat", ingredient.fatSaturated, "g"),
-                    ("Sodium", ingredient.sodiumMg, "mg"),
-                    ("Potassium", ingredient.potassiumMg, "mg"),
-                    ("Calcium", ingredient.calciumMg, "mg"),
-                    ("Iron", ingredient.ironMg, "mg")
+                let secondaryItems: [NutrientAmount] = [
+                    NutrientAmount(name: "Fiber", value: ingredient.fiber, unit: "g"),
+                    NutrientAmount(name: "Sugar", value: ingredient.sugar, unit: "g"),
+                    NutrientAmount(name: "Sat fat", value: ingredient.fatSaturated, unit: "g"),
+                    NutrientAmount(name: "Sodium", value: ingredient.sodiumMg, unit: "mg"),
+                    NutrientAmount(name: "Potassium", value: ingredient.potassiumMg, unit: "mg"),
+                    NutrientAmount(name: "Calcium", value: ingredient.calciumMg, unit: "mg"),
+                    NutrientAmount(name: "Iron", value: ingredient.ironMg, unit: "mg")
                 ]
-                let available = secondaryItems.compactMap { name, value, unit -> (String, Double, String)? in
-                    guard let val = value else { return nil }
-                    return (name, val, unit)
-                }
+                let available = secondaryItems.filter { $0.value != nil }
                 if !available.isEmpty {
                     FlowLayout(spacing: 6) {
-                        ForEach(available, id: \.0) { name, value, unit in
-                            Text("\(name): \(formatted(value))\(unit)")
+                        ForEach(available, id: \.name) { nutrient in
+                            Text("\(nutrient.name): \(formatted(nutrient.value))\(nutrient.unit)")
                                 .font(.caption2)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
@@ -308,8 +305,11 @@ struct BarcodeScannerView: View {
             .background(color.opacity(0.2), in: Capsule())
     }
 
-    private func formatted(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
+    /// Accepts an optional so `NutrientAmount.value` can be passed straight through;
+    /// non-optional call sites are unaffected.
+    private func formatted(_ value: Double?) -> String {
+        guard let value else { return "–" }
+        return value.truncatingRemainder(dividingBy: 1) == 0
             ? String(Int(value))
             : String(format: "%.1f", value)
     }

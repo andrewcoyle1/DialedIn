@@ -132,16 +132,16 @@ struct NutritionOverviewView: View {
     @ViewBuilder
     private var carbsSection: some View {
         let breakdown = presenter.breakdown
-        let items: [(String, Double?)] = [
-            ("Fiber", breakdown.fiberGrams),
-            ("Sugar", breakdown.sugarGrams),
-            ("Net Carbs", breakdown.netCarbsGrams)
+        let items: [NutrientAmount] = [
+            NutrientAmount(name: "Fiber", value: breakdown.fiberGrams, unit: "g"),
+            NutrientAmount(name: "Sugar", value: breakdown.sugarGrams, unit: "g"),
+            NutrientAmount(name: "Net Carbs", value: breakdown.netCarbsGrams, unit: "g")
         ]
-        let available = items.filter { $0.1 != nil }
+        let available = items.filter { $0.value != nil }
         if !available.isEmpty {
             Section("Carb Breakdown") {
-                ForEach(available, id: \.0) { name, value in
-                    nutrientRow(name, value: value!, unit: "g")
+                ForEach(available, id: \.name) { nutrient in
+                    nutrientRow(nutrient)
                 }
             }
         }
@@ -152,16 +152,16 @@ struct NutritionOverviewView: View {
     @ViewBuilder
     private var fatsSection: some View {
         let breakdown = presenter.breakdown
-        let items: [(String, Double?)] = [
-            ("Saturated", breakdown.fatSaturatedGrams),
-            ("Monounsaturated", breakdown.fatMonounsaturatedGrams),
-            ("Polyunsaturated", breakdown.fatPolyunsaturatedGrams)
+        let items: [NutrientAmount] = [
+            NutrientAmount(name: "Saturated", value: breakdown.fatSaturatedGrams, unit: "g"),
+            NutrientAmount(name: "Monounsaturated", value: breakdown.fatMonounsaturatedGrams, unit: "g"),
+            NutrientAmount(name: "Polyunsaturated", value: breakdown.fatPolyunsaturatedGrams, unit: "g")
         ]
-        let available = items.filter { $0.1 != nil }
+        let available = items.filter { $0.value != nil }
         if !available.isEmpty {
             Section("Fat Breakdown") {
-                ForEach(available, id: \.0) { name, value in
-                    nutrientRow(name, value: value!, unit: "g")
+                ForEach(available, id: \.name) { nutrient in
+                    nutrientRow(nutrient)
                 }
             }
         }
@@ -172,25 +172,25 @@ struct NutritionOverviewView: View {
     @ViewBuilder
     private var vitaminsSection: some View {
         let breakdown = presenter.breakdown
-        let items: [(String, Double?, String)] = [
-            ("Vitamin A", breakdown.vitaminAMcg, "mcg"),
-            ("Vitamin B6", breakdown.vitaminB6Mg, "mg"),
-            ("Vitamin B12", breakdown.vitaminB12Mcg, "mcg"),
-            ("Vitamin C", breakdown.vitaminCMg, "mg"),
-            ("Vitamin D", breakdown.vitaminDMcg, "mcg"),
-            ("Vitamin E", breakdown.vitaminEMg, "mg"),
-            ("Vitamin K", breakdown.vitaminKMcg, "mcg"),
-            ("Thiamin", breakdown.thiaminMg, "mg"),
-            ("Riboflavin", breakdown.riboflavinMg, "mg"),
-            ("Niacin", breakdown.niacinMg, "mg"),
-            ("Pantothenic Acid", breakdown.pantothenicAcidMg, "mg"),
-            ("Folate", breakdown.folateMcg, "mcg")
+        let items: [NutrientAmount] = [
+            NutrientAmount(name: "Vitamin A", value: breakdown.vitaminAMcg, unit: "mcg"),
+            NutrientAmount(name: "Vitamin B6", value: breakdown.vitaminB6Mg, unit: "mg"),
+            NutrientAmount(name: "Vitamin B12", value: breakdown.vitaminB12Mcg, unit: "mcg"),
+            NutrientAmount(name: "Vitamin C", value: breakdown.vitaminCMg, unit: "mg"),
+            NutrientAmount(name: "Vitamin D", value: breakdown.vitaminDMcg, unit: "mcg"),
+            NutrientAmount(name: "Vitamin E", value: breakdown.vitaminEMg, unit: "mg"),
+            NutrientAmount(name: "Vitamin K", value: breakdown.vitaminKMcg, unit: "mcg"),
+            NutrientAmount(name: "Thiamin", value: breakdown.thiaminMg, unit: "mg"),
+            NutrientAmount(name: "Riboflavin", value: breakdown.riboflavinMg, unit: "mg"),
+            NutrientAmount(name: "Niacin", value: breakdown.niacinMg, unit: "mg"),
+            NutrientAmount(name: "Pantothenic Acid", value: breakdown.pantothenicAcidMg, unit: "mg"),
+            NutrientAmount(name: "Folate", value: breakdown.folateMcg, unit: "mcg")
         ]
-        let available = items.filter { $0.1 != nil }
+        let available = items.filter { $0.value != nil }
         if !available.isEmpty {
             Section("Vitamins") {
-                ForEach(available, id: \.0) { name, value, unit in
-                    nutrientRow(name, value: value!, unit: unit)
+                ForEach(available, id: \.name) { nutrient in
+                    nutrientRow(nutrient)
                 }
             }
         }
@@ -201,23 +201,23 @@ struct NutritionOverviewView: View {
     @ViewBuilder
     private var mineralsSection: some View {
         let breakdown = presenter.breakdown
-        let items: [(String, Double?, String)] = [
-            ("Sodium", breakdown.sodiumMg, "mg"),
-            ("Potassium", breakdown.potassiumMg, "mg"),
-            ("Calcium", breakdown.calciumMg, "mg"),
-            ("Iron", breakdown.ironMg, "mg"),
-            ("Magnesium", breakdown.magnesiumMg, "mg"),
-            ("Zinc", breakdown.zincMg, "mg"),
-            ("Copper", breakdown.copperMg, "mg"),
-            ("Manganese", breakdown.manganeseMg, "mg"),
-            ("Phosphorus", breakdown.phosphorusMg, "mg"),
-            ("Selenium", breakdown.seleniumMcg, "mcg")
+        let items: [NutrientAmount] = [
+            NutrientAmount(name: "Sodium", value: breakdown.sodiumMg, unit: "mg"),
+            NutrientAmount(name: "Potassium", value: breakdown.potassiumMg, unit: "mg"),
+            NutrientAmount(name: "Calcium", value: breakdown.calciumMg, unit: "mg"),
+            NutrientAmount(name: "Iron", value: breakdown.ironMg, unit: "mg"),
+            NutrientAmount(name: "Magnesium", value: breakdown.magnesiumMg, unit: "mg"),
+            NutrientAmount(name: "Zinc", value: breakdown.zincMg, unit: "mg"),
+            NutrientAmount(name: "Copper", value: breakdown.copperMg, unit: "mg"),
+            NutrientAmount(name: "Manganese", value: breakdown.manganeseMg, unit: "mg"),
+            NutrientAmount(name: "Phosphorus", value: breakdown.phosphorusMg, unit: "mg"),
+            NutrientAmount(name: "Selenium", value: breakdown.seleniumMcg, unit: "mcg")
         ]
-        let available = items.filter { $0.1 != nil }
+        let available = items.filter { $0.value != nil }
         if !available.isEmpty {
             Section("Minerals") {
-                ForEach(available, id: \.0) { name, value, unit in
-                    nutrientRow(name, value: value!, unit: unit)
+                ForEach(available, id: \.name) { nutrient in
+                    nutrientRow(nutrient)
                 }
             }
         }
@@ -228,15 +228,15 @@ struct NutritionOverviewView: View {
     @ViewBuilder
     private var otherSection: some View {
         let breakdown = presenter.breakdown
-        let items: [(String, Double?, String)] = [
-            ("Cholesterol", breakdown.cholesterolMg, "mg"),
-            ("Caffeine", breakdown.caffeineMg, "mg")
+        let items: [NutrientAmount] = [
+            NutrientAmount(name: "Cholesterol", value: breakdown.cholesterolMg, unit: "mg"),
+            NutrientAmount(name: "Caffeine", value: breakdown.caffeineMg, unit: "mg")
         ]
-        let available = items.filter { $0.1 != nil }
+        let available = items.filter { $0.value != nil }
         if !available.isEmpty {
             Section("Other") {
-                ForEach(available, id: \.0) { name, value, unit in
-                    nutrientRow(name, value: value!, unit: unit)
+                ForEach(available, id: \.name) { nutrient in
+                    nutrientRow(nutrient)
                 }
             }
         }
@@ -244,17 +244,20 @@ struct NutritionOverviewView: View {
 
     // MARK: - Helpers
 
-    private func nutrientRow(_ label: String, value: Double, unit: String) -> some View {
+    private func nutrientRow(_ nutrient: NutrientAmount) -> some View {
         HStack {
-            Text(label)
+            Text(nutrient.name)
             Spacer()
-            Text("\(formatted(value)) \(unit)")
+            Text("\(formatted(nutrient.value ?? 0)) \(nutrient.unit)")
                 .foregroundStyle(.secondary)
         }
     }
 
-    private func formatted(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
+    /// Accepts an optional so `NutrientAmount.value` can be passed straight through;
+    /// non-optional call sites are unaffected.
+    private func formatted(_ value: Double?) -> String {
+        guard let value else { return "–" }
+        return value.truncatingRemainder(dividingBy: 1) == 0
             ? String(Int(value))
             : String(format: "%.1f", value)
     }
@@ -285,6 +288,11 @@ extension CoreBuilder {
 
 }
 
+struct NutrientAmount {
+    let name: String
+    let value: Double?
+    let unit: String
+}
 extension CoreRouter {
 
     func showNutritionOverviewView(delegate: NutritionOverviewDelegate) {
