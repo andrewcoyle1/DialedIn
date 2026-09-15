@@ -99,7 +99,8 @@ class LiveActivityManager: LiveActivityUpdating {
     
     /// Discard the currently active Live Activity
     func discardLiveActivity() async {
-        await currentActivity?.end(nil, dismissalPolicy: .immediate)
+        guard let activity = currentActivity else { return }
+        await SendableActivity(activity: activity).end(nil, dismissalPolicy: .immediate)
     }
 
     /// Ensure a Workout Live Activity using data from the given session
@@ -156,8 +157,10 @@ class LiveActivityManager: LiveActivityUpdating {
             return
         }
         
+        let sendableActivity = SendableActivity(activity: activity)
+
         Task {
-            await activity.end(
+            await sendableActivity.end(
                 ActivityContent(
                     state: finalState,
                     staleDate: nil
@@ -221,8 +224,9 @@ class LiveActivityManager: LiveActivityUpdating {
         if let activity = self.currentActivity,
            activity.activityState == .active ||
             activity.activityState == .stale {
+            let sendableActivity = SendableActivity(activity: activity)
             Task {
-                await activity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
+                await sendableActivity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
                 logger.trackEvent(event: Event.updateLiveActivitySuccess)
             }
         }
@@ -433,7 +437,7 @@ class LiveActivityManager: LiveActivityUpdating {
             )
             // Reflect locally and push update with staleDate aligned to rest end
             self.activityViewState?.contentState = newState
-            await activity.update(
+            await SendableActivity(activity: activity).update(
                 ActivityContent(
                     state: newState,
                     staleDate: restEndsAt,
@@ -554,6 +558,27 @@ extension LiveActivityManager {
                 return .analytic
             }
         }
+    }
+}
+
+/// `ActivityKit.Activity` is a framework-managed reference type that is safe to use from any
+/// concurrency domain, but Apple does not annotate it as `Sendable`, and its `update`/`end` methods
+/// are `@concurrent`. Handing a main actor-isolated activity to them therefore trips region-based
+/// isolation. This box carries the activity across that one boundary without loosening isolation
+/// anywhere else in the manager.
+private struct SendableActivity<Attributes: ActivityAttributes>: @unchecked Sendable {
+
+    let activity: Activity<Attributes>
+
+    func update(_ content: ActivityContent<Attributes.ContentState>) async {
+        await activity.update(content)
+    }
+
+    func end(
+        _ content: ActivityContent<Attributes.ContentState>?,
+        dismissalPolicy: ActivityUIDismissalPolicy
+    ) async {
+        await activity.end(content, dismissalPolicy: dismissalPolicy)
     }
 }
 

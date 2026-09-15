@@ -26,9 +26,9 @@ SwiftLint config (`.swiftlint.yml`): line limit 300, type body 500 lines, file l
 ## First-Time Setup
 
 Copy example files and fill in credentials:
-- `DialedIn/Utilities/Keys.swift.example` → `DialedIn/Utilities/Keys.swift` (OpenAI, Mixpanel, RevenueCat keys)
-- `DialedIn/SupportingFiles/Info.plist.example` → `DialedIn/Info.plist` (URL schemes for Google Sign-In)
-- `DialedIn/GoogleServicePLists/GoogleService-Info-Example.plist` → `GoogleService-Info-Dev.plist` and `GoogleService-Info-Prod.plist`
+- `DialedIn/Utilities/Keys.swift.example` → `DialedIn/Utilities/Keys.swift` (OpenAI, Mixpanel, RevenueCat, Strava keys, plus the manager keys used for local persistence paths)
+- `DialedIn/Info.plist.example` → `DialedIn/Info.plist` (URL schemes: the `REVERSED_CLIENT_ID` from each GoogleService-Info plist, plus the `compound` deep link. Google Sign-In fails at runtime without them)
+- `DialedIn/SupportingFiles/GoogleServicePLists/GoogleService-Info-Example.plist` → `GoogleService-Info-Dev.plist` and `GoogleService-Info-Prod.plist` (same folder)
 
 ## Architecture
 
