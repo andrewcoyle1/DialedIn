@@ -70,6 +70,7 @@ struct WorkoutHistoryView<WorkoutSessionRow: View>: View {
             } label: {
                 Text("Reload")
             }
+            .buttonStyle(.glass)
             .disabled(presenter.isLoading)
         }
     }
