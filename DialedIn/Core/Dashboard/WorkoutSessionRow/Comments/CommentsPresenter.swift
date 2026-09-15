@@ -83,3 +83,27 @@ class CommentsPresenter {
         }
     }
  }
+
+// MARK: - Preview support
+
+extension CommentsPresenter {
+
+    /// Seeds state directly so previews can render states that otherwise only exist mid-flight
+    /// (an in-flight send). `private(set)` is file-scoped, so this has to live next to the
+    /// presenter rather than in the view file.
+    @discardableResult
+    func withPreviewState(
+        comments: [WorkoutSessionComment]? = nil,
+        isLoading: Bool = false,
+        isSending: Bool = false,
+        draft: String = ""
+    ) -> CommentsPresenter {
+        if let comments {
+            self.comments = comments
+        }
+        self.isLoading = isLoading
+        self.isSending = isSending
+        self.commentDraft = draft
+        return self
+    }
+}
