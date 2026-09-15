@@ -18,6 +18,7 @@ class DevPreview {
         container.register(ExerciseModelManager.self, service: exerciseModelManager)
         container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
         container.register(WorkoutSettingsManager.self, service: workoutSettingsManager)
+        container.register(ExerciseSettingsManager.self, service: exerciseSettingsManager)
         container.register(FoodLogSettingsManager.self, service: foodLogSettingsManager)
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
@@ -59,6 +60,7 @@ class DevPreview {
     let exerciseModelManager: ExerciseModelManager
     let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
     let workoutSettingsManager: WorkoutSettingsManager
+    let exerciseSettingsManager: ExerciseSettingsManager
     let foodLogSettingsManager: FoodLogSettingsManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
@@ -129,6 +131,13 @@ class DevPreview {
             logger: logManager
         )
         self.workoutSettingsManager = WorkoutSettingsManager(workoutSettingsSyncEngine: workoutSettingsSyncEngine)
+        let exerciseSettingsSyncEngine = CollectionSyncEngine<ExerciseSettingsModel>(
+            remote: MockRemoteCollectionService(collection: ExerciseSettingsModel.mocks),
+            managerKey: Keys.exerciseSettingsManagerKey,
+            enableLocalPersistence: true,
+            logger: logManager
+        )
+        self.exerciseSettingsManager = ExerciseSettingsManager(syncEngine: exerciseSettingsSyncEngine)
         let foodLogSettingsSyncEngine = DocumentSyncEngine<FoodLogSettings>(
             remote: MockRemoteDocumentService(document: FoodLogSettings.mock),
             managerKey: Keys.foodLogSettingsManagerKey,
