@@ -32,7 +32,7 @@ class WorkoutSettingsPresenter {
     }
     
     func onPreviousReferenceSettingsPressed() {
-        router.showPreviousWorkoutReferenceSettingsView(delegate: PreviousWorkoutReferenceSettingsDelegate())
+        router.showPreviousWorkoutReferenceSettingsView(delegate: PrevWORefSettingsDelegate())
     }
     
     func onExerciseAssessmentPressed() {

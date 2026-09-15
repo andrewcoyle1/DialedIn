@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PreviousWorkoutReferenceSettingsDelegate {
+struct PrevWORefSettingsDelegate {
     var eventParameters: [String: Any]? {
         nil
     }
@@ -8,8 +8,8 @@ struct PreviousWorkoutReferenceSettingsDelegate {
 
 struct PreviousWorkoutReferenceSettingsView: View {
     
-    @State var presenter: PreviousWorkoutReferenceSettingsPresenter
-    let delegate: PreviousWorkoutReferenceSettingsDelegate
+    @State var presenter: PrevWORefSettingsPresenter
+    let delegate: PrevWORefSettingsDelegate
     
     var body: some View {
         List {
@@ -28,7 +28,7 @@ struct PreviousWorkoutReferenceSettingsView: View {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
-    let delegate = PreviousWorkoutReferenceSettingsDelegate()
+    let delegate = PrevWORefSettingsDelegate()
     
     return RouterView { router in
         builder.previousWorkoutReferenceSettingsView(router: router, delegate: delegate)
@@ -36,9 +36,9 @@ struct PreviousWorkoutReferenceSettingsView: View {
 }
 
 extension CoreBuilder {
-    func previousWorkoutReferenceSettingsView(router: AnyRouter, delegate: PreviousWorkoutReferenceSettingsDelegate) -> some View {
+    func previousWorkoutReferenceSettingsView(router: AnyRouter, delegate: PrevWORefSettingsDelegate) -> some View {
         PreviousWorkoutReferenceSettingsView(
-            presenter: PreviousWorkoutReferenceSettingsPresenter(
+            presenter: PrevWORefSettingsPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
             ),
@@ -50,7 +50,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     
-    func showPreviousWorkoutReferenceSettingsView(delegate: PreviousWorkoutReferenceSettingsDelegate) {
+    func showPreviousWorkoutReferenceSettingsView(delegate: PrevWORefSettingsDelegate) {
         router.showScreen(.push) { router in
             builder.previousWorkoutReferenceSettingsView(router: router, delegate: delegate)
         }

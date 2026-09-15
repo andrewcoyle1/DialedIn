@@ -1,6 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol PreviousWorkoutReferenceSettingsInteractor: GlobalInteractor { }
+protocol PrevWORefSettingsInteractor: GlobalInteractor { }
 
-extension CoreInteractor: PreviousWorkoutReferenceSettingsInteractor { }
+extension CoreInteractor: PrevWORefSettingsInteractor { }
