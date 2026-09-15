@@ -33,10 +33,12 @@ struct CarouselView<Content: View, T: Hashable>: View {
                             .id(item)
                     }
                 }
+                // Must sit on the layout inside the scroll view, not on the ScrollView
+                // itself, or paging and scrollPosition(id:) have nothing to align to.
+                .scrollTargetLayout()
             }
             .frame(minHeight: height)
             .scrollIndicators(.hidden)
-            .scrollTargetLayout()
             .scrollTargetBehavior(.paging)
             .scrollPosition(id: $selection)
             .simultaneousGesture(

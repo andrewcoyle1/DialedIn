@@ -14,62 +14,71 @@ struct CalendarHeaderView: View {
     @Namespace private var namespace
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 0) {
-                    ForEach(Array(presenter.weeks.enumerated()), id: \.offset) { _, week in
-                        weekBlock(geometry, week)
-                    }
+        ScrollView(.horizontal) {
+            LazyHStack(spacing: 0) {
+                ForEach(presenter.weeks, id: \.self) { week in
+                    weekBlock(week)
                 }
-                .frame(height: 70)
             }
-            .scrollIndicators(.hidden)
-            .scrollPosition(id: $presenter.weekScrollPosition, anchor: .leading)
+            // Belongs on the layout inside the scroll view, not on the ScrollView,
+            // or viewAligned paging has nothing to snap to.
             .scrollTargetLayout()
-            .scrollTargetBehavior(.viewAligned)
         }
-        .frame(height: 70)
+        .frame(height: Self.rowHeight)
+        .scrollIndicators(.hidden)
+        .scrollPosition(id: $presenter.weekScrollPosition, anchor: .leading)
+        .scrollTargetBehavior(.viewAligned)
         .padding(.horizontal)
         .glassEffect()
         .padding(.horizontal)
         .matchedTransitionSource(id: "calendar-header", in: namespace)
     }
-    
+
+    private static let rowHeight: CGFloat = 70
+
+    /// A week fills exactly one page of the scroll view. Sized from the scroll container
+    /// rather than a GeometryReader wrapped around the padding — the reader measured the
+    /// full width before the two horizontal paddings were applied, so each week was ~64pt
+    /// wider than the visible area and the last day was cut off mid-snap.
     @ViewBuilder
-    private func weekBlock(_ geometry: GeometryProxy, _ week: [Date]) -> some View {
+    private func weekBlock(_ week: [Date]) -> some View {
         HStack(spacing: 0) {
             ForEach(week, id: \.self) { (day: Date) in
-                dayCell(geometry, day)
+                dayCell(day)
             }
         }
-        .frame(width: geometry.size.width)
+        .containerRelativeFrame(.horizontal)
         .id(week.first ?? Date.distantPast)
     }
 
     @ViewBuilder
-    private func dayCell(_ geometry: GeometryProxy, _ day: Date) -> some View {
+    private func dayCell(_ day: Date) -> some View {
         let activityCount = presenter.getForDate(day)
+        let isToday = presenter.calendar.isDate(day, inSameDayAs: presenter.today)
+        let isSelected = presenter.calendar.isDate(day, inSameDayAs: presenter.selectedDate)
 
-        VStack {
+        VStack(spacing: 2) {
             Text(day.formatted(.dateTime.weekday(.narrow)))
-                .foregroundStyle(.secondary)
+                .font(.caption2)
+                .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
             Text(day.formatted(.dateTime.day()))
+                .font(.subheadline)
+                .foregroundStyle(dayNumberStyle(isSelected: isSelected, isToday: isToday))
         }
         .monospaced()
-        .foregroundStyle(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? Color.accentColor : .primary)
-        .opacity(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? 1 : 0.4)
-        .fontWeight(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? .semibold : .regular)
+        .fontWeight(isSelected || isToday ? .semibold : .regular)
         .padding(.vertical, 8)
-        .frame(width: 40)
+        .frame(maxWidth: .infinity)
         .background {
-            cellOutline(activityCount: activityCount)
+            cellOutline(activityCount: activityCount, isSelected: isSelected, isToday: isToday)
+                .padding(.horizontal, 4)
         }
         .overlay(alignment: .topTrailing) {
             if activityCount > 1 {
                 cellBadge(activityCount: activityCount)
             }
         }
-        .frame(width: geometry.size.width / 7)
+        .contentShape(.rect)
         .interactionReader(
             longPressSensitivity: 500,
             tapAction: {
@@ -80,14 +89,27 @@ struct CalendarHeaderView: View {
             },
             scaleEffect: false
         )
+        .animation(.easeInOut(duration: 0.15), value: isSelected)
+    }
+
+    private func dayNumberStyle(isSelected: Bool, isToday: Bool) -> AnyShapeStyle {
+        if isSelected {
+            return AnyShapeStyle(.white)
+        } else if isToday {
+            return AnyShapeStyle(Color.accentColor)
+        } else {
+            return AnyShapeStyle(.primary)
+        }
     }
 
     @ViewBuilder
-    private func cellOutline(activityCount: Int) -> some View {
+    private func cellOutline(activityCount: Int, isSelected: Bool, isToday: Bool) -> some View {
         Capsule()
-            .fill(colorScheme.backgroundPrimary)
+            .fill(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(colorScheme.backgroundPrimary))
             .overlay {
-                if activityCount > 0 {
+                if isSelected {
+                    EmptyView()
+                } else if isToday || activityCount > 0 {
                     Capsule()
                         .stroke(.tint, lineWidth: 2)
                 } else {

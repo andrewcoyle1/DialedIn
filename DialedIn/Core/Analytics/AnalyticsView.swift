@@ -13,6 +13,9 @@ struct AnalyticsDelegate {
     }
 }
 
+/// Gutter between the analytics header cards, and between a card and the screen edge.
+private let headerCardSpacing: CGFloat = 16
+
 struct AnalyticsView<NutritionChart: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
@@ -75,14 +78,14 @@ struct AnalyticsView<NutritionChart: View>: View {
     private var headerSection: some View {
         Section {
             ScrollView(.horizontal) {
-                HStack {
+                HStack(spacing: headerCardSpacing) {
                     nutritionTargetSection
                     contributionChartSection
                 }
-                .padding(.horizontal)
+                .scrollTargetLayout()
             }
-            .scrollTargetLayout()
-            .scrollTargetBehavior(.paging)
+            .contentMargins(.horizontal, headerCardSpacing, for: .scrollContent)
+            .scrollTargetBehavior(.viewAligned)
             .removeListRowFormatting()
         }
         .listSectionMargins(.top, 0)
@@ -106,23 +109,38 @@ struct AnalyticsView<NutritionChart: View>: View {
         }
     }
     
-    private var nutritionTargetSection: some View {
-        nutritionTargetChartView()
+    /// Header cards are sized from the scroll container rather than a fixed width, so they
+    /// fit every device. A fixed 420pt was wider than the screen on all iPhones (iPhone 17
+    /// is 402pt across) and clipped the trailing edge. Two cards share the width in
+    /// split view, where there is room for both.
+    @ViewBuilder
+    private func headerCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
             .frame(height: 300)
-            .frame(width: 420)
+            .containerRelativeFrame(
+                .horizontal,
+                count: layoutMode == .splitView ? 2 : 1,
+                spacing: headerCardSpacing
+            )
+    }
+
+    private var nutritionTargetSection: some View {
+        headerCard {
+            nutritionTargetChartView()
+        }
     }
     
     private var contributionChartSection: some View {
-        ContributionChartView(
-            data: presenter.contributionChartData,
-            rows: 7,
-            columns: 16,
-            targetValue: 1.0,
-            blockColor: .accent,
-            endDate: presenter.chartEndDate
-        )
-        .frame(height: 300)
-        .frame(width: 420)
+        headerCard {
+            ContributionChartView(
+                data: presenter.contributionChartData,
+                rows: 7,
+                columns: 16,
+                targetValue: 1.0,
+                blockColor: .accent,
+                endDate: presenter.chartEndDate
+            )
+        }
     }
     
     private var moreSection: some View {

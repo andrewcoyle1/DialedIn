@@ -45,7 +45,14 @@ class CalendarPresenter {
         updateDays()
     }
 
+    func onTodayPressed() {
+        currentMonth = Date.now
+        updateDays()
+    }
+
     func onDateSelected(day: Date) {
+        guard isSelectable(day) else { return }
+
         selectedDate = day
 
         router.dismissScreen()
@@ -61,17 +68,32 @@ class CalendarPresenter {
         days = currentMonth.calendarDisplayDays
     }
 
-    func foregroundStyle(for day: Date) -> Color {
-        let isDifferentMonth = day.monthInt != currentMonth.monthInt
-        let isSelectedDate = day.formattedDate == selectedDate.formattedDate
-        let isPastDate = day < Date.now.startOfDay
+    var isViewingCurrentMonth: Bool {
+        Calendar.current.isDate(currentMonth, equalTo: Date.now, toGranularity: .month)
+    }
 
-        if isDifferentMonth {
-            return .secondary
-        } else if isPastDate {
-            return .secondary
-        } else if isSelectedDate {
+    /// Only the leading/trailing filler days of the adjacent months are unselectable.
+    /// Past dates used to be disabled too, which made the sheet unusable for its one
+    /// purpose — the header it opens from navigates Training and Nutrition to a past day.
+    func isSelectable(_ day: Date) -> Bool {
+        day.monthInt == currentMonth.monthInt
+    }
+
+    func isSelected(_ day: Date) -> Bool {
+        isSelectable(day) && day.formattedDate == selectedDate.formattedDate
+    }
+
+    func isToday(_ day: Date) -> Bool {
+        isSelectable(day) && Calendar.current.isDateInToday(day)
+    }
+
+    func foregroundStyle(for day: Date) -> Color {
+        if !isSelectable(day) {
+            return .secondary.opacity(0.5)
+        } else if isSelected(day) {
             return .white
+        } else if isToday(day) {
+            return .accentColor
         } else {
             return .primary
         }

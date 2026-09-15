@@ -59,14 +59,61 @@ struct MealLogModel: DataSyncModelProtocol, Hashable {
         )
     }
 
+    /// Two weeks of logged meals — three or four a day, drawn from different items and
+    /// logged at plausible times. Previously this was the same breakfast five times over,
+    /// all dated today, so nutrition history and the daily breakdown had nothing to show.
     static var mocks: [MealLogModel] {
-        [
-            Self.mock,
-            Self.mock,
-            Self.mock,
-            Self.mock,
-            Self.mock
+        let calendar = Calendar.current
+        let items = MealItemModel.mocks
+        guard !items.isEmpty else { return [] }
+
+        // A struct rather than a 3-tuple so the fields stay named at every use site.
+        struct PlannedMeal {
+            let hour: Int
+            let itemIndices: [Int]
+            let note: String?
+        }
+
+        let mealPlan: [PlannedMeal] = [
+            PlannedMeal(hour: 8, itemIndices: [0, 1], note: "Pre-training breakfast."),
+            PlannedMeal(hour: 13, itemIndices: [3, 2], note: nil),
+            PlannedMeal(hour: 19, itemIndices: [4, 0], note: "Cooked at home."),
+            PlannedMeal(hour: 21, itemIndices: [2], note: nil)
         ]
+
+        var logs: [MealLogModel] = []
+
+        for daysAgo in 0..<14 {
+            guard let day = calendar.date(byAdding: .day, value: -daysAgo, to: Date()) else { continue }
+
+            // Some days only get three meals, so totals vary day to day.
+            let mealsToday = daysAgo % 3 == 0 ? mealPlan : Array(mealPlan.prefix(3))
+
+            for meal in mealsToday {
+                guard
+                    let date = calendar.date(
+                        bySettingHour: meal.hour,
+                        minute: (daysAgo * 7) % 60,
+                        second: 0,
+                        of: day
+                    ),
+                    date <= Date()
+                else { continue }
+
+                logs.append(
+                    MealLogModel(
+                        mealId: UUID().uuidString,
+                        authorId: UserModel.mock.userId,
+                        dayKey: day.dayKey,
+                        date: date,
+                        items: meal.itemIndices.compactMap { items.indices.contains($0) ? items[$0] : nil },
+                        notes: daysAgo % 4 == 0 ? meal.note : nil
+                    )
+                )
+            }
+        }
+
+        return logs
     }
 
     /// Generates a week's worth of mock meal data (Monday to Sunday) for testing

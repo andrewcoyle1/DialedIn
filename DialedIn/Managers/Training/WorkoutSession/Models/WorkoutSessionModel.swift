@@ -78,15 +78,16 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         trainingProgramId: String? = nil,
         previousWorkoutSession: WorkoutSessionModel? = nil,
         gymProfile: GymProfileModel? = nil,
-        unitPreferences: [String: ExerciseUnitPreference]? = nil
+        unitPreferences: [String: ExerciseUnitPreference]? = nil,
+        dateCreated: Date = .now
     ) {
         self.id = id
         self.authorId = authorId
         self.name = template.name
         self.workoutTemplateId = template.id
         self.trainingProgramId = trainingProgramId
-        self.dateCreated = .now
-        self.dateModified = .now
+        self.dateCreated = dateCreated
+        self.dateModified = dateCreated
         self.endedAt = nil
         self.notes = notes
         self.deletedAt = nil
@@ -459,12 +460,74 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     static var mocks: [WorkoutSessionModel] {
         // Ensure mock sessions belong to the preview/mock user and are completed so they appear in history
         let uid = "mock_user_123"
-        var session1 = WorkoutSessionModel(id: "session-1", authorId: uid, template: WorkoutTemplateModel.mocks[0])
-        session1.endSession(at: session1.dateCreated.addingTimeInterval(45 * 60))
-        var session2 = WorkoutSessionModel(id: "session-2", authorId: uid, template: WorkoutTemplateModel.mocks[1])
-        session2.endSession(at: session2.dateCreated.addingTimeInterval(30 * 60))
-        var session3 = WorkoutSessionModel(id: "session-3", authorId: uid, template: WorkoutTemplateModel.mocks[2])
-        session3.endSession(at: session3.dateCreated.addingTimeInterval(60 * 60))
-        return [session1, session2, session3]
+
+        // Ten weeks of roughly four sessions a week, rotating through the available
+        // templates, with sets filled in and progressively heavier over time. Three
+        // sessions all dated "now" left the contribution chart, streaks and history
+        // lists looking empty.
+        let templates = WorkoutTemplateModel.mocks
+        guard !templates.isEmpty else { return [] }
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        let weekdayOffsets = [0, 2, 4, 5] // Mon/Wed/Fri/Sat-ish cadence
+        var sessions: [WorkoutSessionModel] = []
+        var counter = 0
+
+        for weeksAgo in (0...9).reversed() {
+            for (dayIndex, offset) in weekdayOffsets.enumerated() {
+                // Skip the odd session so the history has realistic gaps.
+                if (weeksAgo + dayIndex) % 7 == 3 { continue }
+
+                let daysAgo = weeksAgo * 7 + (6 - offset)
+                guard
+                    let startOfDay = calendar.date(byAdding: .day, value: -daysAgo, to: today),
+                    let startedAt = calendar.date(byAdding: .hour, value: 7 + (dayIndex % 4) * 3, to: startOfDay),
+                    startedAt <= .now
+                else { continue }
+
+                let template = templates[counter % templates.count]
+                // Later sessions are heavier: ~1.5% per week of progression.
+                let progression = 1.0 + (Double(9 - weeksAgo) * 0.015)
+                let durationMinutes = 38 + (counter % 5) * 6
+
+                var session = WorkoutSessionModel(
+                    id: "session-\(counter + 1)",
+                    authorId: uid,
+                    template: template,
+                    trainingProgramId: nil,
+                    dateCreated: startedAt
+                )
+                session.fillMockSets(progression: progression, completedAt: startedAt)
+                session.endSession(at: startedAt.addingTimeInterval(TimeInterval(durationMinutes * 60)))
+                session.likedByUserIds = Array(["user1", "user3", "user5"].prefix(counter % 4))
+                sessions.append(session)
+                counter += 1
+            }
+        }
+
+        return sessions.reversed()
+    }
+
+    /// Fills every working set with a plausible completed result. Without this the mock
+    /// sessions carried empty sets, so volume, 1RM and set-count analytics all read zero.
+    @MainActor
+    private mutating func fillMockSets(progression: Double, completedAt: Date) {
+        for exerciseIndex in exercises.indices {
+            let baseWeight = 30.0 + Double((exerciseIndex % 4) * 15)
+            for setIndex in exercises[exerciseIndex].sets.indices {
+                var set = exercises[exerciseIndex].sets[setIndex]
+                if set.isWarmup {
+                    set.reps = 10
+                    set.weightKg = ((baseWeight * 0.5 * progression) / 2.5).rounded() * 2.5
+                } else {
+                    set.reps = 10 - setIndex
+                    set.weightKg = ((baseWeight * progression) / 2.5).rounded() * 2.5
+                    set.rpe = min(10, 7 + Double(setIndex))
+                }
+                set.completedAt = completedAt.addingTimeInterval(TimeInterval(180 * (setIndex + 1)))
+                exercises[exerciseIndex].sets[setIndex] = set
+            }
+        }
     }
 }

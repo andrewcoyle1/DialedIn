@@ -23,6 +23,12 @@ class CalendarHeaderPresenter {
     private var endDate: Date
     private let daysPerLoad: Int = 100
 
+    /// Cached because the view reads these while scrolling. As computed properties they
+    /// rebuilt ~200 Dates (and 29 week arrays) on every body pass, which showed up as
+    /// stutter in the header.
+    private(set) var days: [Date] = []
+    private(set) var weeks: [[Date]] = []
+
     init(interactor: CalendarHeaderInteractor, router: CalendarHeaderRouter, delegate: CalendarHeaderDelegate) {
         self.interactor = interactor
         self.router = router
@@ -37,9 +43,16 @@ class CalendarHeaderPresenter {
         let weekStart = Calendar.current.dateInterval(of: .weekOfYear, for: now)?.start
             ?? Calendar.current.startOfDay(for: now)
         self.weekScrollPosition = weekStart
+
+        rebuildDates()
     }
-    
-    var days: [Date] {
+
+    private func rebuildDates() {
+        days = computedDays
+        weeks = computedWeeks
+    }
+
+    private var computedDays: [Date] {
         var dates: [Date] = []
         var currentDate = calendar.startOfDay(for: startDate)
         let normalizedEndDate = calendar.startOfDay(for: endDate)
@@ -56,7 +69,7 @@ class CalendarHeaderPresenter {
         return dates
     }
 
-    var weeks: [[Date]] {
+    private var computedWeeks: [[Date]] {
         guard
             let firstWeekStart = calendar.dateInterval(of: .weekOfYear, for: startDate)?.start,
             let lastWeekStart = calendar.dateInterval(of: .weekOfYear, for: endDate)?.start
@@ -87,6 +100,7 @@ class CalendarHeaderPresenter {
     }
 
     func onDatePressed(_ date: Date) {
+        selectedDate = date
         delegate.onDatePressed(date)
     }
 
@@ -117,10 +131,13 @@ class CalendarHeaderPresenter {
         let totalDays = days.count
         let threshold = 20 // Load more when within 20 days of edge
         
+        var didExtendRange = false
+
         // Load more dates before start
         if visibleStartIndex < threshold {
             if let newStartDate = calendar.date(byAdding: .day, value: -daysPerLoad, to: startDate) {
                 startDate = calendar.startOfDay(for: newStartDate)
+                didExtendRange = true
             }
         }
         
@@ -128,7 +145,12 @@ class CalendarHeaderPresenter {
         if visibleEndIndex > totalDays - threshold {
             if let newEndDate = calendar.date(byAdding: .day, value: daysPerLoad, to: endDate) {
                 endDate = calendar.startOfDay(for: newEndDate)
+                didExtendRange = true
             }
+        }
+
+        if didExtendRange {
+            rebuildDates()
         }
     }
 

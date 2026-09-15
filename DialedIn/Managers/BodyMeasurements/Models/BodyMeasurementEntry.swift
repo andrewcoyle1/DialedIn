@@ -363,21 +363,57 @@ extension BodyMeasurementEntry {
 
     static let mocks: [BodyMeasurementEntry] =
         (0..<500).map { datapoint in
+            let position = Double(datapoint)
+            // Slow downward trend on top of the seasonal wave, so the weight chart shows
+            // actual progress rather than a flat sine.
+            let trend = position * 0.012
             let baseWeight: Double = 72.0
             let amplitude: Double = 2.5
             let period: Double = 100.0
-            let weight = baseWeight + amplitude * sin(Double(datapoint) * 2 * .pi / period)
+            let weight = baseWeight + trend + amplitude * sin(position * 2 * .pi / period)
             let bodyFatBase: Double = 16.0
             let bodyFatAmplitude: Double = 1.2
-            let bodyFatPercent = bodyFatBase + bodyFatAmplitude * sin(Double(datapoint) * 2 * .pi / 120.0)
+            let bodyFatPercent = bodyFatBase + (position * 0.004) + bodyFatAmplitude * sin(position * 2 * .pi / 120.0)
+            let wave = sin(position * 2 * .pi / 90.0)
             let date = Date.now.addingTimeInterval(Double(-86400 * datapoint))
+
+            // A weekly progress photo and a note every few weeks, so those UIs are not empty.
+            let hasPhoto = datapoint % 7 == 0
+            let note: String?
+            switch datapoint % 28 {
+            case 0:  note = "Morning weigh-in, fasted."
+            case 7:  note = "Felt strong this week — sleep has been better."
+            case 14: note = "Travelling, meals were less consistent."
+            default: note = nil
+            }
+
             return BodyMeasurementEntry(
-                authorId: "user_123",
+                // Was "user_123", which matched no mock user, so these entries were
+                // filtered out of the body metrics screens.
+                authorId: UserModel.mock.userId,
                 weightKg: weight,
                 bodyFatPercentage: bodyFatPercent,
-                waistCircumference: 80 + sin(Double(datapoint) * 2 * .pi / 90.0),
-                hipCircumference: 95 + sin(Double(datapoint) * 2 * .pi / 90.0),
-                date: date
+                neckCircumference: 38 + wave * 0.4,
+                shoulderCircumference: 120 + wave * 1.2,
+                chestCircumference: 101 + wave * 1.0,
+                waistCircumference: 80 - trend * 0.5 + wave,
+                hipCircumference: 95 - trend * 0.3 + wave,
+                leftBicepCircumference: 35.5 + wave * 0.5,
+                rightBicepCircumference: 36.0 + wave * 0.5,
+                leftForearmCircumference: 29.0 + wave * 0.3,
+                rightForearmCircumference: 29.4 + wave * 0.3,
+                leftWristCircumference: 17.2,
+                rightWristCircumference: 17.4,
+                leftThighCircumference: 58.0 + wave * 0.8,
+                rightThighCircumference: 58.5 + wave * 0.8,
+                leftCalfCircumference: 38.5 + wave * 0.4,
+                rightCalfCircumference: 38.8 + wave * 0.4,
+                leftAnkleCircumference: 22.4,
+                rightAnkleCircumference: 22.5,
+                progressPhotoURLs: hasPhoto ? ["https://picsum.photos/seed/progress\(datapoint)/600/800"] : nil,
+                date: date,
+                source: datapoint % 3 == 0 ? .healthkit : .manual,
+                notes: note
             )
         }
 }
