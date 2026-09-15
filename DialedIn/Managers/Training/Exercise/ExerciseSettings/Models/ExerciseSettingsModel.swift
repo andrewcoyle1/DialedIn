@@ -29,5 +29,19 @@ struct ExerciseSettingsModel: DataSyncModelProtocol {
 
     var eventParameters: [String: Any] { [:] }
 
-    static var mock: Self { ExerciseSettingsModel(id: "mock_exercise", authorId: "mock_user_123") }
+    static var mock: Self {
+        self.mocks[0]
+    }
+    
+    static var mocks: [Self] {
+        [
+            ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
+            ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
+            ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
+            ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
+            ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
+            ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
+            ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
+        ]
+    }
 }
