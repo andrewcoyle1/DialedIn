@@ -74,6 +74,8 @@ struct ProfileView: View {
                     presenter.onProfileEditPressed()
                 }
             }
+        } header: {
+            Text("Profile")
         }
     }
     

@@ -82,6 +82,8 @@ struct SocialProfileView: View {
                 }
             }
             
+        } header: {
+            Text("Profile")
         }
     }
     
@@ -158,6 +160,8 @@ struct SocialProfileView: View {
                             
                         }
                 }
+        } header: {
+            Text("Data")
         }
     }
     
