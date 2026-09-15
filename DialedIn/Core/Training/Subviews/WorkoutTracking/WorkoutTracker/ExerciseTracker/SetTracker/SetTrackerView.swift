@@ -11,8 +11,8 @@ struct SetTrackerDelegate {
     let exercise: Binding<WorkoutExerciseModel>
     let lastExercise: WorkoutExerciseModel?
     var allWorkoutExercises: [WorkoutExerciseModel] = []
-    var onSetSupersetGroup: @Sendable (String, String?) -> Void = { _, _ in }
-    var onDeleteExercise: @Sendable () -> Void = { }
+    var onSetSupersetGroup: @MainActor (String, String?) -> Void = { _, _ in }
+    var onDeleteExercise: @MainActor () -> Void = { }
 }
 
 struct SetTrackerView<SetTrackerRow: View>: View {

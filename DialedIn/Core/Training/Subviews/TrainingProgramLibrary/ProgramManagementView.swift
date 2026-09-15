@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-struct TrainingProgramLibraryView<ProgramDisclosureGroup: View, InactiveSection: View>: View {
+struct TrainingProgramLibraryView<ProgramDisclosure: View, InactiveSection: View>: View {
 
     @State var presenter: TrainingProgramLibraryPresenter
 
-    @ViewBuilder var trainingProgramDisclosueGroup: (TrainingProgramDisclosureGroupDelegate) -> ProgramDisclosureGroup
+    @ViewBuilder var trainingProgramDisclosueGroup: (TrainingProgramDisclosureGroupDelegate) -> ProgramDisclosure
     @ViewBuilder var inactiveProgramSection: (InactiveTrainingProgramDelegate) -> InactiveSection
     
     var body: some View {

@@ -73,58 +73,32 @@ class CreateFoodPresenter {
     }
     
     func onNextPressed(delegate: CreateFoodDelegate) {
+        // `PlatformImage` already resolves to UIImage or NSImage, so this no longer needs a
+        // `#if canImport` pair duplicating each navigation call.
+        let image = selectedImageData.flatMap { PlatformImage(data: $0) }
+
         if contributeToPublicDatabase {
-            #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
             router.showFoodPackagingView(
                 delegate: FoodPackagingDelegate(
                     mealItems: delegate.mealItems,
-                    name: self.name,
-                    brandName: self.brandName,
-                    barcode: self.barcode,
-                    image: uiImage
+                    name: name,
+                    brandName: brandName,
+                    barcode: barcode,
+                    image: image
                 )
             )
-            #elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            router.showFoodPackagingView(
-                delegate: FoodPackagingDelegate(
-                    mealItems: delegate.mealItems,
-                    name: self.name,
-                    brandName: self.brandName,
-                    barcode: self.barcode,
-                    image: nsImage
-                )
-            )
-            #endif
         } else {
-            #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
             router.showPortionDefinitionView(
                 delegate: PortionDefinitionDelegate(
                     mealItems: delegate.mealItems,
-                    name: self.name,
-                    brandName: self.brandName,
-                    barcode: self.barcode,
-                    image: uiImage,
+                    name: name,
+                    brandName: brandName,
+                    barcode: barcode,
+                    image: image,
                     productFront: nil,
                     nutritionPhoto: nil
                 )
             )
-            #elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            router.showPortionDefinitionView(
-                delegate: PortionDefinitionDelegate(
-                    mealItems: delegate.mealItems,
-                    name: self.name,
-                    brandName: self.brandName,
-                    barcode: self.barcode,
-                    image: nsImage,
-                    productFront: nil,
-                    nutritionPhoto: nil
-                )
-            )
-            #endif
         }
     }
     

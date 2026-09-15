@@ -129,19 +129,12 @@ class ProgramDesignPresenter {
             AnyView(
                 VStack {
                     Button {
-                        Task {
-                            for workoutTemplate in self.dayPlans {
-                                try await self.interactor.saveWorkoutTemplate(workoutTemplate: workoutTemplate, image: nil)
-                            }
-                            try await self.activateProgram(delegate: delegate)
-                        }
+                        Task { await self.saveTemplatesAndActivate(delegate: delegate) }
                     } label: {
                         Text("Yes")
                     }
                     Button {
-                        Task {
-                            try await self.activateProgram(delegate: delegate)
-                        }
+                        Task { await self.activateProgram(delegate: delegate) }
                     } label: {
                         Text("No")
                     }
@@ -150,22 +143,39 @@ class ProgramDesignPresenter {
             )
         }
     }
-    
-    private func activateProgram(delegate: ProgramDesignDelegate) async throws {
-        Task {
-            do {
-                try await interactor.saveTrainingProgram(trainingProgram: program)
-                try await interactor.setActiveTrainingProgram(programId: program.id)
-                if delegate.onComplete != nil {
-                    handleNavigation()
-                } else {
-                    router.dismissEnvironment()
-                }
-            } catch {
-                router.showAlert(error: error)
+
+    /// Saves each day plan as a standalone workout template, then activates. A failure here
+    /// used to be swallowed by an unstructured `Task`, leaving the program un-activated with
+    /// no feedback; now it surfaces and activation is skipped.
+    private func saveTemplatesAndActivate(delegate: ProgramDesignDelegate) async {
+        do {
+            for workoutTemplate in dayPlans {
+                try await interactor.saveWorkoutTemplate(workoutTemplate: workoutTemplate, image: nil)
             }
+        } catch {
+            router.showAlert(error: error)
+            return
         }
 
+        await activateProgram(delegate: delegate)
+    }
+
+    /// This was declared `async throws` while wrapping its whole body in a nested `Task`, so
+    /// it returned immediately and could never throw — the callers' `try await` was a no-op
+    /// and the nested task's errors went nowhere. It is now a plain `async` call that handles
+    /// its own errors, which is what the alert path already assumed.
+    private func activateProgram(delegate: ProgramDesignDelegate) async {
+        do {
+            try await interactor.saveTrainingProgram(trainingProgram: program)
+            try await interactor.setActiveTrainingProgram(programId: program.id)
+            if delegate.onComplete != nil {
+                handleNavigation()
+            } else {
+                router.dismissEnvironment()
+            }
+        } catch {
+            router.showAlert(error: error)
+        }
     }
 
     // MARK: Handle Navigation
@@ -177,45 +187,7 @@ class ProgramDesignPresenter {
     }
 
     private func route(to step: OnboardingStep) {
-        switch step {
-        case .auth, .subscription:
-            router.showCompleteAccountSetupView()
-
-        case .completeAccountSetup:
-            router.showCompleteAccountSetupView()
-
-        case .notifications:
-            router.showNotificationsPermissionsView()
-
-        case .healthData:
-            router.showOnboardingHealthDataView()
-
-        case .healthDisclaimer:
-            router.showHealthDisclaimerView()
-
-        case .goalSetting:
-            router.showGoalSettingView()
-
-        case .gymProfileSetup:
-            router.showCreateGymProfileView(delegate: CreateGymProfileDelegate(onComplete: self.handleNavigation))
-
-        case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(
-                delegate: CreateProgramDelegate(
-                    onComplete: { [weak self] in
-                        guard let self else { return }
-                        Task { @MainActor in
-                            self.handleNavigation()
-                        }
-                    }
-                )
-            )
-
-        case .customiseProgram:
-            router.showCustomisingDietProgramView()
-        case .complete:
-            router.showOnboardingCompletedView()
-        }
+        router.routeToOnboardingStep(step, onComplete: handleNavigation)
     }
     
     func onDismissPressed() {

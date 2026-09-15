@@ -47,57 +47,39 @@ class PortionDefinitionPresenter {
     }
     
     func onNextPressed(delegate: PortionDefinitionDelegate) {
+        if case .serving = nutritionDefinitionOption {
+            guard portionSize != nil, portionSize != 0, !portionName.isEmpty else { return }
+        }
+
+        // The three branches used to repeat the same eight shared arguments. Build the shared
+        // delegate once, then fill in only the fields the chosen option actually carries.
+        var foodDelegate = FoodDefinitionDelegate(
+            mealItems: delegate.mealItems,
+            nutritionDefinitionOption: nutritionDefinitionOption,
+            image: delegate.image,
+            name: delegate.name,
+            brandName: delegate.brandName,
+            barcode: delegate.barcode,
+            imageFront: delegate.productFront,
+            nutritionImage: delegate.nutritionPhoto
+        )
+
         switch nutritionDefinitionOption {
         case .serving:
-            guard portionSize != nil && portionSize != 0 && !portionName.isEmpty else { return }
-            router.showFoodDefinitionView(
-                delegate: FoodDefinitionDelegate(
-                    mealItems: delegate.mealItems,
-                    nutritionDefinitionOption: self.nutritionDefinitionOption,
-                    image: delegate.image,
-                    name: delegate.name,
-                    brandName: delegate.brandName,
-                    barcode: delegate.barcode,
-                    imageFront: delegate.productFront,
-                    nutritionImage: delegate.nutritionPhoto,
-                    servingWeight: self.servingWeight,
-                    portionSize: self.portionSize,
-                    portionName: self.portionName
-                )
-            )
+            foodDelegate.servingWeight = servingWeight
+            foodDelegate.portionSize = portionSize
+            foodDelegate.portionName = portionName
         case .standardMass:
-            router.showFoodDefinitionView(
-                delegate: FoodDefinitionDelegate(
-                    mealItems: delegate.mealItems,
-                    nutritionDefinitionOption: self.nutritionDefinitionOption,
-                    image: delegate.image,
-                    name: delegate.name,
-                    brandName: delegate.brandName,
-                    barcode: delegate.barcode,
-                    imageFront: delegate.productFront,
-                    nutritionImage: delegate.nutritionPhoto,
-                    portionWeight: self.portionWeight,
-                    weightPortionSize: self.weightPortionSize,
-                    weightPortionName: self.weightPortionName
-                )
-            )
+            foodDelegate.portionWeight = portionWeight
+            foodDelegate.weightPortionSize = weightPortionSize
+            foodDelegate.weightPortionName = weightPortionName
         case .standardVolume:
-            router.showFoodDefinitionView(
-                delegate: FoodDefinitionDelegate(
-                    mealItems: delegate.mealItems,
-                    nutritionDefinitionOption: self.nutritionDefinitionOption,
-                    image: delegate.image,
-                    name: delegate.name,
-                    brandName: delegate.brandName,
-                    barcode: delegate.barcode,
-                    imageFront: delegate.productFront,
-                    nutritionImage: delegate.nutritionPhoto,
-                    portionVolume: self.portionVolume,
-                    volumePortionSize: self.volumePortionSize,
-                    volumePortionName: self.volumePortionName
-                )
-            )
+            foodDelegate.portionVolume = portionVolume
+            foodDelegate.volumePortionSize = volumePortionSize
+            foodDelegate.volumePortionName = volumePortionName
         }
+
+        router.showFoodDefinitionView(delegate: foodDelegate)
     }
 }
 

@@ -29,12 +29,33 @@ struct OFFProductDTO: Decodable {
     func toFoodModel(barcode: String) -> FoodModel? {
         guard let name = productName, !name.isEmpty else { return nil }
         let now = Date()
-        let nutrient = nutriments
         let parsed = servingSize.map { parseServingSize($0) }
+
+        return FoodModel(
+            ingredientId: UUID().uuidString,
+            authorId: nil,
+            name: name,
+            brandName: brands,
+            measurementMethod: .weight,
+            nutrients: nutrientMap(),
+            barcode: barcode,
+            servingWeight: servingQuantity,
+            portionSize: parsed?.portionSize,
+            portionName: parsed?.portionName,
+            imageURL: imageFrontSmallUrl ?? imageUrl,
+            dateCreated: now,
+            dateModified: now
+        )
+    }
+
+    /// Maps the OFF per-100g nutriment fields onto `NutrientMap`. Extracted from
+    /// `toFoodModel` so that function stays inside the body-length limit.
+    private func nutrientMap() -> NutrientMap {
+        let nutrient = nutriments
 
         var nutrients = NutrientMap()
         func set(_ key: NutrientKey, _ value: Double?) {
-            if let val = value { nutrients[key] = val }
+            if let value { nutrients[key] = value }
         }
         set(.calories, nutrient?.energyKcal100g ?? nutrient?.energyKj100g.map { $0 / 4.184 })
         set(.protein, nutrient?.proteins100g)
@@ -70,21 +91,6 @@ struct OFFProductDTO: Decodable {
         set(.riboflavinMg, nutrient?.riboflavin100g)
         set(.cholesterolMg, nutrient?.cholesterol100g)
         set(.pantothenicAcidMg, nutrient?.pantothenicAcid100g)
-
-        return FoodModel(
-            ingredientId: UUID().uuidString,
-            authorId: nil,
-            name: name,
-            brandName: brands,
-            measurementMethod: .weight,
-            nutrients: nutrients,
-            barcode: barcode,
-            servingWeight: servingQuantity,
-            portionSize: parsed?.portionSize,
-            portionName: parsed?.portionName,
-            imageURL: imageFrontSmallUrl ?? imageUrl,
-            dateCreated: now,
-            dateModified: now
-        )
+        return nutrients
     }
 }

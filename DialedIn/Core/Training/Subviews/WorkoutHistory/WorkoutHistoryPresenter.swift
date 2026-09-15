@@ -50,6 +50,22 @@ class WorkoutHistoryPresenter {
     func onDismissPressed() {
         router.dismissScreen()
     }
+
+    /// Manual retry from the empty state. Sessions arrive through a live sync engine, so this
+    /// re-runs the remote sync rather than doing a one-off read; `isLoading` and the
+    /// `syncSessions*` events were already declared here for it but never wired up.
+    func onReloadPressed() {
+        guard !isLoading else { return }
+
+        interactor.trackEvent(event: Event.syncSessionsStart)
+        isLoading = true
+
+        Task {
+            await interactor.syncAllRemoteDataIfLoggedIn()
+            isLoading = false
+            interactor.trackEvent(event: Event.syncSessionsSuccess)
+        }
+    }
     
 #if DEV || MOCK
 func onDevSettingsPressed() {

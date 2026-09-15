@@ -310,17 +310,7 @@ class WorkoutTrackerPresenter {
     func onExerciseExpansionChanged(exerciseId: String, isExpanded: Bool) {
         expandedExerciseId = isExpanded ? exerciseId : nil
 
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        interactor.updateLiveActivity(params: LiveActivityUpdateParams(
-            session: workoutSession,
-            isActive: isActive,
-            currentExerciseIndex: liveActivityExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil,
-            totalVolumeKg: computeTotalVolumeKg(),
-            elapsedTime: elapsedTime
-        ))
-        #endif
+        refreshLiveActivity()
     }
 
     func cancelRestTimer() {
@@ -342,6 +332,22 @@ class WorkoutTrackerPresenter {
     }
     
     // MARK: - Helpers
+
+    /// Pushes the current session state to the Live Activity. Six call sites previously
+    /// repeated this `#if`-guarded block verbatim.
+    func refreshLiveActivity() {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        interactor.updateLiveActivity(params: LiveActivityUpdateParams(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: liveActivityExerciseIndex,
+            restEndsAt: interactor.restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        ))
+        #endif
+    }
     
     func computeTotalVolumeKg() -> Double {
         return workoutSession.exercises.flatMap { $0.sets }
@@ -398,67 +404,6 @@ class WorkoutTrackerPresenter {
         workoutSession.notes = workoutNotes.isEmpty ? nil : workoutNotes
     }
     
-    func presentAddExercise() {
-        router.showExercisesPickerView(
-            delegate: ExercisesPickerDelegate(
-                addedExercises: Binding(
-                    get: { self.pendingSelectedTemplates },
-                    set: { self.pendingSelectedTemplates = $0 }
-                )
-            )
-        )
-    }
-    
-    enum Event: LoggableEvent {
-        case startRestTimerCalled(inputDuration: Int, resolvedDuration: Int)
-        case startRestTimerAfterCall(restEndTime: Date?)
-
-        var eventName: String {
-            switch self {
-            case .startRestTimerCalled:     return "WorkoutTracker_StartRestTimer_Called"
-            case .startRestTimerAfterCall:  return "WorkoutTracker_StartRestTimer_AfterCall"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            case .startRestTimerCalled(let inputDuration, let resolvedDuration):
-                return [
-                    "input_duration": inputDuration,
-                    "resolved_duration": resolvedDuration
-                ]
-            case .startRestTimerAfterCall(let restEndTime):
-                return [
-                    "rest_end_time": restEndTime?.timeIntervalSince1970 as Any,
-                    "rest_end_time_is_nil": restEndTime == nil
-                ]
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            case .startRestTimerAfterCall(let restEndTime) where restEndTime == nil:
-                return .warning
-            default:
-                return .analytic
-            }
-        }
-    }
-
-    enum WorkoutTrackerError: LocalizedError {
-        case noLocalActiveWorkout
-        case noActiveWorkout
-
-        var errorDescription: String? {
-            switch self {
-            case .noLocalActiveWorkout:
-                return "No local active workout available"
-            case .noActiveWorkout:
-                return "No active workout available"
-            }
-        }
-    }
-
     // MARK: - Widget Sync
 
     /// Begins observing `interactor.pendingSetCompletion` and `pendingWorkoutCompletion` using Swift
@@ -512,55 +457,70 @@ class WorkoutTrackerPresenter {
             return
         }
         let exerciseBefore = workoutSession.exercises[exerciseIndex]
-        let wasExerciseCompleteBefore = !exerciseBefore.sets.isEmpty && exerciseBefore.sets.allSatisfy { $0.completedAt != nil }
+        let wasExerciseCompleteBefore = isComplete(exerciseBefore)
 
         var updatedExercises = workoutSession.exercises
         updatedExercises[exerciseIndex].sets[setIndex] = updatedSet
+        propagateChanges(
+            of: updatedSet,
+            replacing: exerciseBefore.sets[setIndex],
+            at: setIndex,
+            in: &updatedExercises[exerciseIndex].sets
+        )
 
-        // Propagate weight/reps changes to uncompleted sibling sets with matching values
-        if interactor.workoutSettings.propagateChanges {
-            let original = exerciseBefore.sets[setIndex]
-            let weightChanged = original.weightKg != updatedSet.weightKg
-            let repsChanged = original.reps != updatedSet.reps
-            if (weightChanged || repsChanged) && updatedSet.completedAt == nil {
-                for index in updatedExercises[exerciseIndex].sets.indices where index != setIndex {
-                    var sibling = updatedExercises[exerciseIndex].sets[index]
-                    guard sibling.completedAt == nil,
-                          sibling.weightKg == original.weightKg,
-                          sibling.reps == original.reps else { continue }
-                    if weightChanged { sibling.weightKg = updatedSet.weightKg }
-                    if repsChanged { sibling.reps = updatedSet.reps }
-                    updatedExercises[exerciseIndex].sets[index] = sibling
-                }
-            }
-        }
-
-        let isExerciseCompleteNow = !updatedExercises[exerciseIndex].sets.isEmpty && updatedExercises[exerciseIndex].sets.allSatisfy { $0.completedAt != nil }
+        let isExerciseCompleteNow = isComplete(updatedExercises[exerciseIndex])
         isProcessingUpdateSet = true
         workoutSession.updateExercises(updatedExercises)
         isProcessingUpdateSet = false
 
         if !wasExerciseCompleteBefore && isExerciseCompleteNow {
-            let nextIndex = exerciseIndex + 1
-            if nextIndex < updatedExercises.count && interactor.workoutSettings.exerciseAutoNext {
-                expandedExerciseId = updatedExercises[nextIndex].id
-                currentExerciseIndex = nextIndex
-            } else if nextIndex >= updatedExercises.count {
-                if expandedExerciseId == updatedExercises[exerciseIndex].id { expandedExerciseId = nil }
-            }
+            advanceAfterExerciseCompletion(exerciseIndex: exerciseIndex, in: updatedExercises)
         }
 
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        interactor.updateLiveActivity(params: LiveActivityUpdateParams(
-            session: workoutSession,
-            isActive: isActive,
-            currentExerciseIndex: liveActivityExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil,
-            totalVolumeKg: computeTotalVolumeKg(),
-            elapsedTime: elapsedTime
-        ))
-        #endif
+        refreshLiveActivity()
+    }
+
+    /// True when the exercise has sets and every one of them is logged.
+    private func isComplete(_ exercise: WorkoutExerciseModel) -> Bool {
+        !exercise.sets.isEmpty && exercise.sets.allSatisfy { $0.completedAt != nil }
+    }
+
+    /// Copies a weight/reps edit onto sibling sets that still hold the previous values, when
+    /// the propagate-changes setting is on.
+    private func propagateChanges(
+        of updatedSet: WorkoutSetModel,
+        replacing original: WorkoutSetModel,
+        at setIndex: Int,
+        in sets: inout [WorkoutSetModel]
+    ) {
+        guard interactor.workoutSettings.propagateChanges, updatedSet.completedAt == nil else { return }
+
+        let weightChanged = original.weightKg != updatedSet.weightKg
+        let repsChanged = original.reps != updatedSet.reps
+        guard weightChanged || repsChanged else { return }
+
+        for index in sets.indices where index != setIndex {
+            var sibling = sets[index]
+            guard sibling.completedAt == nil,
+                  sibling.weightKg == original.weightKg,
+                  sibling.reps == original.reps else { continue }
+            if weightChanged { sibling.weightKg = updatedSet.weightKg }
+            if repsChanged { sibling.reps = updatedSet.reps }
+            sets[index] = sibling
+        }
+    }
+
+    /// Moves focus to the next exercise once every set in `exerciseIndex` is logged. Shared by
+    /// `updateSet` and `handleWorkoutSessionChange`, which both used to inline it.
+    private func advanceAfterExerciseCompletion(exerciseIndex: Int, in exercises: [WorkoutExerciseModel]) {
+        let nextIndex = exerciseIndex + 1
+
+        if nextIndex < exercises.count && interactor.workoutSettings.exerciseAutoNext {
+            expandedExerciseId = exercises[nextIndex].id
+            currentExerciseIndex = nextIndex
+        } else if nextIndex >= exercises.count, expandedExerciseId == exercises[exerciseIndex].id {
+            expandedExerciseId = nil
+        }
     }
 
     func updateExerciseNotes(_ notes: String, exerciseId: String) {
@@ -603,8 +563,23 @@ class WorkoutTrackerPresenter {
 
     private func handleWorkoutSessionChange(from oldSession: WorkoutSessionModel) {
         guard !isProcessingUpdateSet else { return }
+        guard let exerciseIndex = firstNewlyCompletedSetExerciseIndex(comparedTo: oldSession) else { return }
 
-        // Build a flat lookup of old sets by id
+        let exercise = workoutSession.exercises[exerciseIndex]
+        let wasExerciseCompleteBefore = oldSession.exercises
+            .first { $0.id == exercise.id }
+            .map(isComplete) ?? false
+
+        if !wasExerciseCompleteBefore && isComplete(exercise) {
+            advanceAfterExerciseCompletion(exerciseIndex: exerciseIndex, in: workoutSession.exercises)
+        }
+
+        refreshLiveActivity()
+    }
+
+    /// The first exercise holding a set that flipped incomplete → complete relative to
+    /// `oldSession`, or nil when nothing was newly logged.
+    private func firstNewlyCompletedSetExerciseIndex(comparedTo oldSession: WorkoutSessionModel) -> Int? {
         var oldSets: [String: WorkoutSetModel] = [:]
         for exercise in oldSession.exercises {
             for set in exercise.sets {
@@ -612,53 +587,11 @@ class WorkoutTrackerPresenter {
             }
         }
 
-        // Find the first exercise that had a set transition from incomplete → complete
-        var foundExerciseIndex: Int?
-        outer: for (exerciseIndex, exercise) in workoutSession.exercises.enumerated() {
-            for set in exercise.sets {
-                let wasCompleted = oldSets[set.id]?.completedAt != nil
-                let isCompleted = set.completedAt != nil
-                if !wasCompleted && isCompleted {
-                    foundExerciseIndex = exerciseIndex
-                    break outer
-                }
+        return workoutSession.exercises.firstIndex { exercise in
+            exercise.sets.contains { set in
+                oldSets[set.id]?.completedAt == nil && set.completedAt != nil
             }
         }
-
-        guard let exerciseIndex = foundExerciseIndex else { return }
-
-        let exercise = workoutSession.exercises[exerciseIndex]
-
-        // Auto-next exercise
-        let oldExercise = oldSession.exercises.first(where: { $0.id == exercise.id })
-        let wasExerciseCompleteBefore = oldExercise.map { exercise in
-            !exercise.sets.isEmpty && exercise.sets.allSatisfy { $0.completedAt != nil }
-        } ?? false
-        let isExerciseCompleteNow = !exercise.sets.isEmpty && exercise.sets.allSatisfy { $0.completedAt != nil }
-
-        if !wasExerciseCompleteBefore && isExerciseCompleteNow {
-            let nextIndex = exerciseIndex + 1
-            let exercises = workoutSession.exercises
-            if nextIndex < exercises.count && interactor.workoutSettings.exerciseAutoNext {
-                expandedExerciseId = exercises[nextIndex].id
-                currentExerciseIndex = nextIndex
-            } else if nextIndex >= exercises.count {
-                if expandedExerciseId == exercises[exerciseIndex].id { expandedExerciseId = nil }
-            }
-        }
-
-        // Update Live Activity
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        interactor.updateLiveActivity(params: LiveActivityUpdateParams(
-            session: workoutSession,
-            isActive: isActive,
-            currentExerciseIndex: liveActivityExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil,
-            totalVolumeKg: computeTotalVolumeKg(),
-            elapsedTime: elapsedTime
-        ))
-        #endif
     }
 
     func syncPendingWorkoutCompletionFromWidget() {
@@ -676,212 +609,6 @@ class WorkoutTrackerPresenter {
         guard let gymProfile = favouriteGymProfile else { return }
         let delegate = GymProfileDelegate(gymProfile: gymProfile)
         router.showGymProfileView(delegate: delegate)
-    }
-
-    // MARK: - Exercise Management
-    func addSelectedExercises() {
-        let templates = self.pendingSelectedTemplates
-        guard !templates.isEmpty, let userId = interactor.currentUser?.userId else { return }
-        var updated = workoutSession.exercises
-        let startIndex = updated.count
-        for (offset, template) in templates.enumerated() {
-            let index = startIndex + offset + 1
-            let exercise = template.exercise
-            let mode = WorkoutSessionModel.trackingMode(for: exercise)
-            let targetCount = max(template.setTargets.count, 1)
-            let defaultSets = WorkoutSessionModel.defaultSets(
-                trackingMode: mode,
-                authorId: userId,
-                targetCount: targetCount
-            )
-            let imageName = Constants.exerciseImageName(for: exercise.name)
-            let newExercise = WorkoutExerciseModel(
-                id: UUID().uuidString,
-                authorId: userId,
-                templateId: exercise.id,
-                name: exercise.name,
-                trackingMode: mode,
-                index: index,
-                notes: nil,
-                imageName: imageName,
-                sets: defaultSets,
-                setTargets: template.setTargets,
-                chosenVariationId: nil,
-                equipmentVariations: exercise.equipmentVariations
-            )
-            updated.append(newExercise)
-        }
-        workoutSession.updateExercises(updated)
-        syncCurrentExerciseIndexToFirstIncomplete(in: updated)
-        if currentExerciseIndex < updated.count {
-            expandedExerciseId = updated[currentExerciseIndex].id
-        }
-
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        interactor.updateLiveActivity(params: LiveActivityUpdateParams(
-            session: workoutSession,
-            isActive: isActive,
-            currentExerciseIndex: liveActivityExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil,
-            totalVolumeKg: computeTotalVolumeKg(),
-            elapsedTime: elapsedTime
-        ))
-        #endif
-
-        self.pendingSelectedTemplates = []
-    }
-
-    func deleteExercise(_ exerciseId: String) {
-        var updated = workoutSession.exercises
-        guard let idx = updated.firstIndex(where: { $0.id == exerciseId }) else { return }
-        updated.remove(at: idx)
-        for index in updated.indices { updated[index].index = index + 1 }
-        workoutSession.updateExercises(updated)
-        if expandedExerciseId == exerciseId { expandedExerciseId = nil }
-        syncCurrentExerciseIndexToFirstIncomplete(in: updated)
-
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        interactor.updateLiveActivity(params: LiveActivityUpdateParams(
-            session: workoutSession,
-            isActive: isActive,
-            currentExerciseIndex: liveActivityExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil,
-            totalVolumeKg: computeTotalVolumeKg(),
-            elapsedTime: elapsedTime
-        ))
-        #endif
-    }
-
-    func onWorkoutSettingsPressed() {
-        router.showWorkoutSettingsView(delegate: WorkoutSettingsDelegate())
-    }
-
-    func moveExercises(from source: IndexSet, to destination: Int) {
-        var updated = workoutSession.exercises
-        updated.move(fromOffsets: source, toOffset: destination)
-        applyReorderedExercises(updated, movedFrom: source.first, movedTo: destination)
-
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        interactor.updateLiveActivity(params: LiveActivityUpdateParams(
-            session: workoutSession,
-            isActive: isActive,
-            currentExerciseIndex: liveActivityExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil,
-            totalVolumeKg: computeTotalVolumeKg(),
-            elapsedTime: elapsedTime
-        ))
-        #endif
-    }
-
-    func setSupersetGroupId(_ groupId: String?, forExerciseId exerciseId: String) {
-        guard let idx = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) else { return }
-        workoutSession.exercises[idx].supersetGroupId = groupId
-    }
-
-    func reorderExercises(from sourceIndex: Int, to targetIndex: Int) {
-        guard sourceIndex != targetIndex else { return }
-        var updated = workoutSession.exercises
-        let element = updated.remove(at: sourceIndex)
-        updated.insert(element, at: targetIndex)
-        applyReorderedExercises(updated, movedFrom: sourceIndex, movedTo: targetIndex)
-    }
-
-    func buttonColor(set: WorkoutSetModel, canComplete: Bool) -> Color {
-        if set.completedAt != nil {
-            return .green
-        } else if canComplete {
-            return .secondary
-        } else {
-            return .red.opacity(0.6)
-        }
-    }
-
-    func canComplete(trackingMode: TrackingMode, set: WorkoutSetModel) -> Bool {
-        switch trackingMode {
-        case .weightReps:
-            let hasValidWeight = set.weightKg == nil || set.weightKg! >= 0
-            let hasValidReps = set.reps != nil && set.reps! > 0
-            return hasValidWeight && hasValidReps
-
-        case .repsOnly:
-            return set.reps != nil && set.reps! > 0
-
-        case .timeOnly:
-            return set.durationSec != nil && set.durationSec! > 0
-
-        case .distanceTime:
-            let hasValidDistance = set.distanceMeters != nil && set.distanceMeters! > 0
-            let hasValidTime = set.durationSec != nil && set.durationSec! > 0
-            return hasValidDistance && hasValidTime
-        }
-    }
-
-    func validateSetData(trackingMode: TrackingMode, set: WorkoutSetModel) -> Bool {
-        switch trackingMode {
-        case .weightReps:
-            return validateWeightReps(set: set)
-        case .repsOnly:
-            return validateRepsOnly(set: set)
-        case .timeOnly:
-            return validateTimeOnly(set: set)
-        case .distanceTime:
-            return validateDistanceTime(set: set)
-        }
-    }
-
-    func validateWeightReps(set: WorkoutSetModel) -> Bool {
-        // Weight must be non-negative (including 0 for bodyweight exercises)
-        if let weight = set.weightKg, weight < 0 {
-            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Weight must be a non-negative number")
-            return false
-        }
-
-        // Reps must be positive
-        guard let reps = set.reps, reps > 0 else {
-            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
-            return false
-        }
-
-        return true
-    }
-
-    func validateRepsOnly(set: WorkoutSetModel) -> Bool {
-        // Reps must be positive
-        guard let reps = set.reps, reps > 0 else {
-            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
-            return false
-        }
-
-        return true
-    }
-
-    func validateTimeOnly(set: WorkoutSetModel) -> Bool {
-        // Time must be positive
-        guard let duration = set.durationSec, duration > 0 else {
-            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
-            return false
-        }
-
-        return true
-    }
-
-    func validateDistanceTime(set: WorkoutSetModel) -> Bool {
-        // Distance must be positive
-        guard let distance = set.distanceMeters, distance > 0 else {
-            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Distance must be a positive number")
-            return false
-        }
-
-        // Time must be positive
-        guard let duration = set.durationSec, duration > 0 else {
-            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
-            return false
-        }
-
-        return true
     }
 
     func finishWorkout() {

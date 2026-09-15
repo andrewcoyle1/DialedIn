@@ -70,48 +70,17 @@ class WelcomePresenter {
     }
 
     private func route(to step: OnboardingStep) {
+        // Welcome is the one entry point that can still send someone to auth or the paywall;
+        // every later step is the shared onboarding routing.
         switch step {
         case .auth:
             router.showAuthView()
-            
+
         case .subscription:
             router.showSubscriptionView()
 
-        case .completeAccountSetup:
-            router.showCompleteAccountSetupView()
-
-        case .notifications:
-            router.showNotificationsPermissionsView()
-
-        case .healthData:
-            router.showOnboardingHealthDataView()
-
-        case .healthDisclaimer:
-            router.showHealthDisclaimerView()
-
-        case .goalSetting:
-            router.showGoalSettingView()
-
-        case .gymProfileSetup:
-            let delegate = CreateGymProfileDelegate(onComplete: self.handleNavigation)
-            router.showCreateGymProfileView(delegate: delegate)
-
-        case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(
-                delegate: CreateProgramDelegate(
-                    onComplete: { [weak self] in
-                        guard let self else { return }
-                        Task { @MainActor in
-                            self.handleNavigation()
-                        }
-                    }
-                )
-            )
-        case .customiseProgram:
-            router.showCustomisingDietProgramView()
-
-        case .complete:
-            router.showOnboardingCompletedView()
+        default:
+            router.routeToOnboardingStep(step, onComplete: handleNavigation)
         }
     }
 

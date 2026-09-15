@@ -30,66 +30,76 @@ final class ProductionOpenFoodFactsService: OpenFoodFactsService {
               let rawProducts = dict["products"] as? [Any] else {
             return []
         }
-        let products = rawProducts.compactMap { $0 as? [String: Any] }
+
         let now = Date()
-        return products.compactMap { product -> FoodModel? in
-            guard let name = product["name"] as? String else { return nil }
-            let servingSize = product["servingSize"] as? String
-            let parsed = servingSize.map { parseServingSize($0) }
+        return rawProducts
+            .compactMap { $0 as? [String: Any] }
+            .compactMap { foodModel(from: $0, now: now) }
+    }
 
-            var nutrients: NutrientMap = NutrientMap()
-            func set(_ key: NutrientKey, _ kVal: String) {
-                if let val = product[kVal] as? Double { nutrients[key] = val }
-            }
-            set(.calories, "calories")
-            set(.protein, "protein")
-            set(.carbs, "carbs")
-            set(.fatTotal, "fatTotal")
-            set(.fatSaturated, "fatSaturated")
-            set(.fiber, "fiber")
-            set(.sugar, "sugar")
-            set(.sodiumMg, "sodiumMg")
-            set(.potassiumMg, "potassiumMg")
-            set(.calciumMg, "calciumMg")
-            set(.ironMg, "ironMg")
-            set(.vitaminAMcg, "vitaminAMcg")
-            set(.vitaminB6Mg, "vitaminB6Mg")
-            set(.vitaminB12Mcg, "vitaminB12Mcg")
-            set(.vitaminCMg, "vitaminCMg")
-            set(.vitaminDMcg, "vitaminDMcg")
-            set(.vitaminEMg, "vitaminEMg")
-            set(.vitaminKMcg, "vitaminKMcg")
-            set(.magnesiumMg, "magnesiumMg")
-            set(.zincMg, "zincMg")
-            set(.biotinMcg, "biotinMcg")
-            set(.copperMg, "copperMg")
-            set(.folateMcg, "folateMcg")
-            set(.iodineMcg, "iodineMcg")
-            set(.niacinMg, "niacinMg")
-            set(.thiaminMg, "thiaminMg")
-            set(.caffeineMg, "caffeineMg")
-            set(.chlorideMg, "chlorideMg")
-            set(.seleniumMcg, "seleniumMcg")
-            set(.manganeseMg, "manganeseMg")
-            set(.phosphorusMg, "phosphorusMg")
-            set(.riboflavinMg, "riboflavinMg")
-            set(.cholesterolMg, "cholesterolMg")
-            set(.pantothenicAcidMg, "pantothenicAcidMg")
+    /// One row of the `foodSearch` callable's payload.
+    private func foodModel(from product: [String: Any], now: Date) -> FoodModel? {
+        guard let name = product["name"] as? String else { return nil }
+        let servingSize = product["servingSize"] as? String
+        let parsed = servingSize.map { parseServingSize($0) }
 
-            return FoodModel(
-                ingredientId: UUID().uuidString,
-                authorId: nil,
-                name: name,
-                brandName: product["brandName"] as? String,
-                measurementMethod: .weight,
-                nutrients: nutrients,
-                servingWeight: product["servingWeight"] as? Double,
-                portionSize: parsed?.portionSize,
-                portionName: parsed?.portionName,
-                imageURL: product["imageURL"] as? String,
-                dateCreated: now,
-                dateModified: now
-            )
+        return FoodModel(
+            ingredientId: UUID().uuidString,
+            authorId: nil,
+            name: name,
+            brandName: product["brandName"] as? String,
+            measurementMethod: .weight,
+            nutrients: nutrientMap(from: product),
+            servingWeight: product["servingWeight"] as? Double,
+            portionSize: parsed?.portionSize,
+            portionName: parsed?.portionName,
+            imageURL: product["imageURL"] as? String,
+            dateCreated: now,
+            dateModified: now
+        )
+    }
+
+    /// Pulls the per-100g nutrient fields out of a `foodSearch` payload. Extracted from
+    /// `searchFoods` so that function stays inside the body-length limit.
+    private func nutrientMap(from product: [String: Any]) -> NutrientMap {
+        var nutrients = NutrientMap()
+        func set(_ key: NutrientKey, _ field: String) {
+            if let value = product[field] as? Double { nutrients[key] = value }
         }
+        set(.calories, "calories")
+        set(.protein, "protein")
+        set(.carbs, "carbs")
+        set(.fatTotal, "fatTotal")
+        set(.fatSaturated, "fatSaturated")
+        set(.fiber, "fiber")
+        set(.sugar, "sugar")
+        set(.sodiumMg, "sodiumMg")
+        set(.potassiumMg, "potassiumMg")
+        set(.calciumMg, "calciumMg")
+        set(.ironMg, "ironMg")
+        set(.vitaminAMcg, "vitaminAMcg")
+        set(.vitaminB6Mg, "vitaminB6Mg")
+        set(.vitaminB12Mcg, "vitaminB12Mcg")
+        set(.vitaminCMg, "vitaminCMg")
+        set(.vitaminDMcg, "vitaminDMcg")
+        set(.vitaminEMg, "vitaminEMg")
+        set(.vitaminKMcg, "vitaminKMcg")
+        set(.magnesiumMg, "magnesiumMg")
+        set(.zincMg, "zincMg")
+        set(.biotinMcg, "biotinMcg")
+        set(.copperMg, "copperMg")
+        set(.folateMcg, "folateMcg")
+        set(.iodineMcg, "iodineMcg")
+        set(.niacinMg, "niacinMg")
+        set(.thiaminMg, "thiaminMg")
+        set(.caffeineMg, "caffeineMg")
+        set(.chlorideMg, "chlorideMg")
+        set(.seleniumMcg, "seleniumMcg")
+        set(.manganeseMg, "manganeseMg")
+        set(.phosphorusMg, "phosphorusMg")
+        set(.riboflavinMg, "riboflavinMg")
+        set(.cholesterolMg, "cholesterolMg")
+        set(.pantothenicAcidMg, "pantothenicAcidMg")
+        return nutrients
     }
 }

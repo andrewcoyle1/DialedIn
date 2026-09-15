@@ -66,10 +66,11 @@ struct WorkoutHistoryView<WorkoutSessionRow: View>: View {
             Text("Complete your first workout to see it here")
         } actions: {
             Button {
-                // TODO: Implement force read function here
+                presenter.onReloadPressed()
             } label: {
                 Text("Reload")
             }
+            .disabled(presenter.isLoading)
         }
     }
     

@@ -89,8 +89,27 @@ struct WidthPreferenceKey: PreferenceKey {
 extension CoreBuilder {
     
     func tabBarView(router: AnyRouter) -> some View {
+        TabBarView(
+            presenter: TabBarPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            tabs: tabBarScreens,
+            trainingAccessoryView: { delegate in
+                self.trainingAccessoryView(router: router, delegate: delegate)
+            },
+            mealAccessoryView: { delegate in
+                self.mealAccessoryView(router: router, delegate: delegate)
+            },
+            searchView: {
+                RouterView { router in
+                    self.searchView(router: router)
+                }
+            }
+        )
+    }
 
-        let tabs: [TabBarScreen] = [
+    /// The four root tabs. Extracted from `tabBarView` so that function stays inside the
+    /// body-length limit.
+    private var tabBarScreens: [TabBarScreen] {
+        [
             TabBarScreen(
                 title: "Dashboard",
                 systemImage: "house",
@@ -132,23 +151,8 @@ extension CoreBuilder {
                 }
             )
         ]
-
-        return TabBarView(
-            presenter: TabBarPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            tabs: tabs,
-            trainingAccessoryView: { delegate in
-                self.trainingAccessoryView(router: router, delegate: delegate)
-            },
-            mealAccessoryView: { delegate in
-                self.mealAccessoryView(router: router, delegate: delegate)
-            },
-            searchView: {
-                RouterView { router in
-                    self.searchView(router: router)
-                }
-            }
-        )
     }
+
 }
 
 #Preview("Has No Active Session") {

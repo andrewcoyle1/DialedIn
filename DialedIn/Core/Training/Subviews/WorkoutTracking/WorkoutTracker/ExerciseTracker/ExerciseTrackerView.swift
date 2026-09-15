@@ -13,8 +13,8 @@ struct ExerciseTrackerDelegate {
     var isExpanded: Binding<Bool> = .constant(false)
     var allWorkoutExercises: [WorkoutExerciseModel] = []
     var supersetLabel: String?
-    var onSetSupersetGroup: @Sendable (String, String?) -> Void = { _, _ in }
-    var onDeleteExercise: @Sendable () -> Void = { }
+    var onSetSupersetGroup: @MainActor (String, String?) -> Void = { _, _ in }
+    var onDeleteExercise: @MainActor () -> Void = { }
 }
 
 struct ExerciseTrackerView<SetTracker: View>: View {

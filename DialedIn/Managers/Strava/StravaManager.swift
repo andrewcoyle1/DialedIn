@@ -155,10 +155,25 @@ enum StravaError: LocalizedError {
 }
 
 private class StravaContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+
+    /// The attribute is here only to scope an unavoidable deprecation, not because callers
+    /// should stop using this: with no window scene at all there is nothing to present over,
+    /// but the return type is non-optional and *every* spelling of a scene-less `UIWindow`
+    /// (`init()`, `init(frame:)`, `ASPresentationAnchor()`) is deprecated as of iOS 26. Swift
+    /// has no per-call suppression, so the warning is confined to this method — which only
+    /// ASWebAuthenticationSession calls, never our own code. The branch is unreachable while
+    /// the app has a foreground scene, which is the only state web auth can start from.
+    @available(iOS, deprecated: 26.0, message: "Scopes the scene-less UIWindow fallback below.")
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow } ?? UIWindow()
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+
+        if let window = scene?.windows.first(where: { $0.isKeyWindow }) ?? scene?.windows.first {
+            return window
+        }
+        if let scene {
+            return UIWindow(windowScene: scene)
+        }
+        return UIWindow(frame: .zero)
     }
 }

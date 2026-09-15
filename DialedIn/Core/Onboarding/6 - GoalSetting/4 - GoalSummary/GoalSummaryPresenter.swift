@@ -86,47 +86,7 @@ class GoalSummaryPresenter {
     }
 
     private func route(to step: OnboardingStep) {
-        switch step {
-        case .auth, .subscription:
-            // For anything at/before subscription, move them into complete-account setup
-            router.showCompleteAccountSetupView()
-
-        case .completeAccountSetup:
-            router.showCompleteAccountSetupView()
-
-        case .notifications:
-            router.showNotificationsPermissionsView()
-
-        case .healthData:
-            router.showOnboardingHealthDataView()
-
-        case .healthDisclaimer:
-            router.showHealthDisclaimerView()
-
-        case .goalSetting:
-            router.showGoalSettingView()
-
-        case .gymProfileSetup:
-            let delegate = CreateGymProfileDelegate(onComplete: self.handleNavigation)
-            router.showCreateGymProfileView(delegate: delegate)
-
-        case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(
-                delegate: CreateProgramDelegate(
-                    onComplete: { [weak self] in
-                        guard let self else { return }
-                        Task { @MainActor in
-                            self.handleNavigation()
-                        }
-                    }
-                )
-            )
-        case .customiseProgram:
-            router.showCustomisingDietProgramView()
-
-        case .complete:
-            router.showOnboardingCompletedView()
-        }
+        router.routeToOnboardingStep(step, onComplete: handleNavigation)
     }
 
     // MARK: - Computed Properties

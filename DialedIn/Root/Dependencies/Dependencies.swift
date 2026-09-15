@@ -5,6 +5,14 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
+// `Dependencies` is the app's single DI root: one `init(config:)` whose three switch arms wire
+// every manager for the chosen build configuration, followed by a flat registration list. The
+// arms each bind ~32 locals that the registration block consumes, so splitting them into
+// functions would mean threading all 32 through a carrier type — scattering the wiring without
+// making it simpler. The init is already exempt from `function_body_length` for the same
+// reason; these two rules are scoped here on the same grounds.
+// swiftlint:disable type_body_length file_length
+
 @MainActor
 struct Dependencies {
     let container: DependencyContainer
@@ -780,3 +788,5 @@ struct Dependencies {
         self.container = container
     }
 }
+
+// swiftlint:enable type_body_length file_length

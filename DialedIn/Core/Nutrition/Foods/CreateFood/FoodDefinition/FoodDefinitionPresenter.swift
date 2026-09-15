@@ -123,43 +123,7 @@ class FoodDefinitionPresenter {
     }
     
     private func createFood(userId: String, delegate: FoodDefinitionDelegate) async throws -> FoodModel {
-        var nutrients: NutrientMap = NutrientMap()
-        func set(_ key: NutrientKey, _ value: Double?) {
-            if let val = value { nutrients[key] = val }
-        }
-        set(.calories, self.energy)
-        set(.protein, self.protein)
-        set(.carbs, self.carbs)
-        set(.fatTotal, self.fats)
-        set(.fatSaturated, self.saturatedFats)
-        set(.fatMonounsaturated, self.monounsaturatedFats)
-        set(.fatPolyunsaturated, self.polyunsaturatedFats)
-        set(.fiber, self.fiber)
-        set(.sugar, self.sugars)
-        set(.sodiumMg, self.sodium)
-        set(.potassiumMg, self.potassium)
-        set(.calciumMg, self.calcium)
-        set(.ironMg, self.iron)
-        set(.vitaminAMcg, self.vitaminA)
-        set(.vitaminB6Mg, self.b6Pyridoxine)
-        set(.vitaminB12Mcg, self.b12Cobalamin)
-        set(.vitaminCMg, self.vitaminC)
-        set(.vitaminDMcg, self.vitaminD)
-        set(.vitaminEMg, self.vitaminE)
-        set(.vitaminKMcg, self.vitaminK)
-        set(.magnesiumMg, self.magnesium)
-        set(.zincMg, self.zinc)
-        set(.copperMg, self.copper)
-        set(.folateMcg, self.folate)
-        set(.niacinMg, self.b3Niacin)
-        set(.thiaminMg, self.b1Thiamine)
-        set(.caffeineMg, self.caffeine)
-        set(.seleniumMcg, self.selenium)
-        set(.manganeseMg, self.manganese)
-        set(.phosphorusMg, self.phosphorus)
-        set(.riboflavinMg, self.b2Riboflavin)
-        set(.cholesterolMg, self.cholesterol)
-        set(.pantothenicAcidMg, self.b5PantothenicAcid)
+        var nutrients = enteredNutrients()
 
         // Normalize to per-100g so all downstream callers work correctly
         if case .serving = delegate.nutritionDefinitionOption,
@@ -187,6 +151,48 @@ class FoodDefinitionPresenter {
         )
         try await interactor.saveFood(ingredient, image: delegate.image)
         return ingredient
+    }
+    /// Every nutrient field the user filled in, keyed for `NutrientMap`. Extracted from
+    /// `createFood` so that function stays inside the body-length limit.
+    private func enteredNutrients() -> NutrientMap {
+        var nutrients = NutrientMap()
+        func set(_ key: NutrientKey, _ value: Double?) {
+            if let value { nutrients[key] = value }
+        }
+        set(.calories, energy)
+        set(.protein, protein)
+        set(.carbs, carbs)
+        set(.fatTotal, fats)
+        set(.fatSaturated, saturatedFats)
+        set(.fatMonounsaturated, monounsaturatedFats)
+        set(.fatPolyunsaturated, polyunsaturatedFats)
+        set(.fiber, fiber)
+        set(.sugar, sugars)
+        set(.sodiumMg, sodium)
+        set(.potassiumMg, potassium)
+        set(.calciumMg, calcium)
+        set(.ironMg, iron)
+        set(.vitaminAMcg, vitaminA)
+        set(.vitaminB6Mg, b6Pyridoxine)
+        set(.vitaminB12Mcg, b12Cobalamin)
+        set(.vitaminCMg, vitaminC)
+        set(.vitaminDMcg, vitaminD)
+        set(.vitaminEMg, vitaminE)
+        set(.vitaminKMcg, vitaminK)
+        set(.magnesiumMg, magnesium)
+        set(.zincMg, zinc)
+        set(.copperMg, copper)
+        set(.folateMcg, folate)
+        set(.niacinMg, b3Niacin)
+        set(.thiaminMg, b1Thiamine)
+        set(.caffeineMg, caffeine)
+        set(.seleniumMcg, selenium)
+        set(.manganeseMg, manganese)
+        set(.phosphorusMg, phosphorus)
+        set(.riboflavinMg, b2Riboflavin)
+        set(.cholesterolMg, cholesterol)
+        set(.pantothenicAcidMg, b5PantothenicAcid)
+        return nutrients
     }
 }
 

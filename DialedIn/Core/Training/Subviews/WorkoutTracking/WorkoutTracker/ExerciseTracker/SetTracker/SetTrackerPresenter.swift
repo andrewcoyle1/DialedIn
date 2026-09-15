@@ -44,7 +44,7 @@ class SetTrackerPresenter {
         router.showExerciseSettingsView(delegate: ExerciseSettingsDelegate(exercise: exerciseModel))
     }
 
-    func deleteExercise(_ exercise: Binding<WorkoutExerciseModel>, onDelete: @escaping @Sendable () -> Void) {
+    func deleteExercise(_ exercise: Binding<WorkoutExerciseModel>, onDelete: @escaping @MainActor () -> Void) {
         let name = exercise.wrappedValue.name
         router.showAlert(title: "Delete Exercise?", subtitle: "Remove '\(name)' from this workout?") {
             AnyView(VStack(spacing: 8) {
@@ -81,7 +81,7 @@ class SetTrackerPresenter {
     func onSupersetPressed(
         exercise: Binding<WorkoutExerciseModel>,
         allWorkoutExercises: [WorkoutExerciseModel],
-        onSetSupersetGroup: @Sendable @escaping (String, String?) -> Void
+        onSetSupersetGroup: @MainActor @escaping (String, String?) -> Void
     ) {
         let current = exercise.wrappedValue
         // Remove from existing group
