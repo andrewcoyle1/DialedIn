@@ -13,7 +13,7 @@ protocol AnalyticsRouter: GlobalRouter {
 func showDevSettingsView()
 #endif
     func showPaywall()
-    func showProfileView()
+    func showProfileViewZoom(transitionId: String?, namespace: Namespace.ID)
     func showScaleWeightView(delegate: ScaleWeightDelegate, themeColor: Color?)
     func showWeighInConsistencyView(delegate: WeighInConsistencyDelegate, themeColor: Color?)
     func showWeightTrendView(delegate: WeightTrendDelegate, themeColor: Color?)

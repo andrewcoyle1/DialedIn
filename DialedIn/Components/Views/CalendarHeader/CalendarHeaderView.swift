@@ -30,8 +30,10 @@ struct CalendarHeaderView: View {
         .scrollTargetBehavior(.viewAligned)
         .padding(.horizontal)
         .glassEffect()
+        .padding(.bottom, 8)
         .padding(.horizontal)
         .matchedTransitionSource(id: "calendar-header", in: namespace)
+        .background(.bar)
     }
 
     private static let rowHeight: CGFloat = 70
@@ -173,7 +175,8 @@ extension CoreRouter {
         List {
             Text("Hello")
         }
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .navigationTitle("Calendar Header Preview")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
@@ -185,6 +188,7 @@ extension CoreRouter {
         }
         .safeAreaInset(edge: .top) {
             builder.calendarHeaderView(router: router, delegate: delegate)
+                .background(.bar)
         }
     }
 }

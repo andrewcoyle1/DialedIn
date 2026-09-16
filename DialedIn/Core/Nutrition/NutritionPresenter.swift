@@ -131,8 +131,8 @@ class NutritionPresenter {
         }
     }
     
-    func onProfilePressed() {
-        router.showProfileView()
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
 
     #if DEV || MOCK

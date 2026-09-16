@@ -31,6 +31,18 @@ struct AuthView: View {
         .onDisappear {
             presenter.cleanUp()
         }
+        .safeAreaInset(edge: .top) {
+            Text("COMPOUND")
+                .font(.system(size: 48))
+                .fontDesign(.default)
+                .fontWeight(.heavy)
+                .foregroundStyle(Color.primary)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(
+                    colorScheme.backgroundPrimary.opacity(0.75)
+                )
+        }
     }
 
     #if DEBUG || MOCK
@@ -48,15 +60,6 @@ struct AuthView: View {
     private var imageSection: some View {
         ImageLoaderView()
             .ignoresSafeArea()
-            .overlay(alignment: .topLeading) {
-                Text("Compound")
-                    .font(.system(size: 64))
-                    .fontDesign(.default)
-                    .fontWeight(.heavy)
-                    .foregroundStyle(Color.white)
-                    .opacity(0.8)
-                    .padding()
-            }
     }
 
     private var tsAndCsSection: some View {

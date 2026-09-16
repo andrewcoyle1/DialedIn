@@ -12,6 +12,10 @@ struct SearchView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State var presenter: SearchPresenter
 
+    let profileButtonTransition: String = "profile_button_transition"
+    
+    @Namespace private var namespace
+    
     var body: some View {
         List {
             if !presenter.hasSearchQuery {
@@ -33,8 +37,7 @@ struct SearchView: View {
         .listSectionMargins(.horizontal, 0)
         .listRowSeparator(.hidden)
         .navigationTitle("Quick Actions")
-        .toolbarRole(.browser)
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .navigationBarTitleDisplayMode(.inline)
         .searchable(
             text: $presenter.searchString,
             placement: .toolbar,
@@ -237,19 +240,14 @@ struct SearchView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                presenter.onProfilePressed()
-            } label: {
-                if let urlString = presenter.userImageUrl {
-                    ImageLoaderView(urlString: urlString)
-                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person")
-                }
-            }
+            ProfileButton(
+                action: {
+                    presenter.onProfilePressed(transitionId: profileButtonTransition, namespace: namespace)
+                },
+                imageUrl: presenter.userImageUrl
+            )
+            .matchedTransitionSource(id: profileButtonTransition, in: namespace)
         }
-        .sharedBackgroundVisibility(.hidden)
     }
 }
 

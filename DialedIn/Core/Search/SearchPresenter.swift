@@ -344,30 +344,19 @@ class SearchPresenter {
         }
     }
 
-    func onProfilePressed() {
-        router.showProfileView()
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
 
     private func showWorkoutStartModal(for template: WorkoutTemplateModel) {
-        router.showWorkoutStartModal(
-            delegate: WorkoutStartDelegate(
-                template: template,
+        router.showWorkoutTemplateDetailView(
+            delegate: WorkoutTemplateDetailDelegate(
+                workoutTemplate: template,
                 trainingProgramId: nil,
                 onStartWorkoutPressed: { [weak self] in
-                    guard let self else { return }
-                    Task {
-                        do {
-                            try await self.interactor.startWorkout(for: template, in: nil)
-                            self.router.dismissModal()
-                            self.router.dismissEnvironment()
-                            self.router.showWorkoutTrackerView()
-                        } catch {
-                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
-                        }
+                    Task { @MainActor in
+                        self?.router.showWorkoutTrackerView()
                     }
-                },
-                onCancelPressed: { [weak self] in
-                    self?.router.dismissModal()
                 }
             )
         )

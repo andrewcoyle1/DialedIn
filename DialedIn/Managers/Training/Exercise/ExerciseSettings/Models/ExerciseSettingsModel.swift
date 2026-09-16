@@ -41,7 +41,7 @@ struct ExerciseSettingsModel: DataSyncModelProtocol {
             ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
             ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
             ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
-            ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123"),
+            ExerciseSettingsModel(id: UUID().uuidString, authorId: "mock_user_123")
         ]
     }
 }

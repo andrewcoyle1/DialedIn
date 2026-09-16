@@ -23,9 +23,11 @@ struct AnalyticsView<NutritionChart: View>: View {
 
     @State var presenter: AnalyticsPresenter
     let delegate: AnalyticsDelegate
-    
+    let profileButtonTransition: String = "profile_button_transition"
     @ViewBuilder var nutritionTargetChartView: () -> NutritionChart
 
+    @Namespace private var namespace
+    
     var body: some View {
         List {
             Group {
@@ -44,8 +46,7 @@ struct AnalyticsView<NutritionChart: View>: View {
             moreSection
         }
         .navigationTitle("Analytics")
-        .toolbarTitleDisplayMode(.inlineLarge)
-        .toolbarRole(.browser)
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
@@ -159,36 +160,26 @@ struct AnalyticsView<NutritionChart: View>: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 
-#if DEV || MOCK
-ToolbarItem(placement: .topBarTrailing) {
-    Button {
-        presenter.onDevSettingsPressed()
-    } label: {
-        Image(systemName: "info")
-    }
-}
-#endif
-
-        ToolbarSpacer(.fixed, placement: .topBarTrailing)
-                
+        #if DEV || MOCK
         ToolbarItem(placement: .topBarTrailing) {
-            let avatarSize: CGFloat = 44
-
             Button {
-                presenter.onProfilePressed()
+                presenter.onDevSettingsPressed()
             } label: {
-                ZStack {
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 24))
-                    if let urlString = presenter.userImageUrl {
-                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                            .frame(width: avatarSize, height: avatarSize)
-                            .contentShape(Circle())
-                    }
-                }
+                Image(systemName: "info")
             }
         }
-        .sharedBackgroundVisibility(.hidden)
+        #endif
+
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+        ToolbarItem(placement: .topBarTrailing) {
+            ProfileButton(
+                action: {
+                    presenter.onProfilePressed(transitionId: profileButtonTransition, namespace: namespace)
+                },
+                imageUrl: presenter.userImageUrl
+            )
+            .matchedTransitionSource(id: profileButtonTransition, in: namespace)
+        }
     }
 }
 

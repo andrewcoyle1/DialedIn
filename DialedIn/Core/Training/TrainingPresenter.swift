@@ -91,8 +91,8 @@ class TrainingPresenter {
         router.showAddTrainingView(delegate: delegate, onDismiss: nil)
     }
     
-    func onProfilePressed() {
-        router.showProfileView()
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
     
     func getLoggedWorkoutCountForDate(_ date: Date, calendar: Calendar) -> Int {

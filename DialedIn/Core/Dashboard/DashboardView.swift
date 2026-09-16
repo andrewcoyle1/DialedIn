@@ -16,27 +16,23 @@ struct DashboardView<
     @State var presenter: DashboardPresenter
     let delegate: DashboardDelegate
 
+    let profileTransitionId: String = "profile_button_transition"
+    
     @ViewBuilder var workoutSessionRow: (WorkoutSessionRowDelegate) -> WorkoutSessionRow
     @ViewBuilder var todaysWorkoutCard: (TodaysWorkoutCardDelegate) -> TodaysCard
     @ViewBuilder var workoutStreakCard: (WorkoutStreakDelegate) -> StreakCard
     
+    @Namespace private var namespace
+    
     var body: some View {
         List {
-            Group {
-                cardsSection
-                Section { } header: {
-                    Text("Workout Feed")
-                }
-                .listSectionMargins(.vertical, 0)
-            }
-            .listSectionSpacing(0)
+            cardsSection
             workoutFeedSection
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Dashboard")
         .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
-        .toolbarTitleDisplayMode(.inlineLarge)
-        .toolbarRole(.browser)
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
@@ -46,6 +42,22 @@ struct DashboardView<
         .toolbar { toolbarContent }
         .task {
             await presenter.loadNotifications()
+        }
+    }
+    
+    @ViewBuilder
+    private func workoutCardBuilder(first: Bool, @ViewBuilder content: () -> some View) -> some View {
+        if first {
+            Section {
+                content()
+            } header: {
+                Text("Workout Feed")
+            }
+            .listSectionMargins(.top, 0)
+        } else {
+            Section {
+                content()
+            }
         }
     }
     
@@ -59,7 +71,7 @@ struct DashboardView<
                                 todaysWorkoutTemplate: todaysWorkoutTemplate
                             )
                         )
-                        .padding(.bottom)
+                        .padding(.bottom, 8)
                     }
                 }
 
@@ -105,7 +117,7 @@ struct DashboardView<
             )
         } else {
             ForEach(presenter.feedSessions) { session in
-                Section {
+                workoutCardBuilder(first: true) {
                     if let author = presenter.author(for: session) {
                         let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
                         workoutSessionRow(rowDelegate)
@@ -113,6 +125,7 @@ struct DashboardView<
                     }
                 }
             }
+            
         }
     }
     
@@ -140,24 +153,17 @@ struct DashboardView<
             .badge(presenter.activityNotifications.filter({ !$0.isRead }).count)
         }
         
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+        
         ToolbarItem(placement: .topBarTrailing) {
-            let avatarSize: CGFloat = 44
-
-            Button {
-                presenter.onProfilePressed()
-            } label: {
-                ZStack {
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 24))
-                    if let urlString = presenter.userImageUrl {
-                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                            .frame(width: avatarSize, height: avatarSize)
-                            .contentShape(Circle())
-                    }
-                }
-            }
+            ProfileButton(
+                action: {
+                    presenter.onProfilePressed(transitionId: profileTransitionId, namespace: namespace)
+                },
+                imageUrl: presenter.userImageUrl
+            )
+            .matchedTransitionSource(id: profileTransitionId, in: namespace)
         }
-        .sharedBackgroundVisibility(.hidden)
     }
 }
 

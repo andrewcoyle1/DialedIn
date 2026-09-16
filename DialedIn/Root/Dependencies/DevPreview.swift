@@ -268,6 +268,7 @@ class DevPreview {
                 let mockUser = UserAuthInfo.mock(isAnonymous: false)
                 try? await userManager.signIn(auth: mockUser, isNewUser: false)
                 async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: mockUser.uid)
+                async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: mockUser.uid)
                 async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: mockUser.uid)
                 async let stepsSignIn: () = stepsManager.signIn()
                 async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
@@ -282,6 +283,7 @@ class DevPreview {
                 async let bodyMeasurementsSignIn: () = bodyMeasurementsManager.signIn(userId: mockUser.uid)
                 async let goalSignIn: () = goalManager.signIn(userId: mockUser.uid)
                 try? await workoutSettingsSignIn
+                await exerciseSettingsSignIn
                 try? await foodLogSettingsSignIn
                 await stepsSignIn
                 await workoutTemplatesSignIn
