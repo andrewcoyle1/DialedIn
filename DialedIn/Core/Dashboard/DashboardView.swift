@@ -117,7 +117,7 @@ struct DashboardView<
             )
         } else {
             ForEach(presenter.feedSessions) { session in
-                workoutCardBuilder(first: true) {
+                workoutCardBuilder(first: session == presenter.feedSessions.first) {
                     if let author = presenter.author(for: session) {
                         let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
                         workoutSessionRow(rowDelegate)
