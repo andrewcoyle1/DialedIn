@@ -57,6 +57,15 @@ struct CalendarHeaderView: View {
                 presenter.refreshToday()
             }
         }
+        .onChange(of: presenter.selectedDate) { _, newValue in
+            // A day picked in the expanded calendar is usually in a week the strip is not
+            // showing, so follow the selection.
+            let week = presenter.weekStart(for: newValue)
+            guard week != weekScrollPosition else { return }
+            withAnimation {
+                weekScrollPosition = week
+            }
+        }
         .onChange(of: isCalendarExpanded) { _, isExpanded in
             guard isExpanded else { return }
             presenter.showLargeCalendar("calendar-header", in: namespace) {
@@ -136,6 +145,7 @@ private struct PreviewCalendarHeaderRouter: CalendarHeaderRouter {
     func showCalendarViewZoom(
         delegate: CalendarDelegate,
         onDismiss: (() -> Void)?,
+        onDidDismiss: (() -> Void)?,
         transitionId: String?,
         namespace: Namespace.ID
     ) { }
@@ -204,23 +214,23 @@ private func previewDelegate() -> CalendarHeaderDelegate {
     }
 }
 
-///// The full dependency graph, for checking the real routing into the expanded calendar.
-///// Slow to start — that is `DevPreview`, not this view.
-//#Preview("Full DI") {
-//    let container = DevPreview.shared.container()
-//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-//
-//    return RouterView { router in
-//        List {
-//            Text("Hello")
-//        }
-//        .safeAreaInset(edge: .top) {
-//            builder.calendarHeaderView(
-//                router: router,
-//                delegate: previewDelegate(),
-//                isCalendarExpanded: .constant(false)
-//            )
-//                .background(.bar)
-//        }
-//    }
-//}
+/// The full dependency graph, for checking the real routing into the expanded calendar.
+/// Slow to start — that is `DevPreview`, not this view.
+#Preview("Full DI") {
+    let container = DevPreview.shared.container()
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+
+    return RouterView { router in
+        List {
+            Text("Hello")
+        }
+        .safeAreaInset(edge: .top) {
+            builder.calendarHeaderView(
+                router: router,
+                delegate: previewDelegate(),
+                isCalendarExpanded: .constant(false)
+            )
+                .background(.bar)
+        }
+    }
+}

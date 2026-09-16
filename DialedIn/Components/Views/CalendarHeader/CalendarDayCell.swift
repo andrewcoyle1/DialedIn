@@ -32,6 +32,8 @@ struct CalendarDayCell: View {
             Text(day.formatted(.dateTime.day()))
                 .font(.subheadline)
                 .foregroundStyle(dayNumberStyle)
+
+            todayDot
         }
         .monospaced()
         .fontWeight(isSelected || isToday ? .semibold : .regular)
@@ -48,6 +50,19 @@ struct CalendarDayCell: View {
         }
         .contentShape(.rect)
         .animation(.easeInOut(duration: 0.15), value: isSelected)
+    }
+
+    /// Always in the layout, only visible for today — an `if` here would make today's cell
+    /// taller than its neighbours and knock the row out of alignment.
+    private var todayDot: some View {
+        Circle()
+            .fill(isToday ? todayDotStyle : AnyShapeStyle(.clear))
+            .frame(width: 4, height: 4)
+    }
+
+    /// Inverted on the selected cell, which is filled with the tint the dot would otherwise use.
+    private var todayDotStyle: AnyShapeStyle {
+        isSelected ? AnyShapeStyle(colorScheme.backgroundPrimary) : AnyShapeStyle(.tint)
     }
 
     private var dayNumberStyle: AnyShapeStyle {
@@ -68,7 +83,10 @@ struct CalendarDayCell: View {
                 if isSelected {
                     Capsule()
                         .stroke(colorScheme.backgroundSecondary, lineWidth: 2)
-                } else if isToday || activityCount > 0 {
+                } else if activityCount > 0 {
+                    // Today is marked by the dot under the number, not by this stroke — the two
+                    // looked identical, so there was no telling which cells had a workout to
+                    // open and which would do nothing when tapped.
                     Capsule()
                         .stroke(.tint, lineWidth: 2)
                 } else {
@@ -95,16 +113,19 @@ struct CalendarDayCell: View {
     let today = Date()
 
     return VStack(spacing: 24) {
+        // today · today+selected · one workout · several workouts · plain
         HStack(spacing: 0) {
             CalendarDayCell(day: today, activityCount: 0, isToday: true, isSelected: false, showsWeekday: true)
-            CalendarDayCell(day: today, activityCount: 0, isToday: false, isSelected: true, showsWeekday: true)
+            CalendarDayCell(day: today, activityCount: 0, isToday: true, isSelected: true, showsWeekday: true)
+            CalendarDayCell(day: today, activityCount: 1, isToday: false, isSelected: false, showsWeekday: true)
             CalendarDayCell(day: today, activityCount: 3, isToday: false, isSelected: false, showsWeekday: true)
             CalendarDayCell(day: today, activityCount: 0, isToday: false, isSelected: false, showsWeekday: true)
         }
 
         HStack(spacing: 0) {
             CalendarDayCell(day: today, activityCount: 0, isToday: true, isSelected: false)
-            CalendarDayCell(day: today, activityCount: 0, isToday: false, isSelected: true)
+            CalendarDayCell(day: today, activityCount: 0, isToday: true, isSelected: true)
+            CalendarDayCell(day: today, activityCount: 1, isToday: false, isSelected: false)
             CalendarDayCell(day: today, activityCount: 12, isToday: false, isSelected: false)
             CalendarDayCell(day: today, activityCount: 0, isToday: false, isSelected: false)
         }

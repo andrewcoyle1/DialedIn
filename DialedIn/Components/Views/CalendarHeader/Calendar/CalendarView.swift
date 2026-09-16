@@ -182,10 +182,20 @@ extension CoreRouter {
         }
     }
 
-    func showCalendarViewZoom(delegate: CalendarDelegate, onDismiss: (() -> Void)? = nil, transitionId: String?, namespace: Namespace.ID) {
+    /// `onDidDismiss` runs after the router has finished tearing the sheet down, which is the
+    /// only safe point to present another screen in response to the selection — anything
+    /// presented before that is swept away by the router's clean-up pass.
+    func showCalendarViewZoom(
+        delegate: CalendarDelegate,
+        onDismiss: (() -> Void)? = nil,
+        onDidDismiss: (() -> Void)? = nil,
+        transitionId: String?,
+        namespace: Namespace.ID
+    ) {
         router.showScreenWithZoomTransition(
             .sheetConfig(config: ResizableSheetConfig(detents: [.height(Self.calendarSheetHeight), .large], dragIndicator: .visible)),
             onDismiss: onDismiss,
+            onDidDismiss: onDidDismiss,
             transitionID: transitionId,
             namespace: namespace) { router in
                 builder.calendarView(router: router, delegate: delegate)

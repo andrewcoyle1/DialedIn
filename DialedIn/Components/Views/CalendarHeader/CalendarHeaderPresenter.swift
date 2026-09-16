@@ -15,7 +15,10 @@ class CalendarHeaderPresenter {
     /// Refreshed on `NSCalendarDayChanged`; as a value captured at init, a session left open
     /// past midnight kept highlighting yesterday.
     private(set) var today: Date = Calendar.current.startOfDay(for: .now)
-    private var pendingSelectedDateFromLargeCalendar: Date?
+
+    /// Held between the day being picked in the expanded calendar and that sheet finishing its
+    /// dismissal, when the host screen's action can safely run.
+    private var dateAwaitingHostAction: Date?
 
     private let startDate: Date
     private let endDate: Date
@@ -48,7 +51,12 @@ class CalendarHeaderPresenter {
 
     /// The week containing today, for the view's initial scroll position.
     var currentWeekStart: Date {
-        calendar.dateInterval(of: .weekOfYear, for: .now)?.start ?? today
+        weekStart(for: .now)
+    }
+
+    /// The page the strip has to scroll to in order to show `date`.
+    func weekStart(for date: Date) -> Date {
+        calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? calendar.startOfDay(for: date)
     }
 
     func refreshToday() {
@@ -101,17 +109,23 @@ class CalendarHeaderPresenter {
         router.showCalendarViewZoom(
             delegate: CalendarDelegate(
                 selectedDate: selectedDate,
-                onDateSelected: { date, _ in
+                // The strip follows the selection right away, behind the dismissing sheet. The
+                // host action waits for `onDidDismiss` below: Training's opens a session detail
+                // screen through its own router, and the router sweeps away anything presented
+                // before its dismissal clean-up has run.
+                onDateSelected: { [weak self] date, _ in
+                    guard let self else { return }
+                    self.interactor.trackEvent(event: Event.datePickedFromCalendar)
                     self.selectedDate = date
-                    self.pendingSelectedDateFromLargeCalendar = date
+                    self.dateAwaitingHostAction = date
                 },
                 activityCountsByDay: delegate.activityCountsByDay
             ),
-            onDismiss: { [weak self] in
-                onDismiss()
-                guard let self, let selectedDate = self.pendingSelectedDateFromLargeCalendar else { return }
-                self.pendingSelectedDateFromLargeCalendar = nil
-                self.onDatePressed(selectedDate)
+            onDismiss: onDismiss,
+            onDidDismiss: { [weak self] in
+                guard let self, let date = self.dateAwaitingHostAction else { return }
+                self.dateAwaitingHostAction = nil
+                self.delegate.onDatePressed(date)
             },
             transitionId: transitionId,
             namespace: namespace
