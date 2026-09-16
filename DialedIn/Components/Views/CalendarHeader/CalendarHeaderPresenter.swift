@@ -10,7 +10,9 @@ class CalendarHeaderPresenter {
 
     let calendar = Calendar.current
 
-    var selectedDate: Date = Date()
+    /// The day the strip is centred on, and the month the expanded calendar opens at. Whether
+    /// it is *shown* as selected is the host's call — see `CalendarHeaderDelegate.showsSelection`.
+    var focusedDate: Date = Date()
 
     /// Refreshed on `NSCalendarDayChanged`; as a value captured at init, a session left open
     /// past midnight kept highlighting yesterday.
@@ -93,8 +95,12 @@ class CalendarHeaderPresenter {
         return result
     }
 
+    func isSelected(_ day: Date) -> Bool {
+        delegate.showsSelection && calendar.isDate(day, inSameDayAs: focusedDate)
+    }
+
     func onDatePressed(_ date: Date) {
-        selectedDate = date
+        focusedDate = date
         delegate.onDatePressed(date)
     }
 
@@ -108,7 +114,8 @@ class CalendarHeaderPresenter {
         interactor.trackEvent(event: Event.openLargeCalendar)
         router.showCalendarViewZoom(
             delegate: CalendarDelegate(
-                selectedDate: selectedDate,
+                selectedDate: focusedDate,
+                showsSelection: delegate.showsSelection,
                 // The strip follows the selection right away, behind the dismissing sheet. The
                 // host action waits for `onDidDismiss` below: Training's opens a session detail
                 // screen through its own router, and the router sweeps away anything presented
@@ -116,10 +123,10 @@ class CalendarHeaderPresenter {
                 onDateSelected: { [weak self] date, _ in
                     guard let self else { return }
                     self.interactor.trackEvent(event: Event.datePickedFromCalendar)
-                    self.selectedDate = date
+                    self.focusedDate = date
                     self.dateAwaitingHostAction = date
                 },
-                activityCountsByDay: delegate.activityCountsByDay
+                markersByDay: delegate.markersByDay
             ),
             onDismiss: onDismiss,
             onDidDismiss: { [weak self] in
@@ -134,8 +141,8 @@ class CalendarHeaderPresenter {
 
     /// One map for the whole header rather than a lookup per cell. Each `getForDate` call used
     /// to filter every session or meal, so a single body pass ran seven full scans.
-    func activityCountsByDay() -> [Date: Int] {
-        delegate.activityCountsByDay()
+    func markersByDay() -> [Date: CalendarDayMarker] {
+        delegate.markersByDay()
     }
 
     enum Event: LoggableEvent {

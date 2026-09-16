@@ -32,12 +32,12 @@ class CalendarPresenter {
 
     private(set) var months: [Month] = []
     private(set) var selectedDate: Date
+    private let showsSelection: Bool
     private(set) var today: Date = Calendar.current.startOfDay(for: .now)
     private let selectedHour: Date
 
-    /// Same counts the week strip shows, so a day marked as having activity there is marked
-    /// here too.
-    private(set) var activityCounts: [Date: Int] = [:]
+    /// The same markers the week strip shows, so a day flagged there is flagged here too.
+    private(set) var markers: [Date: CalendarDayMarker] = [:]
 
     init(
         interactor: CalendarInteractor,
@@ -48,8 +48,9 @@ class CalendarPresenter {
         self.router = router
         self.delegate = delegate
         self.selectedDate = Calendar.current.startOfDay(for: delegate.selectedDate)
+        self.showsSelection = delegate.showsSelection
         self.selectedHour = delegate.selectedDate
-        self.activityCounts = delegate.activityCountsByDay()
+        self.markers = delegate.markersByDay()
 
         self.months = buildMonths()
     }
@@ -74,15 +75,15 @@ class CalendarPresenter {
     }
 
     func isSelected(_ day: Date) -> Bool {
-        calendar.isDate(day, inSameDayAs: selectedDate)
+        showsSelection && calendar.isDate(day, inSameDayAs: selectedDate)
     }
 
     func isToday(_ day: Date) -> Bool {
         calendar.isDate(day, inSameDayAs: today)
     }
 
-    func activityCount(for day: Date) -> Int {
-        activityCounts[calendar.startOfDay(for: day)] ?? 0
+    func marker(for day: Date) -> CalendarDayMarker? {
+        markers[calendar.startOfDay(for: day)]
     }
 
     private func monthStart(for date: Date) -> Date {

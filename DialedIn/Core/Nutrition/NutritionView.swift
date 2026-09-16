@@ -58,8 +58,8 @@ struct NutritionView<
                     onDatePressed: { date in
                         presenter.selectedDate = date.startOfDay
                     },
-                    activityCountsByDay: {
-                        presenter.mealCountsByDay()
+                    markersByDay: {
+                        presenter.calorieMarkersByDay()
                     }
                 ),
                 $isCalendarExpanded

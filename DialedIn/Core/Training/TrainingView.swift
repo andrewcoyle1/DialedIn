@@ -52,8 +52,11 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
                     onDatePressed: { date in
                         presenter.onDatePressed(date: date)
                     },
-                    activityCountsByDay: {
-                        presenter.loggedWorkoutCountsByDay()
+                    // Tapping a day opens that day's session; the screen has no "selected day"
+                    // state for a highlight to reflect.
+                    showsSelection: false,
+                    markersByDay: {
+                        presenter.loggedWorkoutMarkersByDay()
                     }
                 ),
                 $isCalendarExpanded

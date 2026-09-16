@@ -10,9 +10,13 @@ import SwiftUI
 struct CalendarDelegate {
     /// The day the header is currently on, so the sheet opens there rather than on today.
     var selectedDate: Date = .now
+
+    /// Whether `selectedDate` is drawn as selected. Off for hosts that do not track a selection,
+    /// where the sheet is only a date picker.
+    var showsSelection: Bool = true
     var onDateSelected: (Date, Date) -> Void
-    /// Same map the week strip uses, so both mark the same days as having activity.
-    var activityCountsByDay: () -> [Date: Int] = { [:] }
+    /// Same map the week strip uses, so both mark days the same way.
+    var markersByDay: () -> [Date: CalendarDayMarker] = { [:] }
 }
 
 struct CalendarView: View {
@@ -115,7 +119,7 @@ struct CalendarView: View {
     private func dayCell(_ day: Date) -> some View {
         CalendarDayCell(
             day: day,
-            activityCount: presenter.activityCount(for: day),
+            marker: presenter.marker(for: day),
             isToday: presenter.isToday(day),
             isSelected: presenter.isSelected(day)
         )
@@ -221,12 +225,12 @@ private func previewCalendarDelegate() -> CalendarDelegate {
         onDateSelected: { date, _ in
             print("Date selected: \(date.formatted(date: .abbreviated, time: .omitted))")
         },
-        activityCountsByDay: {
+        markersByDay: {
             let calendar = Calendar.current
             let today = calendar.startOfDay(for: .now)
-            return (-40...5).reduce(into: [Date: Int]()) { counts, offset in
+            return (-40...5).reduce(into: [Date: CalendarDayMarker]()) { markers, offset in
                 guard offset % 3 != 0, let day = calendar.date(byAdding: .day, value: offset, to: today) else { return }
-                counts[day] = offset % 7 == 0 ? 3 : 1
+                markers[day] = .goalProgress(value: Double(1200 + (offset * 97) % 1400), goal: 2200, grace: 100)
             }
         }
     )

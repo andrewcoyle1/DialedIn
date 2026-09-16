@@ -3,8 +3,14 @@ import SwiftUI
 struct CalendarHeaderDelegate {
     var onDatePressed: (Date) -> Void
 
-    /// Activity counts keyed by `startOfDay`, supplied in one call for the whole header.
-    var activityCountsByDay: () -> [Date: Int]
+    /// Whether a day is drawn as selected. Off for hosts that do not track a selected day —
+    /// Training opens the tapped day's session rather than putting the screen into a state, so a
+    /// filled cell there implies a selection the screen does not have.
+    var showsSelection: Bool = true
+
+    /// What each day is marked with, keyed by `startOfDay` and supplied in one call for the
+    /// whole header — a session count in Training, calories against the day's goal in Nutrition.
+    var markersByDay: () -> [Date: CalendarDayMarker]
 }
 
 struct CalendarHeaderView: View {
@@ -25,12 +31,12 @@ struct CalendarHeaderView: View {
 
     var body: some View {
         // Built once per body pass and looked up per cell.
-        let activityCounts = presenter.activityCountsByDay()
+        let markers = presenter.markersByDay()
 
         return ScrollView(.horizontal) {
             LazyHStack(spacing: 0) {
                 ForEach(presenter.weeks) { week in
-                    weekBlock(week, activityCounts: activityCounts)
+                    weekBlock(week, markers: markers)
                 }
             }
             // Belongs on the layout inside the scroll view, not on the ScrollView,
@@ -57,7 +63,7 @@ struct CalendarHeaderView: View {
                 presenter.refreshToday()
             }
         }
-        .onChange(of: presenter.selectedDate) { _, newValue in
+        .onChange(of: presenter.focusedDate) { _, newValue in
             // A day picked in the expanded calendar is usually in a week the strip is not
             // showing, so follow the selection.
             let week = presenter.weekStart(for: newValue)
@@ -80,10 +86,10 @@ struct CalendarHeaderView: View {
     /// `containerRelativeFrame` — padding applied outside it adds to the page width, pushing
     /// each week 32pt wider than the screen and spilling the last cell off the right edge.
     @ViewBuilder
-    private func weekBlock(_ week: CalendarHeaderPresenter.Week, activityCounts: [Date: Int]) -> some View {
+    private func weekBlock(_ week: CalendarHeaderPresenter.Week, markers: [Date: CalendarDayMarker]) -> some View {
         HStack {
             ForEach(week.days, id: \.self) { (day: Date) in
-                dayCell(day, activityCount: activityCounts[day] ?? 0)
+                dayCell(day, marker: markers[day])
             }
         }
         .padding(.horizontal)
@@ -91,12 +97,12 @@ struct CalendarHeaderView: View {
     }
 
     @ViewBuilder
-    private func dayCell(_ day: Date, activityCount: Int) -> some View {
+    private func dayCell(_ day: Date, marker: CalendarDayMarker?) -> some View {
         CalendarDayCell(
             day: day,
-            activityCount: activityCount,
+            marker: marker,
             isToday: presenter.calendar.isDate(day, inSameDayAs: presenter.today),
-            isSelected: presenter.calendar.isDate(day, inSameDayAs: presenter.selectedDate),
+            isSelected: presenter.isSelected(day),
             showsWeekday: true
         )
         // A plain tap rather than a zero-distance DragGesture: the scroll view cancels this
@@ -157,12 +163,12 @@ private func previewDelegate() -> CalendarHeaderDelegate {
         onDatePressed: { date in
             print(date.formatted(date: .abbreviated, time: .omitted))
         },
-        activityCountsByDay: {
+        markersByDay: {
             let calendar = Calendar.current
             let today = calendar.startOfDay(for: .now)
-            return (-3...3).reduce(into: [Date: Int]()) { counts, offset in
+            return (-3...3).reduce(into: [Date: CalendarDayMarker]()) { markers, offset in
                 guard let day = calendar.date(byAdding: .day, value: offset, to: today) else { return }
-                counts[day] = abs(offset)
+                markers[day] = .count(abs(offset))
             }
         }
     )

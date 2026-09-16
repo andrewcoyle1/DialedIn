@@ -32,9 +32,6 @@ class TrainingPresenter {
     let router: TrainingRouter
     
     let calendar = Calendar.current
-    var selectedDate: Date = Date().startOfDay
-    var selectedTime: Date = Date()
-    var today: Date = Date().startOfDay
     
     var currentUser: UserModel? {
         interactor.currentUser
@@ -97,13 +94,14 @@ class TrainingPresenter {
     
     /// Logged sessions grouped by day in one pass. The calendar header used to ask for a count
     /// per visible day, and each answer filtered every session with `isDate(_:inSameDayAs:)`.
-    func loggedWorkoutCountsByDay() -> [Date: Int] {
+    func loggedWorkoutMarkersByDay() -> [Date: CalendarDayMarker] {
         let now = Date()
-        return workoutSessions.reduce(into: [Date: Int]()) { counts, session in
+        let counts = workoutSessions.reduce(into: [Date: Int]()) { counts, session in
             guard session.endedAt != nil else { return }
             if session.isRestDay && session.dateCreated > now { return }
             counts[calendar.startOfDay(for: session.dateCreated), default: 0] += 1
         }
+        return counts.mapValues { .count($0) }
     }
         
     func onStartEmptyWorkoutPressed() {
@@ -143,7 +141,6 @@ class TrainingPresenter {
     }
     
     func onDatePressed(date: Date) {
-        self.selectedDate = date.startOfDay
         let sessions = sessionsForDate(date)
         switch sessions.count {
         case 0:

@@ -33,8 +33,13 @@ class NutritionPresenter {
     }
 
     var dailyTarget: DailyMacroTarget? {
+        dailyTarget(for: selectedDate)
+    }
+
+    /// The plan stores one target per weekday, Monday first.
+    private func dailyTarget(for date: Date) -> DailyMacroTarget? {
         guard let plan = interactor.currentDietPlan else { return nil }
-        let weekday = Calendar.current.component(.weekday, from: selectedDate)
+        let weekday = Calendar.current.component(.weekday, from: date)
         let dayIndex = (weekday + 5) % 7
         guard dayIndex < plan.days.count else { return nil }
         return plan.days[dayIndex]
@@ -212,12 +217,29 @@ class NutritionPresenter {
         router.showNutritionOverviewView(delegate: NutritionOverviewDelegate(dayKey: dayKey))
     }
 
-    /// Meals grouped by day in one pass. Per-day lookups went through `Date.dayKey`, which
-    /// builds a `DateFormatter` on every call, once per visible calendar cell.
-    func mealCountsByDay() -> [Date: Int] {
+    /// Going over the day's calorie goal by a little is not worth flagging, so the ring only
+    /// reads as over once this allowance on top of the goal is used up too.
+    static let calorieGrace: Double = 100
+
+    /// Calories logged per day against that day's goal, in one pass. Per-day lookups went
+    /// through `Date.dayKey`, which builds a `DateFormatter` on every call, once per visible
+    /// calendar cell.
+    ///
+    /// A day with no goal in the plan falls back to a plain "something was logged" mark, since
+    /// a ring with nothing to fill toward would read as 0%.
+    func calorieMarkersByDay() -> [Date: CalendarDayMarker] {
         let calendar = Calendar.current
-        return interactor.userMeals.reduce(into: [Date: Int]()) { counts, meal in
-            counts[calendar.startOfDay(for: meal.date), default: 0] += 1
+        let caloriesByDay = interactor.userMeals.reduce(into: [Date: Double]()) { calories, meal in
+            calories[calendar.startOfDay(for: meal.date), default: 0] += meal.totalCalories
+        }
+
+        return caloriesByDay.reduce(into: [Date: CalendarDayMarker]()) { markers, entry in
+            let (day, calories) = entry
+            guard let goal = dailyTarget(for: day)?.calories, goal > 0 else {
+                markers[day] = .count(1)
+                return
+            }
+            markers[day] = .goalProgress(value: calories, goal: goal, grace: Self.calorieGrace)
         }
     }
 }

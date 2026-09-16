@@ -15,7 +15,9 @@ struct CalendarDayCell: View {
     @Environment(\.colorScheme) private var colorScheme
 
     let day: Date
-    let activityCount: Int
+
+    /// What the host screen recorded for this day: nil when nothing was logged.
+    let marker: CalendarDayMarker?
     let isToday: Bool
     let isSelected: Bool
 
@@ -44,8 +46,8 @@ struct CalendarDayCell: View {
                 .padding(.horizontal, 4)
         }
         .overlay(alignment: .topTrailing) {
-            if activityCount > 1 {
-                badge
+            if let badgeCount = marker?.badgeCount {
+                badge(badgeCount)
             }
         }
         .contentShape(.rect)
@@ -75,29 +77,69 @@ struct CalendarDayCell: View {
         }
     }
 
+    /// The capsule behind the day, and its stroke.
+    ///
+    /// A `count` marker fills the whole stroke — the day either has something on it or it does
+    /// not. A `goalProgress` marker draws the stroke as a ring: an empty track with the achieved
+    /// fraction on top, turning red once the goal plus its grace allowance is passed. Today is
+    /// marked by the dot under the number, never by this stroke, so a marked day always means
+    /// there is something on that day.
     @ViewBuilder
     private var outline: some View {
-        Capsule()
-            .fill(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(colorScheme.backgroundPrimary))
-            .overlay {
-                if isSelected {
-                    Capsule()
-                        .stroke(colorScheme.backgroundSecondary, lineWidth: 2)
-                } else if activityCount > 0 {
-                    // Today is marked by the dot under the number, not by this stroke — the two
-                    // looked identical, so there was no telling which cells had a workout to
-                    // open and which would do nothing when tapped.
-                    Capsule()
-                        .stroke(.tint, lineWidth: 2)
-                } else {
-                    Capsule()
-                        .stroke(.secondary.opacity(0.5), lineWidth: 2)
-                }
+        ZStack {
+            Capsule()
+                .fill(colorScheme.backgroundPrimary)
+
+            // The selection sits *inside* the ring rather than under it, with a hairline of the
+            // cell surface between them. Filling the whole capsule put the ring on the boundary
+            // between two surfaces, which is what made it depend on the selection to stay legible.
+            if isSelected {
+                Capsule()
+                    .fill(.tint)
+                    .padding(Self.ringWidth + 1.5)
             }
+
+            // `inset(by:)` half the line width keeps the whole stroke inside the capsule.
+            // Stroking the boundary splits the line either side of the edge.
+            Capsule()
+                .inset(by: Self.ringWidth / 2)
+                .stroke(trackStyle, lineWidth: Self.ringWidth)
+
+            if let marker, !marker.isEmpty {
+                Capsule()
+                    .inset(by: Self.ringWidth / 2)
+                    .trim(from: 0, to: marker.fraction)
+                    .stroke(progressStyle(for: marker), style: StrokeStyle(lineWidth: Self.ringWidth, lineCap: .round))
+            }
+        }
     }
 
-    private var badge: some View {
-        Text(activityCount > 9 ? "9+" : "\(activityCount)")
+    private static let ringWidth: CGFloat = 2
+
+    /// The unfilled remainder, and the whole stroke on a day with nothing logged. One colour in
+    /// every state now that the ring never overlaps the selection.
+    private var trackStyle: AnyShapeStyle {
+        AnyShapeStyle(.secondary.opacity(0.3))
+    }
+
+    /// The ring carries the status, in three steps: neutral while the day is still in progress,
+    /// green once the goal is met, red once the grace allowance on top of it is used up too.
+    ///
+    /// Neutral rather than green from the start matters — a half-filled green ring would read as
+    /// approval of a day that is only half eaten. `count` markers stay neutral throughout; a
+    /// logged session is a fact, not a verdict.
+    private func progressStyle(for marker: CalendarDayMarker) -> AnyShapeStyle {
+        if marker.isOverGoal {
+            return AnyShapeStyle(.red)
+        }
+        if marker.isGoalMet {
+            return AnyShapeStyle(.green)
+        }
+        return AnyShapeStyle(.tint)
+    }
+
+    private func badge(_ count: Int) -> some View {
+        Text(count > 9 ? "9+" : "\(count)")
             .font(.caption2.weight(.semibold))
             .foregroundStyle(colorScheme.backgroundSecondary)
             .padding(4)
@@ -113,21 +155,31 @@ struct CalendarDayCell: View {
     let today = Date()
 
     return VStack(spacing: 24) {
-        // today · today+selected · one workout · several workouts · plain
+        // Training: today · today+selected · one session · several · nothing
         HStack(spacing: 0) {
-            CalendarDayCell(day: today, activityCount: 0, isToday: true, isSelected: false, showsWeekday: true)
-            CalendarDayCell(day: today, activityCount: 0, isToday: true, isSelected: true, showsWeekday: true)
-            CalendarDayCell(day: today, activityCount: 1, isToday: false, isSelected: false, showsWeekday: true)
-            CalendarDayCell(day: today, activityCount: 3, isToday: false, isSelected: false, showsWeekday: true)
-            CalendarDayCell(day: today, activityCount: 0, isToday: false, isSelected: false, showsWeekday: true)
+            CalendarDayCell(day: today, marker: nil, isToday: true, isSelected: false, showsWeekday: true)
+            CalendarDayCell(day: today, marker: .count(1), isToday: true, isSelected: true, showsWeekday: true)
+            CalendarDayCell(day: today, marker: .count(1), isToday: false, isSelected: false, showsWeekday: true)
+            CalendarDayCell(day: today, marker: .count(3), isToday: false, isSelected: false, showsWeekday: true)
+            CalendarDayCell(day: today, marker: nil, isToday: false, isSelected: false, showsWeekday: true)
         }
 
+        // Nutrition: quarter · half · on target · within the 100kcal grace · over it
         HStack(spacing: 0) {
-            CalendarDayCell(day: today, activityCount: 0, isToday: true, isSelected: false)
-            CalendarDayCell(day: today, activityCount: 0, isToday: true, isSelected: true)
-            CalendarDayCell(day: today, activityCount: 1, isToday: false, isSelected: false)
-            CalendarDayCell(day: today, activityCount: 12, isToday: false, isSelected: false)
-            CalendarDayCell(day: today, activityCount: 0, isToday: false, isSelected: false)
+            CalendarDayCell(day: today, marker: .goalProgress(value: 550, goal: 2200, grace: 100), isToday: false, isSelected: false, showsWeekday: true)
+            CalendarDayCell(day: today, marker: .goalProgress(value: 1100, goal: 2200, grace: 100), isToday: true, isSelected: false, showsWeekday: true)
+            CalendarDayCell(day: today, marker: .goalProgress(value: 2200, goal: 2200, grace: 100), isToday: false, isSelected: false, showsWeekday: true)
+            CalendarDayCell(day: today, marker: .goalProgress(value: 2290, goal: 2200, grace: 100), isToday: false, isSelected: false, showsWeekday: true)
+            CalendarDayCell(day: today, marker: .goalProgress(value: 2650, goal: 2200, grace: 100), isToday: false, isSelected: false, showsWeekday: true)
+        }
+
+        // The same five, selected, where the capsule is already tint-filled
+        HStack(spacing: 0) {
+            CalendarDayCell(day: today, marker: .goalProgress(value: 550, goal: 2200, grace: 100), isToday: false, isSelected: true)
+            CalendarDayCell(day: today, marker: .goalProgress(value: 1100, goal: 2200, grace: 100), isToday: false, isSelected: true)
+            CalendarDayCell(day: today, marker: .goalProgress(value: 2200, goal: 2200, grace: 100), isToday: false, isSelected: true)
+            CalendarDayCell(day: today, marker: .goalProgress(value: 2290, goal: 2200, grace: 100), isToday: false, isSelected: true)
+            CalendarDayCell(day: today, marker: .goalProgress(value: 2650, goal: 2200, grace: 100), isToday: false, isSelected: true)
         }
     }
     .padding()
