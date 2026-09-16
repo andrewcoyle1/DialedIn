@@ -97,42 +97,72 @@ extension WorkoutTemplateModel {
     }
     
     static var mock: WorkoutTemplateModel {
-        mocks[0]
+        mocks.first ?? WorkoutTemplateModel(
+            id: "workout-empty",
+            authorId: "mock_user_123",
+            name: "Full Body",
+            description: nil,
+            imageURL: nil,
+            dateCreated: .now,
+            dateModified: .now,
+            exercises: []
+        )
     }
     
+    /// The seeded system workout templates. Built from the same `PrebuiltWorkouts.json` the app
+    /// seeds at login and resolved against the seeded exercises, so a mock workout holds real
+    /// exercises — with their artwork — rather than hand-written ones with no image.
     static var mocks: [WorkoutTemplateModel] {
-        [
-            
-        WorkoutTemplateModel(
-            id: "workout1",
-            authorId: "user1",
-            name: "Full Body Strength",
-            description: "A balanced full body workout for all levels.",
-            imageURL: Constants.randomImage,
-            dateCreated: Date(timeIntervalSinceNow: -86400 * 7),
-            dateModified: Date(timeIntervalSinceNow: -86400 * 2),
-            exercises: WorkoutTemplateExercise.mocks
-        ),
-        WorkoutTemplateModel(
-            id: "workout2",
-            authorId: "user2",
-            name: "Push Day",
-            description: "Chest, shoulders, and triceps focus.",
-            imageURL: nil,
-            dateCreated: Date(timeIntervalSinceNow: -86400 * 14),
-            dateModified: Date(),
-            exercises: WorkoutTemplateExercise.mocks
-        ),
-        WorkoutTemplateModel(
-            id: "workout3",
-            authorId: "user3",
-            name: "Leg Day",
-            description: "Lower body hypertrophy.",
-            imageURL: Constants.randomImage,
-            dateCreated: Date(timeIntervalSinceNow: -86400 * 3),
-            dateModified: Date(timeIntervalSinceNow: -86400),
-            exercises: WorkoutTemplateExercise.mocks
-        )
+        PrebuiltSeedData.workoutTemplates
+    }
+
+    /// Workouts the mock user built themselves, for the "my workouts" side of the library.
+    /// Their exercises still come from the seeded library, which is what a real custom workout
+    /// would contain.
+    static var userMocks: [WorkoutTemplateModel] {
+        let seeded = PrebuiltSeedData.exercises
+        guard !seeded.isEmpty else { return [] }
+
+        func exercises(_ ids: [String]) -> [WorkoutTemplateExercise] {
+            ids.compactMap { id in
+                guard let exercise = PrebuiltSeedData.exercise(id: id) else { return nil }
+                return WorkoutTemplateExercise(exercise: exercise, setRestTimers: false)
+            }
+        }
+
+        return [
+            WorkoutTemplateModel(
+                id: "user-workout-upper",
+                authorId: "mock_user_123",
+                name: "My Upper Body",
+                description: "Chest and back, alternating.",
+                imageURL: nil,
+                dateCreated: Date(timeIntervalSinceNow: -86400 * 14),
+                dateModified: Date(timeIntervalSinceNow: -86400 * 2),
+                exercises: exercises([
+                    "system-barbell-bench-press",
+                    "system-cable-neutral-grip-lat-pulldown",
+                    "system-dumbbell-seated-shoulder-press",
+                    "system-single-arm-row",
+                    "system-cable-bicep-curl-straight-bar"
+                ])
+            ),
+            WorkoutTemplateModel(
+                id: "user-workout-legs",
+                authorId: "mock_user_123",
+                name: "My Leg Day",
+                description: "Squat focused, with posterior chain accessories.",
+                imageURL: nil,
+                dateCreated: Date(timeIntervalSinceNow: -86400 * 7),
+                dateModified: Date(timeIntervalSinceNow: -86400),
+                exercises: exercises([
+                    "system-barbell-squat",
+                    "system-barbell-romanian-deadlift",
+                    "system-lying-leg-curl",
+                    "system-seated-leg-extension",
+                    "system-calf-press-leg-press"
+                ])
+            )
         ]
     }
 }

@@ -109,21 +109,75 @@ struct WorkoutExerciseModel: Identifiable, DataSyncModelProtocol, Equatable {
     }
 
     static var mock: WorkoutExerciseModel {
-        mocks[0]
+        mocks.first ?? userMocks[0]
     }
 
+    /// Session exercises built from the seeded library, the same way `WorkoutSessionModel`
+    /// builds them from a template: the seeded exercise's id as `templateId`, its real name,
+    /// the tracking mode derived from its metrics, and the image resolved through `Constants`.
+    /// Hand-written names like "Bench Press" matched nothing in the image map, so every mock
+    /// session exercise rendered without artwork.
     static var mocks: [WorkoutExerciseModel] {
-        [
-            WorkoutExerciseModel(id: "1", authorId: "1", templateId: "1", name: "Bench Press", trackingMode: .weightReps, index: 1, notes: "Notes", sets: [WorkoutSetModel.mocks[0]]),
-            WorkoutExerciseModel(id: "2", authorId: "1", templateId: "2", name: "Squat", trackingMode: .weightReps, index: 2, notes: "Notes", sets: [WorkoutSetModel.mocks[1]]),
-            WorkoutExerciseModel(id: "3", authorId: "1", templateId: "3", name: "Deadlift", trackingMode: .weightReps, index: 3, notes: "Notes", sets: [WorkoutSetModel.mocks[2]]),
-            WorkoutExerciseModel(id: "4", authorId: "1", templateId: "4", name: "Pull-Up", trackingMode: .weightReps, index: 4, notes: "Notes", sets: [WorkoutSetModel.mocks[3]]),
-            WorkoutExerciseModel(id: "5", authorId: "1", templateId: "5", name: "Push-Up", trackingMode: .weightReps, index: 5, notes: "Notes", sets: [WorkoutSetModel.mocks[4]]),
-            WorkoutExerciseModel(id: "6", authorId: "1", templateId: "6", name: "Dumbbell Curl", trackingMode: .weightReps, index: 6, notes: "Notes", sets: [WorkoutSetModel.mocks[5]]),
-            WorkoutExerciseModel(id: "7", authorId: "1", templateId: "7", name: "Tricep Rope Pushdown", trackingMode: .weightReps, index: 7, notes: "Notes", sets: [WorkoutSetModel.mocks[6]]),
-            WorkoutExerciseModel(id: "8", authorId: "1", templateId: "8", name: "Leg Press", trackingMode: .weightReps, index: 8, notes: "Notes", sets: [WorkoutSetModel.mocks[7]]),
-            WorkoutExerciseModel(id: "9", authorId: "1", templateId: "9", name: "Plank", trackingMode: .weightReps, index: 9, notes: "Notes", sets: [WorkoutSetModel.mocks[8]]),
-            WorkoutExerciseModel(id: "10", authorId: "1", templateId: "10", name: "Treadmill Run", trackingMode: .distanceTime, index: 10, notes: "Notes", sets: [WorkoutSetModel.mocks[9]])
-        ]
+        ExerciseModel.mocks.prefix(10).enumerated().map { index, exercise in
+            mock(exercise: exercise, index: index)
+        }
+    }
+
+    /// The same, for the mock user's own exercises — these cover the duration-tracked and
+    /// reps-only modes the seeded library does not.
+    static var userMocks: [WorkoutExerciseModel] {
+        ExerciseModel.userMocks.enumerated().map { index, exercise in
+            mock(exercise: exercise, index: index)
+        }
+    }
+
+    static func mock(exercise: ExerciseModel, index: Int) -> WorkoutExerciseModel {
+        let trackingMode = WorkoutSessionModel.trackingMode(for: exercise)
+        return WorkoutExerciseModel(
+            id: "workout-exercise-\(exercise.id)",
+            authorId: "mock_user_123",
+            templateId: exercise.id,
+            name: exercise.name,
+            trackingMode: trackingMode,
+            index: index + 1,
+            notes: nil,
+            imageName: Constants.exerciseImageName(for: exercise.name),
+            sets: mockSets(exerciseId: exercise.id, trackingMode: trackingMode, index: index),
+            setTargets: [],
+            equipmentVariations: exercise.equipmentVariations
+        )
+    }
+
+    /// Three completed working sets, filled in for whichever metrics the exercise tracks —
+    /// a duration-tracked exercise carrying a weight and no time reads as broken data.
+    private static func mockSets(exerciseId: String, trackingMode: TrackingMode, index: Int) -> [WorkoutSetModel] {
+        let baseWeight: Double = 40 + Double(index % 5) * 12.5
+        let tracksReps = trackingMode == .weightReps || trackingMode == .repsOnly
+        let tracksWeight = trackingMode == .weightReps
+        let tracksDuration = trackingMode == .timeOnly || trackingMode == .distanceTime
+        let tracksDistance = trackingMode == .distanceTime
+
+        return (0..<3).map { setIndex -> WorkoutSetModel in
+            let reps: Int? = tracksReps ? 10 - setIndex : nil
+            let weightKg: Double? = tracksWeight ? baseWeight + Double(setIndex) * 2.5 : nil
+            let durationSec: Int? = tracksDuration ? 45 + setIndex * 15 : nil
+            let distanceMeters: Double? = tracksDistance ? Double(setIndex + 1) * 400 : nil
+            let completedAt = Date().addingTimeInterval(Double(setIndex - 3) * 300)
+            let dateCreated = Date().addingTimeInterval(Double(setIndex - 4) * 300)
+
+            return WorkoutSetModel(
+                id: "\(exerciseId)-set-\(setIndex + 1)",
+                authorId: "mock_user_123",
+                index: setIndex + 1,
+                reps: reps,
+                weightKg: weightKg,
+                durationSec: durationSec,
+                distanceMeters: distanceMeters,
+                rpe: 7 + Double(setIndex) * 0.5,
+                isWarmup: false,
+                completedAt: completedAt,
+                dateCreated: dateCreated
+            )
+        }
     }
 }

@@ -128,11 +128,13 @@ class WorkoutTemplateManager {
 
 // MARK: - Supporting Types
 
-private struct PrebuiltWorkoutsContainer: Codable {
+// Not private — `PrebuiltSeedData` decodes the same file to build mock data from the seeded
+// workout templates.
+struct PrebuiltWorkoutsContainer: Codable {
     let workouts: [PrebuiltWorkoutDTO]
 }
 
-private struct PrebuiltWorkoutDTO: Codable {
+struct PrebuiltWorkoutDTO: Codable {
     let workoutId: String
     let name: String
     let description: String?

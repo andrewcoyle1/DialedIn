@@ -120,7 +120,7 @@ struct Dependencies {
             purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
             abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
             let userExerciseSyncEngine = CollectionSyncEngine<ExerciseModel>(
-                remote: MockRemoteCollectionService(collection: ExerciseModel.mocks),
+                remote: MockRemoteCollectionService(collection: ExerciseModel.userMocks),
                 managerKey: Keys.userExerciseManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -150,7 +150,7 @@ struct Dependencies {
             )
             foodLogSettingsManager = FoodLogSettingsManager(foodLogSettingsSyncEngine: foodLogSettingsSyncEngine)
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
-                remote: MockRemoteCollectionService(collection: WorkoutTemplateModel.mocks),
+                remote: MockRemoteCollectionService(collection: WorkoutTemplateModel.userMocks),
                 managerKey: Keys.workoutTemplateManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager

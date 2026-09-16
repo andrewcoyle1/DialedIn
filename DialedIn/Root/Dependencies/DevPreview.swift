@@ -100,13 +100,13 @@ class DevPreview {
         let userSyncEngine = DocumentSyncEngine<UserModel>(
             remote: MockRemoteDocumentService(document: .mockExisting),
             managerKey: Keys.userManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
             remote: MockRemoteCollectionService(collection: UserModel.mocks),
             managerKey: Keys.followingUsersManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         let userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
@@ -116,9 +116,9 @@ class DevPreview {
         self.abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
         self.purchaseManager = PurchaseManager(service: MockPurchaseService())
         let userExerciseSyncEngine = CollectionSyncEngine<ExerciseModel>(
-            remote: MockRemoteCollectionService(collection: ExerciseModel.mocks),
+            remote: MockRemoteCollectionService(collection: ExerciseModel.userMocks),
             managerKey: Keys.userExerciseManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         let systemExercisePersistence = MockLocalCollectionPersistence(collection: ExerciseModel.mocks)
@@ -127,28 +127,28 @@ class DevPreview {
         let workoutSettingsSyncEngine = DocumentSyncEngine<WorkoutSettings>(
             remote: MockRemoteDocumentService(document: WorkoutSettings.mock),
             managerKey: Keys.workoutSettingsManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         self.workoutSettingsManager = WorkoutSettingsManager(workoutSettingsSyncEngine: workoutSettingsSyncEngine)
         let exerciseSettingsSyncEngine = CollectionSyncEngine<ExerciseSettingsModel>(
             remote: MockRemoteCollectionService(collection: ExerciseSettingsModel.mocks),
             managerKey: Keys.exerciseSettingsManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         self.exerciseSettingsManager = ExerciseSettingsManager(syncEngine: exerciseSettingsSyncEngine)
         let foodLogSettingsSyncEngine = DocumentSyncEngine<FoodLogSettings>(
             remote: MockRemoteDocumentService(document: FoodLogSettings.mock),
             managerKey: Keys.foodLogSettingsManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         self.foodLogSettingsManager = FoodLogSettingsManager(foodLogSettingsSyncEngine: foodLogSettingsSyncEngine)
         let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
-            remote: MockRemoteCollectionService(collection: WorkoutTemplateModel.mocks),
+            remote: MockRemoteCollectionService(collection: WorkoutTemplateModel.userMocks),
             managerKey: Keys.workoutTemplateManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         let systemWorkoutTemplatePersistence = MockLocalCollectionPersistence<WorkoutTemplateModel>(collection: WorkoutTemplateModel.mocks)
@@ -157,13 +157,13 @@ class DevPreview {
         let userWorkoutSessionSyncEngine = CollectionSyncEngine<WorkoutSessionModel>(
             remote: MockRemoteCollectionService(collection: WorkoutSessionModel.mocks),
             managerKey: Keys.userWorkoutSessionManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         let followingWorkoutSessionSyncEngine = CollectionGroupSyncEngine<WorkoutSessionModel>(
             remote: MockRemoteCollectionGroupService(collection: WorkoutSessionModel.mocks),
             managerKey: Keys.followingWorkoutSessionsManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         workoutSessionManager = WorkoutSessionManager(
@@ -175,14 +175,14 @@ class DevPreview {
         let trainingProgramSyncEngine = CollectionSyncEngine<TrainingProgram>(
             remote: MockRemoteCollectionService(collection: TrainingProgram.mocks),
             managerKey: Keys.trainingProgramManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         self.trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, logManager: logManager)
         let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
             remote: MockRemoteCollectionService(collection: GymProfileModel.mocks),
             managerKey: Keys.gymProfileManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         gymProfileManager = GymProfileManager(gymProfileSyncEngine: gymProfileSyncEngine)
@@ -190,21 +190,21 @@ class DevPreview {
         let foodSyncEngine = CollectionSyncEngine<FoodModel>(
             remote: MockRemoteCollectionService(collection: FoodModel.mocks),
             managerKey: Keys.foodManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         self.foodManager = FoodManager(foodSyncEngine: foodSyncEngine)
         let userRecipeTemplateSyncEngine = CollectionSyncEngine<RecipeTemplateModel>(
             remote: MockRemoteCollectionService(collection: RecipeTemplateModel.mocks),
             managerKey: Keys.recipeTemplateManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         self.recipeTemplateManager = RecipeTemplateManager(userRecipeTemplateSyncEngine: userRecipeTemplateSyncEngine)
         let dietPlanSyncEngine = DocumentSyncEngine<DietPlan>(
             remote: MockRemoteDocumentService(document: DietPlan.mock),
             managerKey: Keys.dietPlanManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         nutritionManager = NutritionManager(dietPlanSyncEngine: dietPlanSyncEngine)
@@ -212,7 +212,7 @@ class DevPreview {
         let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
             remote: MockRemoteCollectionService(collection: MealLogModel.previewWeekMealsByDay.values.flatMap { $0 }),
             managerKey: Keys.mealLogManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         self.mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
@@ -224,7 +224,7 @@ class DevPreview {
         let bodyMeasurementsSyncEngine = CollectionSyncEngine<BodyMeasurementEntry>(
             remote: MockRemoteCollectionService(collection: BodyMeasurementEntry.mocks),
             managerKey: Keys.bodyMeasurementsManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         bodyMeasurementsManager = BodyMeasurementsManager(
@@ -234,14 +234,14 @@ class DevPreview {
         let stepsSyncEngine = CollectionSyncEngine<StepsModel>(
             remote: MockRemoteCollectionService(collection: StepsModel.mocks),
             managerKey: Keys.stepsManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         stepsManager = StepsManager(stepsSyncEngine: stepsSyncEngine, healthKitService: MockHealthKitStepsService())
         let userGoalSyncEngine = DocumentSyncEngine<WeightGoal>(
             remote: MockRemoteDocumentService(document: WeightGoal.mock()),
             managerKey: Keys.userGoalManagerKey,
-            enableLocalPersistence: true,
+            enableLocalPersistence: false,
             logger: logManager
         )
         self.goalManager = GoalManager(userGoalSyncEngine: userGoalSyncEngine)
