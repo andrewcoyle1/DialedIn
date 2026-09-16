@@ -11,23 +11,27 @@ class CalendarHeaderPresenter {
     let calendar = Calendar.current
 
     var selectedDate: Date = Date()
-    var selectedTime: Date = Date()
-    
-    var today: Date = Date()
-    var weekScrollPosition: Date?
-    var hasScrolledToToday = false
+
+    /// Refreshed on `NSCalendarDayChanged`; as a value captured at init, a session left open
+    /// past midnight kept highlighting yesterday.
+    private(set) var today: Date = Calendar.current.startOfDay(for: .now)
     private var pendingSelectedDateFromLargeCalendar: Date?
 
-    // Date range for infinite scrolling
-    private var startDate: Date
-    private var endDate: Date
+    private let startDate: Date
+    private let endDate: Date
     private let daysPerLoad: Int = 100
 
-    /// Cached because the view reads these while scrolling. As computed properties they
-    /// rebuilt ~200 Dates (and 29 week arrays) on every body pass, which showed up as
-    /// stutter in the header.
-    private(set) var days: [Date] = []
-    private(set) var weeks: [[Date]] = []
+    /// One page of the header. Identified by its start date so the `ForEach` identity and
+    /// `scrollPosition(id:)` are the same `Date` — previously the rows were identified by the
+    /// whole `[Date]` array and carried a second, separate `.id()` for the scroll target.
+    struct Week: Identifiable, Hashable {
+        let id: Date
+        let days: [Date]
+    }
+
+    /// Cached because the view reads this while scrolling. As a computed property it rebuilt
+    /// 29 weeks on every body pass, which showed up as stutter in the header.
+    private(set) var weeks: [Week] = []
 
     init(interactor: CalendarHeaderInteractor, router: CalendarHeaderRouter, delegate: CalendarHeaderDelegate) {
         self.interactor = interactor
@@ -39,37 +43,19 @@ class CalendarHeaderPresenter {
         self.startDate = calendar.date(byAdding: .day, value: -daysPerLoad, to: today) ?? today
         self.endDate = calendar.date(byAdding: .day, value: daysPerLoad, to: today) ?? today
         
-        let now = Date()
-        let weekStart = Calendar.current.dateInterval(of: .weekOfYear, for: now)?.start
-            ?? Calendar.current.startOfDay(for: now)
-        self.weekScrollPosition = weekStart
-
-        rebuildDates()
+        self.weeks = computedWeeks
     }
 
-    private func rebuildDates() {
-        days = computedDays
-        weeks = computedWeeks
+    /// The week containing today, for the view's initial scroll position.
+    var currentWeekStart: Date {
+        calendar.dateInterval(of: .weekOfYear, for: .now)?.start ?? today
     }
 
-    private var computedDays: [Date] {
-        var dates: [Date] = []
-        var currentDate = calendar.startOfDay(for: startDate)
-        let normalizedEndDate = calendar.startOfDay(for: endDate)
-        
-        while currentDate <= normalizedEndDate {
-            dates.append(currentDate)
-            if let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) {
-                currentDate = nextDate
-            } else {
-                break
-            }
-        }
-        
-        return dates
+    func refreshToday() {
+        today = calendar.startOfDay(for: .now)
     }
 
-    private var computedWeeks: [[Date]] {
+    private var computedWeeks: [Week] {
         guard
             let firstWeekStart = calendar.dateInterval(of: .weekOfYear, for: startDate)?.start,
             let lastWeekStart = calendar.dateInterval(of: .weekOfYear, for: endDate)?.start
@@ -77,7 +63,7 @@ class CalendarHeaderPresenter {
             return []
         }
 
-        var result: [[Date]] = []
+        var result: [Week] = []
         var weekStart = calendar.startOfDay(for: firstWeekStart)
         let finalWeekStart = calendar.startOfDay(for: lastWeekStart)
 
@@ -88,7 +74,7 @@ class CalendarHeaderPresenter {
                     week.append(calendar.startOfDay(for: day))
                 }
             }
-            result.append(week)
+            result.append(Week(id: weekStart, days: week))
 
             guard let nextWeek = calendar.date(byAdding: .weekOfYear, value: 1, to: weekStart) else {
                 break
@@ -104,16 +90,25 @@ class CalendarHeaderPresenter {
         delegate.onDatePressed(date)
     }
 
-    func showLargeCalendar(_ transitionId: String, in namespace: Namespace.ID) {
+    /// `onDismiss` lets the view clear the binding the parent's toolbar button set, so the
+    /// button works again on the next press.
+    func showLargeCalendar(
+        _ transitionId: String,
+        in namespace: Namespace.ID,
+        onDismiss: @escaping () -> Void = { }
+    ) {
         interactor.trackEvent(event: Event.openLargeCalendar)
         router.showCalendarViewZoom(
             delegate: CalendarDelegate(
+                selectedDate: selectedDate,
                 onDateSelected: { date, _ in
                     self.selectedDate = date
                     self.pendingSelectedDateFromLargeCalendar = date
-                }
+                },
+                activityCountsByDay: delegate.activityCountsByDay
             ),
             onDismiss: { [weak self] in
+                onDismiss()
                 guard let self, let selectedDate = self.pendingSelectedDateFromLargeCalendar else { return }
                 self.pendingSelectedDateFromLargeCalendar = nil
                 self.onDatePressed(selectedDate)
@@ -123,35 +118,10 @@ class CalendarHeaderPresenter {
         )
     }
 
-    func getForDate(_ date: Date) -> Int {
-        delegate.getForDate(date)
-    }
-
-    func loadMoreDatesIfNeeded(visibleStartIndex: Int, visibleEndIndex: Int) {
-        let totalDays = days.count
-        let threshold = 20 // Load more when within 20 days of edge
-        
-        var didExtendRange = false
-
-        // Load more dates before start
-        if visibleStartIndex < threshold {
-            if let newStartDate = calendar.date(byAdding: .day, value: -daysPerLoad, to: startDate) {
-                startDate = calendar.startOfDay(for: newStartDate)
-                didExtendRange = true
-            }
-        }
-        
-        // Load more dates after end
-        if visibleEndIndex > totalDays - threshold {
-            if let newEndDate = calendar.date(byAdding: .day, value: daysPerLoad, to: endDate) {
-                endDate = calendar.startOfDay(for: newEndDate)
-                didExtendRange = true
-            }
-        }
-
-        if didExtendRange {
-            rebuildDates()
-        }
+    /// One map for the whole header rather than a lookup per cell. Each `getForDate` call used
+    /// to filter every session or meal, so a single body pass ran seven full scans.
+    func activityCountsByDay() -> [Date: Int] {
+        delegate.activityCountsByDay()
     }
 
     enum Event: LoggableEvent {

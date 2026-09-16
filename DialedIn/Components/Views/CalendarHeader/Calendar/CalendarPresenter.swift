@@ -15,13 +15,29 @@ class CalendarPresenter {
     private let router: CalendarRouter
     private let delegate: CalendarDelegate
 
-    private(set) var currentMonth: Date = Date.now
-    private(set) var selectedDate: Date = Date.now
-    private(set) var selectedHour: Date = Date.now
-    private(set) var days: [Date] = []
+    /// One month of the vertical scroll. `days` is padded with `nil` for the weekdays before
+    /// the 1st, so the grid lines up without borrowing days from the neighbouring month.
+    struct Month: Identifiable, Hashable {
+        let id: Date
+        let title: String
+        let days: [Date?]
+    }
 
+    private static let monthsBack = 18
+    private static let monthsForward = 6
+
+    let calendar = Calendar.current
     let daysOfWeek = Date.capitalizedFirstLettersOfWeekdays
-    let columns = Array(repeating: GridItem(.flexible()), count: 7)
+    let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
+
+    private(set) var months: [Month] = []
+    private(set) var selectedDate: Date
+    private(set) var today: Date = Calendar.current.startOfDay(for: .now)
+    private let selectedHour: Date
+
+    /// Same counts the week strip shows, so a day marked as having activity there is marked
+    /// here too.
+    private(set) var activityCounts: [Date: Int] = [:]
 
     init(
         interactor: CalendarInteractor,
@@ -31,32 +47,25 @@ class CalendarPresenter {
         self.interactor = interactor
         self.router = router
         self.delegate = delegate
+        self.selectedDate = Calendar.current.startOfDay(for: delegate.selectedDate)
+        self.selectedHour = delegate.selectedDate
+        self.activityCounts = delegate.activityCountsByDay()
 
-        updateDays()
+        self.months = buildMonths()
     }
 
-    func onBackMonthPressed() {
-        currentMonth = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth)!
-        updateDays()
+    /// The month the sheet opens on.
+    var initialMonth: Date {
+        monthStart(for: selectedDate)
     }
 
-    func onForwardMonthPressed() {
-        currentMonth = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth)!
-        updateDays()
-    }
-
-    func onTodayPressed() {
-        currentMonth = Date.now
-        updateDays()
+    var currentMonth: Date {
+        monthStart(for: today)
     }
 
     func onDateSelected(day: Date) {
-        guard isSelectable(day) else { return }
-
         selectedDate = day
-
         router.dismissScreen()
-
         delegate.onDateSelected(day, selectedHour)
     }
 
@@ -64,39 +73,47 @@ class CalendarPresenter {
         router.dismissScreen()
     }
 
-    private func updateDays() {
-        days = currentMonth.calendarDisplayDays
-    }
-
-    var isViewingCurrentMonth: Bool {
-        Calendar.current.isDate(currentMonth, equalTo: Date.now, toGranularity: .month)
-    }
-
-    /// Only the leading/trailing filler days of the adjacent months are unselectable.
-    /// Past dates used to be disabled too, which made the sheet unusable for its one
-    /// purpose — the header it opens from navigates Training and Nutrition to a past day.
-    func isSelectable(_ day: Date) -> Bool {
-        day.monthInt == currentMonth.monthInt
-    }
-
     func isSelected(_ day: Date) -> Bool {
-        isSelectable(day) && day.formattedDate == selectedDate.formattedDate
+        calendar.isDate(day, inSameDayAs: selectedDate)
     }
 
     func isToday(_ day: Date) -> Bool {
-        isSelectable(day) && Calendar.current.isDateInToday(day)
+        calendar.isDate(day, inSameDayAs: today)
     }
 
-    func foregroundStyle(for day: Date) -> Color {
-        if !isSelectable(day) {
-            return .secondary.opacity(0.5)
-        } else if isSelected(day) {
-            return .white
-        } else if isToday(day) {
-            return .accentColor
-        } else {
-            return .primary
+    func activityCount(for day: Date) -> Int {
+        activityCounts[calendar.startOfDay(for: day)] ?? 0
+    }
+
+    private func monthStart(for date: Date) -> Date {
+        calendar.dateInterval(of: .month, for: date)?.start ?? calendar.startOfDay(for: date)
+    }
+
+    private func buildMonths() -> [Month] {
+        let anchor = monthStart(for: today)
+        return (-Self.monthsBack...Self.monthsForward).compactMap { offset in
+            guard let start = calendar.date(byAdding: .month, value: offset, to: anchor) else { return nil }
+            return month(startingAt: start)
         }
     }
 
+    private func month(startingAt start: Date) -> Month? {
+        guard let range = calendar.range(of: .day, in: .month, for: start) else { return nil }
+
+        // Weekdays are 1-based from the calendar's own first day, so the offset is how many
+        // blank cells sit before the 1st.
+        let weekday = calendar.component(.weekday, from: start)
+        let leadingBlanks = (weekday - calendar.firstWeekday + 7) % 7
+
+        var days: [Date?] = Array(repeating: nil, count: leadingBlanks)
+        for dayOffset in 0..<range.count {
+            days.append(calendar.date(byAdding: .day, value: dayOffset, to: start))
+        }
+
+        return Month(
+            id: start,
+            title: start.formatted(.dateTime.year().month(.wide)),
+            days: days
+        )
+    }
 }

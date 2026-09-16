@@ -25,10 +25,12 @@ struct NutritionView<
     let delegate: NutritionDelegate
     let profileTransitionId: String = "profile_button_transition"
     
-    @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
+    @ViewBuilder var calendarHeader: (CalendarHeaderDelegate, Binding<Bool>) -> CalendarHeaderView
     @ViewBuilder var mealHourHeader: (MealHourHeaderDelegate) -> MealHeader
     @Namespace private var namespace
-        
+
+    @State private var isCalendarExpanded = false
+
     var body: some View {
         List {
             ringsSection
@@ -56,12 +58,11 @@ struct NutritionView<
                     onDatePressed: { date in
                         presenter.selectedDate = date.startOfDay
                     },
-                    getForDate: { date in
-                        presenter.getMealCountForDate(
-                            date: date
-                        )
+                    activityCountsByDay: {
+                        presenter.mealCountsByDay()
                     }
-                )
+                ),
+                $isCalendarExpanded
             )
         }
     }
@@ -164,6 +165,14 @@ struct NutritionView<
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
+                isCalendarExpanded = true
+            } label: {
+                Image(systemName: "calendar")
+            }
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
                 presenter.onTimelineActionsPressed()
             } label: {
                 Image(systemName: "line.3.horizontal")
@@ -198,8 +207,12 @@ extension CoreBuilder {
                 router: CoreRouter(router: router, builder: self)
             ),
             delegate: delegate,
-            calendarHeader: { delegate in
-                self.calendarHeaderView(router: router, delegate: delegate)
+            calendarHeader: { delegate, isCalendarExpanded in
+                self.calendarHeaderView(
+                    router: router,
+                    delegate: delegate,
+                    isCalendarExpanded: isCalendarExpanded
+                )
             },
             mealHourHeader: { delegate in
                 self.mealHourHeader(router: router, delegate: delegate)

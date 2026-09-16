@@ -212,8 +212,13 @@ class NutritionPresenter {
         router.showNutritionOverviewView(delegate: NutritionOverviewDelegate(dayKey: dayKey))
     }
 
-    func getMealCountForDate(date: Date) -> Int {
-        (try? interactor.getMeals(for: date.dayKey).count) ?? 0
+    /// Meals grouped by day in one pass. Per-day lookups went through `Date.dayKey`, which
+    /// builds a `DateFormatter` on every call, once per visible calendar cell.
+    func mealCountsByDay() -> [Date: Int] {
+        let calendar = Calendar.current
+        return interactor.userMeals.reduce(into: [Date: Int]()) { counts, meal in
+            counts[calendar.startOfDay(for: meal.date), default: 0] += 1
+        }
     }
 }
 

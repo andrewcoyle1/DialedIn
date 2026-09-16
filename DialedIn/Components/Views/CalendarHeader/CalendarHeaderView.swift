@@ -2,7 +2,9 @@ import SwiftUI
 
 struct CalendarHeaderDelegate {
     var onDatePressed: (Date) -> Void
-    var getForDate: (Date) -> Int
+
+    /// Activity counts keyed by `startOfDay`, supplied in one call for the whole header.
+    var activityCountsByDay: () -> [Date: Int]
 }
 
 struct CalendarHeaderView: View {
@@ -11,13 +13,24 @@ struct CalendarHeaderView: View {
 
     @State var presenter: CalendarHeaderPresenter
 
+    /// Driven by a toolbar button in the parent screen. The header owns the transition
+    /// namespace, so it is what actually presents; the parent only asks.
+    @Binding var isCalendarExpanded: Bool
+
+    /// View state, not presenter state: bound to the presenter it wrote through `@Observable`
+    /// on every scroll update, invalidating the whole header — all seven cells — mid-swipe.
+    @State private var weekScrollPosition: Date?
+
     @Namespace private var namespace
 
     var body: some View {
-        ScrollView(.horizontal) {
+        // Built once per body pass and looked up per cell.
+        let activityCounts = presenter.activityCountsByDay()
+
+        return ScrollView(.horizontal) {
             LazyHStack(spacing: 0) {
-                ForEach(presenter.weeks, id: \.self) { week in
-                    weekBlock(week)
+                ForEach(presenter.weeks) { week in
+                    weekBlock(week, activityCounts: activityCounts)
                 }
             }
             // Belongs on the layout inside the scroll view, not on the ScrollView,
@@ -26,169 +39,188 @@ struct CalendarHeaderView: View {
         }
         .frame(height: Self.rowHeight)
         .scrollIndicators(.hidden)
-        .scrollPosition(id: $presenter.weekScrollPosition, anchor: .leading)
+        .scrollPosition(id: $weekScrollPosition, anchor: .leading)
         .scrollTargetBehavior(.viewAligned)
-        .padding(.horizontal)
-        .glassEffect()
-        .padding(.bottom, 8)
-        .padding(.horizontal)
+//        .padding(.horizontal)
+//        .glassEffect()
+//        .padding(.bottom, 8)
+//        .padding(.horizontal)
         .matchedTransitionSource(id: "calendar-header", in: namespace)
         .background(.bar)
+        .onAppear {
+            if weekScrollPosition == nil {
+                weekScrollPosition = presenter.currentWeekStart
+            }
+        }
+        .task {
+            for await _ in NotificationCenter.default.notifications(named: .NSCalendarDayChanged) {
+                presenter.refreshToday()
+            }
+        }
+        .onChange(of: isCalendarExpanded) { _, isExpanded in
+            guard isExpanded else { return }
+            presenter.showLargeCalendar("calendar-header", in: namespace) {
+                isCalendarExpanded = false
+            }
+        }
     }
 
     private static let rowHeight: CGFloat = 70
 
-    /// A week fills exactly one page of the scroll view. Sized from the scroll container
-    /// rather than a GeometryReader wrapped around the padding — the reader measured the
-    /// full width before the two horizontal paddings were applied, so each week was ~64pt
-    /// wider than the visible area and the last day was cut off mid-snap.
+    /// A week fills exactly one page of the scroll view, so the side inset has to sit *inside*
+    /// `containerRelativeFrame` — padding applied outside it adds to the page width, pushing
+    /// each week 32pt wider than the screen and spilling the last cell off the right edge.
     @ViewBuilder
-    private func weekBlock(_ week: [Date]) -> some View {
-        HStack(spacing: 0) {
-            ForEach(week, id: \.self) { (day: Date) in
-                dayCell(day)
+    private func weekBlock(_ week: CalendarHeaderPresenter.Week, activityCounts: [Date: Int]) -> some View {
+        HStack {
+            ForEach(week.days, id: \.self) { (day: Date) in
+                dayCell(day, activityCount: activityCounts[day] ?? 0)
             }
         }
+        .padding(.horizontal)
         .containerRelativeFrame(.horizontal)
-        .id(week.first ?? Date.distantPast)
     }
 
     @ViewBuilder
-    private func dayCell(_ day: Date) -> some View {
-        let activityCount = presenter.getForDate(day)
-        let isToday = presenter.calendar.isDate(day, inSameDayAs: presenter.today)
-        let isSelected = presenter.calendar.isDate(day, inSameDayAs: presenter.selectedDate)
-
-        VStack(spacing: 2) {
-            Text(day.formatted(.dateTime.weekday(.narrow)))
-                .font(.caption2)
-                .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
-            Text(day.formatted(.dateTime.day()))
-                .font(.subheadline)
-                .foregroundStyle(dayNumberStyle(isSelected: isSelected, isToday: isToday))
-        }
-        .monospaced()
-        .fontWeight(isSelected || isToday ? .semibold : .regular)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity)
-        .background {
-            cellOutline(activityCount: activityCount, isSelected: isSelected, isToday: isToday)
-                .padding(.horizontal, 4)
-        }
-        .overlay(alignment: .topTrailing) {
-            if activityCount > 1 {
-                cellBadge(activityCount: activityCount)
-            }
-        }
-        .contentShape(.rect)
-        .interactionReader(
-            longPressSensitivity: 500,
-            tapAction: {
-                presenter.onDatePressed(day)
-            },
-            longPressAction: {
-                presenter.showLargeCalendar("calendar-header", in: namespace)
-            },
-            scaleEffect: false
+    private func dayCell(_ day: Date, activityCount: Int) -> some View {
+        CalendarDayCell(
+            day: day,
+            activityCount: activityCount,
+            isToday: presenter.calendar.isDate(day, inSameDayAs: presenter.today),
+            isSelected: presenter.calendar.isDate(day, inSameDayAs: presenter.selectedDate),
+            showsWeekday: true
         )
-        .animation(.easeInOut(duration: 0.15), value: isSelected)
-    }
-
-    private func dayNumberStyle(isSelected: Bool, isToday: Bool) -> AnyShapeStyle {
-        if isSelected {
-            return AnyShapeStyle(.white)
-        } else if isToday {
-            return AnyShapeStyle(Color.accentColor)
-        } else {
-            return AnyShapeStyle(.primary)
+        // A plain tap rather than a zero-distance DragGesture: the scroll view cancels this
+        // cleanly, where the drag gesture left `isPressing` stuck true when the scroll took
+        // over. The expanded calendar is a toolbar button in the parent, not a long press.
+        .onTapGesture {
+            presenter.onDatePressed(day)
         }
+        .accessibilityAddTraits(.isButton)
     }
 
-    @ViewBuilder
-    private func cellOutline(activityCount: Int, isSelected: Bool, isToday: Bool) -> some View {
-        Capsule()
-            .fill(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(colorScheme.backgroundPrimary))
-            .overlay {
-                if isSelected {
-                    EmptyView()
-                } else if isToday || activityCount > 0 {
-                    Capsule()
-                        .stroke(.tint, lineWidth: 2)
-                } else {
-                    Capsule()
-                        .stroke(.secondary.opacity(0.5), lineWidth: 2)
-                }
-            }
-    }
-    
-    @ViewBuilder
-    private func cellBadge(activityCount: Int) -> some View {
-        Text(activityCount > 9 ? "9+" : "\(activityCount)")
-            .font(.caption2.weight(.semibold))
-            .foregroundStyle(colorScheme.backgroundSecondary)
-            .padding(4)
-            .background {
-                Circle()
-                    .fill(.tint)
-            }
-            .offset(x: 6, y: -6)
-    }
 }
 
 extension CoreBuilder {
     
-    func calendarHeaderView(router: AnyRouter, delegate: CalendarHeaderDelegate) -> some View {
+    func calendarHeaderView(
+        router: AnyRouter,
+        delegate: CalendarHeaderDelegate,
+        isCalendarExpanded: Binding<Bool>
+    ) -> some View {
         CalendarHeaderView(
             presenter: CalendarHeaderPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self),
                 delegate: delegate
-            )
+            ),
+            isCalendarExpanded: isCalendarExpanded
         )
     }
     
 }
 
-extension CoreRouter {
-    
-    func showCalendarHeaderView(delegate: CalendarHeaderDelegate) {
-        router.showScreen(.push) { router in
-            builder.calendarHeaderView(router: router, delegate: delegate)
-        }
-    }
-    
+// MARK: - Previews
+
+/// Preview stand-ins for the two protocols this screen depends on, both of which are a single
+/// method. `DevPreview.shared.container()` builds every manager in the app, and eighteen of its
+/// sync engines open a SwiftData store and read it synchronously inside `init` — work the
+/// header does not need, paid before anything renders.
+@MainActor
+private struct PreviewCalendarHeaderInteractor: CalendarHeaderInteractor {
+    func trackEvent(event: LoggableEvent) { }
 }
 
-#Preview {
-    let container = DevPreview.shared.container()
-    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    let delegate = CalendarHeaderDelegate(
+@MainActor
+private struct PreviewCalendarHeaderRouter: CalendarHeaderRouter {
+    func showCalendarViewZoom(
+        delegate: CalendarDelegate,
+        onDismiss: (() -> Void)?,
+        transitionId: String?,
+        namespace: Namespace.ID
+    ) { }
+}
+
+@MainActor
+private func previewDelegate() -> CalendarHeaderDelegate {
+    CalendarHeaderDelegate(
         onDatePressed: { date in
             print(date.formatted(date: .abbreviated, time: .omitted))
         },
-        getForDate: { date in
-            return date.timeIntervalSince1970.exponent
+        activityCountsByDay: {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: .now)
+            return (-3...3).reduce(into: [Date: Int]()) { counts, offset in
+                guard let day = calendar.date(byAdding: .day, value: offset, to: today) else { return }
+                counts[day] = abs(offset)
+            }
         }
     )
-    
-    return RouterView { router in
+}
+
+#Preview("Calendar Header") {
+    @Previewable @State var isCalendarExpanded = false
+
+    CalendarHeaderView(
+        presenter: CalendarHeaderPresenter(
+            interactor: PreviewCalendarHeaderInteractor(),
+            router: PreviewCalendarHeaderRouter(),
+            delegate: previewDelegate()
+        ),
+        isCalendarExpanded: $isCalendarExpanded
+    )
+}
+
+#Preview("In a screen") {
+    @Previewable @State var isCalendarExpanded = false
+
+    NavigationStack {
         List {
             Text("Hello")
         }
         .navigationTitle("Calendar Header Preview")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            // Stands in for the parent screen's button. The preview router does not present
+            // anything, so this only shows the wiring.
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
-
+                    isCalendarExpanded = true
                 } label: {
-                    Image(systemName: "xmark")
+                    Image(systemName: "calendar")
                 }
             }
         }
         .safeAreaInset(edge: .top) {
-            builder.calendarHeaderView(router: router, delegate: delegate)
-                .background(.bar)
+            CalendarHeaderView(
+                presenter: CalendarHeaderPresenter(
+                    interactor: PreviewCalendarHeaderInteractor(),
+                    router: PreviewCalendarHeaderRouter(),
+                    delegate: previewDelegate()
+                ),
+                isCalendarExpanded: $isCalendarExpanded
+            )
         }
     }
 }
+
+///// The full dependency graph, for checking the real routing into the expanded calendar.
+///// Slow to start — that is `DevPreview`, not this view.
+//#Preview("Full DI") {
+//    let container = DevPreview.shared.container()
+//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+//
+//    return RouterView { router in
+//        List {
+//            Text("Hello")
+//        }
+//        .safeAreaInset(edge: .top) {
+//            builder.calendarHeaderView(
+//                router: router,
+//                delegate: previewDelegate(),
+//                isCalendarExpanded: .constant(false)
+//            )
+//                .background(.bar)
+//        }
+//    }
+//}

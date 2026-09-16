@@ -8,27 +8,30 @@
 import SwiftUI
 
 struct CalendarDelegate {
+    /// The day the header is currently on, so the sheet opens there rather than on today.
+    var selectedDate: Date = .now
     var onDateSelected: (Date, Date) -> Void
+    /// Same map the week strip uses, so both mark the same days as having activity.
+    var activityCountsByDay: () -> [Date: Int] = { [:] }
 }
 
 struct CalendarView: View {
 
     @State var presenter: CalendarPresenter
 
-    var body: some View {
-        VStack(spacing: 16) {
+    /// Scrolling is driven through a `ScrollViewProxy` rather than `scrollPosition(id:)`,
+    /// because that binding resolves against the scroll target layout's immediate children and
+    /// a pinned `Section` splits each month into two of them — header and grid — leaving the
+    /// initial position and the Today button without an anchor.
+    @State private var scrollProxy: ScrollViewProxy?
 
-            // Days of the week row
+    var body: some View {
+        VStack(spacing: 0) {
             daysOfWeekHeader
 
-            // Grid of days
-            dayGrid
-
-            Spacer(minLength: 0)
+            monthsScrollView
         }
         .navigationBarTitleDisplayMode(.inline)
-        .padding(.horizontal)
-        .padding(.top, 8)
         .toolbar {
             toolbarContent
         }
@@ -38,61 +41,99 @@ struct CalendarView: View {
         HStack(spacing: 0) {
             ForEach(presenter.daysOfWeek.indices, id: \.self) { index in
                 Text(presenter.daysOfWeek[index])
-                    .font(.footnote.weight(.medium))
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
             }
         }
+        .monospaced()
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+        .background(.bar)
     }
 
-    private var dayGrid: some View {
-        LazyVGrid(columns: presenter.columns, spacing: 6) {
-            ForEach(presenter.days, id: \.self) { day in
-                Button {
-                    presenter.onDateSelected(day: day)
-                } label: {
-                    dayCell(day)
+    private var monthsScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.vertical) {
+                LazyVStack(spacing: 16, pinnedViews: .sectionHeaders) {
+                    ForEach(presenter.months) { month in
+                        Section {
+                            monthGrid(month)
+                        } header: {
+                            // The id sits on the header rather than the `Section`, so
+                            // `scrollTo` has a plain view to find and lands on the month title.
+                            monthHeader(month)
+                                .id(month.id)
+                        }
+                    }
                 }
-                .disabled(!presenter.isSelectable(day))
+            }
+            .scrollIndicators(.hidden)
+            .onAppear {
+                scrollProxy = proxy
+            }
+            .task {
+                // A hop after the first layout pass: scrolling straight from `onAppear` asks
+                // the lazy stack for a month it has not built yet.
+                await Task.yield()
+                // No animation — this is the sheet's opening position, not a movement.
+                proxy.scrollTo(presenter.initialMonth, anchor: .top)
             }
         }
-        .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.15), value: presenter.currentMonth)
     }
 
-    /// The day number sits in a fixed-size circle centred in its column. Previously the
-    /// circle was the cell background at `maxWidth: .infinity`, so it stretched into a
-    /// wide ellipse behind the selected day.
-    @ViewBuilder
-    private func dayCell(_ day: Date) -> some View {
-        let isSelected = presenter.isSelected(day)
-        let isToday = presenter.isToday(day)
+    /// The background hugs the title rather than filling the row, so the grid keeps its own
+    /// background either side of it. The capsule matches the day cells.
+    private func monthHeader(_ month: CalendarPresenter.Month) -> some View {
+        Text(month.title)
+            .font(.headline)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(.bar, in: .capsule)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+            .padding(.vertical, 4)
+    }
 
-        Text(day.formatted(.dateTime.day()))
-            .font(.subheadline.weight(.medium))
-            .monospacedDigit()
-            .foregroundStyle(presenter.foregroundStyle(for: day))
-            .frame(width: 36, height: 36)
-            .background {
-                if isSelected {
-                    Circle().fill(.tint)
-                } else if isToday {
-                    Circle().stroke(.tint, lineWidth: 1.5)
+    private func monthGrid(_ month: CalendarPresenter.Month) -> some View {
+        LazyVGrid(columns: presenter.columns, spacing: 6) {
+            ForEach(Array(month.days.enumerated()), id: \.offset) { _, day in
+                if let day {
+                    dayCell(day)
+                } else {
+                    // Keeps the 1st in its own weekday column.
+                    Color.clear
+                        .frame(height: 1)
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 40)
-            .contentShape(.rect)
+        }
+        .padding(.horizontal)
+    }
+
+    /// The same cell the week strip draws, so the sheet reads as the expanded form of the
+    /// header rather than a second calendar.
+    private func dayCell(_ day: Date) -> some View {
+        CalendarDayCell(
+            day: day,
+            activityCount: presenter.activityCount(for: day),
+            isToday: presenter.isToday(day),
+            isSelected: presenter.isSelected(day)
+        )
+        .onTapGesture {
+            presenter.onDateSelected(day: day)
+        }
+        .accessibilityAddTraits(.isButton)
     }
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 
         ToolbarItem(placement: .title) {
-            Text(presenter.currentMonth.formatted(.dateTime.year().month()))
+            Text("Calendar")
                 .font(.headline)
                 .foregroundStyle(.primary)
-                .contentTransition(.numericText())
         }
+
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onDismissPressed()
@@ -102,29 +143,14 @@ struct CalendarView: View {
             .accessibilityLabel("Close")
         }
 
-        // Grouped so the chevrons read as one control and keep standard toolbar
-        // spacing, instead of two 44pt blocks crowding each other.
-        ToolbarItemGroup(placement: .topBarTrailing) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
-                presenter.onTodayPressed()
+                withAnimation {
+                    scrollProxy?.scrollTo(presenter.currentMonth, anchor: .top)
+                }
             } label: {
                 Text("Today")
             }
-            .disabled(presenter.isViewingCurrentMonth)
-
-            Button {
-                presenter.onBackMonthPressed()
-            } label: {
-                Image(systemName: "chevron.left")
-            }
-            .accessibilityLabel("Previous month")
-
-            Button {
-                presenter.onForwardMonthPressed()
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .accessibilityLabel("Next month")
         }
     }
 
@@ -148,7 +174,7 @@ extension CoreRouter {
 
     /// Tall enough for six week rows, the weekday header and the toolbar. The previous
     /// 0.45 fraction cut the last row off on shorter devices.
-    static let calendarSheetHeight: CGFloat = 460
+    static let calendarSheetHeight: CGFloat = 420
 
     func showCalendarView(delegate: CalendarDelegate) {
         router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.height(Self.calendarSheetHeight)]))) { router in
@@ -167,18 +193,47 @@ extension CoreRouter {
     }
 }
 
+// MARK: - Previews
+
+/// `CalendarInteractor` is empty and `CalendarRouter` only needs an `AnyRouter`, so the sheet
+/// previews without `DevPreview`, whose container opens eighteen SwiftData stores in `init`.
+private struct PreviewCalendarInteractor: CalendarInteractor { }
+
+@MainActor
+private struct PreviewCalendarRouter: CalendarRouter {
+    let router: AnyRouter
+}
+
+@MainActor
+private func previewCalendarDelegate() -> CalendarDelegate {
+    CalendarDelegate(
+        selectedDate: .now,
+        onDateSelected: { date, _ in
+            print("Date selected: \(date.formatted(date: .abbreviated, time: .omitted))")
+        },
+        activityCountsByDay: {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: .now)
+            return (-40...5).reduce(into: [Date: Int]()) { counts, offset in
+                guard offset % 3 != 0, let day = calendar.date(byAdding: .day, value: offset, to: today) else { return }
+                counts[day] = offset % 7 == 0 ? 3 : 1
+            }
+        }
+    )
+}
+
 #Preview {
-    let container = DevPreview.shared.container()
-    let interactor = CoreInteractor(container: container)
-    let builder = CoreBuilder(interactor: interactor)
-    let delegate = CalendarDelegate { date, _ in
-        print("Date selected: \(date)")
-    }
     Color.clear
         .sheet(isPresented: .constant(true)) {
             RouterView { router in
-                builder.calendarView(router: router, delegate: delegate)
+                CalendarView(
+                    presenter: CalendarPresenter(
+                        interactor: PreviewCalendarInteractor(),
+                        router: PreviewCalendarRouter(router: router),
+                        delegate: previewCalendarDelegate()
+                    )
+                )
             }
-            .presentationDetents([.height(CoreRouter.calendarSheetHeight)])
+            .presentationDetents([.height(CoreRouter.calendarSheetHeight), .large])
         }
 }

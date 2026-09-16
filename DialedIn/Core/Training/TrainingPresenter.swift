@@ -95,8 +95,15 @@ class TrainingPresenter {
         router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
     
-    func getLoggedWorkoutCountForDate(_ date: Date, calendar: Calendar) -> Int {
-        sessionsForDate(date).count
+    /// Logged sessions grouped by day in one pass. The calendar header used to ask for a count
+    /// per visible day, and each answer filtered every session with `isDate(_:inSameDayAs:)`.
+    func loggedWorkoutCountsByDay() -> [Date: Int] {
+        let now = Date()
+        return workoutSessions.reduce(into: [Date: Int]()) { counts, session in
+            guard session.endedAt != nil else { return }
+            if session.isRestDay && session.dateCreated > now { return }
+            counts[calendar.startOfDay(for: session.dateCreated), default: 0] += 1
+        }
     }
         
     func onStartEmptyWorkoutPressed() {
