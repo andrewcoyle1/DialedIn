@@ -46,7 +46,7 @@ struct NutritionLibraryPickerView<
             case .aiScanner:
                 foodPhotoScanner(FoodPhotoScannerDelegate(onPick: delegate.onPick))
             case .quickAdd:
-                foodQuickAdd(FoodItemQuickAddDelegate())
+                foodQuickAdd(FoodItemQuickAddDelegate(onPick: delegate.onPick))
             case .library:
                 foodLibrary(
                     FoodLibraryDelegate(

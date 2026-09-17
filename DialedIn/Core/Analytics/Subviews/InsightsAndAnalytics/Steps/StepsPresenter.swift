@@ -98,6 +98,9 @@ extension StepsPresenter: @MainActor MetricDetailPresenter {
         await loadData()
     }
 
-    func onAddPressed() { }
+    func onAddPressed() {
+        // No-op: steps come from HealthKit, so there is nothing to add by hand.
+        // `configuration.showsAddButton` is false, which keeps this unreachable.
+    }
 
 }

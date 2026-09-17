@@ -45,6 +45,12 @@ struct NutrientMap: Codable, Equatable, Hashable, Sendable, ExpressibleByDiction
     func mapValues(_ transform: (Double) throws -> Double) rethrows -> NutrientMap {
         NutrientMap(try storage.mapValues(transform))
     }
+
+    /// Nutrients are stored per 100g/100ml, so logging an amount means scaling every value by the
+    /// same factor. Callers pass `amount / 100`, not the amount itself.
+    func scaled(by factor: Double) -> NutrientMap {
+        mapValues { $0 * factor }
+    }
 }
 
 extension NutrientMap: Sequence {

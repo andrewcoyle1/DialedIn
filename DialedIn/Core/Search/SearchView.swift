@@ -20,6 +20,7 @@ struct SearchView: View {
         List {
             if !presenter.hasSearchQuery {
                 quickActionsGridSection
+                recentSearchesSection
             } else {
                 if presenter.isLoading {
                     loadingSection
@@ -96,6 +97,32 @@ struct SearchView: View {
         }
     }
     
+    @ViewBuilder
+    private var recentSearchesSection: some View {
+        if !presenter.recentQueries.isEmpty {
+            Section {
+                ForEach(presenter.recentQueries, id: \.self) { query in
+                    Label(query, systemImage: "clock.arrow.circlepath")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .tappableBackground()
+                        .anyButton(.highlight) {
+                            presenter.onRecentSearchTapped(query: query)
+                        }
+                }
+                .foregroundStyle(.primary)
+            } header: {
+                HStack {
+                    Text("Recent")
+                    Spacer()
+                    Button("Clear") {
+                        presenter.onClearRecentSearchesPressed()
+                    }
+                    .font(.caption)
+                }
+            }
+        }
+    }
+
     private var loadingSection: some View {
         Section {
             HStack {

@@ -77,7 +77,10 @@ final class FoodLoggingConsistencyPresenter: @MainActor MetricDetailPresenter {
         )
     }
 
-    func onAddPressed() {}
+    func onAddPressed() {
+        // No-op: consistency is derived from the meals already logged, not entered directly.
+        // `configuration.showsAddButton` is false, which keeps this unreachable.
+    }
 
     func onDismissPressed() {
         router.dismissScreen()

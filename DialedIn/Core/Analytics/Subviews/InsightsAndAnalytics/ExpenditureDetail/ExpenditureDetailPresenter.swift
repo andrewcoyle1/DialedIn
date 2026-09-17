@@ -54,7 +54,7 @@ class ExpenditureDetailPresenter {
 
         cachedEntries = entries.reversed()
         cachedTimeSeries = [
-            TimeSeriesData.TimeSeries(name: "ExpenditureDetail", data: data)
+            TimeSeriesData.TimeSeries(name: "Expenditure", data: data)
         ]
     }
 }
@@ -72,12 +72,12 @@ extension ExpenditureDetailPresenter: @MainActor MetricDetailPresenter {
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
-            title: "ExpenditureDetail",
+            title: "Expenditure",
             analyticsName: "ExpenditureDetailView",
             yAxisSuffix: "",
-            seriesNames: ["ExpenditureDetail"],
+            seriesNames: ["Expenditure"],
             showsAddButton: false,
-            sectionHeader: "Daily ExpenditureDetail",
+            sectionHeader: "Daily Expenditure",
             emptyStateMessage: "No expenditure data",
             pageSize: 20,
             chartType: .line
