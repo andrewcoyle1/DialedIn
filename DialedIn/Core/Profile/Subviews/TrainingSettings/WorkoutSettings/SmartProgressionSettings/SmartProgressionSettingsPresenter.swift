@@ -7,13 +7,36 @@ class SmartProgressionSettingsPresenter {
     private let interactor: SmartProgressionSettingsInteractor
     private let router: SmartProgressionSettingsRouter
     
-    var applyInSession: Bool = false
-    
+    private var settings: WorkoutSettings
+
     init(interactor: SmartProgressionSettingsInteractor, router: SmartProgressionSettingsRouter) {
         self.interactor = interactor
         self.router = router
+        self.settings = interactor.workoutSettings
     }
-    
+
+    let initialLogFillOptions = InitialLogFillOption.allCases
+    let adjustmentModes = ProgressionAdjustmentMode.allCases
+
+    var applyInSession: Bool {
+        get { settings.smartProgressionApplyInSession }
+        set { settings.smartProgressionApplyInSession = newValue; save() }
+    }
+
+    var initialLogFill: InitialLogFillOption {
+        get { settings.smartProgressionInitialLogFill }
+        set { settings.smartProgressionInitialLogFill = newValue; save() }
+    }
+
+    var adjustmentMode: ProgressionAdjustmentMode {
+        get { settings.smartProgressionAdjustmentMode }
+        set { settings.smartProgressionAdjustmentMode = newValue; save() }
+    }
+
+    private func save() {
+        Task { try? await interactor.saveWorkoutSettings(settings) }
+    }
+
     func onViewAppear(delegate: SmartProgressionSettingsDelegate) {
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
     }

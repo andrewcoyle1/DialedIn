@@ -138,6 +138,22 @@ class UserManager {
         )
     }
     
+    /// Unit preferences on their own. The height and weight updates above each write a measurement
+    /// alongside its unit, which the settings screen has no business changing.
+    func updateUnitPreferences(
+        length: LengthUnitPreference,
+        weight: WeightUnitPreference,
+        distance: DistanceUnitPreference
+    ) async throws {
+        try await userSyncEngine.updateDocument(
+            data: [
+                UserModel.CodingKeys.submittedLengthUnitPreference.rawValue: length.rawValue,
+                UserModel.CodingKeys.submittedWeightUnitPreference.rawValue: weight.rawValue,
+                UserModel.CodingKeys.submittedDistanceUnitPreference.rawValue: distance.rawValue
+            ]
+        )
+    }
+
     func updateUserExerciseFrequency(exerciseFrequency: ExerciseFrequency) async throws {
         try await userSyncEngine.updateDocument(data: [
             UserModel.CodingKeys.submittedExerciseFrequency.rawValue: exerciseFrequency.rawValue
@@ -405,6 +421,14 @@ extension CoreInteractor {
     
     func updateWeight(userId: String, weight: Double, weightUnitPreference: WeightUnitPreference) async throws {
         try await userManager.updateUserWeight(weightInKilograms: weight, weightUnitPreference: weightUnitPreference)
+    }
+
+    func updateUnitPreferences(
+        length: LengthUnitPreference,
+        weight: WeightUnitPreference,
+        distance: DistanceUnitPreference
+    ) async throws {
+        try await userManager.updateUnitPreferences(length: length, weight: weight, distance: distance)
     }
     
     func saveUserCompleteAccountSetup(input: [String: any DMCodableSendable]) async throws {

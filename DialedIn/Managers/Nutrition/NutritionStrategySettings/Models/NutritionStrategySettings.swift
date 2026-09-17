@@ -1,0 +1,162 @@
+//
+//  NutritionStrategySettings.swift
+//  DialedIn
+//
+
+import Foundation
+
+/// Backs both the Strategy and Expenditure settings screens. They were previously mockups whose
+/// controls discarded every change.
+///
+/// The expenditure fields record what the user has chosen; only `bmrEquation` changes any number
+/// today. A genuinely adaptive expenditure engine — one that moves `calculationMode` beyond a
+/// label by reading intake and weight trend — is separate, still-unwritten work, so the
+/// expenditure chart shows one flat figure until then.
+struct NutritionStrategySettings: DataSyncModelProtocol {
+
+    var id: String = "nutrition_strategy_settings"
+    var authorId: String
+
+    // MARK: - Strategy
+    var checkInWeekday: Int = 2
+    var fastCheckIn: Bool = false
+    var partialLoggingEnabled: Bool = true
+    var weighInEnabled: Bool = true
+    var fastingEnabled: Bool = true
+    var loggingBreakEnabled: Bool = true
+
+    // MARK: - Expenditure
+    var estimationMethod: ExpenditureEstimationMethod = .standard
+    var calculationStartDate: Date?
+    var bmrEquation: BMREquation = .mifflinStJeor
+    var calculationMode: ExpenditureCalculationMode = .dynamic
+    var algorithmVersion: ExpenditureAlgorithmVersion = .version1
+
+    // MARK: - Expenditure Modifiers
+    var stepInformedUpdates: Bool = false
+    var predictiveGoalAdjustments: Bool = true
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case authorId = "author_id"
+        case checkInWeekday = "check_in_weekday"
+        case fastCheckIn = "fast_check_in"
+        case partialLoggingEnabled = "partial_logging_enabled"
+        case weighInEnabled = "weigh_in_enabled"
+        case fastingEnabled = "fasting_enabled"
+        case loggingBreakEnabled = "logging_break_enabled"
+        case estimationMethod = "estimation_method"
+        case calculationStartDate = "calculation_start_date"
+        case bmrEquation = "bmr_equation"
+        case calculationMode = "calculation_mode"
+        case algorithmVersion = "algorithm_version"
+        case stepInformedUpdates = "step_informed_updates"
+        case predictiveGoalAdjustments = "predictive_goal_adjustments"
+    }
+
+    var eventParameters: [String: Any] {
+        [:]
+    }
+
+    static var mock: Self {
+        NutritionStrategySettings(authorId: "mock_user_123")
+    }
+
+    /// Monday-first weekday names, indexed by `Calendar`'s 1-based `weekday`.
+    var checkInWeekdayName: String {
+        let symbols = Calendar.current.weekdaySymbols
+        guard checkInWeekday >= 1, checkInWeekday <= symbols.count else { return "Monday" }
+        return symbols[checkInWeekday - 1]
+    }
+}
+
+enum ExpenditureEstimationMethod: String, DataSyncModelProtocol, CaseIterable {
+    var id: String { self.rawValue }
+
+    case standard
+    case bodyFatAware
+
+    var title: String {
+        switch self {
+        case .standard:     return "Standard"
+        case .bodyFatAware: return "Body-fat aware"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .standard:
+            return "Estimate from height, weight, age and activity."
+        case .bodyFatAware:
+            return "Use your logged body fat percentage where one is available, which suits leaner or heavier builds better."
+        }
+    }
+}
+
+enum BMREquation: String, DataSyncModelProtocol, CaseIterable {
+    var id: String { self.rawValue }
+
+    case mifflinStJeor
+    case harrisBenedict
+    case katchMcArdle
+
+    var title: String {
+        switch self {
+        case .mifflinStJeor:  return "Mifflin-St Jeor"
+        case .harrisBenedict: return "Harris-Benedict"
+        case .katchMcArdle:   return "Katch-McArdle"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .mifflinStJeor:
+            return "The usual default, and the most accurate for most people."
+        case .harrisBenedict:
+            return "Older, and tends to read slightly high."
+        case .katchMcArdle:
+            return "Based on lean mass, so it needs a body fat percentage to mean anything."
+        }
+    }
+}
+
+enum ExpenditureCalculationMode: String, DataSyncModelProtocol, CaseIterable {
+    var id: String { self.rawValue }
+
+    case dynamic
+    case fixed
+
+    var title: String {
+        switch self {
+        case .dynamic: return "Dynamic"
+        case .fixed:   return "Fixed"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .dynamic:
+            return "Adapt the estimate as your logged intake and weight change over time."
+        case .fixed:
+            return "Keep the estimate where it is until you change it yourself."
+        }
+    }
+}
+
+enum ExpenditureAlgorithmVersion: String, DataSyncModelProtocol, CaseIterable {
+    var id: String { self.rawValue }
+
+    case version1 = "v1"
+
+    var title: String {
+        switch self {
+        case .version1: return "Expenditure V1"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .version1: return "The only version so far."
+        }
+    }
+}

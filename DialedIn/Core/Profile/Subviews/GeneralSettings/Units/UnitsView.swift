@@ -13,7 +13,6 @@ struct UnitsView: View {
         List {
             weightSection
             heightSection
-            clockSection
             distanceSection
         }
         .navigationTitle("Units")
@@ -40,13 +39,17 @@ struct UnitsView: View {
         .pickerStyle(.inline)
     }
 
+    /// Labelled for height, but `LengthUnitPreference` also governs every body measurement, so the
+    /// footer says so rather than letting the title imply a narrower scope.
     private var heightSection: some View {
         Picker(selection: $presenter.heightUnit) {
             Section {
-                Text(HeightUnitPreference.centimeters.displayName)
-                    .tag(HeightUnitPreference.centimeters)
-                Text(HeightUnitPreference.inches.displayName)
-                    .tag(HeightUnitPreference.inches)
+                Text(LengthUnitPreference.centimeters.displayName)
+                    .tag(LengthUnitPreference.centimeters)
+                Text(LengthUnitPreference.inches.displayName)
+                    .tag(LengthUnitPreference.inches)
+            } footer: {
+                Text("Also used for body measurements.")
             }
         } label: {
             Text("Height Units")
@@ -54,27 +57,13 @@ struct UnitsView: View {
         .pickerStyle(.inline)
     }
     
-    private var clockSection: some View {
-        Picker(selection: $presenter.clockUnit) {
-            Section {
-                Text(ClockUnitPreference.twelveHour.displayName)
-                    .tag(ClockUnitPreference.twelveHour)
-                Text(ClockUnitPreference.twentyFourHour.displayName)
-                    .tag(ClockUnitPreference.twentyFourHour)
-            }
-        } label: {
-            Text("Clock Units")
-        }
-        .pickerStyle(.inline)
-    }
-
     private var distanceSection: some View {
         Picker(selection: $presenter.distanceUnit) {
             Section {
-                Text(LengthUnitPreference.centimeters.displayName)
-                    .tag(LengthUnitPreference.centimeters)
-                Text(LengthUnitPreference.inches.displayName)
-                    .tag(LengthUnitPreference.inches)
+                Text(DistanceUnitPreference.kilometers.displayName)
+                    .tag(DistanceUnitPreference.kilometers)
+                Text(DistanceUnitPreference.miles.displayName)
+                    .tag(DistanceUnitPreference.miles)
             }
         } label: {
             Text("Distance Units")

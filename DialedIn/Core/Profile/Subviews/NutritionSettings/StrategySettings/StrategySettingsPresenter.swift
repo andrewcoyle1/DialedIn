@@ -7,16 +7,59 @@ class StrategySettingsPresenter {
     private let interactor: StrategySettingsInteractor
     private let router: StrategySettingsRouter
     
-    var fastCheckInEnabled: Bool = false
-    
-    var partialLoggingEnabled: Bool = true
-    var weighInEnabled: Bool = true
-    var fastingEnabled: Bool = true
-    var loggingBreakEnabled: Bool = true
-    
+    private var settings: NutritionStrategySettings
+
+    /// Presents the check-in day picker.
+    var isChoosingCheckInDay: Bool = false
+
     init(interactor: StrategySettingsInteractor, router: StrategySettingsRouter) {
         self.interactor = interactor
         self.router = router
+        self.settings = interactor.nutritionStrategySettings
+    }
+
+    var fastCheckInEnabled: Bool {
+        get { settings.fastCheckIn }
+        set { settings.fastCheckIn = newValue; save() }
+    }
+
+    var partialLoggingEnabled: Bool {
+        get { settings.partialLoggingEnabled }
+        set { settings.partialLoggingEnabled = newValue; save() }
+    }
+
+    var weighInEnabled: Bool {
+        get { settings.weighInEnabled }
+        set { settings.weighInEnabled = newValue; save() }
+    }
+
+    var fastingEnabled: Bool {
+        get { settings.fastingEnabled }
+        set { settings.fastingEnabled = newValue; save() }
+    }
+
+    var loggingBreakEnabled: Bool {
+        get { settings.loggingBreakEnabled }
+        set { settings.loggingBreakEnabled = newValue; save() }
+    }
+
+    var checkInWeekday: Int {
+        get { settings.checkInWeekday }
+        set { settings.checkInWeekday = newValue; save() }
+    }
+
+    var checkInWeekdayName: String {
+        settings.checkInWeekdayName
+    }
+
+    /// `Calendar.weekdaySymbols` is Sunday-first and 0-indexed, while `weekday` components are
+    /// 1-based, so the tag is the index plus one.
+    var weekdayOptions: [(weekday: Int, name: String)] {
+        Calendar.current.weekdaySymbols.enumerated().map { (weekday: $0.offset + 1, name: $0.element) }
+    }
+
+    private func save() {
+        Task { try? await interactor.saveNutritionStrategySettings(settings) }
     }
     
     func onViewAppear() {
@@ -28,7 +71,7 @@ class StrategySettingsPresenter {
     }
     
     func onEditCheckInDayPressed() {
-        
+        isChoosingCheckInDay = true
     }
     
 }

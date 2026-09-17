@@ -6,12 +6,26 @@ class PrevWORefSettingsPresenter {
     
     private let interactor: PrevWORefSettingsInteractor
     private let router: PreviousWorkoutReferenceSettingsRouter
-    
+
+    private var settings: WorkoutSettings
+
     init(interactor: PrevWORefSettingsInteractor, router: PreviousWorkoutReferenceSettingsRouter) {
         self.interactor = interactor
         self.router = router
+        self.settings = interactor.workoutSettings
     }
-    
+
+    let options = PreviousWorkoutReferenceOption.allCases
+
+    var previousWorkoutReference: PreviousWorkoutReferenceOption {
+        get { settings.previousWorkoutReference }
+        set { settings.previousWorkoutReference = newValue; save() }
+    }
+
+    private func save() {
+        Task { try? await interactor.saveWorkoutSettings(settings) }
+    }
+
     func onViewAppear(delegate: PrevWORefSettingsDelegate) {
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
     }

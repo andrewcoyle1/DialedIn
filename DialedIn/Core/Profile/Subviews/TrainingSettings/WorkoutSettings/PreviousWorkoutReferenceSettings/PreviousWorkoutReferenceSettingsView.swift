@@ -13,14 +13,47 @@ struct PreviousWorkoutReferenceSettingsView: View {
     
     var body: some View {
         List {
-            Text("Hello, World!")
+            Section {
+                ForEach(presenter.options) { option in
+                    optionRow(option)
+                }
+            } header: {
+                Text("Reference Scope")
+            } footer: {
+                Text("Applies to the previous values shown beside each set while you train.")
+            }
         }
+        .navigationTitle("Previous Reference")
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
         .onDisappear {
             presenter.onViewDisappear(delegate: delegate)
         }
+    }
+
+    /// A checkmark list rather than a `Picker`, so each option can carry the explanation the
+    /// option enum already defines as its `subtitle`.
+    private func optionRow(_ option: PreviousWorkoutReferenceOption) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(option.title)
+                Text(option.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "checkmark")
+                .foregroundStyle(.tint)
+                .opacity(presenter.previousWorkoutReference == option ? 1 : 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .tappableBackground()
+        .anyButton(.highlight) {
+            presenter.previousWorkoutReference = option
+        }
+        .accessibilityAddTraits(presenter.previousWorkoutReference == option ? [.isButton, .isSelected] : .isButton)
     }
 }
 

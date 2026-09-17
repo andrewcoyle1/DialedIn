@@ -17,14 +17,13 @@ struct SmartProgressionSettingsView: View {
                 CustomLabelButtonView(
                     symbolName: "book.pages",
                     title: "Initial log fill",
-                    subtitle: "Smart Progression values") {
-                        Text("Edit")
-                            .padding(.horizontal, 8)
-                            .padding(8)
-                            .background(Color.secondary.opacity(0.2), in: .capsule)
-                            .anyButton(.press) {
-
-                            }
+                    subtitle: presenter.initialLogFill.title) {
+                        editMenu(
+                            options: presenter.initialLogFillOptions,
+                            selection: presenter.initialLogFill,
+                            title: \.title,
+                            onSelect: { presenter.initialLogFill = $0 }
+                        )
                     }
                 CustomToggleView(
                     symbolName: "arrow.trianglehead.branch",
@@ -35,14 +34,13 @@ struct SmartProgressionSettingsView: View {
                 CustomLabelButtonView(
                     symbolName: "dot.squareshape",
                     title: "Adjustment Mode",
-                    subtitle: "Weight-first") {
-                        Text("Edit")
-                            .padding(.horizontal, 8)
-                            .padding(8)
-                            .background(Color.secondary.opacity(0.2), in: .capsule)
-                            .anyButton(.press) {
-
-                            }
+                    subtitle: presenter.adjustmentMode.title) {
+                        editMenu(
+                            options: presenter.adjustmentModes,
+                            selection: presenter.adjustmentMode,
+                            title: \.title,
+                            onSelect: { presenter.adjustmentMode = $0 }
+                        )
                     }
             } header: {
                 Text("Behaviour")
@@ -55,6 +53,34 @@ struct SmartProgressionSettingsView: View {
         }
         .onDisappear {
             presenter.onViewDisappear(delegate: delegate)
+        }
+    }
+
+    /// Keeps the row's "Edit" capsule but makes it a menu, so choosing a value needs no extra
+    /// screen for what is a two- or three-way choice.
+    private func editMenu<Option: Identifiable & Equatable>(
+        options: [Option],
+        selection: Option,
+        title: KeyPath<Option, String>,
+        onSelect: @escaping (Option) -> Void
+    ) -> some View {
+        Menu {
+            ForEach(options) { option in
+                Button {
+                    onSelect(option)
+                } label: {
+                    if option == selection {
+                        Label(option[keyPath: title], systemImage: "checkmark")
+                    } else {
+                        Text(option[keyPath: title])
+                    }
+                }
+            }
+        } label: {
+            Text("Edit")
+                .padding(.horizontal, 8)
+                .padding(8)
+                .background(Color.secondary.opacity(0.2), in: .capsule)
         }
     }
 }

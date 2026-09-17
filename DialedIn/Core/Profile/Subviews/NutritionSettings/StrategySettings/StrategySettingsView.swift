@@ -15,7 +15,7 @@ struct StrategySettingsView: View {
                 CustomLabelButtonView(
                     symbolName: "calendar",
                     title: "Check-in Day",
-                    subtitle: "Monday") {
+                    subtitle: presenter.checkInWeekdayName) {
                         Text("Edit")
                             .padding(.horizontal, 8)
                             .padding(8)
@@ -27,8 +27,11 @@ struct StrategySettingsView: View {
                 CustomToggleView(
                     symbolName: "hare",
                     title: "Fast Check-in",
-                    subtitle: "Off",
-                    bool: $presenter.fastCheckInEnabled
+                    subtitle: presenter.fastCheckInEnabled ? "On" : "Off",
+                    bool: Binding(
+                        get: { presenter.fastCheckInEnabled },
+                        set: { presenter.fastCheckInEnabled = $0 }
+                    )
                 )
             } header: {
                 Text("General")
@@ -39,22 +42,34 @@ struct StrategySettingsView: View {
                 CustomToggleView(
                     title: "Partial Logging",
                     subtitle: nil,
-                    bool: $presenter.partialLoggingEnabled
+                    bool: Binding(
+                        get: { presenter.partialLoggingEnabled },
+                        set: { presenter.partialLoggingEnabled = $0 }
+                    )
                 )
                 CustomToggleView(
                     title: "Weigh-In",
                     subtitle: nil,
-                    bool: $presenter.weighInEnabled
+                    bool: Binding(
+                        get: { presenter.weighInEnabled },
+                        set: { presenter.weighInEnabled = $0 }
+                    )
                 )
                 CustomToggleView(
                     title: "Fasting",
                     subtitle: nil,
-                    bool: $presenter.fastingEnabled
+                    bool: Binding(
+                        get: { presenter.fastingEnabled },
+                        set: { presenter.fastingEnabled = $0 }
+                    )
                 )
                 CustomToggleView(
                     title: "Logging Break",
                     subtitle: nil,
-                    bool: $presenter.loggingBreakEnabled
+                    bool: Binding(
+                        get: { presenter.loggingBreakEnabled },
+                        set: { presenter.loggingBreakEnabled = $0 }
+                    )
                 )
                 Label("Program Update", systemImage: "star.fill")
             } header: {
@@ -65,12 +80,45 @@ struct StrategySettingsView: View {
         }
         .navigationTitle("Strategy")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $presenter.isChoosingCheckInDay) {
+            checkInDayPicker
+        }
         .onAppear {
             presenter.onViewAppear()
         }
         .onDisappear {
             presenter.onViewDisappear()
         }
+    }
+
+    private var checkInDayPicker: some View {
+        NavigationStack {
+            List {
+                ForEach(presenter.weekdayOptions, id: \.weekday) { option in
+                    HStack {
+                        Text(option.name)
+                        Spacer(minLength: 0)
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(.tint)
+                            .opacity(presenter.checkInWeekday == option.weekday ? 1 : 0)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .tappableBackground()
+                    .anyButton(.highlight) {
+                        presenter.checkInWeekday = option.weekday
+                        presenter.isChoosingCheckInDay = false
+                    }
+                }
+            }
+            .navigationTitle("Check-in Day")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { presenter.isChoosingCheckInDay = false }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }
 

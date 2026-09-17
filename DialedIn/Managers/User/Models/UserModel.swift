@@ -41,6 +41,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     let submittedCardioFitnessLevel: CardioFitnessLevel?
     let submittedLengthUnitPreference: LengthUnitPreference?
     let submittedWeightUnitPreference: WeightUnitPreference?
+    let submittedDistanceUnitPreference: DistanceUnitPreference?
     let submittedCurrentGoalId: String?
     let submittedFavouriteGymProfileId: String?
     let submittedActiveTrainingProgramId: String?
@@ -79,6 +80,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         submittedCardioFitnessLevel: CardioFitnessLevel? = nil,
         submittedLengthUnitPreference: LengthUnitPreference? = nil,
         submittedWeightUnitPreference: WeightUnitPreference? = nil,
+        submittedDistanceUnitPreference: DistanceUnitPreference? = nil,
         submittedCurrentGoalId: String? = nil,
         submittedActiveTrainingProgramId: String? = nil,
         submittedFavouriteGymProfileId: String? = nil,
@@ -116,6 +118,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         self.submittedCardioFitnessLevel = submittedCardioFitnessLevel
         self.submittedLengthUnitPreference = submittedLengthUnitPreference
         self.submittedWeightUnitPreference = submittedWeightUnitPreference
+        self.submittedDistanceUnitPreference = submittedDistanceUnitPreference
         self.submittedCurrentGoalId = submittedCurrentGoalId
         self.submittedActiveTrainingProgramId = submittedActiveTrainingProgramId
         self.submittedFavouriteGymProfileId = submittedFavouriteGymProfileId
@@ -172,6 +175,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         case submittedCardioFitnessLevel = "submitted_cardio_fitness_level"
         case submittedLengthUnitPreference = "submitted_length_unit_preference"
         case submittedWeightUnitPreference = "submitted_weight_unit_preference"
+        case submittedDistanceUnitPreference = "submitted_distance_unit_preference"
         case submittedCurrentGoalId = "submitted_current_goal_id"
         case submittedActiveTrainingProgramId = "submitted_active_training_program_id"
         case submittedFavouriteGymProfileId = "submitted_favourite_gym_profile_id"
@@ -214,6 +218,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
             "user_\(CodingKeys.submittedCardioFitnessLevel.rawValue)": submittedCardioFitnessLevel?.rawValue,
             "user_\(CodingKeys.submittedLengthUnitPreference.rawValue)": submittedLengthUnitPreference?.rawValue,
             "user_\(CodingKeys.submittedWeightUnitPreference.rawValue)": submittedWeightUnitPreference?.rawValue,
+            "user_\(CodingKeys.submittedDistanceUnitPreference.rawValue)": submittedDistanceUnitPreference?.rawValue,
             "user_\(CodingKeys.submittedCurrentGoalId.rawValue)": submittedCurrentGoalId,
             "user_\(CodingKeys.submittedActiveTrainingProgramId.rawValue)": submittedActiveTrainingProgramId,
             "user_\(CodingKeys.submittedFavouriteGymProfileId.rawValue)": submittedFavouriteGymProfileId,
@@ -337,41 +342,43 @@ enum Gender: String, Codable, Sendable {
     }
 }
 
-enum LengthUnitPreference: String, Codable, Sendable {
+/// Governs height and every body measurement. The abbreviation and display name describe those
+/// uses, not distance — see `DistanceUnitPreference` for how far you have travelled.
+enum LengthUnitPreference: String, Codable, Sendable, CaseIterable {
     case centimeters
     case inches
-    
-    var abbreviation: String {
-        switch self {
-        case .centimeters: return "m"
-        case .inches: return "m"
-        }
-    }
-    
-    var displayName: String {
-        switch self {
-        case .centimeters: return "Kilometers & Metres"
-        case .inches: return "Miles & Yards"
-        }
-    }
 
-}
-
-enum HeightUnitPreference: String, Codable, Sendable {
-    case centimeters
-    case inches
-    
     var abbreviation: String {
         switch self {
         case .centimeters: return "cm"
         case .inches: return "\""
         }
     }
-    
+
     var displayName: String {
         switch self {
         case .centimeters: return "Centimeters"
         case .inches: return "Feet & Inches"
+        }
+    }
+
+}
+
+enum DistanceUnitPreference: String, Codable, Sendable, CaseIterable {
+    case kilometers
+    case miles
+
+    var abbreviation: String {
+        switch self {
+        case .kilometers: return "km"
+        case .miles: return "mi"
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .kilometers: return "Kilometers & Metres"
+        case .miles: return "Miles & Yards"
         }
     }
 
@@ -397,6 +404,10 @@ enum WeightUnitPreference: String, Codable, Sendable {
 
 }
 
+/// Not yet wired to anything. The Units screen used to offer a 12/24-hour picker that persisted
+/// nowhere and changed nothing; honouring it means routing every `.shortened` time format in the
+/// app through a shared formatter, which is its own piece of work. Kept so that work has a type
+/// to start from.
 enum ClockUnitPreference: String, Codable, Sendable {
     case twelveHour
     case twentyFourHour

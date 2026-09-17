@@ -73,6 +73,78 @@ class TimerDurationPresenter {
         }
     }
 
+    // MARK: - Per-Exercise Overrides
+
+    /// One row per exercise that has a rest override, resolved back to its name. Settings whose
+    /// exercise is no longer in the library are dropped rather than shown as a blank row.
+    var exerciseOverrides: [ExerciseOverride] {
+        interactor.allExerciseSettings
+            .compactMap { setting in
+                guard let seconds = setting.restDurationOverride else { return nil }
+                guard let exercise = interactor.allExercises.first(where: { $0.id == setting.id }) else { return nil }
+                return ExerciseOverride(id: setting.id, name: exercise.name, seconds: seconds)
+            }
+            .sorted { $0.name < $1.name }
+    }
+
+    struct ExerciseOverride: Identifiable {
+        let id: String
+        let name: String
+        let seconds: Int
+    }
+
+    /// Exercises without an override yet, which are the ones worth offering in the picker.
+    var exercisesWithoutOverride: [ExerciseModel] {
+        let overridden = Set(exerciseOverrides.map(\.id))
+        return interactor.allExercises
+            .filter { !overridden.contains($0.id) }
+            .sorted { $0.name < $1.name }
+    }
+
+    var isAddingExerciseTimer: Bool = false
+    var editingExerciseId: String?
+    var editingExerciseName: String = ""
+
+    var isEditingExercise: Bool {
+        get { editingExerciseId != nil }
+        set { if !newValue { editingExerciseId = nil } }
+    }
+
+    func onAddExerciseTimerPressed() {
+        isAddingExerciseTimer = true
+    }
+
+    func onExercisePicked(_ exercise: ExerciseModel) {
+        isAddingExerciseTimer = false
+        let current = interactor.exerciseRestOverride(for: exercise.id) ?? settings.defaultRestDurationSeconds
+        editMinutes = current / 60
+        editSeconds = current % 60
+        editingExerciseName = exercise.name
+        editingExerciseId = exercise.id
+    }
+
+    func onEditExerciseOverridePressed(_ override: ExerciseOverride) {
+        editMinutes = override.seconds / 60
+        editSeconds = override.seconds % 60
+        editingExerciseName = override.name
+        editingExerciseId = override.id
+    }
+
+    func saveExerciseEdit() {
+        guard let exerciseId = editingExerciseId else { return }
+        let total = editMinutes * 60 + editSeconds
+        editingExerciseId = nil
+        Task { try? await interactor.setExerciseRestOverride(total, for: exerciseId) }
+    }
+
+    func removeExerciseOverride(_ override: ExerciseOverride) {
+        Task { try? await interactor.setExerciseRestOverride(nil, for: override.id) }
+    }
+
+    func formattedDuration(seconds: Int) -> String {
+        String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+
     // MARK: - Lifecycle
 
     func onViewAppear(delegate: TimerDurationDelegate) {

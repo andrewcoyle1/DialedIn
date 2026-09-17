@@ -18,6 +18,10 @@ struct FoodLogSettings: DataSyncModelProtocol {
     var showAddFoodsButton: Bool = true
     var startHour: Int = 7
     var endHour: Int = 23
+    /// Collapses each row to its name, hiding the calorie and macro detail beneath it.
+    var hideFoodDetails: Bool = false
+    /// Drops hours with nothing logged from the timeline instead of showing them empty.
+    var hideEmptyHours: Bool = false
 
     // MARK: - Food Search
     var showBrandedFoods: Bool = true
@@ -61,6 +65,8 @@ struct FoodLogSettings: DataSyncModelProtocol {
         case showAddFoodsButton = "show_add_foods_button"
         case startHour = "start_hour"
         case endHour = "end_hour"
+        case hideFoodDetails = "hide_food_details"
+        case hideEmptyHours = "hide_empty_hours"
         case showBrandedFoods = "show_branded_foods"
         case showOpenFoodFactsFoods = "show_open_food_facts_foods"
         case showFoodImageInTimeline = "show_food_image_in_timeline"

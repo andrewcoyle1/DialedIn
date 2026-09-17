@@ -58,8 +58,16 @@ class NutritionPresenter {
             dates.append(current)
             current = calendar.date(byAdding: .hour, value: 1, to: current)!
         }
-        return dates
+
+        guard hideEmptyHours else { return dates }
+        return dates.filter { !meals(inHour: $0).isEmpty }
     }
+
+    var hideEmptyHours: Bool { interactor.foodLogSettings.hideEmptyHours }
+
+    /// When on, timeline rows collapse to the food name alone, whatever the individual
+    /// image/calorie/macro toggles say.
+    var hideFoodDetails: Bool { interactor.foodLogSettings.hideFoodDetails }
     
     var caloriePercentage: Double {
         guard let target = dailyTarget?.calories, target > 0 else { return 0 }
@@ -90,9 +98,9 @@ class NutritionPresenter {
     var showProteinRing: Bool { interactor.foodLogSettings.showProteinRing }
     var showFatRing: Bool { interactor.foodLogSettings.showFatRing }
     var showCarbsRing: Bool { interactor.foodLogSettings.showCarbsRing }
-    var showFoodImageInTimeline: Bool { interactor.foodLogSettings.showFoodImageInTimeline }
-    var showCaloriesInTimeline: Bool { interactor.foodLogSettings.showCaloriesInTimeline }
-    var showMacrosInTimeline: Bool { interactor.foodLogSettings.showMacrosInTimeline }
+    var showFoodImageInTimeline: Bool { !hideFoodDetails && interactor.foodLogSettings.showFoodImageInTimeline }
+    var showCaloriesInTimeline: Bool { !hideFoodDetails && interactor.foodLogSettings.showCaloriesInTimeline }
+    var showMacrosInTimeline: Bool { !hideFoodDetails && interactor.foodLogSettings.showMacrosInTimeline }
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -206,7 +214,7 @@ class NutritionPresenter {
     }
     
     func onTimelineActionsPressed() {
-        router.showTimelineActionsView(delegate: TimelineActionsDelegate())
+        router.showTimelineActionsView(delegate: TimelineActionsDelegate(date: selectedDate))
     }
     
     func onCustomiseFoodLogPressed() {

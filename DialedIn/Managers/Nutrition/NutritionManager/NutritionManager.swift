@@ -210,14 +210,26 @@ class NutritionManager {
     }
 
     // MARK: - Estimation
-    func estimateTDEE(user: UserModel?) -> Double {
+    func estimateTDEE(
+        user: UserModel?,
+        equation: BMREquation = .mifflinStJeor,
+        bodyFatPercentage: Double? = nil
+    ) -> Double {
         let gender = user?.submittedGender ?? .male
         let weightKg = max(user?.submittedWeightKilograms ?? 70, 30)
         let heightCm = max(user?.submittedHeightCentimeters ?? 175, 120)
         let ageYears = calculateAge(from: user?.submittedDateOfBirth)
 
-        let mifflinGenderCoefficient: Double = (gender == .male) ? 5 : -161
-        let bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * Double(ageYears)) + mifflinGenderCoefficient
+        let bmr = basalMetabolicRate(
+            equation: equation,
+            body: BodyComposition(
+                gender: gender,
+                weightKg: weightKg,
+                heightCm: heightCm,
+                age: Double(ageYears),
+                bodyFatPercentage: bodyFatPercentage
+            )
+        )
 
         let activityMultiplier = calculateActivityMultiplier(
             dailyActivity: user?.submittedDailyActivityLevel ?? .moderate,
@@ -226,6 +238,42 @@ class NutritionManager {
 
         let tdee = bmr * activityMultiplier
         return max(1000, tdee)
+    }
+
+    /// The equation the user picked on the Expenditure settings screen. Katch-McArdle works from
+    /// lean mass, so without a logged body fat percentage it has nothing to work from and falls
+    /// back to Mifflin-St Jeor rather than inventing a figure.
+    /// The body inputs every BMR equation draws on, grouped so the equation helpers stay within
+    /// the parameter-count limit.
+    private struct BodyComposition {
+        let gender: Gender
+        let weightKg: Double
+        let heightCm: Double
+        let age: Double
+        let bodyFatPercentage: Double?
+    }
+
+    private func basalMetabolicRate(equation: BMREquation, body: BodyComposition) -> Double {
+        switch equation {
+        case .mifflinStJeor:
+            return mifflinStJeorBMR(body: body)
+        case .harrisBenedict:
+            if body.gender == .male {
+                return 88.362 + (13.397 * body.weightKg) + (4.799 * body.heightCm) - (5.677 * body.age)
+            }
+            return 447.593 + (9.247 * body.weightKg) + (3.098 * body.heightCm) - (4.330 * body.age)
+        case .katchMcArdle:
+            guard let bodyFat = body.bodyFatPercentage, bodyFat > 0, bodyFat < 100 else {
+                return mifflinStJeorBMR(body: body)
+            }
+            let leanMassKg = body.weightKg * (1 - (bodyFat / 100))
+            return 370 + (21.6 * leanMassKg)
+        }
+    }
+
+    private func mifflinStJeorBMR(body: BodyComposition) -> Double {
+        let genderCoefficient: Double = (body.gender == .male) ? 5 : -161
+        return (10 * body.weightKg) + (6.25 * body.heightCm) - (5 * body.age) + genderCoefficient
     }
 
     private func calculateAge(from dateOfBirth: Date?) -> Int {
@@ -286,7 +334,18 @@ extension CoreInteractor {
 
     // Estimation
     func estimateTDEE(user: UserModel?) -> Double {
-        nutritionManager.estimateTDEE(user: user)
+        nutritionManager.estimateTDEE(
+            user: user,
+            equation: nutritionStrategySettings.bmrEquation,
+            bodyFatPercentage: latestBodyFatPercentage
+        )
+    }
+
+    /// Katch-McArdle needs lean mass, so it needs the most recent weigh-in that recorded a body
+    /// fat percentage. Nil for everyone who has never logged one.
+    private var latestBodyFatPercentage: Double? {
+        let entries = bodyMeasurements.filter { $0.bodyFatPercentage != nil && $0.deletedAt == nil }
+        return entries.max(by: { $0.date < $1.date })?.bodyFatPercentage
     }
 
 }
