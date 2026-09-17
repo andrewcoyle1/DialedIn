@@ -70,9 +70,8 @@ struct MealDetailView: View {
             Section {
                 ForEach(delegate.meal.items) { item in
                     MealItemRowView(
-                        mealLogModel: delegate.meal,
                         item: item,
-                        showTimestamp: false,
+                        style: .mealDetail,
                         onEditPressed: { _ in }
                     )
                 }

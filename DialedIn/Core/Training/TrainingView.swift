@@ -61,6 +61,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
                 ),
                 $isCalendarExpanded
             )
+            .background(.bar)
         }
     }
 

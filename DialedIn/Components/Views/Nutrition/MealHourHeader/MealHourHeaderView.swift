@@ -22,7 +22,8 @@ struct MealHourHeaderView: View {
             Text(delegate.hour, style: .time)
                 .lineLimit(1)
                 .padding(6)
-                .frame(width: 80)
+                .padding(.horizontal, 6)
+//                .frame(width: 80)
                 .background(.secondary.opacity(0.2), in: .capsule)
                 .onLongPressGesture {
                     if !presenter.showAddFoodsButton {

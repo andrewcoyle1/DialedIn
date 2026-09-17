@@ -41,7 +41,7 @@ struct TabBarView<TrainingTabAccessory: View, MealTabAccessory: View, Search: Vi
             Tab(role: .search) {
                 searchView()
             } label: {
-                Image(systemName: "plus")
+                Label("Add", systemImage: "plus")
             }
         }
         .tabViewStyle(.tabBarOnly)

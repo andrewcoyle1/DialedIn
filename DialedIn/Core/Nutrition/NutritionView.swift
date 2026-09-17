@@ -33,7 +33,6 @@ struct NutritionView<
 
     var body: some View {
         List {
-            ringsSection
             mealLogSection
             moreSection
         }
@@ -52,26 +51,22 @@ struct NutritionView<
     
     @ViewBuilder
     private var topSafeAreaSection: some View {
-        if presenter.showCalendarWeekBanner {
-            calendarHeader(
-                CalendarHeaderDelegate(
-                    onDatePressed: { date in
-                        presenter.selectedDate = date.startOfDay
-                    },
-                    markersByDay: {
-                        presenter.calorieMarkersByDay()
-                    }
-                ),
-                $isCalendarExpanded
-            )
-        }
-    }
-    
-    @ViewBuilder
-    private var ringsSection: some View {
-        if let dailyTotals = presenter.dailyTotals,
-        let dailyTarget = presenter.dailyTarget {
-            Section {
+        VStack(spacing: 0) {
+            if presenter.showCalendarWeekBanner {
+                calendarHeader(
+                    CalendarHeaderDelegate(
+                        onDatePressed: { date in
+                            presenter.selectedDate = date.startOfDay
+                        },
+                        markersByDay: {
+                            presenter.calorieMarkersByDay()
+                        }
+                    ),
+                    $isCalendarExpanded
+                )
+            }
+            if let dailyTotals = presenter.dailyTotals,
+            let dailyTarget = presenter.dailyTarget {
                 MacroHeader(
                     dailyTotals: dailyTotals,
                     dailyTarget: dailyTarget,
@@ -80,42 +75,51 @@ struct NutritionView<
                     showFatRing: presenter.showFatRing,
                     showCarbsRing: presenter.showCarbsRing
                 )
-                .listRowInsets(.horizontal, 0)
             }
-            .listSectionMargins(.top, 0)
         }
+        .background(.bar)
     }
     
+    // MARK: - Timeline
+
+    /// The day's meals, an hour at a time. `presenter.timelineHours` has already dropped the empty
+    /// hours if the setting asks for it, so there is nothing to filter here.
     private var mealLogSection: some View {
-        ForEach(presenter.workingHours, id: \.self) { hour in
-            let hourssMeals = presenter.meals(inHour: hour)
-            Section {
-                mealHourHeader(MealHourHeaderDelegate(hour: hour, meals: hourssMeals))
-            }
-            .listSectionMargins(.horizontal, 0)
-            .padding(.horizontal)
-            ForEach(hourssMeals) { meal in
-                Section {
-                    ForEach(meal.items) { item in
-                        mealItemRow(item, meal: meal)
-                    }
-                }
-            }
+        ForEach(presenter.timelineHours) { timelineHour in
+            hourHeaderSection(timelineHour)
+            mealSections(timelineHour)
         }
         .listRowSeparator(.hidden)
         .listSectionMargins(.vertical, 0)
         .listSectionSpacing(0)
     }
 
+    private func hourHeaderSection(_ timelineHour: NutritionPresenter.TimelineHour) -> some View {
+        Section {
+            mealHourHeader(
+                MealHourHeaderDelegate(hour: timelineHour.hour, meals: timelineHour.meals)
+            )
+        }
+        .listSectionMargins(.horizontal, 0)
+        .padding(.horizontal)
+    }
+
+    /// A section per meal, so the items logged together stay grouped under one time.
+    private func mealSections(_ timelineHour: NutritionPresenter.TimelineHour) -> some View {
+        ForEach(timelineHour.meals) { meal in
+            Section {
+                ForEach(meal.items) { item in
+                    mealItemRow(item, meal: meal)
+                }
+            }
+        }
+    }
+
     private func mealItemRow(_ item: MealItemModel, meal: MealLogModel) -> some View {
         MealItemRowView(
-            mealLogModel: meal,
             item: item,
-            showTimestamp: presenter.showsFoodTimestamps,
-            timestampSide: presenter.timestampSide,
-            showImage: presenter.showFoodImageInTimeline,
-            showCalories: presenter.showCaloriesInTimeline,
-            showMacros: presenter.showMacrosInTimeline,
+            timestamp: presenter.timestamp(for: item, in: meal),
+            style: presenter.mealItemRowStyle,
             onEditPressed: { mealItem in
                 presenter.onEditMealItem(mealItem)
             }
@@ -123,6 +127,8 @@ struct NutritionView<
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(role: .destructive) {
                 presenter.deleteMealItem(item, from: meal)
+            } label: {
+                Label("Delete", systemImage: "trash")
             }
         }
         .swipeActions(edge: .leading, allowsFullSwipe: false) {
@@ -133,7 +139,9 @@ struct NutritionView<
             }
         }
     }
-    
+
+    // MARK: - More
+
     private var moreSection: some View {
         Section {
             Group {

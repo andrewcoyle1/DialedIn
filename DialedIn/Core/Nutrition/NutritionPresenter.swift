@@ -23,11 +23,6 @@ class NutritionPresenter {
         (try? interactor.getMeals(for: selectedDate.dayKey)) ?? []
     }
 
-    func meals(inHour hour: Date) -> [MealLogModel] {
-        let cal = Calendar.current
-        return mealsForSelectedDate.filter { cal.isDate($0.date, equalTo: hour, toGranularity: .hour) }
-    }
-    
     var dailyTotals: DailyMacroTarget? {
         try? interactor.getDailyTotals(dayKey: dayKey)
     }
@@ -45,22 +40,69 @@ class NutritionPresenter {
         return plan.days[dayIndex]
     }
 
-    var workingHours: [Date] {
+    /// One hour of the timeline: the hour itself, and the meals logged inside it.
+    struct TimelineHour: Identifiable {
+        let id: Date
+        var meals: [MealLogModel]
+
+        var hour: Date { id }
+    }
+
+    /// The whole timeline for the selected day, built in one pass.
+    ///
+    /// This replaces a `workingHours` array plus a `meals(inHour:)` lookup the view called per
+    /// section. Each of those filtered the full day, and `workingHours` called it once per hour
+    /// just to drop the empty ones, so a single body pass scanned the day's meals about thirty
+    /// times. Same fix as `CalendarHeaderPresenter.markersByDay` — group once, hand the view the
+    /// finished shape.
+    var timelineHours: [TimelineHour] {
         let calendar = Calendar.current
-        let start = calendar.date(bySettingHour: startHour, minute: 0, second: 0, of: selectedDate)!
-        let end = calendar.date(bySettingHour: endHour, minute: 0, second: 0, of: selectedDate)!
-        
-        var dates: [Date] = []
-        var current = start
-        
-        // Step through hour by hour until reaching the end
-        while current <= end {
-            dates.append(current)
-            current = calendar.date(byAdding: .hour, value: 1, to: current)!
+        let mealsByHour = Dictionary(grouping: mealsForSelectedDate) { meal in
+            calendar.dateInterval(of: .hour, for: meal.date)?.start ?? meal.date
         }
 
-        guard hideEmptyHours else { return dates }
-        return dates.filter { !meals(inHour: $0).isEmpty }
+        guard
+            let start = calendar.date(bySettingHour: startHour, minute: 0, second: 0, of: selectedDate),
+            let end = calendar.date(bySettingHour: endHour, minute: 0, second: 0, of: selectedDate)
+        else {
+            return []
+        }
+
+        var hours: [TimelineHour] = []
+        var current = start
+
+        // Step through hour by hour until reaching the end.
+        while current <= end {
+            let meals = mealsByHour[current] ?? []
+            if !meals.isEmpty || !hideEmptyHours {
+                hours.append(TimelineHour(id: current, meals: meals))
+            }
+            guard let next = calendar.date(byAdding: .hour, value: 1, to: current) else { break }
+            current = next
+        }
+
+        return hours
+    }
+
+    /// How every row in the timeline is drawn, resolved from `FoodLogSettings` in one place
+    /// instead of five parameters at the call site.
+    var mealItemRowStyle: MealItemRowStyle {
+        MealItemRowStyle(
+            showsTimestampColumn: showsFoodTimestamps,
+            timestampSide: timestampSide,
+            showsImage: showFoodImageInTimeline,
+            showsCalories: showCaloriesInTimeline,
+            showsMacros: showMacrosInTimeline
+        )
+    }
+
+    /// The gutter time for a row. Only a meal's first item carries one, so several items logged
+    /// together read as a single block rather than repeating the same time down the page.
+    ///
+    /// Compares ids, not whole items: two helpings of the same food at the same amount are equal
+    /// by value, and the second would then have printed the time as well.
+    func timestamp(for item: MealItemModel, in meal: MealLogModel) -> Date? {
+        item.id == meal.items.first?.id ? meal.date : nil
     }
 
     var hideEmptyHours: Bool { interactor.foodLogSettings.hideEmptyHours }

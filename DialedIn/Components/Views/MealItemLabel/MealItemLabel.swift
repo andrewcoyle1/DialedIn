@@ -17,21 +17,28 @@ struct MealItemLabel: View {
     var body: some View {
         HStack {
             if showImage {
-                ImageLoaderView(resizingMode: .fill, clipShape: AnyShape(Circle()))
+//                ImageLoaderView(resizingMode: .fill, clipShape: AnyShape(Circle()))
+                Image(systemName: "fork.knife.circle.fill")
+                    .font(.title)
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: 30, maxHeight: 30)
+
             }
             VStack(alignment: .leading, spacing: 0) {
                 Text(mealItem.displayName)
-                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .font(.caption)
                 HStack(spacing: 4) {
                     if showCalories {
-                        Text("\(Int(mealItem.calories ?? 0)) kcal")
+                        HStack(spacing: 0) {
+                            Text("\(Int(mealItem.calories ?? 0))")
+                            Image(systemName: "flame")
+                        }
                     }
                     if showMacros {
-                        Text(String(format: "%.1f P", mealItem.proteinGrams ?? 0))
-                        Text(String(format: "%.1f F", mealItem.fatGrams ?? 0))
-                        Text(String(format: "%.1f C", mealItem.carbGrams ?? 0))
+                        Text("\(Int(mealItem.proteinGrams ?? 0))P")
+                        Text("\(Int(mealItem.fatGrams ?? 0))F")
+                        Text("\(Int(mealItem.carbGrams ?? 0))C")
                     }
                     Divider()
                     Text(String(format: "%g %@", mealItem.amount, mealItem.unit))

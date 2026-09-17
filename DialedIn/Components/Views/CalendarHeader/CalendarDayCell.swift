@@ -43,7 +43,7 @@ struct CalendarDayCell: View {
         .frame(maxWidth: .infinity)
         .background {
             outline
-                .padding(.horizontal, 4)
+                .padding(.horizontal, Self.capsuleInset)
         }
         .overlay(alignment: .topTrailing) {
             if let badgeCount = marker?.badgeCount {
@@ -116,6 +116,11 @@ struct CalendarDayCell: View {
 
     private static let ringWidth: CGFloat = 2
 
+    /// How far the capsule is inset from the cell's own width. The cell keeps its full seventh of
+    /// the strip as a tap target; only the capsule narrows. Not private, because the header's
+    /// "Today" button draws the same capsule over the edge cell and has to match.
+    static let capsuleInset: CGFloat = 7
+
     /// The unfilled remainder, and the whole stroke on a day with nothing logged. One colour in
     /// every state now that the ring never overlaps the selection.
     private var trackStyle: AnyShapeStyle {
@@ -130,10 +135,10 @@ struct CalendarDayCell: View {
     /// logged session is a fact, not a verdict.
     private func progressStyle(for marker: CalendarDayMarker) -> AnyShapeStyle {
         if marker.isOverGoal {
-            return AnyShapeStyle(.red)
+            return AnyShapeStyle(.red.opacity(0.5))
         }
         if marker.isGoalMet {
-            return AnyShapeStyle(.green)
+            return AnyShapeStyle(.green.opacity(0.5))
         }
         return AnyShapeStyle(.tint)
     }
@@ -147,7 +152,7 @@ struct CalendarDayCell: View {
                 Circle()
                     .fill(.tint)
             }
-            .offset(x: 6, y: -6)
+            .offset(x: 10 - Self.capsuleInset, y: -6)
     }
 }
 
