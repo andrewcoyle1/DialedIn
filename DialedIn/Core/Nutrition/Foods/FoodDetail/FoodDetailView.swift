@@ -37,16 +37,14 @@ struct FoodDetailView: View {
         .navigationSubtitle(delegate.food.description ?? "")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
-            presenter.onViewAppear()
+            presenter.onViewAppear(delegate: delegate)
         }
         .onDisappear {
             presenter.onViewDisappear()
         }
-        #if DEBUG || MOCK
         .toolbar {
             toolbarContent
         }
-        #endif
     }
 
     private func imageSection(url: String) -> some View {
@@ -186,9 +184,9 @@ struct FoodDetailView: View {
         }
     }
 
-#if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -196,8 +194,17 @@ struct FoodDetailView: View {
                 Image(systemName: "info")
             }
         }
+        #endif
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onFavouritePressed(delegate: delegate)
+            } label: {
+                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
+            }
+            .accessibilityLabel(presenter.isFavourited ? "Remove from favourites" : "Add to favourites")
+        }
     }
-#endif
 }
 
 extension CoreBuilder {

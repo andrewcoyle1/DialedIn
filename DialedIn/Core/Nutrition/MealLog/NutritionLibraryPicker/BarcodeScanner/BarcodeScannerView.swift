@@ -58,12 +58,51 @@ struct BarcodeScannerView: View {
             guard let code = newValue, presenter.scanningMode == .barcode else { return }
             presenter.onBarcodeDetected(code)
         }
+        .sheet(isPresented: $presenter.isEnteringManually) {
+            manualEntrySheet
+        }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
         .onDisappear {
             presenter.onViewDisappear(delegate: delegate)
         }
+    }
+
+    // MARK: - Manual entry
+
+    private var manualEntrySheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField(
+                        presenter.scanningMode == .barcode ? "Barcode number" : "Label text",
+                        text: $presenter.manualEntryText,
+                        axis: presenter.scanningMode == .barcode ? .horizontal : .vertical
+                    )
+                    .keyboardType(presenter.scanningMode == .barcode ? .numberPad : .default)
+                    .lineLimit(presenter.scanningMode == .barcode ? 1 : 10)
+                } footer: {
+                    Text(
+                        presenter.scanningMode == .barcode
+                        ? "Type the barcode digits printed under the bars."
+                        : "Type the nutrition table as it appears on the packaging."
+                    )
+                }
+            }
+            .navigationTitle(presenter.scanningMode == .barcode ? "Enter Barcode" : "Enter Label")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { presenter.isEnteringManually = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { presenter.onManualEntrySubmitted() }
+                        .disabled(presenter.manualEntryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 
     // MARK: - Top controls
@@ -81,16 +120,23 @@ struct BarcodeScannerView: View {
             Spacer()
 
             Button {
+                presenter.onManualEntryPressed()
             } label: {
                 Image(systemName: "keyboard")
                     .padding()
                     .background(.secondary, in: .circle)
             }
-            Button {
-            } label: {
-                Image(systemName: "flashlight.on.fill")
-                    .padding()
-                    .background(.secondary, in: .circle)
+            .accessibilityLabel("Enter manually")
+
+            if presenter.isTorchAvailable {
+                Button {
+                    presenter.onTorchPressed()
+                } label: {
+                    Image(systemName: presenter.isTorchOn ? "flashlight.on.fill" : "flashlight.off.fill")
+                        .padding()
+                        .background(.secondary, in: .circle)
+                }
+                .accessibilityLabel(presenter.isTorchOn ? "Turn off torch" : "Turn on torch")
             }
         }
         .padding()

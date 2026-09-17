@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import VisionKit
 
@@ -25,6 +26,17 @@ class BarcodeScannerPresenter {
     private(set) var isLookingUpBarcode: Bool = false
     private(set) var barcodeError: String?
 
+    // MARK: Manual entry
+    var isEnteringManually: Bool = false
+    var manualEntryText: String = ""
+    private(set) var isTorchOn: Bool = false
+
+    /// The scanner owns the capture session, so the torch is driven straight on the device rather
+    /// than through it. Simulators and iPads without a torch report no support and are left alone.
+    var isTorchAvailable: Bool {
+        AVCaptureDevice.default(for: .video)?.hasTorch ?? false
+    }
+
     init(interactor: BarcodeScannerInteractor, router: BarcodeScannerRouter) {
         self.interactor = interactor
         self.router = router
@@ -38,6 +50,42 @@ class BarcodeScannerPresenter {
     func onViewDisappear(delegate: BarcodeScannerDelegate) {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
         isScanning = false
+    }
+
+    func onTorchPressed() {
+        guard let device = AVCaptureDevice.default(for: .video), device.hasTorch else { return }
+        do {
+            try device.lockForConfiguration()
+            defer { device.unlockForConfiguration() }
+            let turnOn = !isTorchOn
+            device.torchMode = turnOn ? .on : .off
+            isTorchOn = turnOn
+        } catch {
+            interactor.trackEvent(event: Event.onTorchFail(error: error))
+        }
+    }
+
+    func onManualEntryPressed() {
+        // Typing a barcode or label is the fallback when the camera cannot read it, so prefill
+        // whatever it did manage to catch.
+        manualEntryText = scannedCode ?? ""
+        isEnteringManually = true
+    }
+
+    /// Feeds typed input down the same path the camera uses, so a manual barcode is looked up and
+    /// manual label text is parsed exactly as a scan would be.
+    func onManualEntrySubmitted() {
+        let text = manualEntryText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        isEnteringManually = false
+        scannedCode = text
+
+        switch scanningMode {
+        case .barcode:
+            onBarcodeDetected(text)
+        case .label:
+            Task { await onParseLabelPressed() }
+        }
     }
 
     // MARK: Label mode actions
@@ -132,6 +180,7 @@ extension BarcodeScannerPresenter {
         case onLabelError(message: String)
         case onBarcodeDetected(code: String)
         case onBarcodeError(message: String)
+        case onTorchFail(error: Error)
 
         var eventName: String {
             switch self {
@@ -142,6 +191,7 @@ extension BarcodeScannerPresenter {
             case .onLabelError:       return "BarcodeScanner_LabelError"
             case .onBarcodeDetected:  return "BarcodeScanner_BarcodeDetected"
             case .onBarcodeError:     return "BarcodeScanner_BarcodeError"
+            case .onTorchFail:        return "BarcodeScanner_TorchFail"
             }
         }
 
@@ -157,6 +207,8 @@ extension BarcodeScannerPresenter {
                 return ["code": code]
             case .onBarcodeError(let message):
                 return ["error": message]
+            case .onTorchFail(let error):
+                return error.eventParameters
             default:
                 return nil
             }
@@ -164,7 +216,7 @@ extension BarcodeScannerPresenter {
 
         var type: LogType {
             switch self {
-            case .onLabelError, .onBarcodeError: return .severe
+            case .onLabelError, .onBarcodeError, .onTorchFail: return .severe
             default:                              return .analytic
             }
         }

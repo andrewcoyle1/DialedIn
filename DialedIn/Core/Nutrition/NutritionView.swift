@@ -125,6 +125,13 @@ struct NutritionView<
                 presenter.deleteMealItem(item, from: meal)
             }
         }
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            Button {
+                presenter.onViewMealPressed(meal)
+            } label: {
+                Label("Meal", systemImage: "list.bullet.rectangle")
+            }
+        }
     }
     
     private var moreSection: some View {

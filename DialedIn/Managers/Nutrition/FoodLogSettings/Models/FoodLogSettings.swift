@@ -50,6 +50,12 @@ struct FoodLogSettings: DataSyncModelProtocol {
     // MARK: - Favourite Measurements
     var favouriteMeasurements: [String] = ["g", "oz", "ml", "cup", "serving"]
 
+    // MARK: - Favourites
+    /// Per-user favourites, as ids. `FoodModel.favouriteCount` is a community tally and says
+    /// nothing about whether *this* user favourited something.
+    var favouriteFoodIds: [String] = []
+    var favouriteRecipeIds: [String] = []
+
     // MARK: - Optimisation
     var quickAddEnabled: Bool = false
 
@@ -82,6 +88,8 @@ struct FoodLogSettings: DataSyncModelProtocol {
         case showCarbsRing = "show_carbs_ring"
         case autoSetCurrentTime = "auto_set_current_time"
         case favouriteMeasurements = "favourite_measurements"
+        case favouriteFoodIds = "favourite_food_ids"
+        case favouriteRecipeIds = "favourite_recipe_ids"
         case quickAddEnabled = "quick_add_enabled"
     }
 

@@ -31,6 +31,9 @@ struct RecipeDetailView: View {
         .toolbar {
             toolbarContent
         }
+        .onAppear {
+            presenter.onViewAppear(delegate: delegate)
+        }
     }
     
     private func imageSection(url: String) -> some View {
@@ -69,6 +72,15 @@ struct RecipeDetailView: View {
             }
         }
         #endif
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onFavouritePressed(delegate: delegate)
+            } label: {
+                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
+            }
+            .accessibilityLabel(presenter.isFavourited ? "Remove from favourites" : "Add to favourites")
+        }
 
         ToolbarItem(placement: .topBarTrailing) {
             Button {

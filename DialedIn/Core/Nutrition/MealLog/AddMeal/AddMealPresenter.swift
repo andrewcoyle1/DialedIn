@@ -143,6 +143,22 @@ class AddMealPresenter {
     var targetFat: Double { dailyTarget?.fatGrams ?? 65 }
 
     var calorieLabel: String { "\(Int(displayCalories))/\(Int(targetCalories))" }
+
+    /// Presents the time picker behind the toolbar's date readout.
+    var isEditingMealTime: Bool = false
+
+    /// `MealLogModel.date` and `dayKey` are both `let`, so moving a meal means rebuilding it. The
+    /// items come across untouched — this changes when the meal was eaten, not what was in it.
+    func updateMealTime(_ newDate: Date) {
+        mealLog = MealLogModel(
+            mealId: mealLog.mealId,
+            authorId: mealLog.authorId,
+            dayKey: newDate.dayKey,
+            date: newDate,
+            items: mealLog.items,
+            notes: mealLog.notes
+        )
+    }
     var scopeLabel: String { nutritionScope == .plate ? "in plate" : "today" }
 }
 

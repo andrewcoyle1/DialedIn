@@ -28,8 +28,26 @@ class FoodDetailPresenter {
         self.router = router
     }
         
-    func onViewAppear() {
+    func onViewAppear(delegate: FoodDetailDelegate) {
+        isFavourited = interactor.isFavouriteFood(id: delegate.food.id)
         interactor.trackScreenEvent(event: Event.onAppear)
+    }
+
+    /// Favourites are stored per user on the food log settings, which is what the library's
+    /// Favourites tab reads.
+    func onFavouritePressed(delegate: FoodDetailDelegate) {
+        let newValue = !isFavourited
+        isFavourited = newValue
+        interactor.trackEvent(event: Event.favouriteIngredientStart)
+        Task {
+            do {
+                try await interactor.setFavouriteFood(id: delegate.food.id, isFavourite: newValue)
+                interactor.trackEvent(event: Event.favouriteIngredientSuccess)
+            } catch {
+                isFavourited = !newValue
+                interactor.trackEvent(event: Event.favouriteIngredientFail(error: error))
+            }
+        }
     }
     
     func onViewDisappear() {

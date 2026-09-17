@@ -213,6 +213,10 @@ class NutritionPresenter {
         )
     }
     
+    func onViewMealPressed(_ meal: MealLogModel) {
+        router.showMealDetailView(delegate: MealDetailDelegate(meal: meal))
+    }
+
     func onTimelineActionsPressed() {
         router.showTimelineActionsView(delegate: TimelineActionsDelegate(date: selectedDate))
     }

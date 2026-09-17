@@ -32,6 +32,9 @@ struct AddMealView: View {
             CustomToggleView(symbolName: "carrot", title: "Show all nutrients", subtitle: nil, bool: $presenter.showAllNutrients)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $presenter.isEditingMealTime) {
+            mealTimeSheet
+        }
         .onAppear {
             presenter.onViewAppear()
         }
@@ -56,6 +59,32 @@ struct AddMealView: View {
             }
             .padding(.horizontal)
         }
+    }
+
+    private var mealTimeSheet: some View {
+        NavigationStack {
+            VStack {
+                DatePicker(
+                    "Logged at",
+                    selection: Binding(
+                        get: { presenter.mealLog.date },
+                        set: { presenter.updateMealTime($0) }
+                    ),
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+                .datePickerStyle(.graphical)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal)
+            .navigationTitle("Meal Time")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { presenter.isEditingMealTime = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 
     private var yourPlateSection: some View {
@@ -423,26 +452,25 @@ struct AddMealView: View {
         ToolbarSpacer(.flexible, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                
+                presenter.isEditingMealTime = true
             } label: {
                 VStack {
-                    Text(delegate.mealLog.date.formatted(date: .omitted, time: .shortened))
+                    Text(presenter.mealLog.date.formatted(date: .omitted, time: .shortened))
                         .font(.subheadline)
-                    Text(delegate.mealLog.date.formatted(date: .numeric, time: .omitted))
+                    Text(presenter.mealLog.date.formatted(date: .numeric, time: .omitted))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
+            .accessibilityLabel("Change meal time")
         }
         ToolbarSpacer(.flexible, placement: .topBarLeading)
 
+        // A readout, not an action — it was previously a Button that did nothing when tapped.
         ToolbarItem(placement: .topBarLeading) {
-            Button {
-
-            } label: {
-                Text(presenter.calorieLabel)
-                    .font(.subheadline)
-            }
+            Text(presenter.calorieLabel)
+                .font(.subheadline)
+                .accessibilityLabel("\(presenter.calorieLabel) calories \(presenter.scopeLabel)")
         }
         ToolbarItem(placement: .topBarTrailing) {
             HStack {
