@@ -12,6 +12,8 @@ class LicencesPresenter {
         self.router = router
     }
     
+    let groups = Licence.groupedByLicence
+
     func onViewAppear() {
         interactor.trackScreenEvent(event: Event.onAppear)
     }
