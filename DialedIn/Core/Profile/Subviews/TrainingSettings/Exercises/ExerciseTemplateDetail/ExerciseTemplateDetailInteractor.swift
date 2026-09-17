@@ -8,6 +8,7 @@
 @MainActor
 protocol ExerciseModelDetailInteractor {
     var currentUser: UserModel? { get }
+    var workoutSessions: [WorkoutSessionModel] { get }
     func getPreference(templateId: String) -> ExerciseUnitPreference
 }
 

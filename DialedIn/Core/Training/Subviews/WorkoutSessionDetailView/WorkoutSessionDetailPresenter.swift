@@ -102,6 +102,54 @@ class WorkoutSessionDetailPresenter {
         router.dismissScreen()
     }
 
+    // MARK: - Timing
+
+    /// Presents the start-time picker.
+    var isEditingStartTime: Bool = false
+    /// Presents the duration picker.
+    var isEditingDuration: Bool = false
+    var durationHours: Int = 1
+    var durationMinutes: Int = 0
+
+    func onEditStartTimePressed() {
+        isEditingStartTime = true
+    }
+
+    func onEditDurationPressed(session: WorkoutSessionModel) {
+        let duration = session.endedAt?.timeIntervalSince(session.dateCreated) ?? 0
+        durationHours = Int(duration) / 3600
+        durationMinutes = (Int(duration) % 3600) / 60
+        isEditingDuration = true
+    }
+
+    /// Both timing edits save straight away rather than joining the exercise-editing flow — the
+    /// user changed one field in a picker and expects it kept.
+    func onStartTimeChanged(_ date: Date, session: Binding<WorkoutSessionModel>) {
+        session.wrappedValue.updateStart(date)
+        persistTimingChange(session.wrappedValue)
+    }
+
+    func onDurationConfirmed(session: Binding<WorkoutSessionModel>) {
+        let seconds = TimeInterval(durationHours * 3600 + durationMinutes * 60)
+        isEditingDuration = false
+        guard seconds > 0 else { return }
+        session.wrappedValue.updateDuration(seconds)
+        persistTimingChange(session.wrappedValue)
+    }
+
+    private func persistTimingChange(_ session: WorkoutSessionModel) {
+        Task {
+            do {
+                try await interactor.saveWorkoutSession(session)
+            } catch {
+                router.showSimpleAlert(
+                    title: "Save Failed",
+                    subtitle: "Unable to save the change. Please try again."
+                )
+            }
+        }
+    }
+
     func saveChanges(initialSession: WorkoutSessionModel, session: Binding<WorkoutSessionModel>) async {
         router.showLoadingModal()
         isSaving = true

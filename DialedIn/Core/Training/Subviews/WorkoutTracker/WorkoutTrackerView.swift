@@ -211,11 +211,8 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
-                Button {
-
-                } label: {
-                    Label("Resume Workout", systemImage: "play")
-                }
+                // No "Resume Workout": the tracker has no paused state to resume from, so the
+                // item did nothing. Reinstate it alongside a real pause.
                 Button {
                     presenter.minimizeSession()
                 } label: {

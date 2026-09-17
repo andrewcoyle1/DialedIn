@@ -13,7 +13,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     var name: String
     let workoutTemplateId: String?
     let trainingProgramId: String?
-    let dateCreated: Date
+    private(set) var dateCreated: Date
     private(set) var dateModified: Date
     private(set) var endedAt: Date?
     var notes: String?
@@ -257,6 +257,25 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     mutating func endSession(at date: Date) {
         self.endedAt = date
         self.dateModified = date
+    }
+
+    /// Moves a completed session to a different start time, keeping however long it took. Editing
+    /// when a workout happened should not silently change how long it lasted.
+    mutating func updateStart(_ date: Date) {
+        let duration = endedAt?.timeIntervalSince(dateCreated)
+        dateCreated = date
+        if let duration {
+            endedAt = date.addingTimeInterval(duration)
+        }
+        dateModified = Date()
+    }
+
+    /// Sets how long the session lasted, measured from its start. A non-positive duration would
+    /// put the end before the beginning, so it is refused.
+    mutating func updateDuration(_ seconds: TimeInterval) {
+        guard seconds > 0 else { return }
+        endedAt = dateCreated.addingTimeInterval(seconds)
+        dateModified = Date()
     }
     
     /// Estimates working weight and reps from previous workout sets

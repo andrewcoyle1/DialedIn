@@ -48,9 +48,78 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         .toolbar {
             toolbarContent
         }
+        .sheet(isPresented: $presenter.isEditingStartTime) {
+            startTimeSheet
+        }
+        .sheet(isPresented: $presenter.isEditingDuration) {
+            durationSheet
+        }
         .onAppear {
             presenter.loadUnitPreferences(for: session)
         }
+    }
+
+    private var startTimeSheet: some View {
+        NavigationStack {
+            VStack {
+                DatePicker(
+                    "Started at",
+                    selection: Binding(
+                        get: { session.dateCreated },
+                        set: { presenter.onStartTimeChanged($0, session: $session) }
+                    ),
+                    in: ...Date(),
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+                .datePickerStyle(.graphical)
+                Text("The workout keeps its duration; only when it started changes.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal)
+            .navigationTitle("Start Time")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { presenter.isEditingStartTime = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private var durationSheet: some View {
+        NavigationStack {
+            HStack {
+                Picker("Hours", selection: $presenter.durationHours) {
+                    ForEach(0..<13, id: \.self) { hour in
+                        Text("\(hour) hr").tag(hour)
+                    }
+                }
+                .pickerStyle(.wheel)
+
+                Picker("Minutes", selection: $presenter.durationMinutes) {
+                    ForEach(0..<60, id: \.self) { minute in
+                        Text("\(minute) min").tag(minute)
+                    }
+                }
+                .pickerStyle(.wheel)
+            }
+            .padding(.horizontal)
+            .navigationTitle("Duration")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { presenter.isEditingDuration = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { presenter.onDurationConfirmed(session: $session) }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
     
     private var authorHeaderSection: some View {
@@ -75,7 +144,7 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
                     .padding(8)
                     .background(Color.secondary.opacity(0.2), in: .capsule)
                     .anyButton(.press) {
-
+                        presenter.onEditStartTimePressed()
                     }
             }
             if let duration = session.endedAt?.timeIntervalSince(session.dateCreated) {
@@ -89,7 +158,7 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
                         .padding(8)
                         .background(Color.secondary.opacity(0.2), in: .capsule)
                         .anyButton(.press) {
-
+                            presenter.onEditDurationPressed(session: session)
                         }
                 }
             }

@@ -76,24 +76,11 @@ struct ExerciseSettingsView: View {
                     }
                     .buttonStyle(.bordered)
                 }
-                CustomToggleView(
-                    symbolName: "nosign",
-                    title: "Do Not Recommend",
-                    subtitle: "Exclude from automatic program suggestions",
-                    bool: .constant(false)
-                )
-                .disabled(true)
-                CustomLabelButtonView(
-                    symbolName: "book.pages",
-                    title: "Edit Duplicate",
-                    subtitle: "To edit all available exercise properties, create a duplicate."
-                ) {
-                    Button {
-
-                    } label: {
-                        Image(systemName: "chevron.right")
-                    }
-                }
+                // Two rows removed rather than left inert:
+                // - "Do Not Recommend" was a disabled toggle bound to .constant(false), and there
+                //   is no program-suggestion engine for it to exclude an exercise from.
+                // - "Edit Duplicate" needs CreateExercise to accept a prefill; showCreateExerciseView
+                //   takes no delegate today, so routing there would open an empty form, not a copy.
             } header: {
                 Text(delegate.exercise.name)
             }

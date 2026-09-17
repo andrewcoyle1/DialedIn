@@ -33,6 +33,9 @@ struct ExerciseModelDetailView: View {
         .toolbar {
             toolbarContent
         }
+        .onAppear {
+            presenter.onViewAppear(delegate: delegate)
+        }
     }
     
     private var aboutSection: some View {
@@ -59,11 +62,40 @@ struct ExerciseModelDetailView: View {
         }
     }
     
+    @ViewBuilder
     private var historySection: some View {
-        Section(header: Text("History")) {
-            Text("History coming soon.")
-                .foregroundColor(.secondary)
+        if presenter.stats.isEmpty {
+            Section(header: Text("History")) {
+                Text("You have not logged this exercise yet.")
+                    .foregroundColor(.secondary)
+            }
+        } else {
+            Section(header: Text("History")) {
+                ForEach(presenter.stats.mostRecentFirst) { performance in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(performance.workoutName)
+                                .font(.subheadline.weight(.medium))
+                            Spacer(minLength: 0)
+                            Text(performance.date.formatted(date: .abbreviated, time: .omitted))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Text(historyDetail(performance))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
         }
+    }
+
+    private func historyDetail(_ performance: ExerciseModelDetailStats.Performance) -> String {
+        let sets = "\(performance.workingSets) × sets"
+        let reps = "\(performance.totalReps) reps"
+        let top = presenter.formattedWeight(performance.heaviestWeightKg)
+        return "\(sets) · \(reps) · top \(top)"
     }
     
     private var pickerSection: some View {
@@ -110,17 +142,29 @@ private extension ExerciseModelDetailView {
         }
     }
 
+    @ViewBuilder
     var weightProgressChart: some View {
-        Section(header: Text("Weight Progress Chart")) {
-            Text("Charts coming soon.")
-                .foregroundColor(.secondary)
+        Section(header: Text("Top Set")) {
+            if presenter.stats.isEmpty {
+                Text("You have not logged this exercise yet.")
+                    .foregroundColor(.secondary)
+            } else {
+                NewHistoryChart(series: presenter.weightSeries, yAxisSuffix: "kg")
+                    .frame(height: 220)
+            }
         }
     }
 
+    @ViewBuilder
     var repsProgressChart: some View {
-        Section(header: Text("Reps Progress Chart")) {
-            Text("Charts coming soon.")
-                .foregroundColor(.secondary)
+        Section(header: Text("Reps Per Session")) {
+            if presenter.stats.isEmpty {
+                Text("You have not logged this exercise yet.")
+                    .foregroundColor(.secondary)
+            } else {
+                NewHistoryChart(series: presenter.repsSeries, chartType: .bar)
+                    .frame(height: 220)
+            }
         }
     }
 
@@ -132,42 +176,64 @@ private extension ExerciseModelDetailView {
         }
     }
 
+    @ViewBuilder
     var personalBestSubSection: some View {
         Section {
-            HStack {
-                VStack {
-                    Text("100 kg x 5 reps")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                    HStack {
-                        Image(systemName: "trophy.fill")
-                            .foregroundColor(.yellow)
-                        Text("Achieved on 2024-05-12")
+            if let achieved = presenter.stats.heaviestSetDate, presenter.stats.heaviestSetKg > 0 {
+                HStack {
+                    VStack {
+                        Text("\(presenter.formattedWeight(presenter.stats.heaviestSetKg)) x \(presenter.stats.repsAtHeaviestSet) reps")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        HStack {
+                            Image(systemName: "trophy.fill")
+                                .foregroundColor(.yellow)
+                            Text("Achieved on \(achieved.formatted(date: .abbreviated, time: .omitted))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    Spacer()
+                    VStack {
+                        Text("1RM")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                        Text(presenter.formattedWeight(presenter.stats.bestOneRMKg))
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.blue)
                     }
                 }
-                Spacer()
-                VStack {
-                    Text("1RM")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text("112 kg")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.blue)
-                }
+            } else {
+                Text("No working sets logged yet.")
+                    .foregroundColor(.secondary)
             }
         } header: {
             Text("Personal Best")
         }
     }
 
+    /// The sessions where the estimated 1-RM beat everything before it — the points at which this
+    /// exercise actually moved forward.
+    @ViewBuilder
     var recentRecordsSubSection: some View {
         Section {
-            Text("Records coming soon.")
-                .foregroundColor(.secondary)
+            let records = presenter.oneRMRecords
+            if records.isEmpty {
+                Text("No records yet.")
+                    .foregroundColor(.secondary)
+            } else {
+                ForEach(records) { record in
+                    HStack {
+                        Text(record.date.formatted(date: .abbreviated, time: .omitted))
+                            .font(.subheadline)
+                        Spacer(minLength: 0)
+                        Text(presenter.formattedWeight(record.bestOneRMKg))
+                            .font(.subheadline.weight(.medium))
+                    }
+                }
+            }
         } header: {
             Text("Recent Records")
         }
@@ -180,7 +246,7 @@ private extension ExerciseModelDetailView {
                     Text("Total Sets")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text("124")
+                    Text("\(presenter.stats.totalSets)")
                         .font(.title3)
                         .fontWeight(.semibold)
                 }
@@ -188,7 +254,7 @@ private extension ExerciseModelDetailView {
                     Text("Total Reps")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text("812")
+                    Text("\(presenter.stats.totalReps)")
                         .font(.title3)
                         .fontWeight(.semibold)
                 }
@@ -196,7 +262,7 @@ private extension ExerciseModelDetailView {
                     Text("Total Volume")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text("72,500 kg")
+                    Text(presenter.formattedVolume(presenter.stats.totalVolumeKg))
                         .font(.title3)
                         .fontWeight(.semibold)
                 }
