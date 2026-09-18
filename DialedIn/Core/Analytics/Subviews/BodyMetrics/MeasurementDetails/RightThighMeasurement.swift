@@ -77,9 +77,9 @@ final class RightThighMeasurementPresenter: @MainActor MetricDetailPresenter {
         self.router = router
     }
     
-    func onAppear() async {
-        // No-op
-    }
+    /// Nothing to load: unlike its siblings, `entries` is computed from `interactor.bodyMeasurements`
+    /// on every read rather than cached, so it is already current.
+    func onAppear() async { }
 
     func onAddPressed() {
         router.showLogRightThighMeasurementView()

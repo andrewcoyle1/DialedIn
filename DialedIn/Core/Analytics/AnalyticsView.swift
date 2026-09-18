@@ -70,12 +70,6 @@ struct AnalyticsView<NutritionChart: View>: View {
         .onNotificationReceived(name: Constants.remoteDataSyncDidComplete) { _ in
             Task { await presenter.onFirstTask() }
         }
-        .onOpenURL { url in
-            presenter.handleDeepLink(url: url)
-        }
-        .onNotificationReceived(name: .pushNotification) { notification in
-            presenter.handlePushNotificationRecieved(notification: notification)
-        }
     }
     
     private var headerSection: some View {
@@ -83,7 +77,7 @@ struct AnalyticsView<NutritionChart: View>: View {
             ScrollView(.horizontal) {
                 HStack(spacing: headerCardSpacing) {
                     nutritionTargetSection
-                    contributionChartSection
+//                    contributionChartSection
                 }
                 .scrollTargetLayout()
             }

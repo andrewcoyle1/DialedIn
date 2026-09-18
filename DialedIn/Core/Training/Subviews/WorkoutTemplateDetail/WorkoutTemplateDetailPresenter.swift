@@ -185,6 +185,13 @@ class WorkoutTemplateDetailPresenter {
     }
     #endif
 
+    /// The call behind every exercise row was commented out, so the rows highlighted on press and
+    /// then did nothing. Opens the exercise's own detail — history, charts and records.
+    func onExercisePressed(_ exercise: ExerciseModel) {
+        interactor.trackEvent(eventName: "WorkoutTemplateDetailView_Exercise_Press", parameters: ["exercise_id": exercise.id], type: .analytic)
+        router.showExerciseModelDetailView(delegate: ExerciseModelDetailDelegate(exerciseModel: exercise))
+    }
+
     func onDismissPressed() {
         router.dismissScreen()
     }

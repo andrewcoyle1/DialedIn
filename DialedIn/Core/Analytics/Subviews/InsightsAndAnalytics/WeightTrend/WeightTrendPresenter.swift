@@ -95,8 +95,10 @@ extension WeightTrendPresenter: @MainActor MetricDetailPresenter {
         )
     }
 
+    /// Was a no-op. `rebuildCaches()` runs in `init`, so the screen had data — but it never picked
+    /// up a weight logged through its own "Add" button, which routes to LogWeight and comes back.
     func onAppear() async {
-        // No-op
+        rebuildCaches()
     }
 
     func onAddPressed() {

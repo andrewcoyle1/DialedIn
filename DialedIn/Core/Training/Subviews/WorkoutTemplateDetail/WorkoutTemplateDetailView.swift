@@ -172,7 +172,7 @@ struct WorkoutTemplateDetailView: View {
                     }
                 }
                 .anyButton(.highlight) {
-//                    presenter.onExercisePressed(exercise: exercise)
+                    presenter.onExercisePressed(exercise.exercise)
                 }
             }
         } header: {

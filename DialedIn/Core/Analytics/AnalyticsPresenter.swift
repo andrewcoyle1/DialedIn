@@ -107,42 +107,10 @@ class AnalyticsPresenter {
         await loadStepsData()
     }
     
-    func handleDeepLink(url: URL) {
-        interactor.trackEvent(event: Event.deepLinkStart)
-
-        guard
-            let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-            let queryItems = components.queryItems,
-            !queryItems.isEmpty else {
-            interactor.trackEvent(event: Event.deepLinkNoQueryItems)
-            return
-        }
-        
-        interactor.trackEvent(event: Event.deepLinkSuccess)
-        
-        for queryItem in queryItems {
-            if let value = queryItem.value, !value.isEmpty {
-                // Do something with value
-            }
-        }
-    }
-
-    func handlePushNotificationRecieved(notification: Notification) {
-        interactor.trackEvent(event: Event.pushNotifStart)
-        
-        guard
-            let userInfo = notification.userInfo,
-            !userInfo.isEmpty else {
-            interactor.trackEvent(event: Event.pushNotifNoData)
-            return
-        }
-        
-        interactor.trackEvent(event: Event.pushNotifSuccess)
-        
-        for (_, _) in userInfo {
-            // Do something with (key, value)
-        }
-    }
+    // `handleDeepLink(url:)` and `handlePushNotificationRecieved(notification:)` were here. Both
+    // parsed their input into a loop whose body was a comment — "Do something with value" — fired
+    // analytics, and navigated nowhere. Both now live on `TabBarPresenter`, which is the only place
+    // in the app that can actually change what is on screen; see `DeepLink`.
 
     func onDevSettingsPressed() {
         #if MOCK || DEV
@@ -452,12 +420,6 @@ class AnalyticsPresenter {
         case onAppear(delegate: AnalyticsDelegate)
         case onDisappear(delegate: AnalyticsDelegate)
         case onNotificationsPressed
-        case deepLinkStart
-        case deepLinkNoQueryItems
-        case deepLinkSuccess
-        case pushNotifStart
-        case pushNotifNoData
-        case pushNotifSuccess
         case onDevSettings
         case onDevSettingsFail
 
@@ -466,12 +428,6 @@ class AnalyticsPresenter {
             case .onAppear:                 return "AnalyticsView_Appear"
             case .onDisappear:              return "AnalyticsView_Disappear"
             case .onNotificationsPressed:   return "AnalyticsView_NotificationsPressed"
-            case .deepLinkStart:            return "AnalyticsView_DeepLink_Start"
-            case .deepLinkNoQueryItems:     return "AnalyticsView_DeepLink_NoItems"
-            case .deepLinkSuccess:          return "AnalyticsView_DeepLink_Success"
-            case .pushNotifStart:           return "AnalyticsView_PushNotif_Start"
-            case .pushNotifNoData:          return "AnalyticsView_PushNotif_NoItems"
-            case .pushNotifSuccess:         return "AnalyticsView_PushNotif_Success"
             case .onDevSettings:            return "AnalyticsView_DevSettings"
             case .onDevSettingsFail:        return "AnalyticsView_DevSettings_Fail"
 

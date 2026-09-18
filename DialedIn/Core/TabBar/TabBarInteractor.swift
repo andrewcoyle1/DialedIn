@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol TabBarInteractor {
+protocol TabBarInteractor: GlobalInteractor {
     var activeSession: WorkoutSessionModel? { get }
     var draftMeal: MealLogModel? { get }
 }
