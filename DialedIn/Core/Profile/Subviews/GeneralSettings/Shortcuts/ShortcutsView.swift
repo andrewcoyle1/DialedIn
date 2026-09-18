@@ -27,9 +27,9 @@ struct ShortcutsView: View {
                 Text("On the Add Tab")
             } footer: {
                 if presenter.hasOddCount {
-                    Text("Drag to reorder, swipe to remove. An odd number leaves a gap in the two-column grid.")
+                    Text("Tap Edit to reorder or remove. An odd number leaves a gap in the two-column grid.")
                 } else {
-                    Text("Drag to reorder, swipe to remove.")
+                    Text("Tap Edit to reorder or remove.")
                 }
             }
 
@@ -57,8 +57,13 @@ struct ShortcutsView: View {
         }
         .navigationTitle("Shortcuts")
         .navigationBarTitleDisplayMode(.inline)
-        // Reordering needs edit mode to be available; the rows stay tappable either way.
-        .environment(\.editMode, .constant(.active))
+        // An EditButton rather than a forced `editMode`: in edit mode a `Button` row can stop
+        // responding to taps, which would break the Available section below.
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                EditButton()
+            }
+        }
         .onAppear {
             presenter.onViewAppear()
         }
