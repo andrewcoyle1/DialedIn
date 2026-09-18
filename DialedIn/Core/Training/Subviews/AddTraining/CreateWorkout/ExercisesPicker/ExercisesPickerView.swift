@@ -41,9 +41,6 @@ struct ExercisesPickerView<ExerciseList: View>: View {
                 }
 
             }
-            .onDisappear {
-                
-            }
     }
 }
 

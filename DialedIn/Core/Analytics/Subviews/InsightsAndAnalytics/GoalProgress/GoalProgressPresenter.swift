@@ -25,10 +25,6 @@ class GoalProgressPresenter {
         self.router = router
     }
 
-    func loadData() {
-        rebuildCaches()
-    }
-
     func onDismissPressed() {
         router.dismissScreen()
     }
@@ -74,8 +70,11 @@ class GoalProgressPresenter {
 
 extension GoalProgressPresenter: @MainActor MetricDetailPresenter {
     
+    /// `MetricDetailView` calls this, and it was empty. `rebuildCaches()` had one caller, a
+    /// `loadData()` with no call sites of its own, so nothing ever populated `cachedEntries` and the
+    /// screen came up empty however much weight history existed. `loadData()` is gone with the gap.
     func onAppear() async {
-        
+        rebuildCaches()
     }
     
     typealias Entry = GoalProgressEntry
