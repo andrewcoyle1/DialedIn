@@ -9,6 +9,8 @@ import Foundation
 
 @MainActor
 protocol AnalyticsInteractor: GlobalInteractor {
+    /// Which sections the tab shows — see `CustomiseAnalyticsView`.
+    var analyticsSettings: AnalyticsSettings { get }
     var userImageUrl: String? { get }
     var activeTests: ActiveABTests { get }
     var userId: String? { get }

@@ -438,6 +438,12 @@ class AnalyticsPresenter {
         "kcal"
     }
     
+    /// Honours the Customise Analytics screen. Reads the settings document directly rather than
+    /// snapshotting it, so hiding a section on that screen updates this one behind it.
+    func isVisible(_ section: AnalyticsSection) -> Bool {
+        interactor.analyticsSettings.isVisible(section)
+    }
+
     func onCustomiseAnalyticsPressed() {
         router.showCustomiseAnalyticsView(delegate: CustomiseAnalyticsDelegate())
     }

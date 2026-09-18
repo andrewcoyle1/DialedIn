@@ -35,6 +35,7 @@ struct Dependencies {
         let workoutSettingsManager: WorkoutSettingsManager
         let foodLogSettingsManager: FoodLogSettingsManager
         let nutritionStrategySettingsManager: NutritionStrategySettingsManager
+        let analyticsSettingsManager: AnalyticsSettingsManager
         let exerciseSettingsManager: ExerciseSettingsManager
         let workoutTemplateManager: WorkoutTemplateManager
         let workoutSessionManager: WorkoutSessionManager
@@ -157,6 +158,13 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionStrategySettingsManager = NutritionStrategySettingsManager(settingsSyncEngine: nutritionStrategySyncEngine)
+            let analyticsSettingsSyncEngine = DocumentSyncEngine<AnalyticsSettings>(
+                remote: MockRemoteDocumentService(document: AnalyticsSettings.mock),
+                managerKey: Keys.analyticsSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            analyticsSettingsManager = AnalyticsSettingsManager(settingsSyncEngine: analyticsSettingsSyncEngine)
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
                 remote: MockRemoteCollectionService(collection: WorkoutTemplateModel.userMocks),
                 managerKey: Keys.workoutTemplateManagerKey,
@@ -358,6 +366,18 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionStrategySettingsManager = NutritionStrategySettingsManager(settingsSyncEngine: nutritionStrategySyncEngineDev)
+            let analyticsSettingsSyncEngineDev = DocumentSyncEngine<AnalyticsSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/analytics_settings"
+                    }
+                ),
+                managerKey: Keys.analyticsSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            analyticsSettingsManager = AnalyticsSettingsManager(settingsSyncEngine: analyticsSettingsSyncEngineDev)
 
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
                 remote: FirebaseRemoteCollectionService(
@@ -606,6 +626,18 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionStrategySettingsManager = NutritionStrategySettingsManager(settingsSyncEngine: nutritionStrategySyncEngineProd)
+            let analyticsSettingsSyncEngineProd = DocumentSyncEngine<AnalyticsSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/analytics_settings"
+                    }
+                ),
+                managerKey: Keys.analyticsSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            analyticsSettingsManager = AnalyticsSettingsManager(settingsSyncEngine: analyticsSettingsSyncEngineProd)
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: {[weak authManager] in
@@ -787,6 +819,7 @@ struct Dependencies {
         container.register(WorkoutSettingsManager.self, service: workoutSettingsManager)
         container.register(FoodLogSettingsManager.self, service: foodLogSettingsManager)
         container.register(NutritionStrategySettingsManager.self, service: nutritionStrategySettingsManager)
+        container.register(AnalyticsSettingsManager.self, service: analyticsSettingsManager)
         container.register(ExerciseSettingsManager.self, service: exerciseSettingsManager)
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)

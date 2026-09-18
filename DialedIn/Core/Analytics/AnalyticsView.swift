@@ -32,12 +32,15 @@ struct AnalyticsView<NutritionChart: View>: View {
         List {
             Group {
                 headerSection
-                insightsAndAnalyticsSection
-                habitsSection
-                nutritionSection
-                bodyMetricsSection
-                muscleGroupsSection
-                exercisesSection
+                // Which of these appear is the Customise Analytics screen's business. The header and
+                // the More list below are not hideable: one is the summary, the other is how you
+                // reach everything that has been hidden.
+                if presenter.isVisible(.insightsAndAnalytics) { insightsAndAnalyticsSection }
+                if presenter.isVisible(.habits) { habitsSection }
+                if presenter.isVisible(.nutrition) { nutritionSection }
+                if presenter.isVisible(.bodyMetrics) { bodyMetricsSection }
+                if presenter.isVisible(.muscleGroups) { muscleGroupsSection }
+                if presenter.isVisible(.exercises) { exercisesSection }
                 generalSection
             }
             .listSectionMargins(.horizontal, 0)

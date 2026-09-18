@@ -11,7 +11,26 @@ struct CustomiseAnalyticsView: View {
     
     var body: some View {
         List {
-            Text("Hello, World!")
+            Section {
+                ForEach(presenter.sections) { section in
+                    Toggle(isOn: visibility(for: section)) {
+                        Label(section.title, systemImage: section.systemImage)
+                    }
+                    .disabled(!presenter.canHide(section))
+                }
+            } header: {
+                Text("Sections")
+            } footer: {
+                Text("Turn a section off to hide it from the Analytics tab. Everything stays reachable from the More list at the bottom of the tab.")
+            }
+
+            if presenter.hiddenCount > 0 {
+                Section {
+                    Button("Show All Sections") {
+                        presenter.onShowAllPressed()
+                    }
+                }
+            }
         }
         .navigationTitle("Customise Analytics")
         .onAppear {
@@ -21,13 +40,17 @@ struct CustomiseAnalyticsView: View {
             presenter.onViewDisappear()
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(role: .confirm) {
-                    
-                }
-            }
-        }
+        // No confirm button: each toggle saves as it changes, the same as every other settings screen
+        // here. The one that used to sit in this toolbar had an empty action.
+    }
+
+    /// The toggle reads and writes through the presenter rather than binding to the model, so the
+    /// save fires on every change.
+    private func visibility(for section: AnalyticsSection) -> Binding<Bool> {
+        Binding(
+            get: { presenter.isVisible(section) },
+            set: { presenter.setVisible($0, for: section) }
+        )
     }
 }
 

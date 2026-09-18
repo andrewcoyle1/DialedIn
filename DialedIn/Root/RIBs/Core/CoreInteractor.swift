@@ -26,6 +26,7 @@ struct CoreInteractor: GlobalInteractor {
     let workoutSettingsManager: WorkoutSettingsManager
     let foodLogSettingsManager: FoodLogSettingsManager
     let nutritionStrategySettingsManager: NutritionStrategySettingsManager
+    let analyticsSettingsManager: AnalyticsSettingsManager
     let exerciseSettingsManager: ExerciseSettingsManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
@@ -67,6 +68,7 @@ struct CoreInteractor: GlobalInteractor {
         self.workoutSettingsManager = container.resolve(WorkoutSettingsManager.self)!
         self.foodLogSettingsManager = container.resolve(FoodLogSettingsManager.self)!
         self.nutritionStrategySettingsManager = container.resolve(NutritionStrategySettingsManager.self)!
+        self.analyticsSettingsManager = container.resolve(AnalyticsSettingsManager.self)!
         self.exerciseSettingsManager = container.resolve(ExerciseSettingsManager.self)!
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
@@ -102,11 +104,18 @@ struct CoreInteractor: GlobalInteractor {
 
     // MARK: Shared
     
+    // One concurrent fan-out over every manager's sign-in. `async let` bindings have to be awaited
+    // in the scope that declares them, so splitting this in two would mean either serialising the
+    // sign-ins or threading twenty task handles through a carrier type — the same trade-off that
+    // exempts `Dependencies.init`. Adding a manager adds two lines here, which is the cost of the
+    // concurrency.
+    // swiftlint:disable:next function_body_length
     func logIn(user: UserAuthInfo, isNewUser: Bool) async throws {
         try await userManager.signIn(auth: user, isNewUser: isNewUser)
         async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: user.uid)
         async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: user.uid)
         async let nutritionStrategySignIn: () = nutritionStrategySettingsManager.signIn(userId: user.uid)
+        async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: user.uid)
         async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: user.uid)
         async let stepsSignIn: () = stepsManager.signIn()
         async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
@@ -127,6 +136,7 @@ struct CoreInteractor: GlobalInteractor {
         try await workoutSettingsSignIn
         try await foodLogSettingsSignIn
         try await nutritionStrategySignIn
+        try await analyticsSettingsSignIn
         await exerciseSettingsSignIn
         await trainingProgramSignIn
         try await nutritionSignIn
@@ -175,6 +185,7 @@ struct CoreInteractor: GlobalInteractor {
         workoutSettingsManager.signOut()
         foodLogSettingsManager.signOut()
         nutritionStrategySettingsManager.signOut()
+        analyticsSettingsManager.signOut()
         exerciseSettingsManager.signOut()
         recipeTemplateManager.signOut()
         foodManager.signOut()
