@@ -10,27 +10,22 @@ class ExerciseListBuilderPresenter {
     private(set) var isLoading: Bool = false
     private(set) var searchExerciseTask: Task<Void, Never>?
     
+    /// The filter bar's state. Every list below runs through it, so a filter set with no search
+    /// text narrows the browse sections too — not only the search results.
+    var filters = ExerciseFilters()
+
     var userExercises: [ExerciseModel] {
-        interactor.userExercises
-            .sortedByKeyPath(keyPath: \.name, ascending: true)
+        matching(interactor.userExercises)
     }
-    
+
     var systemExercises: [ExerciseModel] {
-        interactor.systemExercises
-            .sortedByKeyPath(keyPath: \.name, ascending: true)
+        matching(interactor.systemExercises)
     }
-    
+
     var filteredExercises: [ExerciseModel] {
-        interactor.allExercises
-            .filter {
-                $0.name.lowercased().contains(searchText.lowercased()) ||
-                $0.description?.lowercased().contains(searchText.lowercased()) == true ||
-                $0.muscleGroups.contains(where: { $0.key.rawValue.lowercased().contains(searchText.lowercased()) }) ||
-                $0.alternateNames.contains(where: { $0.lowercased().contains(searchText.lowercased()) })
-            }
-            .sortedByKeyPath(keyPath: \.name, ascending: true)
+        matching(filterBySearchText(interactor.allExercises))
     }
-    
+
     var searchText: String = ""
     var selectedWorkoutTemplate: WorkoutTemplateModel?
     var selectedExerciseModel: ExerciseModel?
@@ -60,18 +55,67 @@ class ExerciseListBuilderPresenter {
         interactor.trackEvent(event: Event.onDisappear)
     }
 
+    // MARK: - Filtering
+
+    var gymProfiles: [GymProfileModel] {
+        interactor.gymProfiles.filter { $0.deletedAt == nil }
+    }
+
+    /// The chosen gym's *active* equipment. A profile lists every equipment type with an on/off
+    /// flag, so the inactive ones are exactly the things that gym does not have.
+    private var availableEquipment: Set<EquipmentRef> {
+        guard
+            let gymProfileId = filters.gymProfileId,
+            let profile = gymProfiles.first(where: { $0.id == gymProfileId })
+        else {
+            return []
+        }
+        return Set(profile.allEquipment.filter(\.isActive).map(\.ref))
+    }
+
+    private func matching(_ exercises: [ExerciseModel]) -> [ExerciseModel] {
+        let equipment = availableEquipment
+        return exercises
+            .filter { filters.matches($0, availableEquipment: equipment) }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
+    }
+
     private func filterBySearchText(_ exercises: [ExerciseModel]) -> [ExerciseModel] {
         guard !normalizedSearchText.isEmpty else { return exercises }
         return exercises.filter { matchesSearchText($0, normalizedQuery: normalizedSearchText) }
     }
 
+    /// Muscle group names are searchable too: "quads" should find a squat even though the word is
+    /// in neither the name nor the description.
     private func matchesSearchText(_ exercise: ExerciseModel, normalizedQuery: String) -> Bool {
         if exercise.name.lowercased().contains(normalizedQuery) { return true }
         if let description = exercise.description?.lowercased(), description.contains(normalizedQuery) { return true }
         if exercise.alternateNames.contains(where: { $0.lowercased().contains(normalizedQuery) }) { return true }
+        if exercise.muscleGroups.keys.contains(where: { $0.rawValue.lowercased().contains(normalizedQuery) }) { return true }
         return false
     }
-    
+
+    /// The name shown on the "Gym" chip.
+    var gymFilterLabel: String {
+        guard
+            let gymProfileId = filters.gymProfileId,
+            let profile = gymProfiles.first(where: { $0.id == gymProfileId })
+        else {
+            return "Gym"
+        }
+        return profile.name
+    }
+
+    func onResetFiltersPressed() {
+        guard filters.isActive else { return }
+        interactor.trackEvent(event: Event.filtersReset)
+        filters.reset()
+    }
+
+    func onFilterChanged(_ name: String) {
+        interactor.trackEvent(event: Event.filterChanged(name: name))
+    }
+
     func onAddExercisePressed() {
         interactor.trackEvent(event: Event.onAddExercisePressed)
         router.showCreateExerciseView()
@@ -112,6 +156,8 @@ class ExerciseListBuilderPresenter {
         case onExercisePressedFromBookmarked
         case onExercisePressedFromTrending
         case onExercisePressedFromMyTemplates
+        case filtersReset
+        case filterChanged(name: String)
 
         var eventName: String {
             switch self {
@@ -149,6 +195,8 @@ class ExerciseListBuilderPresenter {
             case .onExercisePressedFromBookmarked:      return "ExercisesView_ExercisePressed_Bookmarked"
             case .onExercisePressedFromTrending:        return "ExercisesView_ExercisePressed_Trending"
             case .onExercisePressedFromMyTemplates:     return "ExercisesView_ExercisePressed_MyTemplates"
+            case .filtersReset:                         return "ExercisesView_Filters_Reset"
+            case .filterChanged:                        return "ExercisesView_Filter_Changed"
             }
         }
 
@@ -166,6 +214,8 @@ class ExerciseListBuilderPresenter {
                 return ["count": count]
             case .syncExercisesFromCurrentUserSuccess(favouriteCount: let favCount, bookmarkedCount: let bookCount):
                 return ["favouriteCount": favCount, "bookmarkedCount": bookCount]
+            case .filterChanged(name: let name):
+                return ["filter": name]
             case .favouritesSectionViewed(count: let count):
                 return ["count": count]
             case .bookmarkedSectionViewed(count: let count):
