@@ -57,46 +57,27 @@ struct SearchView: View {
         .scrollIndicators(.hidden)
     }
 
+    /// Driven by the Shortcuts screen. Four hardcoded buttons before that screen existed.
     @ViewBuilder
     private var quickActionsGridSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                QuickActionButton(
-                    title: "Start Workout",
-                    systemImage: "play.circle.fill"
-                )
-                .anyButton {
-                    presenter.onStartWorkoutPressed()
+        if !presenter.quickActions.isEmpty {
+            Section {
+                LazyVGrid(columns: [GridItem(), GridItem()]) {
+                    ForEach(presenter.quickActions) { action in
+                        QuickActionButton(
+                            title: action.title,
+                            systemImage: action.systemImage
+                        )
+                        .anyButton {
+                            presenter.onQuickActionPressed(action)
+                        }
+                    }
                 }
-                
-                QuickActionButton(
-                    title: "Add Exercise",
-                    systemImage: "plus.circle.fill"
-                )
-                .anyButton {
-                    presenter.onAddExercisePressed()
-                }
-                
-                QuickActionButton(
-                    title: "Log Meal",
-                    systemImage: "fork.knife"
-                )
-                .anyButton {
-                    presenter.onLogMealPressed()
-                }
-                
-                QuickActionButton(
-                    title: "Log Weight",
-                    systemImage: "scalemass"
-                )
-                .anyButton {
-                    presenter.onLogWeightPressed()
-                }
+                .removeListRowFormatting()
             }
-            .removeListRowFormatting()
         }
     }
-    
+
     @ViewBuilder
     private var recentSearchesSection: some View {
         if !presenter.recentQueries.isEmpty {

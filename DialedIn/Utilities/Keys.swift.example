@@ -52,4 +52,5 @@ struct Keys {
     static let foodLogSettingsManagerKey = "food_log_settings"
     static let nutritionStrategySettingsManagerKey = "nutrition_strategy_settings"
     static let analyticsSettingsManagerKey = "analytics_settings"
+    static let shortcutSettingsManagerKey = "shortcut_settings"
 }

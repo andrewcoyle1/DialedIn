@@ -267,6 +267,34 @@ class SearchPresenter {
         recentQueries = []
     }
 
+    // MARK: - Quick actions
+
+    /// The Add tab's grid, as chosen on the Shortcuts screen.
+    var quickActions: [QuickAction] {
+        interactor.shortcutSettings.quickActions
+    }
+
+    /// One switch instead of a per-action closure at the call site, so adding a `QuickAction` case is
+    /// a compile error here until it is routed somewhere.
+    func onQuickActionPressed(_ action: QuickAction) {
+        // The eventName overload rather than a nested `Event` enum: this presenter tracks nothing
+        // else, and one case does not justify the enum.
+        interactor.trackEvent(
+            eventName: "SearchView_QuickAction_Press",
+            parameters: ["action": action.rawValue],
+            type: .analytic
+        )
+        switch action {
+        case .startWorkout:    onStartWorkoutPressed()
+        case .addExercise:     onAddExercisePressed()
+        case .logMeal:         onLogMealPressed()
+        case .logWeight:       onLogWeightPressed()
+        case .browseWorkouts:  router.showWorkoutsView(delegate: WorkoutsDelegate())
+        case .browseExercises: router.showExerciseListBuilderView(delegate: ExerciseListBuilderDelegate())
+        case .browseRecipes:   router.showRecipesView()
+        }
+    }
+
     func onStartWorkoutPressed() {
         router.showWorkoutsView(delegate: WorkoutsDelegate())
     }

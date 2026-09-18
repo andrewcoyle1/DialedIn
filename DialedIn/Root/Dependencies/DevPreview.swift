@@ -22,6 +22,7 @@ class DevPreview {
         container.register(FoodLogSettingsManager.self, service: foodLogSettingsManager)
         container.register(NutritionStrategySettingsManager.self, service: nutritionStrategySettingsManager)
         container.register(AnalyticsSettingsManager.self, service: analyticsSettingsManager)
+        container.register(ShortcutSettingsManager.self, service: shortcutSettingsManager)
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
         container.register(TrainingProgramManager.self, service: trainingProgramManager)
@@ -66,6 +67,7 @@ class DevPreview {
     let foodLogSettingsManager: FoodLogSettingsManager
     let nutritionStrategySettingsManager: NutritionStrategySettingsManager
     let analyticsSettingsManager: AnalyticsSettingsManager
+    let shortcutSettingsManager: ShortcutSettingsManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let trainingProgramManager: TrainingProgramManager
@@ -163,6 +165,13 @@ class DevPreview {
             logger: logManager
         )
         self.analyticsSettingsManager = AnalyticsSettingsManager(settingsSyncEngine: analyticsSettingsSyncEngine)
+        let shortcutSettingsSyncEngine = DocumentSyncEngine<ShortcutSettings>(
+            remote: MockRemoteDocumentService(document: ShortcutSettings.mock),
+            managerKey: Keys.shortcutSettingsManagerKey,
+            enableLocalPersistence: false,
+            logger: logManager
+        )
+        self.shortcutSettingsManager = ShortcutSettingsManager(settingsSyncEngine: shortcutSettingsSyncEngine)
         let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
             remote: MockRemoteCollectionService(collection: WorkoutTemplateModel.userMocks),
             managerKey: Keys.workoutTemplateManagerKey,
@@ -290,6 +299,7 @@ class DevPreview {
                 async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: mockUser.uid)
                 async let nutritionStrategySettingsSignIn: () = nutritionStrategySettingsManager.signIn(userId: mockUser.uid)
                 async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: mockUser.uid)
+                async let shortcutSettingsSignIn: () = shortcutSettingsManager.signIn(userId: mockUser.uid)
                 async let stepsSignIn: () = stepsManager.signIn()
                 async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
                 async let gymProfileSignIn: () = gymProfileManager.signIn()
@@ -307,6 +317,7 @@ class DevPreview {
                 try? await foodLogSettingsSignIn
                 try? await nutritionStrategySettingsSignIn
                 try? await analyticsSettingsSignIn
+                try? await shortcutSettingsSignIn
                 await stepsSignIn
                 await workoutTemplatesSignIn
                 await gymProfileSignIn
