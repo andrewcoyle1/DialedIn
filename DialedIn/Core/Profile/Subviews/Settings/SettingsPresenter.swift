@@ -70,6 +70,17 @@ class SettingsPresenter {
         isAnonymousUser = interactor.auth?.isAnonymous == true
     }
     
+    /// An anonymous account's only route to keeping its data, and it was an empty closure.
+    ///
+    /// Routes to the existing `AuthView` rather than reimplementing sign-in: `FirebaseAuthService`
+    /// already links an Apple or Google credential to the signed-in anonymous user, and
+    /// `CoreInteractor.logIn` already handles the migration and cleanup around it, so the upgrade
+    /// keeps the account rather than replacing it.
+    func onSaveAccountPressed() {
+        interactor.trackEvent(event: Event.saveAccountPressed)
+        router.showAuthView()
+    }
+
     func onSignOutPressed() {
         interactor.trackEvent(event: Event.signOutStart)
         
@@ -148,6 +159,7 @@ class SettingsPresenter {
         case ratingsYesPressed
         case ratingsNoPressed
         case navigate
+        case saveAccountPressed
         case dedupeWeightsStart
         case dedupeWeightsSuccess
         case dedupeWeightsFail(error: Error)
@@ -168,6 +180,7 @@ class SettingsPresenter {
             case .ratingsYesPressed:            return "SettingsView_RatingsYes_Press"
             case .ratingsNoPressed:             return "SettingsView_RatingsNo_Press"
             case .navigate:                     return "SettingsView_Navigate"
+            case .saveAccountPressed:           return "SettingsView_SaveAccount_Press"
             case .dedupeWeightsStart:           return "SettingsView_DedupeWeights_Start"
             case .dedupeWeightsSuccess:         return "SettingsView_DedupeWeights_Success"
             case .dedupeWeightsFail:            return "SettingsView_DedupeWeights_Fail"

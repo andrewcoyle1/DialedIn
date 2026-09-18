@@ -32,7 +32,6 @@ struct AnalyticsView<NutritionChart: View>: View {
         List {
             Group {
                 headerSection
-                carouselSection
                 insightsAndAnalyticsSection
                 habitsSection
                 nutritionSection
@@ -102,14 +101,10 @@ struct AnalyticsView<NutritionChart: View>: View {
         .inspectorColumnWidth(min: 300, ideal: 400, max: 600)
     }
     
-    private var carouselSection: some View {
-        Section {
-            
-        } header: {
-            
-        }
-    }
-    
+    // A `carouselSection` was rendered here as `Section { } header: { }` — an empty section with an
+    // empty header, which draws as a stray gap under the header cards. Removed; the header cards
+    // above it already carry the carousel this was presumably meant to hold.
+
     /// Header cards are sized from the scroll container rather than a fixed width, so they
     /// fit every device. A fixed 420pt was wider than the screen on all iPhones (iPhone 17
     /// is 402pt across) and clipped the trailing edge. Two cards share the width in

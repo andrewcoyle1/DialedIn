@@ -35,7 +35,7 @@ struct SettingsView: View {
             if presenter.isAnonymousUser {
                 Text("Save & back-up account")
                     .anyButton(.highlight) {
-
+                        presenter.onSaveAccountPressed()
                     }
             } else {
                 Text("Sign out")
@@ -67,39 +67,14 @@ struct SettingsView: View {
         }
     }
 
-    private var dataManagementSection: some View {
-        Section {
-            Group {
-                CustomListCellView(
-                    imageName: nil,
-                    title: "Data Export",
-                    subtitle: nil
-                )
-                .anyButton(.highlight) {
-
-                }
-                CustomListCellView(
-                    imageName: nil,
-                    title: "Data Visibility",
-                    subtitle: nil
-                )
-                .anyButton(.highlight) {
-
-                }
-                CustomListCellView(
-                    imageName: nil,
-                    title: "Account & Data Deletion",
-                    subtitle: nil
-                )
-                .anyButton(.highlight) {
-
-                }
-            }
-            .removeListRowFormatting()
-        } header: {
-            Text("Data Management")
-        }
-    }
+    // A "Data Management" section sat here: Data Export, Data Visibility and "Account & Data
+    // Deletion", all three empty closures. Deletion was a duplicate — "Delete account" in the Account
+    // section above already does it, and works. Export needs a format and a Cloud Function
+    // (`functions/` has no export callable); Visibility needs a privacy model and matching Firestore
+    // rules before a toggle would restrict anything. Both are in the plan's deferred table.
+    //
+    // It was also never rendered: `body` lists account, purchase, nutrition and application, so the
+    // section had been orphaned at some point and the three dead rows were unreachable.
 
     private var nutritionSection: some View {
         Section {

@@ -14,8 +14,6 @@ class CalorieFloorPresenter {
     private let router: CalorieFloorRouter
 
     var selectedFloor: CalorieFloor?
-    var trainingDaysPerWeek: Int?
-    var hasTrainingPlan: Bool = false
 
     init(
         interactor: CalorieFloorInteractor,
@@ -23,19 +21,18 @@ class CalorieFloorPresenter {
     ) {
         self.interactor = interactor
         self.router = router
-        loadTrainingContext()
+        prefillCalorieFloor()
     }
-    
-    private func loadTrainingContext() {
-    }
-    
-    private func prefillCalorieFloor(daysPerWeek: Int) {
-        // Heuristic: 1-2 days = standard (conservative), 3-4 = standard, 5-6 = standard
-        // Since we only have standard and low, default to standard for all
-        if selectedFloor == nil {
-            selectedFloor = .standard
-            interactor.trackEvent(event: Event.calorieFloorPrefilled(floor: .standard, reason: "training_days_\(daysPerWeek)"))
-        }
+
+    /// `loadTrainingContext()` used to be called here and was empty, so `prefillCalorieFloor` — which
+    /// it was the only caller of — never ran and the screen opened with nothing selected. Its two
+    /// properties, `trainingDaysPerWeek` and `hasTrainingPlan`, were written by nothing and read by
+    /// nothing, and its own comment recorded that every training volume mapped to `.standard` anyway.
+    /// So this is what it did, minus the parameter that changed nothing.
+    private func prefillCalorieFloor() {
+        guard selectedFloor == nil else { return }
+        selectedFloor = .standard
+        interactor.trackEvent(event: Event.calorieFloorPrefilled(floor: .standard, reason: "default"))
     }
     
     func onContinuePressed(delegate oldDelegate: CalorieFloorDelegate) {

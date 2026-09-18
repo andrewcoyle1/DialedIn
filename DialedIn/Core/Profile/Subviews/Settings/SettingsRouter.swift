@@ -12,6 +12,8 @@ protocol SettingsRouter: GlobalRouter {
     func showPaywall()
     func switchToOnboardingModule()
     func showPreferredDietView(isFromSettings: Bool)
+    /// For upgrading an anonymous account — the same screen onboarding uses.
+    func showAuthView()
 }
 
 extension CoreRouter: SettingsRouter { }

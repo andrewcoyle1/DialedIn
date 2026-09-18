@@ -51,9 +51,6 @@ class SocialProfilePresenter {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
 
-    func onChatPressed(user: UserModel) {
-
-    }
 }
 
 extension SocialProfilePresenter {

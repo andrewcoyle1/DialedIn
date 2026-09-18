@@ -29,10 +29,6 @@ class ExerciseSavePresenter {
         }
     }
 
-    func onCreateAndAddPressed(delegate: ExerciseSaveDelegate) {
-        
-    }
-
     func onViewAppear(delegate: ExerciseSaveDelegate) {
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
     }

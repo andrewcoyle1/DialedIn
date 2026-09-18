@@ -102,8 +102,18 @@ class CreateFoodPresenter {
         }
     }
     
+    /// Explains the "Submit Foods to the Public Database?" toggle it sits beside. Shown inline rather
+    /// than linked out: the app knows what the toggle does, and there is no hosted help to point at.
     func onLearnMorePressed() {
-        
+        interactor.trackEvent(event: Event.learnMorePressed)
+        router.showSimpleAlert(
+            title: "Contributing Foods",
+            subtitle: """
+            With this on, foods you create are shared to the public database so other people can find \
+            and log them. Your name is not attached, and the food stays in your own library either way. \
+            With it off, the food is yours alone.
+            """
+        )
     }
     
     func onBarcodeScannerPressed() {
@@ -133,6 +143,7 @@ func onDevSettingsPressed() {
         case imageSelectorSuccess
         case imageSelectorCancel
         case imageSelectorFail(error: Error)
+        case learnMorePressed
 
         var eventName: String {
             switch self {
@@ -144,6 +155,7 @@ func onDevSettingsPressed() {
             case .imageSelectorStart:               return "IngredientImageSelector_Start"
             case .imageSelectorSuccess:             return "IngredientImageSelector_Success"
             case .imageSelectorCancel:              return "IngredientImageSelector_Cancel"
+            case .learnMorePressed:     return "CreateFoodView_LearnMore_Press"
             case .imageSelectorFail:                return "IngredientImageSelector_Fail"
             }
         }

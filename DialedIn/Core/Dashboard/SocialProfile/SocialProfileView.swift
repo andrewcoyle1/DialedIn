@@ -17,14 +17,12 @@ struct SocialProfileView: View {
     var body: some View {
         List {
             profileSection
-            
-            dataSection
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            toolbarContent
-        }
+        // A toolbar sat here with a share button and an ellipsis menu, both empty actions. Sharing a
+        // profile needs a shareable link, and there is no user-profile deep link route (the `compound`
+        // scheme has none); the ellipsis had no menu items defined at all.
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
@@ -62,7 +60,8 @@ struct SocialProfileView: View {
                     }
                 }
                 HStack {
-                    StatItem(header: "Activity", value: "1")
+                    // An "Activity 1" stat sat here, hardcoded. Nothing counts a user's activity, and
+                    // followers/following beside it are real, which made the fake one look real too.
                     Button {
                         presenter.onFollowersPressed()
                     } label: {
@@ -71,10 +70,8 @@ struct SocialProfileView: View {
                     .buttonStyle(.plain)
                     StatItem(header: "Following", value: "\(presenter.followingCount)")
                     Spacer()
-                    Image(systemName: "bubble.left.and.bubble.right")
-                        .anyButton(.press) {
-                            presenter.onChatPressed(user: delegate.user)
-                        }
+                    // A chat button sat here. There is no messaging anywhere in the app — no model, no
+                    // manager, no screen — so it was an empty closure over a feature that does not exist.
                 }
                 
                 if !presenter.mutualFollowers.isEmpty {
@@ -87,100 +84,14 @@ struct SocialProfileView: View {
         }
     }
     
-    private var dataSection: some View {
-        Section {
-            CustomLabelButtonView(
-                title: "Activities",
-                subtitle: "Yesterday") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Statistics",
-                subtitle: "This year: 93.0 km") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Routes",
-                subtitle: "-") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Segments",
-                subtitle: "-") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Best Efforts",
-                subtitle: "See all") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Posts",
-                subtitle: "1") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                symbolName: "shoe",
-                title: "Gear",
-                subtitle: "Puma Deviate Nitro") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-        } header: {
-            Text("Data")
-        }
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItemGroup(placement: .topBarTrailing) {
-            Button {
-                
-            } label: {
-                Image(systemName: "square.and.arrow.up")
-            }
-            Button {
-                
-            } label: {
-                Image(systemName: "ellipsis")
-            }
-        }
-    }
-    
+    // A "Data" section sat here: Activities, Statistics, Routes, Segments, Best Efforts, Posts and
+    // Gear — seven rows, every action an empty closure, with invented subtitles ("This year: 93.0 km",
+    // "Puma Deviate Nitro", "Yesterday"). It needs the Strava *read* API, and `StravaManager` is
+    // upload-only: authenticate, uploadActivity, disconnect, and no fetch of any kind. Showing
+    // someone else's mileage as fact is the worst version of this, so the section is gone rather than
+    // emptied. "Posts" is the one row that maps to data the app owns — the session feed — but
+    // SocialProfileInteractor cannot reach another user's sessions today. Recorded in the plan.
+
     private var mutualFollowersImagesSection: some View {
         HStack(spacing: -10) {
             ForEach(presenter.mutualFollowers.prefix(5)) { user in
