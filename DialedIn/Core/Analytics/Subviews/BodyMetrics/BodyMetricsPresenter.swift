@@ -29,6 +29,34 @@ class BodyMetricsPresenter {
         routeToWeightOrUpperBody(type, themeColor: themeColor)
     }
 
+    // MARK: - Ratios
+
+    /// The two derived ratios, as cards in the same shape as the measured ones.
+    ///
+    /// These read as real numbers now. They previously showed "---" against a "Last 7 Entries"
+    /// subtitle with no action behind them, which claimed there was a history to look at.
+    var ratioCards: [BodyRatioCardModel] {
+        BodyRatioKind.allCases.map { kind in
+            let entries = BodyRatioPresenter.entries(
+                kind: kind,
+                measurements: bodyMeasurements,
+                heightCentimetres: interactor.currentUser?.submittedHeightCentimeters
+            )
+            let recent = Array(entries.suffix(7))
+            return BodyRatioCardModel(
+                id: kind,
+                title: kind.title,
+                subtitle: recent.isEmpty ? "No Entries" : "Last \(recent.count) Entries",
+                latestValueText: recent.last?.displayValue ?? "--",
+                sparklineData: recent.map { (date: $0.date, value: $0.ratio) }
+            )
+        }
+    }
+
+    func onRatioPressed(_ kind: BodyRatioKind, themeColor: Color?) {
+        router.showBodyRatioView(delegate: BodyRatioDelegate(kind: kind), themeColor: themeColor)
+    }
+
     func onDismissPressed() {
         router.dismissScreen()
     }

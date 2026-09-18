@@ -11,6 +11,9 @@ protocol AddMealInteractor: GlobalInteractor {
     var draftMeal: MealLogModel? { get }
     var currentDietPlan: DietPlan? { get }
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
+    /// Needed for the nutrient breakdown at day scope: `getDailyTotals` carries only the four
+    /// macros, so micronutrients have to come from the day's meals themselves.
+    func getMeals(for dayKey: String) throws -> [MealLogModel]
     func updateDraftMeal(_ draftMeal: MealLogModel) throws
     func deleteDraftMeal() throws
     func saveMeal(_ meal: MealLogModel) async throws

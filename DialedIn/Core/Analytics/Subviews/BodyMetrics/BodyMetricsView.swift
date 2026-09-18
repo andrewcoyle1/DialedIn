@@ -15,7 +15,6 @@ struct BodyMetricsView: View {
         List {
             Group {
                 dataDrivenSection(presenter.sections[0])
-                visualMetricSection
                 dataDrivenSection(presenter.sections[1])
                 dataDrivenSection(presenter.sections[2])
                 dataDrivenSection(presenter.sections[3])
@@ -58,36 +57,23 @@ struct BodyMetricsView: View {
         }
     }
 
-    private var visualMetricSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard(title: nil, subtitle: nil, subsubtitle: "No Photos", subsubsubtitle: nil) {
-                    Image(systemName: "photo")
-                        .font(.system(size: 32))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-                .tappableBackground()
-                .anyButton(.press) { }
-                AnalyticsCard(title: "Full Body", subtitle: "12 Jan 2026", subsubtitle: "1", subsubsubtitle: "metric")
-                    .tappableBackground()
-                    .anyButton(.press) { }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-        } header: {
-            Text("Visual & Metric Overview")
-        }
-    }
+    // A "Visual & Metric Overview" section used to sit here, showing a "No Photos" placeholder
+    // beside an invented "Full Body / 12 Jan 2026 / 1 metric" card, neither of which did anything.
+    // Removed rather than rebuilt: `BodyMeasurementEntry.progressPhotoURLs` is stored and synced,
+    // but no screen in the app reads it, so there is no gallery for a photo card to open. The
+    // visual body fat metric it seemed to duplicate is already a real card in the first section.
+    // Building progress photos means a gallery screen and a capture flow — a feature, not a fix.
 
+    /// Waist-to-height and waist-to-hip, both computed from logged measurements. Tapping opens the
+    /// ratio's history on the shared `MetricDetailView`, the same as every measured card here.
     private var ratiosSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard(title: "Waist to Height", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: nil)
-                    .tappableBackground()
-                    .anyButton(.press) { }
-                AnalyticsCard(title: "Waist to Hip", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: nil)
-                    .tappableBackground()
-                    .anyButton(.press) { }
+                ForEach(presenter.ratioCards) { card in
+                    BodyRatioCardView(card: card, themeColor: bodyMetricsColor) {
+                        presenter.onRatioPressed(card.id, themeColor: bodyMetricsColor)
+                    }
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()

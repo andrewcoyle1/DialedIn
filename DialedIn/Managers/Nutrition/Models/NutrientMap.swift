@@ -51,6 +51,25 @@ struct NutrientMap: Codable, Equatable, Hashable, Sendable, ExpressibleByDiction
     func scaled(by factor: Double) -> NutrientMap {
         mapValues { $0 * factor }
     }
+
+    /// Sums two snapshots nutrient by nutrient, for totalling a plate or a day.
+    ///
+    /// A nutrient present in one map and absent from the other is carried through as-is: absent
+    /// means "this food's data does not record it", not "this food contains none of it", but for a
+    /// total there is nothing better to do than add what is known.
+    static func + (lhs: NutrientMap, rhs: NutrientMap) -> NutrientMap {
+        NutrientMap(lhs.storage.merging(rhs.storage) { $0 + $1 })
+    }
+
+    static func += (lhs: inout NutrientMap, rhs: NutrientMap) {
+        lhs = lhs + rhs
+    }
+
+    /// The nutrients this map actually records, in `NutrientKey` declaration order so a breakdown
+    /// reads total-first (total fat before saturated, carbs before fibre).
+    func recordedKeys(in category: Macros) -> [NutrientKey] {
+        category.details.filter { storage[$0] != nil }
+    }
 }
 
 extension NutrientMap: Sequence {

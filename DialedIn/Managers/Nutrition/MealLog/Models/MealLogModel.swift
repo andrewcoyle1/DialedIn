@@ -17,10 +17,16 @@ struct MealLogModel: DataSyncModelProtocol, Hashable {
     var items: [MealItemModel]
     var notes: String?
 
-    var totalCalories: Double { items.compactMap { $0.nutrients[.calories] }.reduce(0, +) }
-    var totalProteinGrams: Double { items.compactMap { $0.nutrients[.protein] }.reduce(0, +) }
-    var totalCarbGrams: Double { items.compactMap { $0.nutrients[.carbs] }.reduce(0, +) }
-    var totalFatGrams: Double { items.compactMap { $0.nutrients[.fatTotal] }.reduce(0, +) }
+    /// Every nutrient in the meal, summed across its items — micronutrients included, since each
+    /// item carries a full snapshot taken when it was logged.
+    var totalNutrients: NutrientMap {
+        items.reduce(NutrientMap()) { $0 + $1.nutrients }
+    }
+
+    var totalCalories: Double { totalNutrients[.calories] ?? 0 }
+    var totalProteinGrams: Double { totalNutrients[.protein] ?? 0 }
+    var totalCarbGrams: Double { totalNutrients[.carbs] ?? 0 }
+    var totalFatGrams: Double { totalNutrients[.fatTotal] ?? 0 }
 
     init(
         mealId: String = UUID().uuidString,

@@ -160,6 +160,55 @@ class AddMealPresenter {
         )
     }
     var scopeLabel: String { nutritionScope == .plate ? "in plate" : "today" }
+
+    // MARK: - Nutrient Breakdown
+
+    /// One nutrient and how much of it the current scope holds.
+    struct NutrientAmount: Identifiable {
+        let key: NutrientKey
+        let value: Double
+
+        var id: String { key.rawValue }
+        var name: String { key.name }
+    }
+
+    /// Every nutrient in scope. At plate scope that is the plate's own snapshot; at day scope the
+    /// day's already-logged meals are added, which needs the meals themselves — `getDailyTotals`
+    /// returns only the four macros.
+    private var displayNutrients: NutrientMap {
+        let plate = mealLog.totalNutrients
+        guard nutritionScope == .day else { return plate }
+
+        let logged = (try? interactor.getMeals(for: mealLog.dayKey)) ?? []
+        return logged
+            .filter { $0.mealId != mealLog.mealId }
+            .reduce(plate) { $0 + $1.totalNutrients }
+    }
+
+    /// The nutrients of one category that the scope actually has data for.
+    ///
+    /// Absent nutrients are left out rather than shown as zero: a food whose source did not record
+    /// its selenium is not a food containing no selenium, and printing 0 mcg would assert something
+    /// the data does not support. A category with nothing recorded yields an empty array, and the
+    /// view says so in words.
+    func breakdown(for category: Macros) -> [NutrientAmount] {
+        let nutrients = displayNutrients
+        return nutrients.recordedKeys(in: category).compactMap { key in
+            guard let value = nutrients[key] else { return nil }
+            return NutrientAmount(key: key, value: value)
+        }
+    }
+
+    /// Calories are whole; everything else keeps one decimal below 10, where a tenth of a gram is
+    /// a meaningful share of the amount, and none above it.
+    func formatted(_ amount: NutrientAmount) -> String {
+        let unit = amount.key.unit
+        if amount.key == .calories {
+            return "\(Int(amount.value.rounded())) \(unit)"
+        }
+        let precision = amount.value < 10 ? 1 : 0
+        return "\(amount.value.formatted(.number.precision(.fractionLength(precision)))) \(unit)"
+    }
 }
 
 extension AddMealPresenter {

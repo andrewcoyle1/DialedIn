@@ -104,6 +104,16 @@ struct BodyMetricCardModel: Identifiable {
     let sparklineData: [(date: Date, value: Double)]
 }
 
+/// A derived ratio card. Separate from `BodyMetricCardModel` because a ratio has no unit to print
+/// and is keyed by `BodyRatioKind` rather than `BodyMetricType`.
+struct BodyRatioCardModel: Identifiable {
+    let id: BodyRatioKind
+    let title: String
+    let subtitle: String
+    let latestValueText: String
+    let sparklineData: [(date: Date, value: Double)]
+}
+
 struct BodyMetricsSection: Identifiable {
     let id: String
     let header: String

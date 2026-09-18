@@ -4,6 +4,7 @@ import SwiftUI
 protocol BodyMetricsRouter: GlobalRouter {
     func showScaleWeightView(delegate: ScaleWeightDelegate, themeColor: Color?)
     func showVisualBodyFatView(delegate: VisualBodyFatDelegate, themeColor: Color?)
+    func showBodyRatioView(delegate: BodyRatioDelegate, themeColor: Color?)
     func showNeckMeasurementView(delegate: NeckMeasurementDelegate, themeColor: Color?)
     func showShouldersMeasurementView(delegate: ShouldersMeasurementDelegate, themeColor: Color?)
     func showBustMeasurementView(delegate: BustMeasurementDelegate, themeColor: Color?)
