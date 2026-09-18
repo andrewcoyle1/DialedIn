@@ -55,8 +55,7 @@ class SettingsPresenter {
 
     func onContactUsPressed() {
         interactor.trackEvent(event: Event.contactUsPressed)
-        let email = "andrewcoyle.1@outlook.com"
-        let emailString = "mailto:\(email)"
+        let emailString = "mailto:\(Constants.supportEmail)"
         guard let url = URL(string: emailString), UIApplication.shared.canOpenURL(url) else {
             return
         }

@@ -7,6 +7,7 @@
 
 @MainActor
 protocol ProfileRouter: GlobalRouter {
+    func showSimpleAlert(title: String, subtitle: String?)
     func showAccountView(delegate: AccountDelegate)
     func showSettingsView()
     func showNotificationsView()

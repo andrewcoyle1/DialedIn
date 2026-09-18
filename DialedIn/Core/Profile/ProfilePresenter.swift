@@ -94,6 +94,42 @@ class ProfilePresenter {
         router.showSettingsView()
     }
     
+    // MARK: - Community & Support
+
+    /// Opens the same mailto: `SettingsPresenter.onContactUsPressed` uses. Support was an empty
+    /// closure, and email is support that exists today — no hosted help desk needed.
+    func onSupportPressed() {
+        interactor.trackEvent(eventName: "ProfileView_Support_Press", parameters: nil, type: .analytic)
+        let emailString = "mailto:\(Constants.supportEmail)"
+        guard let url = URL(string: emailString), UIApplication.shared.canOpenURL(url) else {
+            router.showSimpleAlert(
+                title: "Unable to Open Mail",
+                subtitle: "Email \(Constants.supportEmail) and we will get back to you."
+            )
+            return
+        }
+        UIApplication.shared.open(url)
+    }
+
+    /// Knowledge Base and Roadmap have nowhere to go yet — neither site exists, and
+    /// `Constants` has no URL for either. They say so rather than doing nothing: a row that
+    /// swallows a tap reads as a bug, and the rows are worth keeping as the plan they represent.
+    func onKnowledgeBasePressed() {
+        interactor.trackEvent(eventName: "ProfileView_KnowledgeBase_Press", parameters: nil, type: .analytic)
+        router.showSimpleAlert(
+            title: "Knowledge Base",
+            subtitle: "There is no help site yet. In the meantime, Support emails us directly and we will answer you there."
+        )
+    }
+
+    func onRoadmapPressed() {
+        interactor.trackEvent(eventName: "ProfileView_Roadmap_Press", parameters: nil, type: .analytic)
+        router.showSimpleAlert(
+            title: "Roadmap",
+            subtitle: "The public roadmap is not published yet. Send feature requests through Support and they will go on the list."
+        )
+    }
+
     func onShortcutsPressed() {
         router.showShortcutsView(delegate: ShortcutsDelegate())
     }

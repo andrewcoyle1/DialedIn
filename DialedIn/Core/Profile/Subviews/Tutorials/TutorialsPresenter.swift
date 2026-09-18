@@ -12,9 +12,9 @@ class TutorialsPresenter {
         self.router = router
     }
 
-    func onResetTutorialsPressed() {
-        
-    }
+    // `onResetTutorialsPressed` was here, empty, behind a "Reset Tutorials" call to action. Nothing
+    // in the app records tutorial progress, so there was nothing for it to reset. The button is gone
+    // with it; when first-run guidance exists, both come back together.
 
     func onViewAppear(delegate: TutorialsDelegate) {
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))

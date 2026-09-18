@@ -192,19 +192,19 @@ struct ProfileView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        
+                        presenter.onKnowledgeBasePressed()
                     }
                 Label("Roadmap", systemImage: "map")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        
+                        presenter.onRoadmapPressed()
                     }
                 Label("Support", systemImage: "questionmark.circle")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        
+                        presenter.onSupportPressed()
                     }
                 Label("Rate us on the app store", systemImage: "star")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
