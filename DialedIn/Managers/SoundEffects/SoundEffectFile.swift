@@ -19,8 +19,11 @@ enum SoundEffectFile: String, Equatable {
         }
     }
     
-    var url: URL {
-        let path = Bundle.main.path(forResource: fileName, ofType: nil)!
+    /// Force-unwrapped `Bundle.main.path(forResource:)` before. `Sample.wav` is not in the bundle —
+    /// it is a leftover from the template this project started from — so the one call that would
+    /// have played a sound would have crashed instead. Optional, so a missing file is silence.
+    var url: URL? {
+        guard let path = Bundle.main.path(forResource: fileName, ofType: nil) else { return nil }
         return URL(fileURLWithPath: path)
     }
 }

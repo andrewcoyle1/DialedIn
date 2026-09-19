@@ -13,17 +13,11 @@ struct TodaysWorkoutCardDelegate {
 
 struct TodaysWorkoutCard: View {
     
-    @Environment(\.colorScheme) private var colorScheme
-    
     @State var presenter: TodaysWorkoutCardPresenter
     let delegate: TodaysWorkoutCardDelegate
     
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("Today's Workout")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.leading)
+        DashboardCard(title: "Today's Workout", drawsSurface: false) {
             ZStack(alignment: .leading) {
                 if presenter.isTodayRestDay {
                     restDayCard
@@ -34,7 +28,6 @@ struct TodaysWorkoutCard: View {
                 }
             }
         }
-        .padding(.horizontal)
     }
     
     private var restDayCard: some View {

@@ -71,22 +71,21 @@ struct DashboardView<
                                 todaysWorkoutTemplate: todaysWorkoutTemplate
                             )
                         )
-                        .padding(.bottom, 8)
                     }
                 }
 
                 Tab {
                     workoutStreakCard(WorkoutStreakDelegate())
-                        .padding(.bottom)
                 }
 
                 Tab {
                     nutritionCard
-                        .padding(.bottom)
                 }
             }
             .tabViewStyle(.page)
-            .frame(height: 260)
+            // Title, card and the page dots below it. Each page used to add its own bottom padding,
+            // and two of the three disagreed about how much.
+            .frame(height: DashboardCard<EmptyView>.contentHeight + 60)
             .removeListRowFormatting()
         }
         .listSectionMargins(.all, 0)
@@ -110,11 +109,24 @@ struct DashboardView<
     @ViewBuilder
     private var workoutFeedSection: some View {
         if presenter.feedSessions.isEmpty {
-            ContentUnavailableView(
-                "No Activity Yet",
-                systemImage: "exclamationmark.triangle",
-                description: Text("Follow athletes you admire. Progress is more fun shared.")
-            )
+            // Was a bare `ContentUnavailableView` outside any `Section`, so it drew inside a list
+            // row with its own inset and separator, and the "Workout Feed" header the populated
+            // state shows disappeared entirely.
+            Section {
+                ContentUnavailableView {
+                    Label("No Activity Yet", systemImage: "figure.run")
+                } description: {
+                    Text("Follow athletes you admire. Progress is more fun shared.")
+                } actions: {
+                    Button("Find People") {
+                        presenter.onFindPeoplePressed()
+                    }
+                }
+                .removeListRowFormatting()
+            } header: {
+                Text("Workout Feed")
+            }
+            .listSectionMargins(.top, 0)
         } else {
             ForEach(presenter.feedSessions) { session in
                 workoutCardBuilder(first: session == presenter.feedSessions.first) {

@@ -51,12 +51,16 @@ class ExerciseAnalyticsPresenter {
         
         self.exerciseCards = allExercises.map { (exercise: ExerciseModel) -> ExerciseCardItem in
             let data = aggregated[exercise.id]
-            let sparkline: [(date: Date, value: Double)] = (data?.last7Workouts ?? []).map { (date: $0.date, value: $0.value) }
+            let unit = interactor.getPreference(templateId: exercise.id).weightUnit
+            let sparkline: [(date: Date, value: Double)] = (data?.last7Workouts ?? []).map {
+                (date: $0.date, value: UnitConversion.convertWeight($0.value, to: unit))
+            }
             return ExerciseCardItem(
                 templateId: exercise.id,
                 name: exercise.name,
                 sparklineData: sparkline,
-                latest1RM: data?.latest1RM ?? 0
+                latest1RM: UnitConversion.convertWeight(data?.latest1RM ?? 0, to: unit),
+                unitText: unit.abbreviation
             )
         }
     }

@@ -37,20 +37,23 @@ extension CoreInteractor {
     // MARK: Sound Effects
 
     func prepareSoundEffect(sound: SoundEffectFile, simultaneousPlayers: Int = 1) {
+        guard let url = sound.url else { return }
         Task {
-            await soundEffectManager.prepare(url: sound.url, simultaneousPlayers: simultaneousPlayers, volume: 1)
+            await soundEffectManager.prepare(url: url, simultaneousPlayers: simultaneousPlayers, volume: 1)
         }
     }
 
     func tearDownSoundEffect(sound: SoundEffectFile) {
+        guard let url = sound.url else { return }
         Task {
-            await soundEffectManager.tearDown(url: sound.url)
+            await soundEffectManager.tearDown(url: url)
         }
     }
 
     func playSoundEffect(sound: SoundEffectFile) {
+        guard let url = sound.url else { return }
         Task {
-            await soundEffectManager.play(url: sound.url)
+            await soundEffectManager.play(url: url)
         }
     }
 

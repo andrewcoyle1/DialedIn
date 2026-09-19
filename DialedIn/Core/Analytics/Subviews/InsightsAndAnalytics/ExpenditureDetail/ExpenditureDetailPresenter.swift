@@ -16,7 +16,7 @@ class ExpenditureDetailPresenter {
     private let calendar = Calendar.current
 
     private(set) var cachedEntries: [ExpenditureDetailEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
 
     init(interactor: ExpenditureDetailInteractor, router: ExpenditureDetailRouter) {
         self.interactor = interactor
@@ -54,7 +54,7 @@ class ExpenditureDetailPresenter {
 
         cachedEntries = entries.reversed()
         cachedTimeSeries = [
-            TimeSeriesData.TimeSeries(name: "Expenditure", data: data)
+            TimeSeries(name: "Expenditure", data: data)
         ]
     }
 }
@@ -66,7 +66,7 @@ extension ExpenditureDetailPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
     }
 
@@ -76,11 +76,13 @@ extension ExpenditureDetailPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "ExpenditureDetailView",
             yAxisSuffix: "",
             seriesNames: ["Expenditure"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Daily Expenditure",
             emptyStateMessage: "No expenditure data",
             pageSize: 20,
-            chartType: .line
+            chartType: .line,
+            addActionTitle: "Edit Profile",
+            addActionSystemImage: "person.crop.circle"
         )
     }
 
@@ -89,10 +91,9 @@ extension ExpenditureDetailPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        // No-op: expenditure is derived from user profile
+        // TDEE is estimated from height, weight, age and activity level — all of which live on
+        // the account screen, which is where this now goes.
+        router.showAccountView(delegate: AccountDelegate())
     }
 
-    func onDeleteEntry(_ entry: ExpenditureDetailEntry) async {
-        // No-op: expenditure is derived from user profile
-    }
 }

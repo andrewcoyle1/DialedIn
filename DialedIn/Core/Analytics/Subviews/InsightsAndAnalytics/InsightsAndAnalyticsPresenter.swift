@@ -82,12 +82,57 @@ class InsightsAndAnalyticsPresenter {
         router.showExpenditureDetailView(delegate: ExpenditureDetailDelegate(), themeColor: themeColor)
     }
 
+    // MARK: - Goal progress
+
+    /// The weight entries logged since the goal was set — the same window `GoalProgressView` uses,
+    /// so the card and the screen it opens cannot disagree.
+    private var goalWeightEntries: [BodyMeasurementEntry] {
+        guard let goal = interactor.currentGoal else { return [] }
+        return interactor.bodyMeasurements
+            .filter { $0.deletedAt == nil && $0.weightKg != nil && $0.date >= goal.createdAt }
+            .sorted { $0.date < $1.date }
+    }
+
+    var hasActiveGoal: Bool {
+        interactor.currentGoal != nil
+    }
+
+    /// Clamped to 0...100: the card draws it as a bar, and a goal overshot or moved away from
+    /// should read as full or empty rather than send the bar off either end.
+    var goalProgressPercent: Double {
+        guard let goal = interactor.currentGoal,
+              let latestWeight = goalWeightEntries.last?.weightKg else { return 0 }
+        return min(max(goal.calculateProgress(currentWeight: latestWeight) * 100, 0), 100)
+    }
+
+    var goalProgressSubtitle: String {
+        guard hasActiveGoal else { return "No Goal Set" }
+        return goalWeightEntries.isEmpty ? "No Entries" : "Toward Target"
+    }
+
+    var goalProgressLatestValueText: String {
+        guard hasActiveGoal, !goalWeightEntries.isEmpty else { return "--" }
+        return "\(Int(goalProgressPercent.rounded()))"
+    }
+
+    var goalProgressUnitText: String {
+        "%"
+    }
+
+    /// Weight is stored in kilograms; only the display converts.
+    var weightUnit: WeightUnitPreference {
+        interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
+    }
+
     var weightTrendSparklineData: [(date: Date, value: Double)] {
         let pairs = weightTrendLastEntries.compactMap { entry -> (date: Date, value: Double)? in
             guard let weightKg = entry.weightKg else { return nil }
             return (date: entry.date, value: weightKg)
         }
+        // Smoothed in kilograms and converted afterwards — the conversion is linear, so this is the
+        // same curve, computed once.
         return WeightTrendCalculator.exponentialMovingAverage(data: pairs)
+            .map { (date: $0.date, value: UnitConversion.convertWeight($0.value, to: weightUnit)) }
     }
 
     var weightTrendSubtitle: String {
@@ -101,36 +146,36 @@ class InsightsAndAnalyticsPresenter {
     }
 
     var weightTrendUnitText: String {
-        "kg"
+        weightUnit.abbreviation
     }
 
-    var energyBalanceExpenditure: TimeSeriesData.TimeSeries {
+    var energyBalanceExpenditure: TimeSeries {
         let tdee = interactor.estimateTDEE(user: interactor.currentUser)
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
         guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
-            return TimeSeriesData.TimeSeries(name: "Expenditure", data: [])
+            return TimeSeries(name: "Expenditure", data: [])
         }
         var data: [TimeSeriesDatapoint] = []
         for offset in -1..<7 {
             guard let date = calendar.date(byAdding: .day, value: offset, to: startDate) else { continue }
             data.append(TimeSeriesDatapoint(id: "exp-\(offset)", date: date, value: tdee))
         }
-        return TimeSeriesData.TimeSeries(name: "Expenditure", data: data)
+        return TimeSeries(name: "Expenditure", data: data)
     }
 
-    var energyBalanceIntake: TimeSeriesData.TimeSeries {
+    var energyBalanceIntake: TimeSeries {
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
         guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
-            return TimeSeriesData.TimeSeries(name: "Intake", data: [])
+            return TimeSeries(name: "Intake", data: [])
         }
         var data: [TimeSeriesDatapoint] = []
         for (offset, totals) in macrosLast7Days.enumerated() {
             guard let date = calendar.date(byAdding: .day, value: offset, to: startDate) else { continue }
             data.append(TimeSeriesDatapoint(id: "intake-\(offset)", date: date, value: totals.calories))
         }
-        return TimeSeriesData.TimeSeries(name: "Intake", data: data)
+        return TimeSeries(name: "Intake", data: data)
     }
 
     var energyBalanceSubtitle: String {

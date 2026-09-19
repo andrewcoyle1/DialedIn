@@ -77,7 +77,6 @@ struct AnalyticsView<NutritionChart: View>: View {
             ScrollView(.horizontal) {
                 HStack(spacing: headerCardSpacing) {
                     nutritionTargetSection
-//                    contributionChartSection
                 }
                 .scrollTargetLayout()
             }
@@ -87,15 +86,6 @@ struct AnalyticsView<NutritionChart: View>: View {
         }
         .listSectionMargins(.top, 0)
 
-    }
-    
-    private var inspectorContent: some View {
-        Group {
-            Text("Select an item")
-                .foregroundStyle(.secondary)
-                .padding()
-        }
-        .inspectorColumnWidth(min: 300, ideal: 400, max: 600)
     }
     
     // A `carouselSection` was rendered here as `Section { } header: { }` — an empty section with an
@@ -123,30 +113,29 @@ struct AnalyticsView<NutritionChart: View>: View {
         }
     }
     
-    private var contributionChartSection: some View {
-        headerCard {
-            ContributionChartView(
-                data: presenter.contributionChartData,
-                rows: 7,
-                columns: 16,
-                targetValue: 1.0,
-                blockColor: .accent,
-                endDate: presenter.chartEndDate
-            )
-        }
-    }
-    
     private var moreSection: some View {
         Section {
-            Label("Customise Analytics", systemImage: "house")
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                .tappableBackground()
-                .anyButton {
-                    presenter.onCustomiseAnalyticsPressed()
+            ForEach(presenter.hiddenSections) { section in
+                moreRow(title: section.title, systemImage: section.systemImage) {
+                    presenter.onHiddenSectionPressed(section)
                 }
+            }
+
+            // "house" here was copied from the Dashboard tab and said nothing about what the row
+            // does.
+            moreRow(title: "Customise Analytics", systemImage: "slider.horizontal.3") {
+                presenter.onCustomiseAnalyticsPressed()
+            }
         } header: {
             Text("More")
         }
+    }
+
+    private func moreRow(title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Label(title, systemImage: systemImage)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .tappableBackground()
+            .anyButton(.highlight, action: action)
     }
 
     @ToolbarContentBuilder
@@ -176,21 +165,27 @@ struct AnalyticsView<NutritionChart: View>: View {
 }
 
 // MARK: - Analytics Sections (extracted for type_body_length)
+//
+// Every section is the same three pieces: an `AnalyticsSectionHeader`, an `AnalyticsCardGrid`, and
+// cards built from the shared card components in `AnalyticsSection.swift`. Sections whose contents
+// are data-driven fall back to an `AnalyticsEmptyCard` so a visible header is never followed by a
+// blank grid.
 private extension AnalyticsView {
+
     var insightsAndAnalyticsSection: some View {
         let workoutColor = Color.orange
         let expenditureColor = Color.pink
         let weightTrendColor = Color.purple
         let goalProgressColor = Color.green
         return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
+            AnalyticsCardGrid {
                 AnalyticsCard(
                     title: "Workouts",
                     subtitle: presenter.workoutSubtitle,
                     subsubtitle: presenter.workoutLatestValueText,
                     subsubsubtitle: presenter.workoutUnitText,
                     themeColor: workoutColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
+                    chartConfiguration: .compact
                 ) {
                     SetsBarChart(
                         data: presenter.workoutSparklineData.map(\.value),
@@ -198,187 +193,113 @@ private extension AnalyticsView {
                         color: workoutColor
                     )
                 }
-                .tappableBackground()
-                .anyButton(.press) {
+                .analyticsCardButton {
                     presenter.onWorkoutsPressed(themeColor: workoutColor)
                 }
-                
-                AnalyticsCard(
+
+                SparklineAnalyticsCard(
                     title: "Expenditure",
                     subtitle: presenter.expenditureSubtitle,
-                    subsubtitle: presenter.expenditureLatestValueText,
-                    subsubsubtitle: presenter.expenditureUnitText,
+                    value: presenter.expenditureLatestValueText,
+                    unit: presenter.expenditureUnitText,
                     themeColor: expenditureColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.expenditureSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: expenditureColor,
-                            lineWidth: 2,
-                            fillColor: expenditureColor,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onExpenditurePressed(themeColor: expenditureColor)
-                }
+                    data: presenter.expenditureSparklineData,
+                    action: { presenter.onExpenditurePressed(themeColor: expenditureColor) }
+                )
 
-                AnalyticsCard(
+                SparklineAnalyticsCard(
                     title: "Weight Trend",
                     subtitle: presenter.weightTrendSubtitle,
-                    subsubtitle: presenter.weightTrendLatestValueText,
-                    subsubsubtitle: presenter.weightTrendUnitText,
+                    value: presenter.weightTrendLatestValueText,
+                    unit: presenter.weightTrendUnitText,
                     themeColor: weightTrendColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.weightTrendSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: weightTrendColor,
-                            lineWidth: 2,
-                            fillColor: weightTrendColor,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onWeightTrendPressed(themeColor: weightTrendColor)
-                }
+                    data: presenter.weightTrendSparklineData,
+                    action: { presenter.onWeightTrendPressed(themeColor: weightTrendColor) }
+                )
+
+                // Was hardcoded to "14%" over "Last 7 Days" — a placeholder that showed the same
+                // number to every user, including users with no goal at all.
                 AnalyticsCard(
                     title: "Goal Progress",
-                    subtitle: "Last 7 Days",
-                    subsubtitle: "14",
-                    subsubsubtitle: "%",
+                    subtitle: presenter.goalProgressSubtitle,
+                    subsubtitle: presenter.goalProgressLatestValueText,
+                    subsubsubtitle: presenter.goalProgressUnitText,
                     themeColor: goalProgressColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2),
-                    chart: {
-                        MacroProgressChart(current: 14, target: 100, maxValue: 100, color: goalProgressColor)
-                    }
-                )
-                .tappableBackground()
-                .anyButton(.press) {
+                    chartConfiguration: .compact
+                ) {
+                    MacroProgressChart(
+                        current: presenter.goalProgressPercent,
+                        target: 100,
+                        maxValue: 100,
+                        color: goalProgressColor
+                    )
+                }
+                .analyticsCardButton {
                     presenter.onGoalProgressPressed(themeColor: goalProgressColor)
                 }
+
                 AnalyticsCard(
                     title: "Energy Balance",
                     subtitle: presenter.energyBalanceSubtitle,
                     subsubtitle: presenter.energyBalanceLatestValueText,
                     subsubsubtitle: presenter.energyBalanceUnitText,
                     themeColor: nil,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
+                    chartConfiguration: .compact
                 ) {
                     EnergyBalanceChart(
                         expenditure: presenter.energyBalanceExpenditure,
                         energyIntake: presenter.energyBalanceIntake
                     )
                 }
-                .tappableBackground()
-                .anyButton(.press) {
+                .analyticsCardButton {
                     presenter.onEnergyBalancePressed(themeColor: nil)
                 }
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
         } header: {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Insights & Analytics")
-             Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton {
-                        presenter.onSeeAllInsightsPressed()
-                    }
-            }
+            AnalyticsSectionHeader(
+                title: "Insights & Analytics",
+                onSeeAllPressed: { presenter.onSeeAllInsightsPressed() }
+            )
         }
     }
-    
-    var habitsSection: some View {
-        let weighInColor = Color.green
-        let habitsWorkoutColor = Color.orange
-        return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard(
-                    title: "Weigh In",
-                    subtitle: "Last 30 Days",
-                    subsubtitle: "\(presenter.weighInCountThisWeek)",
-                    subsubsubtitle: "this week",
-                    themeColor: weighInColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    ContributionChartView(
-                        data: presenter.weighInContributionData,
-                        rows: 3,
-                        columns: 10,
-                        targetValue: 1.0,
-                        blockColor: weighInColor,
-                        blockBackgroundColor: .background,
-                        rectangleWidth: .infinity,
-                        endDate: .now,
-                        showsCaptioning: false
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onWeighInConsistencyPressed(themeColor: weighInColor)
-                }
-                AnalyticsCard(
-                    title: "Workouts",
-                    subtitle: "Last 30 Days",
-                    subsubtitle: "\(presenter.workoutCountThisWeek)",
-                    subsubsubtitle: "this week",
-                    themeColor: habitsWorkoutColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    ContributionChartView(
-                        data: presenter.workoutContributionData,
-                        rows: 3,
-                        columns: 10,
-                        targetValue: 1.0,
-                        blockColor: habitsWorkoutColor,
-                        blockBackgroundColor: .background,
-                        rectangleWidth: .infinity,
-                        endDate: .now,
-                        showsCaptioning: false
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onWorkoutConsistencyPressed(themeColor: habitsWorkoutColor)
-                }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
 
-        } header: {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Habits")
-             Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton {
-                        presenter.onSeeAllHabitsPressed()
-                    }
+    var habitsSection: some View {
+        Section {
+            AnalyticsCardGrid {
+                ConsistencyAnalyticsCard(
+                    title: "Weigh In",
+                    value: "\(presenter.weighInCountThisWeek)",
+                    themeColor: .green,
+                    data: presenter.weighInContributionData,
+                    action: { presenter.onWeighInConsistencyPressed(themeColor: .green) }
+                )
+                ConsistencyAnalyticsCard(
+                    title: "Workouts",
+                    value: "\(presenter.workoutCountThisWeek)",
+                    themeColor: .orange,
+                    data: presenter.workoutContributionData,
+                    action: { presenter.onWorkoutConsistencyPressed(themeColor: .orange) }
+                )
             }
+        } header: {
+            AnalyticsSectionHeader(
+                title: "Habits",
+                onSeeAllPressed: { presenter.onSeeAllHabitsPressed() }
+            )
         }
     }
-    
+
     var nutritionSection: some View {
         let proteinColor = MacroProgressChart.proteinColor
         return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
+            AnalyticsCardGrid {
                 AnalyticsCard(
                     title: "Macros",
-                    subtitle: "Last 7 Days",
+                    subtitle: presenter.macrosLast7Days.isEmpty ? "No Data" : "Last 7 Days",
                     subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : Int(presenter.macrosAverageCalories).formatted(),
                     subsubsubtitle: "kcal",
                     themeColor: proteinColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chartConfiguration: .compact,
                     chart: {
                         let chartData = presenter.macrosLast7Days.isEmpty
                             ? Array(repeating: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0), count: 7)
@@ -386,17 +307,16 @@ private extension AnalyticsView {
                         return MacroStackedBarChart(data: chartData)
                     }
                 )
-                .tappableBackground()
-                .anyButton(.press) {
+                .analyticsCardButton {
                     presenter.onMacrosPressed(themeColor: proteinColor)
                 }
                 AnalyticsCard(
                     title: "Protein",
-                    subtitle: "Today",
-                    subsubtitle: !presenter.macrosLast7Days.isEmpty ? presenter.proteinCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
+                    subtitle: presenter.macrosLast7Days.isEmpty ? "No Data" : "Today",
+                    subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : presenter.proteinCurrent.formatted(.number.precision(.fractionLength(1))),
                     subsubsubtitle: "g",
                     themeColor: proteinColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chartConfiguration: .compact,
                     chart: {
                         MacroProgressChart(
                             current: presenter.proteinCurrent,
@@ -406,202 +326,132 @@ private extension AnalyticsView {
                         )
                     }
                 )
-                .tappableBackground()
-                .anyButton(.press) {
+                .analyticsCardButton {
                     presenter.onProteinPressed(themeColor: proteinColor)
                 }
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-
         } header: {
-            HStack {
-                Text("Nutrition")
-                Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton(.press) {
-                        presenter.onSeeAllNutritionAnalyticsPressed()
-                    }
-            }
-
+            AnalyticsSectionHeader(
+                title: "Nutrition",
+                onSeeAllPressed: { presenter.onSeeAllNutritionAnalyticsPressed() }
+            )
         }
     }
 
     var bodyMetricsSection: some View {
         let scaleWeightColor = Color.green
-        let bodyFatColor = Color.green
+        let bodyFatColor = Color.teal
         return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard(
+            AnalyticsCardGrid {
+                SparklineAnalyticsCard(
                     title: "Scale Weight",
                     subtitle: presenter.scaleWeightSubtitle,
-                    subsubtitle: presenter.scaleWeightLatestValueText,
-                    subsubsubtitle: presenter.scaleWeightUnitText,
+                    value: presenter.scaleWeightLatestValueText,
+                    unit: presenter.scaleWeightUnitText,
                     themeColor: scaleWeightColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.scaleWeightSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: scaleWeightColor,
-                            lineWidth: 2,
-                            fillColor: scaleWeightColor,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onScaleWeightPressed(themeColor: scaleWeightColor)
-                }
-                AnalyticsCard(title: "Visual Body Fat", subtitle: presenter.bodyFatSubtitle, subsubtitle: presenter.bodyFatLatestValueText, subsubsubtitle: presenter.bodyFatUnitText, themeColor: bodyFatColor, chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)) {
-                    SparklineChart(
-                        data: presenter.bodyFatSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: bodyFatColor,
-                            lineWidth: 2,
-                            fillColor: bodyFatColor,
-                            height: 36
-                        )
-                    )
-
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onVisualBodyFatPressed(themeColor: bodyFatColor)
-                }
+                    data: presenter.scaleWeightSparklineData,
+                    action: { presenter.onScaleWeightPressed(themeColor: scaleWeightColor) }
+                )
+                SparklineAnalyticsCard(
+                    title: "Visual Body Fat",
+                    subtitle: presenter.bodyFatSubtitle,
+                    value: presenter.bodyFatLatestValueText,
+                    unit: presenter.bodyFatUnitText,
+                    themeColor: bodyFatColor,
+                    data: presenter.bodyFatSparklineData,
+                    action: { presenter.onVisualBodyFatPressed(themeColor: bodyFatColor) }
+                )
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
         } header: {
-            HStack {
-                Text("Body Metrics")
-                Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton(.press) {
-                        presenter.onSeeAllBodyMetricsPressed()
-                    }
-            }
+            AnalyticsSectionHeader(
+                title: "Body Metrics",
+                onSeeAllPressed: { presenter.onSeeAllBodyMetricsPressed() }
+            )
         }
     }
 
     var muscleGroupsSection: some View {
         let muscleGroupColor = Color.blue
         return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                ForEach(presenter.muscleGroupCards, id: \.muscle) { item in
-                    AnalyticsCard(
-                        title: item.muscle.name,
-                        subtitle: "Last 7 Days",
-                        subsubtitle: item.totalSets.formatted(.number.precision(.fractionLength(0...1))),
-                        subsubsubtitle: "sets",
-                        themeColor: muscleGroupColor,
-                        chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                    ) {
-                        SetsBarChart(data: item.last7DaysData, color: muscleGroupColor)
-                    }
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        presenter.onMuscleGroupPressed(muscle: item.muscle, themeColor: muscleGroupColor)
+            AnalyticsCardGrid {
+                if presenter.muscleGroupCards.isEmpty {
+                    AnalyticsEmptyCard(message: "Log a workout to see your weekly sets by muscle group.")
+                } else {
+                    ForEach(presenter.muscleGroupCards, id: \.muscle) { item in
+                        AnalyticsCard(
+                            title: item.muscle.name,
+                            subtitle: "Last 7 Days",
+                            subsubtitle: item.totalSets.formatted(.number.precision(.fractionLength(0...1))),
+                            subsubsubtitle: "sets",
+                            themeColor: muscleGroupColor,
+                            chartConfiguration: .compact
+                        ) {
+                            SetsBarChart(data: item.last7DaysData, color: muscleGroupColor)
+                        }
+                        .analyticsCardButton {
+                            presenter.onMuscleGroupPressed(muscle: item.muscle, themeColor: muscleGroupColor)
+                        }
                     }
                 }
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
         } header: {
-            HStack {
-                Text("Muscle Groups")
-                Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton(.press) {
-                        presenter.onSeeAllMuscleGroupsPressed()
-                    }
-            }
+            AnalyticsSectionHeader(
+                title: "Muscle Groups",
+                onSeeAllPressed: { presenter.onSeeAllMuscleGroupsPressed() }
+            )
         }
     }
 
     var exercisesSection: some View {
         let exerciseColor = Color.cyan
         return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                ForEach(presenter.exerciseCards) { item in
-                    AnalyticsCard(
-                        title: item.name,
-                        subtitle: "Last 7 Workouts",
-                        subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
-                        subsubsubtitle: "kg",
-                        themeColor: exerciseColor,
-                        chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                    ) {
-                        SparklineChart(
+            AnalyticsCardGrid {
+                if presenter.exerciseCards.isEmpty {
+                    AnalyticsEmptyCard(message: "Log a workout to track your estimated one-rep max.")
+                } else {
+                    ForEach(presenter.exerciseCards) { item in
+                        SparklineAnalyticsCard(
+                            title: item.name,
+                            subtitle: "Last 7 Workouts",
+                            value: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
+                            unit: item.unitText,
+                            themeColor: exerciseColor,
                             data: item.sparklineData,
-                            configuration: SparklineConfiguration(
-                                lineColor: exerciseColor,
-                                lineWidth: 2,
-                                fillColor: exerciseColor,
-                                height: 36
-                            )
+                            action: {
+                                presenter.onExercisePressed(
+                                    templateId: item.templateId,
+                                    name: item.name,
+                                    themeColor: exerciseColor
+                                )
+                            }
                         )
-                    }
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        presenter.onExercisePressed(templateId: item.templateId, name: item.name, themeColor: exerciseColor)
                     }
                 }
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
         } header: {
-            HStack {
-                Text("Exercises")
-                Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton(.press) {
-                        presenter.onSeeAllExercisesPressed()
-                    }
-            }
+            AnalyticsSectionHeader(
+                title: "Exercises",
+                onSeeAllPressed: { presenter.onSeeAllExercisesPressed() }
+            )
         }
     }
 
     var generalSection: some View {
         let stepsColor = Color.orange
         return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard(
+            AnalyticsCardGrid {
+                SparklineAnalyticsCard(
                     title: "Steps",
                     subtitle: presenter.stepsSubtitle,
-                    subsubtitle: presenter.stepsLatestValueText,
-                    subsubsubtitle: presenter.stepsUnitText,
+                    value: presenter.stepsLatestValueText,
+                    unit: presenter.stepsUnitText,
                     themeColor: stepsColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.stepsSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: stepsColor,
-                            lineWidth: 2,
-                            fillColor: stepsColor,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onStepsPressed(themeColor: stepsColor)
-                }
+                    data: presenter.stepsSparklineData,
+                    action: { presenter.onStepsPressed(themeColor: stepsColor) }
+                )
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
         } header: {
-            Text("General")
+            AnalyticsSectionHeader(title: "General")
         }
     }
 }

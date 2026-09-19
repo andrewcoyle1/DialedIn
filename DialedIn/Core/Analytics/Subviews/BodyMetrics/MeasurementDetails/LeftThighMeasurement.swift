@@ -46,21 +46,21 @@ final class LeftThighMeasurementPresenter: @MainActor MetricDetailPresenter {
 
     var entries: [LeftThighMeasurementEntry]
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         let data = entries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: $0.leftThighCircumference) }
-        return [TimeSeriesData.TimeSeries(name: "Left Thigh Circumference", data: data)]
+        return [TimeSeries(name: "Left Thigh Circumference", data: data)]
     }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: "Left Thigh Circumference",
             analyticsName: "LeftThighMeasurementView",
-            yAxisSuffix: " in",
+            yAxisSuffix: " \(interactor.lengthUnitPreference.measurementAbbreviation)",
             seriesNames: ["Left Thigh Circumference"],
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No left thigh measurement entries",
-            pageSize: nil,
+            pageSize: 20,
             chartColor: .green
         )
     }
@@ -76,7 +76,7 @@ final class LeftThighMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAppear() async {
-        entries = Self.leftThighEntries(from: interactor.bodyMeasurements)
+        entries = Self.leftThighEntries(from: interactor.bodyMeasurements, unit: interactor.lengthUnitPreference)
     }
 
     func onAddPressed() {
@@ -87,14 +87,25 @@ final class LeftThighMeasurementPresenter: @MainActor MetricDetailPresenter {
         router.dismissScreen()
     }
 
+    var supportsDeletion: Bool { true }
+
     func onDeleteEntry(_ entry: LeftThighMeasurementEntry) async {
         guard let baseEntry = interactor.bodyMeasurements.first(where: { $0.id == entry.id }) else { return }
         let updatedEntry = baseEntry.withCleared(.leftThighCircumference)
-        try? await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
-        entries = Self.leftThighEntries(from: interactor.bodyMeasurements)
+        do {
+            try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        } catch {
+            // Was `try?`. The refresh below re-reads unchanged data, so a failed delete put the row
+            // straight back with nothing said about why.
+            router.showSimpleAlert(title: "Unable to Delete Entry", subtitle: "Please try again.")
+            return
+        }
+        entries = Self.leftThighEntries(from: interactor.bodyMeasurements, unit: interactor.lengthUnitPreference)
     }
 
-    private static func leftThighEntries(from entries: [BodyMeasurementEntry]) -> [LeftThighMeasurementEntry] {
+    /// Values are converted here, once, so `displayValue` and the chart agree with the
+    /// suffix in `configuration`.
+    private static func leftThighEntries(from entries: [BodyMeasurementEntry], unit: LengthUnitPreference) -> [LeftThighMeasurementEntry] {
         entries
             .filter { $0.deletedAt == nil }
             .compactMap { entry in
@@ -102,7 +113,7 @@ final class LeftThighMeasurementPresenter: @MainActor MetricDetailPresenter {
                 return LeftThighMeasurementEntry(
                     id: entry.id,
                     date: entry.date,
-                    leftThighCircumference: leftThighCircumference
+                    leftThighCircumference: UnitConversion.convertLength(leftThighCircumference, to: unit)
                 )
             }
             .sorted { $0.date < $1.date }

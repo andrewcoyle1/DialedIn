@@ -62,6 +62,77 @@ struct UnitConversion {
         }
     }
     
+    // MARK: - User-Level Preferences
+    //
+    // `ExerciseWeightUnit` above is the per-exercise preference. `WeightUnitPreference` and
+    // `LengthUnitPreference` are the user-level ones set during onboarding, and nothing here
+    // covered them — so `2.20462` was written out by hand in ProfilePresenter,
+    // ExerciseTemplateDetailPresenter and three onboarding presenters, and the Analytics tab
+    // skipped conversion altogether.
+
+    /// Convert weight from kg to the user's preferred unit.
+    static func convertWeight(_ kilograms: Double, to unit: WeightUnitPreference) -> Double {
+        switch unit {
+        case .kilograms:
+            return kilograms
+        case .pounds:
+            return kgToLbs(kilograms)
+        }
+    }
+
+    /// Convert a value in the user's preferred unit back to kg for storage.
+    static func convertWeightToKg(_ value: Double, from unit: WeightUnitPreference) -> Double {
+        switch unit {
+        case .kilograms:
+            return value
+        case .pounds:
+            return lbsToKg(value)
+        }
+    }
+
+    static func formatWeight(_ kilograms: Double, unit: WeightUnitPreference, decimals: Int = 1) -> String {
+        convertWeight(kilograms, to: unit)
+            .formatted(.number.precision(.fractionLength(decimals)))
+    }
+
+    // MARK: - Length Conversion
+    //
+    // Body circumferences are stored in centimetres — `LogNeckMeasurementPresenter.measurementCm`
+    // and its eighteen siblings multiply inches by 2.54 on the way in.
+
+    static func cmToInches(_ centimeters: Double) -> Double {
+        return centimeters / 2.54
+    }
+
+    static func inchesToCm(_ inches: Double) -> Double {
+        return inches * 2.54
+    }
+
+    /// Convert a stored centimetre value to the user's preferred unit.
+    static func convertLength(_ centimeters: Double, to unit: LengthUnitPreference) -> Double {
+        switch unit {
+        case .centimeters:
+            return centimeters
+        case .inches:
+            return cmToInches(centimeters)
+        }
+    }
+
+    /// Convert a value in the user's preferred unit back to centimetres for storage.
+    static func convertLengthToCm(_ value: Double, from unit: LengthUnitPreference) -> Double {
+        switch unit {
+        case .centimeters:
+            return value
+        case .inches:
+            return inchesToCm(value)
+        }
+    }
+
+    static func formatLength(_ centimeters: Double, unit: LengthUnitPreference, decimals: Int = 1) -> String {
+        convertLength(centimeters, to: unit)
+            .formatted(.number.precision(.fractionLength(decimals)))
+    }
+
     // MARK: - Distance Conversion
     
     /// Convert meters to miles

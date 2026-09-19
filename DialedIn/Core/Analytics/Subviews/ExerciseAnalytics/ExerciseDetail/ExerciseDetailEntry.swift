@@ -19,8 +19,10 @@ extension ExerciseDetailEntry: @MainActor MetricEntry {
         "\(date.formatted(.dateTime.day().month().year()))"
     }
 
+    /// The unit is rendered separately by `MetricDetailView` from the configuration, and the
+    /// value is converted to the exercise's own unit by the presenter — so this carries neither.
     var displayValue: String {
-        "\(oneRMKg.formatted(.number.precision(.fractionLength(1)))) kg"
+        oneRMKg.formatted(.number.precision(.fractionLength(1)))
     }
 
     var systemImageName: String {

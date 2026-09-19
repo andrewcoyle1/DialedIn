@@ -117,18 +117,19 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
                 Label("\(presenter.likeCount)", systemImage: presenter.isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
             }
             .frame(maxWidth: .infinity)
+            .accessibilityLabel(presenter.isLiked ? "Unlike" : "Like")
             Button {
                 presenter.onCommentButtonPressed()
             } label: {
                 Image(systemName: "bubble")
             }
             .frame(maxWidth: .infinity)
-            Button {
-                presenter.onShareButtonPressed()
-            } label: {
+            .accessibilityLabel("Comments")
+            ShareLink(item: presenter.shareSummary) {
                 Image(systemName: "square.and.arrow.up")
             }
             .frame(maxWidth: .infinity)
+            .accessibilityLabel("Share workout")
         }
         .buttonStyle(.plain)
     }

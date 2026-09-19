@@ -172,8 +172,15 @@ class SearchPresenter {
         !trimmedSearchString.isEmpty
     }
 
+    /// Checks `filteredUsers`, not `users`: the view renders the filtered list, so a remote search
+    /// that returned people whose names the local filter then rejected showed a list of five empty
+    /// sections instead of "no results".
     var hasResults: Bool {
-        !filteredExercises.isEmpty || !filteredWorkoutTemplates.isEmpty || !filteredRecipeTemplates.isEmpty || !filteredFoods.isEmpty || !users.isEmpty
+        !filteredExercises.isEmpty
+            || !filteredWorkoutTemplates.isEmpty
+            || !filteredRecipeTemplates.isEmpty
+            || !filteredFoods.isEmpty
+            || !filteredUsers.isEmpty
     }
 
     func isFollowing(userId: String) -> Bool {
@@ -372,21 +379,12 @@ class SearchPresenter {
         }
     }
 
-    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
-        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
+    /// The empty Add tab's way back to the screen that fills it.
+    func onChooseShortcutsPressed() {
+        router.showShortcutsView(delegate: ShortcutsDelegate())
     }
 
-    private func showWorkoutStartModal(for template: WorkoutTemplateModel) {
-        router.showWorkoutTemplateDetailView(
-            delegate: WorkoutTemplateDetailDelegate(
-                workoutTemplate: template,
-                trainingProgramId: nil,
-                onStartWorkoutPressed: { [weak self] in
-                    Task { @MainActor in
-                        self?.router.showWorkoutTrackerView()
-                    }
-                }
-            )
-        )
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
 }

@@ -46,9 +46,10 @@ struct CommentsView: View {
                                     }
                                 } else {
                                     Button {
-                                        
+                                        presenter.onReportPressed(comment)
                                     } label: {
                                         Label("Report", systemImage: "flag.fill")
+                                            .tint(.orange)
                                     }
                                 }
                             }
@@ -70,8 +71,9 @@ struct CommentsView: View {
 
     private func commentRow(_ comment: WorkoutSessionComment) -> some View {
         HStack {
-            ImageLoaderView(urlString: comment.authorImageUrl ?? Constants.randomImage, clipShape: AnyShape(Circle()))
-                .frame(width: 40, height: 40)
+            // `Constants.randomImage` was the fallback here, so a commenter with no picture was
+            // given someone else's at random, and a different one on every redraw.
+            UserAvatarView(imageUrl: comment.authorImageUrl, size: 40)
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(comment.authorName ?? "Unknown")

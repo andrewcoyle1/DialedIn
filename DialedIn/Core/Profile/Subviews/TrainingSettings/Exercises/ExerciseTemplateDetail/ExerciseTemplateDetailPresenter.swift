@@ -52,18 +52,18 @@ class ExerciseModelDetailPresenter {
 
     /// One point per session, so the charts follow workouts rather than calendar days — this
     /// exercise is not necessarily trained daily.
-    var weightSeries: [TimeSeriesData.TimeSeries] {
+    var weightSeries: [TimeSeries] {
         let points = stats.performances
             .sorted { $0.date < $1.date }
             .map { TimeSeriesDatapoint(id: $0.sessionId, date: $0.date, value: $0.heaviestWeightKg) }
-        return [TimeSeriesData.TimeSeries(name: "Top Set", data: points)]
+        return [TimeSeries(name: "Top Set", data: points)]
     }
 
-    var repsSeries: [TimeSeriesData.TimeSeries] {
+    var repsSeries: [TimeSeries] {
         let points = stats.performances
             .sorted { $0.date < $1.date }
             .map { TimeSeriesDatapoint(id: $0.sessionId, date: $0.date, value: Double($0.totalReps)) }
-        return [TimeSeriesData.TimeSeries(name: "Reps", data: points)]
+        return [TimeSeries(name: "Reps", data: points)]
     }
 
     /// Sessions whose estimated 1-RM beat every session before it, newest first.
@@ -80,7 +80,7 @@ class ExerciseModelDetailPresenter {
     func formattedWeight(_ kilos: Double) -> String {
         let unit = unitPreference?.weightUnit ?? .kilograms
         if unit == .pounds {
-            return String(format: "%.0f lbs", kilos * 2.20462)
+            return String(format: "%.0f lbs", UnitConversion.kgToLbs(kilos))
         }
         return String(format: "%.0f kg", kilos)
     }

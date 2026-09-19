@@ -19,8 +19,12 @@ struct SearchView: View {
     var body: some View {
         List {
             if !presenter.hasSearchQuery {
-                quickActionsGridSection
-                recentSearchesSection
+                if presenter.quickActions.isEmpty && presenter.recentQueries.isEmpty {
+                    noShortcutsSection
+                } else {
+                    quickActionsGridSection
+                    recentSearchesSection
+                }
             } else {
                 if presenter.isLoading {
                     loadingSection
@@ -117,20 +121,28 @@ struct SearchView: View {
         }
     }
 
+    /// `ContentUnavailableView` rather than a hand-rolled stack, so every empty state in the app
+    /// looks the same.
     private var emptyResultsSection: some View {
         Section {
-            VStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.secondary)
-                Text("No results found")
-                    .font(.headline)
-                Text("Try a different search term")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+            ContentUnavailableView.search(text: presenter.searchString)
+                .removeListRowFormatting()
+        }
+    }
+
+    /// The Add tab with every shortcut turned off and nothing searched yet. Without this the tab
+    /// opened onto a blank list with no way back to the Shortcuts screen.
+    private var noShortcutsSection: some View {
+        Section {
+            ContentUnavailableView {
+                Label("No Shortcuts", systemImage: "square.grid.2x2")
+            } description: {
+                Text("Pick the actions you want here, or search for an exercise, workout or recipe.")
+            } actions: {
+                Button("Choose Shortcuts") {
+                    presenter.onChooseShortcutsPressed()
+                }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 32)
             .removeListRowFormatting()
         }
     }
@@ -140,12 +152,13 @@ struct SearchView: View {
         if !presenter.filteredUsers.isEmpty {
             Section {
                 ForEach(presenter.filteredUsers) { user in
-                    UserSearchRow(
-                        user: user,
-                        isFollowing: presenter.isFollowing(userId: user.userId),
-                        onFollowPressed: { presenter.onFollowPressed(user: user) },
-                        onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
-                    )
+                    UserRowView(user: user) {
+                        FollowButton(
+                            isFollowing: presenter.isFollowing(userId: user.userId),
+                            onFollowPressed: { presenter.onFollowPressed(user: user) },
+                            onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
+                        )
+                    }
                     .removeListRowFormatting()
                 }
             } header: {
@@ -193,21 +206,14 @@ struct SearchView: View {
     @ViewBuilder
     private var recipesSection: some View {
         if !presenter.filteredRecipeTemplates.isEmpty {
-            Section {
-                ForEach(presenter.filteredRecipeTemplates) { recipe in
-                    CustomListCellView(
-                        imageName: recipe.imageURL,
-                        title: recipe.name,
-                        subtitle: recipe.description
-                    )
-                    .anyButton(.highlight) {
-                        presenter.onRecipePressed(recipe: recipe)
-                    }
-                    .removeListRowFormatting()
+            searchItemSection(
+                header: "Recipes",
+                items: presenter.filteredRecipeTemplates,
+                action: { item in
+                    guard let item = item as? RecipeTemplateModel else { return }
+                    presenter.onRecipePressed(recipe: item)
                 }
-            } header: {
-                Text("Recipes")
-            }
+            )
         }
     }
 
@@ -240,9 +246,8 @@ struct SearchView: View {
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Ingredients")
+            Text(header)
         }
-
     }
     
     @ToolbarContentBuilder
@@ -266,65 +271,30 @@ protocol SearchListItem: Identifiable {
     var imageURL: String? { get }
 }
 
-private struct UserSearchRow: View {
-
-    let user: UserModel
-    let isFollowing: Bool
-    let onFollowPressed: () -> Void
-    let onUnfollowPressed: () -> Void
-
-    var body: some View {
-        HStack(spacing: 12) {
-            if let imageUrl = user.profileImageNameCalculated {
-                ImageLoaderView(urlString: imageUrl)
-                    .frame(width: 44, height: 44)
-                    .clipShape(Circle())
-            } else {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 44))
-                    .foregroundStyle(.secondary)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(user.fullNameCalculated ?? user.firstNameCalculated ?? "Unknown")
-                    .font(.body.weight(.medium))
-            }
-
-            Spacer(minLength: 0)
-
-            Button {
-                if isFollowing {
-                    onUnfollowPressed()
-                } else {
-                    onFollowPressed()
-                }
-            } label: {
-                Text(isFollowing ? "Following" : "Follow")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
-                    .background(isFollowing ? Color(.secondarySystemBackground) : Color.accentColor)
-                    .foregroundStyle(isFollowing ? Color.primary : Color.white)
-                    .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.vertical, 6)
-    }
-}
-
+/// The Add tab's grid tile. Icon over title rather than a single `Label`, so the two-word and
+/// four-word shortcuts line up with each other instead of each centring their own width.
 private struct QuickActionButton: View {
-    
+
     @Environment(\.colorScheme) private var colorScheme
-    
+
     let title: String
     let systemImage: String
-    
+
     var body: some View {
-            Label(title, systemImage: systemImage)
-                .frame(maxWidth: .infinity)
-                .frame(height: 100)
-                .background(colorScheme.backgroundPrimary, in: .containerRelative)
+        VStack(spacing: 8) {
+            Image(systemName: systemImage)
+                .font(.title2)
+                .foregroundStyle(Color.accentColor)
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(.horizontal, 8)
+        .frame(maxWidth: .infinity)
+        .frame(height: 100)
+        .background(colorScheme.backgroundPrimary, in: .containerRelative)
     }
 }
 

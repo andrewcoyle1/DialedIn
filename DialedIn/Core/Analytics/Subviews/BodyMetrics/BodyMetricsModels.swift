@@ -35,8 +35,20 @@ extension BodyMetricType {
         Self.displayTitles[self]!
     }
 
-    var unit: String {
-        Self.units[self]!
+    /// What the stored number means, so display code knows which conversion to apply. Storage is
+    /// kilograms for weight and centimetres for every circumference.
+    enum Measure {
+        case weightKilograms
+        case lengthCentimeters
+        case percentage
+    }
+
+    var measure: Measure {
+        switch self {
+        case .scaleWeight:   return .weightKilograms
+        case .visualBodyFat: return .percentage
+        default:             return .lengthCentimeters
+        }
     }
 
     private static let valueKeyPaths: [BodyMetricType: KeyPath<BodyMeasurementEntry, Double?>] = [
@@ -85,14 +97,6 @@ extension BodyMetricType {
         .rightAnkle: "Right Ankle"
     ]
 
-    private static let units: [BodyMetricType: String] = [
-        .scaleWeight: "kg",
-        .visualBodyFat: "%",
-        .neck: "in", .shoulders: "in", .bust: "in", .chest: "in", .waist: "in", .hips: "in",
-        .leftBicep: "in", .rightBicep: "in", .leftForearm: "in", .rightForearm: "in",
-        .leftWrist: "in", .rightWrist: "in", .leftThigh: "in", .rightThigh: "in",
-        .leftCalf: "in", .rightCalf: "in", .leftAnkle: "in", .rightAnkle: "in"
-    ]
 }
 
 struct BodyMetricCardModel: Identifiable {

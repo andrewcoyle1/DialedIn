@@ -118,8 +118,7 @@ class GoalSummaryPresenter {
         case .kilograms:
             return String(format: "%.1f kg", weight)
         case .pounds:
-            let pounds = weight * 2.20462
-            return String(format: "%.1f lbs", pounds)
+            return String(format: "%.1f lbs", UnitConversion.kgToLbs(weight))
         }
     }
     

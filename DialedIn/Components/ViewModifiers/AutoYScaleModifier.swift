@@ -9,13 +9,17 @@ import SwiftUI
 import Charts
 
 struct AutoYScaleModifier: ViewModifier {
-    let series: [TimeSeriesData.TimeSeries]
+    let series: [TimeSeries]
     @Bindable var scrollZoomState: ChartScrollZoomState
     @Binding var metrics: NewHistoryChart.VisibleMetrics
     /// When true, lower bound is always 0 and only the upper bound is auto-scaled (for BarMark charts).
     var yDomainIncludesZero: Bool = false
     /// When true, y-domain max is sum of series per date; metrics include averageProtein, averageCarbs, averageFat.
     var isStackedBar: Bool = false
+    /// Supplied by the caller, which already computes it once per series. Recomputing it here meant
+    /// hashing every series on every body evaluation — and this modifier's body runs on every frame
+    /// of a scroll or pinch, because it observes `scrollZoomState`.
+    let seriesSignature: Int
     var debounce: Duration = .milliseconds(50)
     var minUpdateInterval: Duration = .milliseconds(75)
 
@@ -50,18 +54,6 @@ struct AutoYScaleModifier: ViewModifier {
             .onChange(of: scrollZoomState.totalZoomDays) { _, _ in
                 scheduleUpdate()
             }
-    }
-
-    private var seriesSignature: Int {
-        var hasher = Hasher()
-        series.forEach { item in
-            hasher.combine(item.id)
-            hasher.combine(item.data.count)
-            if let lastDate = item.lastByDate?.date {
-                hasher.combine(lastDate)
-            }
-        }
-        return hasher.finalize()
     }
 
     private func scheduleUpdate() {
@@ -201,9 +193,9 @@ struct AutoYScaleModifier: ViewModifier {
     }
 
     private func buildMacroTotalsByDate(
-        proteinSeries: TimeSeriesData.TimeSeries,
-        carbsSeries: TimeSeriesData.TimeSeries,
-        fatSeries: TimeSeriesData.TimeSeries,
+        proteinSeries: TimeSeries,
+        carbsSeries: TimeSeries,
+        fatSeries: TimeSeries,
         start: Date,
         end: Date
     ) -> [Date: MacroTotals] {
@@ -330,7 +322,8 @@ struct AutoYScaleModifier: ViewModifier {
 
 extension View {
     func autoYScale(
-        series: [TimeSeriesData.TimeSeries],
+        series: [TimeSeries],
+        seriesSignature: Int,
         scrollZoomState: ChartScrollZoomState,
         metrics: Binding<NewHistoryChart.VisibleMetrics>,
         yDomainIncludesZero: Bool = false,
@@ -345,6 +338,7 @@ extension View {
                 metrics: metrics,
                 yDomainIncludesZero: yDomainIncludesZero,
                 isStackedBar: isStackedBar,
+                seriesSignature: seriesSignature,
                 debounce: debounce,
                 minUpdateInterval: minUpdateInterval
             )

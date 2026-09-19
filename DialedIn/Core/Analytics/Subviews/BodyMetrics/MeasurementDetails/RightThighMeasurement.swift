@@ -46,25 +46,25 @@ final class RightThighMeasurementPresenter: @MainActor MetricDetailPresenter {
     private let router: BodyMetricsRouter
 
     var entries: [RightThighMeasurementEntry] {
-        Self.rightThighEntries(from: interactor.bodyMeasurements)
+        Self.rightThighEntries(from: interactor.bodyMeasurements, unit: interactor.lengthUnitPreference)
             .sorted { $0.date < $1.date }
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         let data = entries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: $0.rightThighCircumference) }
-        return [TimeSeriesData.TimeSeries(name: "Right Thigh Circumference", data: data)]
+        return [TimeSeries(name: "Right Thigh Circumference", data: data)]
     }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: "Right Thigh Circumference",
             analyticsName: "RightThighMeasurementView",
-            yAxisSuffix: " in",
+            yAxisSuffix: " \(interactor.lengthUnitPreference.measurementAbbreviation)",
             seriesNames: ["Right Thigh Circumference"],
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No right thigh measurement entries",
-            pageSize: nil,
+            pageSize: 20,
             chartColor: .green
         )
     }
@@ -89,13 +89,24 @@ final class RightThighMeasurementPresenter: @MainActor MetricDetailPresenter {
         router.dismissScreen()
     }
 
+    var supportsDeletion: Bool { true }
+
     func onDeleteEntry(_ entry: RightThighMeasurementEntry) async {
         guard let baseEntry = interactor.bodyMeasurements.first(where: { $0.id == entry.id }) else { return }
         let updatedEntry = baseEntry.withCleared(.rightThighCircumference)
-        try? await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        do {
+            try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        } catch {
+            // Was `try?`. The refresh below re-reads unchanged data, so a failed delete put the row
+            // straight back with nothing said about why.
+            router.showSimpleAlert(title: "Unable to Delete Entry", subtitle: "Please try again.")
+            return
+        }
     }
 
-    private static func rightThighEntries(from entries: [BodyMeasurementEntry]) -> [RightThighMeasurementEntry] {
+    /// Values are converted here, once, so `displayValue` and the chart agree with the
+    /// suffix in `configuration`.
+    private static func rightThighEntries(from entries: [BodyMeasurementEntry], unit: LengthUnitPreference) -> [RightThighMeasurementEntry] {
         entries
             .filter { $0.deletedAt == nil }
             .compactMap { entry in
@@ -103,7 +114,7 @@ final class RightThighMeasurementPresenter: @MainActor MetricDetailPresenter {
                 return RightThighMeasurementEntry(
                     id: entry.id,
                     date: entry.date,
-                    rightThighCircumference: rightThighCircumference
+                    rightThighCircumference: UnitConversion.convertLength(rightThighCircumference, to: unit)
                 )
             }
             .sorted { $0.date < $1.date }

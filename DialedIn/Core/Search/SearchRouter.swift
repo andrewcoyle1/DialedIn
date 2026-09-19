@@ -21,6 +21,7 @@ protocol SearchRouter: GlobalRouter {
     func showExerciseListBuilderView(delegate: ExerciseListBuilderDelegate)
     func showWorkoutTrackerView()
     func showLogWeightView()
+    func showShortcutsView(delegate: ShortcutsDelegate)
 }
 
 extension CoreRouter: SearchRouter { }

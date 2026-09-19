@@ -58,6 +58,10 @@ struct TabBarView<TrainingTabAccessory: View, MealTabAccessory: View, Search: Vi
         .onNotificationReceived(name: .pushNotification) { notification in
             presenter.onPushNotificationReceived(notification)
         }
+        // A screen inside a tab asking for a different tab — see `DeepLink.post()`.
+        .onNotificationReceived(name: Constants.selectTab) { notification in
+            presenter.onSelectTabNotificationReceived(notification)
+        }
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory(isEnabled: presenter.showTabAccessory) {

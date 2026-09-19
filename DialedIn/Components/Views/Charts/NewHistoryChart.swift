@@ -18,11 +18,62 @@ struct NewHistoryChart: View {
     @State private var selectedTimeRange: TimeRange = .oneWeek
     @State private var hasInitialized = false
     
-    var series: [TimeSeriesData.TimeSeries]
+    let series: [TimeSeries]
     var yAxisSuffix: String = ""
     var chartType: ChartType = .line
     var chartColor: Color?
-    
+
+    // MARK: - Derived data
+    //
+    // Everything below is a pure function of `series`, and was previously a computed property read
+    // from `body`. `body` re-evaluates on every frame of a scroll or pinch — `scrollZoomState` is
+    // `@Observable` and `visibleMetrics` is `@State` — so each of these ran 60-120 times a second,
+    // allocating a fresh array over every datapoint each time. They are now computed once, in
+    // `init`, which runs only when the parent supplies new series.
+
+    private let stackedBarDays: [StackedBarDay]
+    /// The series actually plotted: the last year of each, as a slice of the already-sorted array.
+    private let plottedSeries: [PlottedSeries]
+    private let xAxisDomain: ClosedRange<Date>
+    private let latestDate: Date?
+    private let totalDataDays: Double
+    private let seriesSignature: Int
+
+    init(
+        series: [TimeSeries],
+        yAxisSuffix: String = "",
+        chartType: ChartType = .line,
+        chartColor: Color? = nil
+    ) {
+        self.series = series
+        self.yAxisSuffix = yAxisSuffix
+        self.chartType = chartType
+        self.chartColor = chartColor
+
+        let derived = DerivedData(series: series, chartType: chartType)
+        self.stackedBarDays = derived.stackedBarDays
+        self.plottedSeries = derived.plottedSeries
+        self.xAxisDomain = derived.xAxisDomain
+        self.latestDate = derived.latestDate
+        self.totalDataDays = derived.totalDataDays
+        self.seriesSignature = derived.signature
+    }
+
+    /// A series windowed to the plotted range. `points` is a slice of `TimeSeries.sortedByDate`, so
+    /// windowing costs a binary search and copies nothing.
+    private struct PlottedSeries: Identifiable {
+        let id: String
+        let name: String
+        let points: ArraySlice<TimeSeriesDatapoint>
+        let last: TimeSeriesDatapoint?
+    }
+
+    private struct MacroTotals {
+        var protein: Double = 0
+        var carbs: Double = 0
+        var fat: Double = 0
+    }
+
     private struct StackedBarDay {
         let date: Date
         let protein: Double
@@ -30,59 +81,13 @@ struct NewHistoryChart: View {
         let fat: Double
     }
 
-    private var stackedBarDayData: [StackedBarDay] {
-        guard series.count >= 3 else { return [] }
-        let proteinSeries = series[0]
-        let carbsSeries = series[1]
-        let fatSeries = series[2]
-        
-        struct MacroTotals {
-            var protein: Double = 0
-            var carbs: Double = 0
-            var fat: Double = 0
-        }
-        
-        var byDate: [Date: MacroTotals] = [:]
-        for protein in proteinSeries.sortedByDate {
-            var totals = byDate[protein.date, default: MacroTotals()]
-            totals.protein = protein.value
-            byDate[protein.date] = totals
-        }
-        for carb in carbsSeries.sortedByDate {
-            var totals = byDate[carb.date, default: MacroTotals()]
-            totals.carbs = carb.value
-            byDate[carb.date] = totals
-        }
-        for fats in fatSeries.sortedByDate {
-            var totals = byDate[fats.date, default: MacroTotals()]
-            totals.fat = fats.value
-            byDate[fats.date] = totals
-        }
-        return byDate.keys.sorted().map { date in
-            let total = byDate[date] ?? MacroTotals()
-            return StackedBarDay(date: date, protein: total.protein, carbs: total.carbs, fat: total.fat)
-        }
-    }
-
-    private var seriesSignature: Int {
-        var hasher = Hasher()
-        series.forEach { item in
-            hasher.combine(item.id)
-            hasher.combine(item.data.count)
-            if let lastDate = item.lastByDate?.date {
-                hasher.combine(lastDate)
-            }
-        }
-        return hasher.finalize()
-    }
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             headerView
             
             Chart {
                 if chartType == .stackedBar, series.count >= 3 {
-                    ForEach(stackedBarDayData, id: \.date) { day in
+                    ForEach(stackedBarDays, id: \.date) { day in
                         BarMark(
                             x: .value("Date", day.date, unit: .day),
                             y: .value("Protein", day.protein)
@@ -100,9 +105,9 @@ struct NewHistoryChart: View {
                         .foregroundStyle(MacroProgressChart.fatColor)
                     }
                 } else {
-                    ForEach(series) { singleSeries in
+                    ForEach(plottedSeries) { singleSeries in
                         if chartType == .line {
-                            let lineMarks = ForEach(singleSeries.sortedByDate) { day in
+                            let lineMarks = ForEach(singleSeries.points) { day in
                                 LineMark(
                                     x: .value("Date", day.date, unit: .day),
                                     y: .value("Value", day.value)
@@ -113,7 +118,7 @@ struct NewHistoryChart: View {
                             } else {
                                 lineMarks.foregroundStyle(by: .value("Exercise", singleSeries.name))
                             }
-                            if let last = singleSeries.lastByDate {
+                            if let last = singleSeries.last {
                                 let pointMark = PointMark(
                                     x: .value("Date", last.date, unit: .day),
                                     y: .value("Value", last.value)
@@ -125,7 +130,7 @@ struct NewHistoryChart: View {
                                 }
                             }
                         } else {
-                            let barMarks = ForEach(singleSeries.sortedByDate) { day in
+                            let barMarks = ForEach(singleSeries.points) { day in
                                 BarMark(
                                     x: .value("Date", day.date, unit: .day),
                                     yStart: .value("Value", 0),
@@ -145,6 +150,7 @@ struct NewHistoryChart: View {
             .chartXScale(domain: xAxisDomain)
             .autoYScale(
                 series: series,
+                seriesSignature: seriesSignature,
                 scrollZoomState: scrollZoomState,
                 metrics: $visibleMetrics,
                 yDomainIncludesZero: chartType == .bar || chartType == .stackedBar,
@@ -267,24 +273,6 @@ struct NewHistoryChart: View {
         }
     }
     
-    private var xAxisDomain: ClosedRange<Date> {
-        // Find the earliest and latest dates across all series (using sorted data for consistency)
-        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
-        guard let earliest = allDates.min(),
-              let latest = allDates.max() else {
-            // Fallback: last year to now
-            let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: Date.now) ?? Date.now
-            return oneYearAgo...Date.now
-        }
-        
-        // Extend 4 days into the past and future
-        let fourDaysInSeconds: TimeInterval = 4 * 24 * 60 * 60
-        let extendedEarliest = earliest.addingTimeInterval(-fourDaysInSeconds)
-        let extendedLatest = latest.addingTimeInterval(fourDaysInSeconds)
-        
-        return extendedEarliest...extendedLatest
-    }
-    
     private var unitLabel: String {
         yAxisSuffix.trimmingCharacters(in: .whitespaces)
     }
@@ -348,28 +336,124 @@ struct NewHistoryChart: View {
         scrollZoomState.totalZoomDays = scrollZoomState.clampZoomDays(days)
         
         // Scroll so the most recent data is at the right edge
-        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
-        guard let latest = allDates.max() else { return }
+        guard let latest = latestDate else { return }
         let futureBuffer: TimeInterval = 4 * 86400
         let visibleLength = scrollZoomState.visibleDomainLength
         scrollZoomState.scrollPosition = latest.addingTimeInterval(futureBuffer - visibleLength)
-    }
-    
-    private var totalDataDays: Double {
-        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
-        guard let earliest = allDates.min(), let latest = allDates.max() else { return 365 }
-        let days = latest.timeIntervalSince(earliest) / 86400
-        return max(days + 8, 7)
     }
     
     private func initializeScrollPosition() {
-        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
-        guard let latest = allDates.max() else { return }
+        guard let latest = latestDate else { return }
         let futureBuffer: TimeInterval = 4 * 86400
         let visibleLength = scrollZoomState.visibleDomainLength
         scrollZoomState.scrollPosition = latest.addingTimeInterval(futureBuffer - visibleLength)
     }
     
+    // MARK: - Derived Data
+
+    /// One pass over the series, producing everything `body` used to recompute per frame.
+    ///
+    /// The old `xAxisDomain` and `totalDataDays` each ran `series.flatMap { $0.sortedByDate.map(\.date) }`
+    /// — allocating a fresh array over every datapoint — and `stackedBarDayData` built a dictionary
+    /// and sorted its keys. This walks each series once and allocates nothing per frame.
+    private struct DerivedData {
+        let stackedBarDays: [StackedBarDay]
+        let plottedSeries: [PlottedSeries]
+        let xAxisDomain: ClosedRange<Date>
+        let latestDate: Date?
+        let totalDataDays: Double
+        let signature: Int
+
+        init(series: [TimeSeries], chartType: ChartType) {
+            // The plotted window. `MetricDetailView` used to build this by filtering and then
+            // constructing a fresh `TimeSeries` per series on every one of its body evaluations —
+            // and `TimeSeries.init` sorts. `sortedByDate` is already sorted, so the same window is
+            // a binary search and a slice.
+            let cutoff = Calendar.current.date(byAdding: .year, value: -1, to: .now) ?? .distantPast
+
+            var plotted: [PlottedSeries] = []
+            plotted.reserveCapacity(series.count)
+            var earliest: Date?
+            var latest: Date?
+            var hasher = Hasher()
+
+            for item in series {
+                hasher.combine(item.id)
+                hasher.combine(item.data.count)
+                if let last = item.sortedByDate.last {
+                    hasher.combine(last.date)
+                }
+
+                let sorted = item.sortedByDate
+                let startIndex = DateSortedSearch.lowerBound(for: cutoff, values: sorted)
+                let points = sorted[startIndex...]
+                plotted.append(
+                    PlottedSeries(
+                        id: item.id,
+                        name: item.name,
+                        points: points,
+                        last: points.last
+                    )
+                )
+
+                if let first = points.first {
+                    earliest = min(earliest ?? first.date, first.date)
+                }
+                if let last = points.last {
+                    latest = max(latest ?? last.date, last.date)
+                }
+            }
+
+            self.plottedSeries = plotted
+            self.latestDate = latest
+            self.signature = hasher.finalize()
+
+            // Four days of breathing room either side, so the newest point is not flush to the edge.
+            let buffer: TimeInterval = 4 * 86400
+            if let earliest, let latest {
+                self.xAxisDomain = earliest.addingTimeInterval(-buffer)...latest.addingTimeInterval(buffer)
+                self.totalDataDays = max(latest.timeIntervalSince(earliest) / 86400 + 8, 7)
+            } else {
+                let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: .now) ?? .now
+                self.xAxisDomain = oneYearAgo...Date.now
+                self.totalDataDays = 365
+            }
+
+            // Only the macros chart draws these, and building them means a dictionary over every
+            // point — it used to run for any chart with three or more series, line charts included.
+            self.stackedBarDays = chartType == .stackedBar
+                ? Self.stackedBarDays(from: plotted)
+                : []
+        }
+
+        /// Macros only: protein, carbs and fat merged into one row per day.
+        private static func stackedBarDays(from series: [PlottedSeries]) -> [StackedBarDay] {
+            guard series.count >= 3 else { return [] }
+
+            var byDate: [Date: MacroTotals] = [:]
+            byDate.reserveCapacity(series[0].points.count)
+            for point in series[0].points {
+                byDate[point.date, default: MacroTotals()].protein = point.value
+            }
+            for point in series[1].points {
+                byDate[point.date, default: MacroTotals()].carbs = point.value
+            }
+            for point in series[2].points {
+                byDate[point.date, default: MacroTotals()].fat = point.value
+            }
+
+            return byDate.keys.sorted().map { date in
+                let totals = byDate[date] ?? MacroTotals()
+                return StackedBarDay(
+                    date: date,
+                    protein: totals.protein,
+                    carbs: totals.carbs,
+                    fat: totals.fat
+                )
+            }
+        }
+    }
+
     enum TimeRange: String, CaseIterable, Identifiable {
         case oneWeek = "1W"
         case oneMonth = "1M"
@@ -420,10 +504,10 @@ struct NewHistoryChart: View {
 }
 
 #Preview("Line Chart") {
-    NewHistoryChart(series: TimeSeriesData.lastYear, yAxisSuffix: " kg")
+    NewHistoryChart(series: TimeSeries.lastYear, yAxisSuffix: " kg")
         .frame(height: 400)
 }
 
 #Preview("Bar Chart") {
-    NewHistoryChart(series: TimeSeriesData.lastYear, yAxisSuffix: " kg", chartType: NewHistoryChart.ChartType.bar)
+    NewHistoryChart(series: TimeSeries.lastYear, yAxisSuffix: " kg", chartType: NewHistoryChart.ChartType.bar)
 }

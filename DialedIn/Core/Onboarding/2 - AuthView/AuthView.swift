@@ -63,7 +63,9 @@ struct AuthView: View {
     }
 
     private var tsAndCsSection: some View {
-        Text("By continuing, you agree to our [Terms of Service](Constants.termsofServiceURL) and [Privacy Policy](Constants.privacyPolicyURL)")
+        // The destinations were the literal strings "Constants.termsofServiceURL" and
+        // "Constants.privacyPolicyURL" — no interpolation, so neither link resolved.
+        Text("By continuing, you agree to our [Terms of Service](\(Constants.termsofServiceURL)) and [Privacy Policy](\(Constants.privacyPolicyURL))")
             .font(.caption)
             .foregroundStyle(Color.secondary)
             .padding(.top)

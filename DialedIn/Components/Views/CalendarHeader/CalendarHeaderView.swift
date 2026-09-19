@@ -111,20 +111,8 @@ struct CalendarHeaderView: View {
         let pointsForward = presenter.isTodayAhead(ofLeadingDay: leadingDay)
 
         VStack(spacing: 2) {
-            // Mirrors `CalendarDayCell`'s rows — weekday, number, today dot — so the two line up
-            // to the pixel instead of merely being the same height.
             Image(systemName: pointsForward ? "chevron.right" : "chevron.left")
                 .font(.caption)
-
-//            Text("Today")
-//                .font(.caption2)
-//                .lineLimit(1)
-//                .minimumScaleFactor(0.7)
-
-            // The cell keeps this slot for its today dot whether or not it draws one.
-//            Circle()
-//                .fill(.clear)
-//                .frame(width: 4, height: 4)
         }
         .monospaced()
         .fontWeight(.semibold)

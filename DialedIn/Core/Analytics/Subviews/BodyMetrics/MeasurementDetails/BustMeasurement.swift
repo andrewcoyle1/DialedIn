@@ -46,21 +46,21 @@ final class BustMeasurementPresenter: @MainActor MetricDetailPresenter {
 
     var entries: [BustMeasurementEntry]
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         let data = entries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: $0.bustCircumference) }
-        return [TimeSeriesData.TimeSeries(name: "Bust Circumference", data: data)]
+        return [TimeSeries(name: "Bust Circumference", data: data)]
     }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: "Bust Circumference",
             analyticsName: "BustMeasurementView",
-            yAxisSuffix: " in",
+            yAxisSuffix: " \(interactor.lengthUnitPreference.measurementAbbreviation)",
             seriesNames: ["Bust Circumference"],
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No bust measurement entries",
-            pageSize: nil,
+            pageSize: 20,
             chartColor: .green
         )
     }
@@ -76,7 +76,7 @@ final class BustMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAppear() async {
-        entries = Self.bustEntries(from: interactor.bodyMeasurements)
+        entries = Self.bustEntries(from: interactor.bodyMeasurements, unit: interactor.lengthUnitPreference)
     }
 
     func onAddPressed() {
@@ -87,14 +87,25 @@ final class BustMeasurementPresenter: @MainActor MetricDetailPresenter {
         router.dismissScreen()
     }
 
+    var supportsDeletion: Bool { true }
+
     func onDeleteEntry(_ entry: BustMeasurementEntry) async {
         guard let baseEntry = interactor.bodyMeasurements.first(where: { $0.id == entry.id }) else { return }
         let updatedEntry = baseEntry.withCleared(.bustCircumference)
-        try? await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
-        entries = Self.bustEntries(from: interactor.bodyMeasurements)
+        do {
+            try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        } catch {
+            // Was `try?`. The refresh below re-reads unchanged data, so a failed delete put the row
+            // straight back with nothing said about why.
+            router.showSimpleAlert(title: "Unable to Delete Entry", subtitle: "Please try again.")
+            return
+        }
+        entries = Self.bustEntries(from: interactor.bodyMeasurements, unit: interactor.lengthUnitPreference)
     }
 
-    private static func bustEntries(from entries: [BodyMeasurementEntry]) -> [BustMeasurementEntry] {
+    /// Values are converted here, once, so `displayValue` and the chart agree with the
+    /// suffix in `configuration`.
+    private static func bustEntries(from entries: [BodyMeasurementEntry], unit: LengthUnitPreference) -> [BustMeasurementEntry] {
         entries
             .filter { $0.deletedAt == nil }
             .compactMap { entry in
@@ -102,7 +113,7 @@ final class BustMeasurementPresenter: @MainActor MetricDetailPresenter {
                 return BustMeasurementEntry(
                     id: entry.id,
                     date: entry.date,
-                    bustCircumference: bustCircumference
+                    bustCircumference: UnitConversion.convertLength(bustCircumference, to: unit)
                 )
             }
             .sorted { $0.date < $1.date }

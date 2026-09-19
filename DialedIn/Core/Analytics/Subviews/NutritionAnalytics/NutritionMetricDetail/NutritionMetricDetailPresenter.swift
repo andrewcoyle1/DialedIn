@@ -24,7 +24,7 @@ final class NutritionMetricDetailPresenter: @MainActor MetricDetailPresenter {
     /// Nutrition metrics use NewHistoryChart (bar/stackedBar), not the contribution chart.
     var contributionChartData: [Double]? { nil }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         if metric == .macros {
             let proteinData = entries.compactMap { entry -> TimeSeriesDatapoint? in
                 guard let protein = entry.proteinGrams else { return nil }
@@ -39,13 +39,13 @@ final class NutritionMetricDetailPresenter: @MainActor MetricDetailPresenter {
                 return TimeSeriesDatapoint(id: "\(entry.id)-f", date: entry.date, value: fats)
             }
             return [
-                TimeSeriesData.TimeSeries(name: "Protein", data: proteinData),
-                TimeSeriesData.TimeSeries(name: "Carbs", data: carbsData),
-                TimeSeriesData.TimeSeries(name: "Fat", data: fatData)
+                TimeSeries(name: "Protein", data: proteinData),
+                TimeSeries(name: "Carbs", data: carbsData),
+                TimeSeries(name: "Fat", data: fatData)
             ]
         }
         let data = entries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: $0.value) }
-        return [TimeSeriesData.TimeSeries(name: metric.title, data: data)]
+        return [TimeSeries(name: metric.title, data: data)]
     }
 
     var configuration: MetricConfiguration {
@@ -55,14 +55,16 @@ final class NutritionMetricDetailPresenter: @MainActor MetricDetailPresenter {
                 analyticsName: "NutritionMetricDetail_Macros",
                 yAxisSuffix: "",
                 seriesNames: ["Protein", "Carbs", "Fat"],
-                showsAddButton: false,
+                showsAddButton: true,
                 sectionHeader: "Daily Values",
                 emptyStateMessage: "No macro data. Log meals to see your nutrition over time.",
                 pageSize: 20,
                 chartColor: nil,
                 chartType: .stackedBar,
                 isMacrosChart: true,
-                macrosYAxisSuffix: " g"
+                macrosYAxisSuffix: " g",
+                addActionTitle: "Log Meal",
+                addActionSystemImage: "plus"
             )
         }
         return MetricConfiguration(
@@ -70,12 +72,14 @@ final class NutritionMetricDetailPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "NutritionMetricDetail_\(metric.title.replacingOccurrences(of: " ", with: ""))",
             yAxisSuffix: metric.yAxisSuffix,
             seriesNames: [metric.title],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Daily Values",
             emptyStateMessage: "No \(metric.title.lowercased()) data. Log meals to see your nutrition over time.",
             pageSize: 20,
             chartColor: metric.chartColor,
-            chartType: .bar
+            chartType: .bar,
+            addActionTitle: "Log Meal",
+            addActionSystemImage: "plus"
         )
     }
 
@@ -130,17 +134,31 @@ final class NutritionMetricDetailPresenter: @MainActor MetricDetailPresenter {
         entries = newEntries.sorted { $0.date < $1.date }
     }
 
+    /// These values are derived from logged meals, so the action is to log one. Mirrors
+    /// `SearchPresenter.onLogMealPressed`: an existing draft is offered rather than silently
+    /// replaced.
     func onAddPressed() {
-        // No-op: nutrition is derived from meals
+        guard let userId = interactor.userId else { return }
+        if let draft = interactor.draftMeal {
+            router.showAddMealView(delegate: AddMealDelegate(mealLog: draft))
+            return
+        }
+        router.showAddMealView(
+            delegate: AddMealDelegate(
+                mealLog: MealLogModel(
+                    authorId: userId,
+                    dayKey: Date().dayKey,
+                    date: Date(),
+                    items: []
+                )
+            )
+        )
     }
 
     func onDismissPressed() {
         router.dismissScreen()
     }
 
-    func onDeleteEntry(_ entry: NutritionMetricEntry) async {
-        // No-op: entries are derived from meals; deletion not supported at metric level
-    }
 }
 
 extension CoreRouter {

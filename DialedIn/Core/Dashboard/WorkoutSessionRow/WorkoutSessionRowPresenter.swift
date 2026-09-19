@@ -61,8 +61,21 @@ class WorkoutSessionRowPresenter {
         router.showCommentsView(delegate: CommentsDelegate(session: session))
     }
 
-    func onShareButtonPressed() {
-        router.showSimpleAlert(title: "Share", subtitle: "Not implemented yet.")
+    /// The share button used to raise a "Not implemented yet." alert. There is no deep link for a
+    /// session, so there is no URL to share — but the summary the row already displays is worth
+    /// sharing on its own, and the view hands this to a `ShareLink`.
+    var shareSummary: String {
+        let workingSets = session.exercises.flatMap { $0.sets }.filter { !$0.isWarmup }
+        let volume = workingSets.reduce(0.0) { $0 + (($1.weightKg ?? 0) * Double($1.reps ?? 0)) }
+        var parts = [
+            session.name,
+            "\(session.exercises.count) exercises",
+            "\(workingSets.count) sets"
+        ]
+        if volume > 0 {
+            parts.append("\(Int(volume)) kg lifted")
+        }
+        return parts.joined(separator: " · ")
     }
 
     func onUserPressed() {

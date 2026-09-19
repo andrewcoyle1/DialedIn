@@ -61,7 +61,7 @@ class TargetWeightPresenter {
         // Convert kg range to lb bounds for parity
         let minLb = 66
         let maxLb = 440
-        let baseLb = Int(((interactor.currentUser?.submittedWeightKilograms ?? 0) * 2.20462).rounded())
+        let baseLb = Int(UnitConversion.kgToLbs(interactor.currentUser?.submittedWeightKilograms ?? 0).rounded())
         switch delegate.overarchingObjective {
         case .gainWeight:
             let lower = max(minLb, baseLb > 0 ? baseLb : minLb)
@@ -95,8 +95,8 @@ class TargetWeightPresenter {
             selectedKilograms = clamp(initial: initial, within: kilogramRange(delegate: delegate))
             updateFromKilograms()
         case .pounds:
-            let currentLb = max(1, Int((user?.submittedWeightKilograms ?? 0) * 2.20462))
-            let fallbackLb = Int((Double(fallbackKg) * 2.20462).rounded())
+            let currentLb = max(1, Int(UnitConversion.kgToLbs(user?.submittedWeightKilograms ?? 0)))
+            let fallbackLb = Int(UnitConversion.kgToLbs(Double(fallbackKg)).rounded())
             let initial = currentLb > 0 ? currentLb : fallbackLb
             selectedPounds = clamp(initial: initial, within: poundRange(delegate: delegate))
             updateFromPounds()
@@ -105,11 +105,11 @@ class TargetWeightPresenter {
     }
     func updateFromKilograms() {
         targetWeight = Double(selectedKilograms)
-        selectedPounds = Int((targetWeight * 2.20462).rounded())
+        selectedPounds = Int(UnitConversion.kgToLbs(targetWeight).rounded())
     }
     
     func updateFromPounds() {
-        targetWeight = Double(selectedPounds) / 2.20462
+        targetWeight = UnitConversion.lbsToKg(Double(selectedPounds))
         selectedKilograms = Int(targetWeight.rounded())
     }
     

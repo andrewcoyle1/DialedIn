@@ -29,7 +29,7 @@ final class InteractiveHistoryChartModel {
         var fallbackVisiblePoints: Int = 300
     }
 
-    private(set) var series: [TimeSeriesData.TimeSeries]
+    private(set) var series: [TimeSeries]
     private(set) var dataVersion: Int = 0
     let scrollZoomState: ChartScrollZoomState
     var yMin: Double = 0
@@ -45,7 +45,7 @@ final class InteractiveHistoryChartModel {
     private let config: Configuration
 
     init(
-        series: [TimeSeriesData.TimeSeries],
+        series: [TimeSeries],
         initialVisibleDays: Double,
         config: Configuration = .init()
     ) {
@@ -107,7 +107,7 @@ final class InteractiveHistoryChartModel {
         return number
     }
 
-    func updateSeries(_ newSeries: [TimeSeriesData.TimeSeries]) {
+    func updateSeries(_ newSeries: [TimeSeries]) {
         series = newSeries
         updateDataVersion()
         rebuildAllValues()
@@ -121,7 +121,7 @@ final class InteractiveHistoryChartModel {
         scrollZoomState.updatePlotWidth(width)
     }
 
-    func visibleSeriesData(for series: TimeSeriesData.TimeSeries) -> [TimeSeriesDatapoint] {
+    func visibleSeriesData(for series: TimeSeries) -> [TimeSeriesDatapoint] {
         cachedDownsampledBySeries[series.id] ?? []
     }
 

@@ -5,12 +5,22 @@ protocol MetricDetailPresenter {
     associatedtype Entry: MetricEntry
 
     var entries: [Entry] { get }
-    var timeSeries: [TimeSeriesData.TimeSeries] { get }
+    var timeSeries: [TimeSeries] { get }
     var configuration: MetricConfiguration { get }
     /// When non-nil, this view is used instead of the default NewHistoryChart (e.g. for Energy Balance's line+bar chart).
     var customChartView: AnyView? { get }
     /// When non-nil, a contribution-style chart is shown instead of the default chart.
     var contributionChartData: [Double]? { get }
+    /// Whether the entry rows offer a Delete swipe. Defaults to false: most of these screens show
+    /// values derived from meals, workouts or the user profile, and their `onDeleteEntry` is a
+    /// documented no-op — the swipe action was offered on every one of them regardless, so
+    /// "Delete" appeared to work and silently did nothing.
+    var supportsDeletion: Bool { get }
+    /// The value shown in an entry row, for screens whose stored unit differs from the displayed
+    /// one. Weight is stored in kilograms and body circumferences in centimetres, so a screen whose
+    /// `Entry` is the stored model has to convert somewhere. Defaults to the entry's own
+    /// `displayValue`.
+    func displayValue(for entry: Entry) -> String
 
     func onAppear() async
     func onAddPressed()
@@ -21,6 +31,11 @@ protocol MetricDetailPresenter {
 extension MetricDetailPresenter {
     var customChartView: AnyView? { nil }
     var contributionChartData: [Double]? { nil }
+    var supportsDeletion: Bool { false }
+
+    func displayValue(for entry: Entry) -> String {
+        entry.displayValue
+    }
 
     func onDeleteEntry(_ entry: Entry) async {
         // Default no-op for presenters that don't support deletion
@@ -29,26 +44,14 @@ extension MetricDetailPresenter {
 
 struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
 
-    struct VisibleMetrics {
-        var startDate: Date?
-        var endDate: Date?
-        var averageValues: [Double?]
-        var delta: [Double?]
-        
-        static var empty: VisibleMetrics {
-            VisibleMetrics(
-                startDate: nil,
-                endDate: nil,
-                averageValues: [],
-                delta: []
-            )
-        }
-    }
-
     @State var presenter: Presenter
     var themeColor: Color?
     @State private var page: Int = 1
-    @State private var visibleMetrics: VisibleMetrics = .empty
+    /// Breathing room either side of the chart so its edge axis labels are not clipped.
+    private let chartGutter: CGFloat = 12
+    /// The contribution grid's shape. Its cells are square, so these also give its aspect ratio.
+    private let contributionRows: Int = 3
+    private let contributionColumns: Int = 10
 
     init(presenter: Presenter, themeColor: Color? = nil) {
         _presenter = State(initialValue: presenter)
@@ -65,17 +68,10 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         let pagedEntries = MetricDetailView.paged(entries: sortedEntries, page: page, pageSize: pageSize)
         let hasMore = pagedEntries.count < entries.count
         
-        // Filter time series to last year for chart performance
-        let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: Date()) ?? Date()
-        let filteredTimeSeries = timeSeries.map { series in
-            TimeSeriesData.TimeSeries(
-                name: series.name,
-                data: series.data.filter { $0.date >= oneYearAgo }
-            )
-        }
-
+        // The one-year window lives in `NewHistoryChart` now. Building it here meant a filter and a
+        // fresh `TimeSeries` per series — and `TimeSeries.init` sorts — on every body evaluation.
         List {
-            chartSection(configuration: configuration, series: filteredTimeSeries)
+            chartSection(configuration: configuration, series: timeSeries)
             listSection(configuration: configuration, entries: entries, pagedEntries: pagedEntries, hasMore: hasMore)
         }
         .scrollIndicators(.hidden)
@@ -93,14 +89,14 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
     }
     
     @ViewBuilder
-    private func chartSection(configuration: MetricConfiguration, series: [TimeSeriesData.TimeSeries]) -> some View {
+    private func chartSection(configuration: MetricConfiguration, series: [TimeSeries]) -> some View {
         Section {
             VStack(alignment: .leading) {
                 if let contributionData = presenter.contributionChartData {
                     ContributionChartView(
                         data: contributionData,
-                        rows: 3,
-                        columns: 10,
+                        rows: contributionRows,
+                        columns: contributionColumns,
                         targetValue: 1.0,
                         blockColor: themeColor ?? configuration.chartColor ?? .green,
                         blockBackgroundColor: .background,
@@ -108,7 +104,14 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
                         endDate: .now,
                         showsCaptioning: false
                     )
-                    .frame(height: 300)
+                    // Not `.frame(height: 300)`. The grid draws square cells sized from the width,
+                    // so in a 300pt box it painted ~115pt of blocks at the top and left the rest as
+                    // dead space above the entry list. Ten columns of three square cells is a 10:3
+                    // box, whatever the width.
+                    .aspectRatio(
+                        CGFloat(contributionColumns) / CGFloat(contributionRows),
+                        contentMode: .fit
+                    )
                 } else if let customChart = presenter.customChartView {
                     customChart
                         .frame(height: 300)
@@ -122,7 +125,9 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
                     .frame(height: 300)
                 }
             }
-            .listRowInsets(.horizontal, 0)
+            // A gutter, not zero: the x-axis labels are centred on their tick, so the first and
+            // last of them were half-clipped by the screen edge — "15 Sep" rendered as "Sep".
+            .listRowInsets(.horizontal, chartGutter)
             .removeListRowFormatting()
             .listRowSeparator(.hidden)
         }
@@ -145,8 +150,9 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
                 Button {
                     presenter.onAddPressed()
                 } label: {
-                    Image(systemName: "plus")
+                    Image(systemName: presenter.configuration.addActionSystemImage)
                 }
+                .accessibilityLabel(presenter.configuration.addActionTitle)
             }
         }
     }
@@ -154,32 +160,22 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
     @ViewBuilder
     private func listSection(configuration: MetricConfiguration, entries: [Presenter.Entry], pagedEntries: ArraySlice<Presenter.Entry>, hasMore: Bool) -> some View {
         if entries.isEmpty {
-            Section {
-                ContentUnavailableView(
-                    configuration.emptyStateMessage,
-                    systemImage: "info.circle"
-                )
-            } header: {
-                Text(configuration.sectionHeader)
-            }
+            emptySection(configuration: configuration)
         } else {
             let grouped = groupedByMonth(Array(pagedEntries))
             ForEach(grouped.sorted(by: { $0.key > $1.key }), id: \.key) { group in
                 Section {
                     ForEach(group.entries) { entry in
-                        Label(
-                            configuration.isMacrosChart
-                                ? "\(entry.displayLabel) \(entry.displayValue)"
-                                : "\(entry.displayLabel) \(entry.displayValue) \(configuration.yAxisSuffix)",
-                            systemImage: entry.systemImageName
-                        )
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        entryRow(entry, configuration: configuration)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            if presenter.supportsDeletion {
                                 Button(role: .destructive) {
                                     Task { await presenter.onDeleteEntry(entry) }
                                 } label: {
                                     Label("Delete", systemImage: "trash")
                                 }
                             }
+                        }
                     }
                 } header: {
                     Text(group.title)
@@ -201,6 +197,51 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
                     }
                 }
             }
+        }
+    }
+
+    /// Date on the leading edge, value on the trailing edge. The whole row used to be one
+    /// concatenated string — `"12 Jan 2026 72.4  kg"` — so nothing lined up down the list and the
+    /// chart's axis suffix brought its leading space along with it.
+    private func entryRow(_ entry: Presenter.Entry, configuration: MetricConfiguration) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Label(entry.displayLabel, systemImage: entry.systemImageName)
+
+            Spacer(minLength: 12)
+
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                // A macro row carries three values ("148g P · 214g C · 69.7g F"). Wrapping it broke
+                // the line mid-item and left rows of uneven height, so it scales down to fit on one
+                // line instead.
+                Text(presenter.displayValue(for: entry))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                if !configuration.unitText.isEmpty {
+                    Text(configuration.unitText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    /// An empty metric screen offers the same Add action as the toolbar, so it is not a dead end.
+    private func emptySection(configuration: MetricConfiguration) -> some View {
+        Section {
+            ContentUnavailableView {
+                Label(configuration.title, systemImage: "chart.xyaxis.line")
+            } description: {
+                Text(configuration.emptyStateMessage)
+            } actions: {
+                if configuration.showsAddButton {
+                    Button(configuration.addActionTitle) {
+                        presenter.onAddPressed()
+                    }
+                }
+            }
+        } header: {
+            Text(configuration.sectionHeader)
         }
     }
 

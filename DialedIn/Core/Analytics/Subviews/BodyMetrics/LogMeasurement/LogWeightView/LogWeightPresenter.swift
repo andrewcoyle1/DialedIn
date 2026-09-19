@@ -52,7 +52,7 @@ class LogWeightPresenter {
         // Set initial weight to current weight if available
         if let currentWeight = user.submittedWeightKilograms {
             selectedKilograms = Int(currentWeight)
-            selectedPounds = Int(currentWeight * 2.20462)
+            selectedPounds = Int(UnitConversion.kgToLbs(currentWeight))
         }
 
     }
@@ -90,8 +90,7 @@ class LogWeightPresenter {
         case .kilograms:
             return String(format: "%.1f kg", weightKg)
         case .pounds:
-            let pounds = weightKg * 2.20462
-            return String(format: "%.1f lbs", pounds)
+            return String(format: "%.1f lbs", UnitConversion.kgToLbs(weightKg))
         }
     }
 

@@ -19,23 +19,31 @@ class LegalPresenter {
     func onViewDisappear() {
         interactor.trackEvent(event: Event.onDisappear)
     }
-    
+
+    func onDocumentPressed(_ document: LegalDocument) {
+        interactor.trackEvent(event: Event.onDocumentPressed(document))
+    }
+
 }
 
 extension LegalPresenter {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
-        
+        case onDocumentPressed(LegalDocument)
+
         var eventName: String {
             switch self {
-            case .onAppear: return "LegalView_Appear"
-            case .onDisappear: return "LegalView_Disappear"
+            case .onAppear:          return "LegalView_Appear"
+            case .onDisappear:       return "LegalView_Disappear"
+            case .onDocumentPressed: return "LegalView_Document_Press"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
+            case .onDocumentPressed(let document):
+                return ["document": document.rawValue]
             default:
                 return nil
             }

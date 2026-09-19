@@ -66,7 +66,7 @@ extension WorkoutConsistencyPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         []
     }
 
@@ -95,11 +95,13 @@ extension WorkoutConsistencyPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "WorkoutConsistencyView",
             yAxisSuffix: "",
             seriesNames: ["Sets"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Workout History",
             emptyStateMessage: "No completed workouts",
             pageSize: 20,
-            chartColor: .orange
+            chartColor: .orange,
+            addActionTitle: "Start Workout",
+            addActionSystemImage: "figure.run"
         )
     }
 
@@ -108,10 +110,7 @@ extension WorkoutConsistencyPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        // No-op: user starts workouts from Training tab
+        router.showWorkoutsView(delegate: WorkoutsDelegate())
     }
 
-    func onDeleteEntry(_ entry: WorkoutEntry) async {
-        // Workout deletion would go through WorkoutSessionDetail; no-op here
-    }
 }

@@ -42,7 +42,7 @@ final class FoodLoggingConsistencyPresenter: @MainActor MetricDetailPresenter {
         entries = newEntries.sorted { $0.date < $1.date }
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] { [] }
+    var timeSeries: [TimeSeries] { [] }
 
     var contributionChartData: [Double]? {
         let foodLoggedDates = Set(entries.map { calendar.startOfDay(for: $0.date) })
@@ -69,24 +69,39 @@ final class FoodLoggingConsistencyPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "FoodLoggingConsistencyView",
             yAxisSuffix: " kcal",
             seriesNames: ["Food Logged"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Days Logged",
             emptyStateMessage: "No food logged. Log meals to see your consistency.",
             pageSize: 20,
-            chartColor: .orange
+            chartColor: .orange,
+            addActionTitle: "Log Meal",
+            addActionSystemImage: "plus"
         )
     }
 
+    /// These values are derived from logged meals, so the action is to log one. Mirrors
+    /// `SearchPresenter.onLogMealPressed`: an existing draft is offered rather than silently
+    /// replaced.
     func onAddPressed() {
-        // No-op: consistency is derived from the meals already logged, not entered directly.
-        // `configuration.showsAddButton` is false, which keeps this unreachable.
+        guard let userId = interactor.userId else { return }
+        if let draft = interactor.draftMeal {
+            router.showAddMealView(delegate: AddMealDelegate(mealLog: draft))
+            return
+        }
+        router.showAddMealView(
+            delegate: AddMealDelegate(
+                mealLog: MealLogModel(
+                    authorId: userId,
+                    dayKey: Date().dayKey,
+                    date: Date(),
+                    items: []
+                )
+            )
+        )
     }
 
     func onDismissPressed() {
         router.dismissScreen()
     }
 
-    func onDeleteEntry(_ entry: NutritionMetricEntry) async {
-        // Entries are derived from meals; deletion not supported at this level
-    }
 }

@@ -36,18 +36,9 @@ struct SocialProfileView: View {
             VStack(alignment: .leading) {
                 HStack {
                     // Profile Image
-                    ZStack {
-                        Image(systemName: "person.circle")
-                            .resizable()
-                            .font(.system(size: 24))
-                        if let urlString = delegate.user.profileImageNameCalculated {
-                            ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                                .contentShape(Circle())
-                        }
-                    }
-                    .frame(width: 80, height: 80)
-                    
-                    VStack {
+                    UserAvatarView(imageUrl: delegate.user.profileImageNameCalculated, size: 80)
+
+                    VStack(alignment: .leading) {
                         if let name = delegate.user.fullNameCalculated {
                             Text(name)
                                 .font(.headline)
@@ -93,18 +84,26 @@ struct SocialProfileView: View {
     // SocialProfileInteractor cannot reach another user's sessions today. Recorded in the plan.
 
     private var mutualFollowersImagesSection: some View {
-        HStack(spacing: -10) {
-            ForEach(presenter.mutualFollowers.prefix(5)) { user in
-                mutualFollowersImageCircle(user: user)
+        HStack {
+            // The avatars overlap; the label beside them must not, so the negative spacing is
+            // scoped to the stack that wants it instead of the whole row.
+            HStack(spacing: -10) {
+                ForEach(presenter.mutualFollowers.prefix(5)) { user in
+                    mutualFollowersImageCircle(user: user)
+                }
             }
-            HStack {
-                Text("People you both follow")
-                Spacer()
-                Text("See all")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .padding(.leading)
+
+            Text("People you both follow")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            Text("See all")
+                .font(.caption)
+                .anyButton(.press) {
+                    presenter.onMutualFollowersPressed()
+                }
         }
     }
 

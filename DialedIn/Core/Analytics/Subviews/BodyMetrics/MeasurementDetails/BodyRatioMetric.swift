@@ -67,9 +67,9 @@ final class BodyRatioPresenter: @MainActor MetricDetailPresenter {
 
     var entries: [BodyRatioEntry]
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         let data = entries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: $0.ratio) }
-        return [TimeSeriesData.TimeSeries(name: "Ratio", data: data)]
+        return [TimeSeries(name: "Ratio", data: data)]
     }
 
     var configuration: MetricConfiguration {
@@ -79,11 +79,13 @@ final class BodyRatioPresenter: @MainActor MetricDetailPresenter {
             yAxisSuffix: "",
             seriesNames: ["Ratio"],
             // Derived from other metrics — there is nothing to add or delete on this screen.
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: kind.requirement,
-            pageSize: nil,
-            chartColor: .green
+            pageSize: 20,
+            chartColor: .green,
+            addActionTitle: "Log Waist",
+            addActionSystemImage: "plus"
         )
     }
 
@@ -106,18 +108,22 @@ final class BodyRatioPresenter: @MainActor MetricDetailPresenter {
         )
     }
 
+    /// A ratio is computed rather than logged, but the waist is the input measurement both kinds
+    /// need, and `kind.requirement` already tells the user to log one — so this does it.
     func onAddPressed() {
-        // Unreachable: `showsAddButton` is false, because a ratio is computed from the waist, hip
-        // and height entries rather than logged in its own right.
+        router.showLogWaistMeasurementView()
     }
 
     func onDismissPressed() {
         router.dismissScreen()
     }
 
-    /// Circumferences are stored in inches and height in centimetres, so waist-to-height has to
-    /// convert before dividing. Waist-to-hip needs no conversion — both sides are inches, and the
-    /// unit cancels.
+    /// Circumferences and height are both stored in centimetres, so neither ratio needs a
+    /// conversion.
+    ///
+    /// This used to read the waist as inches and multiply by 2.54 before dividing by a height in
+    /// centimetres, making every waist-to-height ratio 2.54x too large — an 80cm waist at 180cm tall
+    /// came out as 1.13 rather than 0.44, on either side of the 0.5 threshold the ratio exists for.
     static func entries(
         kind: BodyRatioKind,
         measurements: [BodyMeasurementEntry],
@@ -126,18 +132,18 @@ final class BodyRatioPresenter: @MainActor MetricDetailPresenter {
         measurements
             .filter { $0.deletedAt == nil }
             .compactMap { entry -> BodyRatioEntry? in
-                guard let waistInches = entry.waistCircumference, waistInches > 0 else { return nil }
+                guard let waistCentimetres = entry.waistCircumference, waistCentimetres > 0 else { return nil }
 
                 let ratio: Double
                 switch kind {
                 case .waistToHeight:
                     guard let heightCentimetres, heightCentimetres > 0 else { return nil }
-                    ratio = (waistInches * Self.centimetresPerInch) / heightCentimetres
+                    ratio = waistCentimetres / heightCentimetres
                 case .waistToHip:
                     // Same entry on both sides: a waist from today over a hip from last month is
                     // not a ratio of anything.
-                    guard let hipInches = entry.hipCircumference, hipInches > 0 else { return nil }
-                    ratio = waistInches / hipInches
+                    guard let hipCentimetres = entry.hipCircumference, hipCentimetres > 0 else { return nil }
+                    ratio = waistCentimetres / hipCentimetres
                 }
 
                 return BodyRatioEntry(id: entry.id, date: entry.date, ratio: ratio)
@@ -145,7 +151,6 @@ final class BodyRatioPresenter: @MainActor MetricDetailPresenter {
             .sorted { $0.date < $1.date }
     }
 
-    private static let centimetresPerInch: Double = 2.54
 }
 
 extension CoreRouter {

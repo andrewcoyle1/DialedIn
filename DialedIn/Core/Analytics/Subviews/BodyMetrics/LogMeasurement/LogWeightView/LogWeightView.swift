@@ -68,7 +68,7 @@ struct LogWeightView: View {
                 .clipped()
                 .onChange(of: presenter.selectedKilograms) { _, newValue in
                     // Update pounds to match
-                    presenter.selectedPounds = Int(Double(newValue) * 2.20462)
+                    presenter.selectedPounds = Int(UnitConversion.kgToLbs(Double(newValue)))
                 }
             } else {
                 Picker("Weight", selection: $presenter.selectedPounds) {

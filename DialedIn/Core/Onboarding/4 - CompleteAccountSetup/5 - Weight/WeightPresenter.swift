@@ -45,11 +45,11 @@ class WeightPresenter {
     }
     
     func updatePoundsFromKilograms() {
-        selectedPounds = Int(Double(selectedKilograms) * 2.20462)
+        selectedPounds = Int(UnitConversion.kgToLbs(Double(selectedKilograms)))
     }
-    
+
     func updateKilogramsFromPounds() {
-        selectedKilograms = Int(Double(selectedPounds) / 2.20462)
+        selectedKilograms = Int(UnitConversion.lbsToKg(Double(selectedPounds)))
     }
     
     init(

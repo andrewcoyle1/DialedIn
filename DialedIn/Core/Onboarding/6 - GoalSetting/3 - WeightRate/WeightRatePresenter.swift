@@ -86,8 +86,8 @@ class WeightRatePresenter {
 
     func weeklyWeightChangeText(delegate: WeightRateDelegate) -> String {
         let weeklyChangeInKg = weightChangeRate
-        let weeklyChangeInPounds = weightUnit == .pounds ? weeklyChangeInKg * 2.20462 : weeklyChangeInKg
-        let unitText = weightUnit == .pounds ? "lbs" : "kg"
+        let weeklyChangeInPounds = UnitConversion.convertWeight(weeklyChangeInKg, to: weightUnit)
+        let unitText = weightUnit.abbreviation
         let sign = delegate.overarchingObjective == .loseWeight ? "-" : "+"
         let percentBW = (weeklyChangeInKg / currentWeight) * 100
         
@@ -96,8 +96,8 @@ class WeightRatePresenter {
     
     func monthlyWeightChangeText(delegate: WeightRateDelegate) -> String {
         let monthlyChangeInKg = weightChangeRate * 4 // Approximate monthly rate
-        let monthlyChangeInPounds = weightUnit == .pounds ? monthlyChangeInKg * 2.20462 : monthlyChangeInKg
-        let unitText = weightUnit == .pounds ? "lbs" : "kg"
+        let monthlyChangeInPounds = UnitConversion.convertWeight(monthlyChangeInKg, to: weightUnit)
+        let unitText = weightUnit.abbreviation
         let sign = delegate.overarchingObjective == .loseWeight ? "-" : "+"
         let percentBW = (monthlyChangeInKg / currentWeight) * 100
         
@@ -106,8 +106,11 @@ class WeightRatePresenter {
     
     func estimatedCalorieTargetText(delegate: WeightRateDelegate) -> String {
         let weeklyChangeInKg = weightChangeRate
-        let weeklyChangeInPounds = weightUnit == .pounds ? weeklyChangeInKg * 2.20462 : weeklyChangeInKg
-        
+        // The 3500 kcal rule is per POUND, so this conversion is arithmetic, not presentation — it
+        // was gated on `weightUnit == .pounds`, which meant a user set to kilograms had their
+        // kilogram figure multiplied by 3500 directly and got a calorie target 2.2x too small.
+        let weeklyChangeInPounds = UnitConversion.kgToLbs(weeklyChangeInKg)
+
         // Rough estimate: 1 lb = ~3500 calories, so weekly deficit/surplus
         let weeklyCalorieChange = weeklyChangeInPounds * 3500
         let dailyCalorieChange = weeklyCalorieChange / 7

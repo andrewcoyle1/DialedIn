@@ -203,6 +203,17 @@ class DashboardPresenter {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
     
+    /// The empty feed's call to action. People search lives on the Add tab, and only the tab bar can
+    /// select a tab, so this asks it to — see `DeepLink.post()`.
+    func onFindPeoplePressed() {
+        interactor.trackEvent(
+            eventName: "DashboardView_FindPeople_Press",
+            parameters: nil,
+            type: .analytic
+        )
+        DeepLink.tab(.add).post()
+    }
+
     func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
         router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }

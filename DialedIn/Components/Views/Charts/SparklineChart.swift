@@ -10,17 +10,30 @@ struct SparklineConfiguration {
 }
 
 struct SparklineChart: View {
-    var data: [(date: Date, value: Double)]
+    let data: [(date: Date, value: Double)]
     var configuration: SparklineConfiguration = SparklineConfiguration()
 
     /// Chart needs at least 2 points for LineMark. Single point gets a synthetic prior point.
-    private var chartData: [(date: Date, value: Double)] {
+    ///
+    /// Sorted once, in `init`, rather than on each body evaluation. The Analytics tab shows up to a
+    /// dozen of these at once, so a sort per card per render was paid on every scroll of the list.
+    private let chartData: [(date: Date, value: Double)]
+
+    init(
+        data: [(date: Date, value: Double)],
+        configuration: SparklineConfiguration = SparklineConfiguration()
+    ) {
+        self.data = data
+        self.configuration = configuration
+
         let sorted = data.sorted { $0.date < $1.date }
-        guard let first = sorted.first else { return [] }
-        if sorted.count == 1, let priorDate = Calendar.current.date(byAdding: .day, value: -1, to: first.date) {
-            return [(date: priorDate, value: first.value), first]
+        if sorted.count == 1,
+           let first = sorted.first,
+           let priorDate = Calendar.current.date(byAdding: .day, value: -1, to: first.date) {
+            self.chartData = [(date: priorDate, value: first.value), first]
+        } else {
+            self.chartData = sorted
         }
-        return sorted
     }
 
     var body: some View {

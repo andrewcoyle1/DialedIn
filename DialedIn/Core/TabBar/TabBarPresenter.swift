@@ -60,6 +60,17 @@ class TabBarPresenter {
         handle(deepLink)
     }
 
+    /// The in-app counterpart to a deep link: same payload shape, no system prompt.
+    func onSelectTabNotificationReceived(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let deepLink = DeepLink(pushUserInfo: userInfo)
+        else {
+            return
+        }
+        handle(deepLink)
+    }
+
     func onPushNotificationReceived(_ notification: Notification) {
         guard
             let userInfo = notification.userInfo,

@@ -14,7 +14,7 @@ func date(year: Int, month: Int, day: Int = 1) -> Date {
 
 struct HistoryChart: View {
     
-    var series: [TimeSeriesData.TimeSeries]
+    var series: [TimeSeries]
     
     let symbolSize: CGFloat = 100
     let lineWidth: CGFloat = 3
@@ -83,7 +83,7 @@ struct HistoryChart: View {
 
 // MARK: - Per-series chart content
 private struct SeriesMarks: ChartContent {
-    let series: TimeSeriesData.TimeSeries
+    let series: TimeSeries
     let lineWidth: CGFloat
     let symbolSize: CGFloat
     
@@ -114,7 +114,7 @@ private struct SeriesMarks: ChartContent {
 #Preview("With Data") {
     List {
         Section {
-            HistoryChart(series: TimeSeriesData.lastYear, yAxisSuffix: " kg")
+            HistoryChart(series: TimeSeries.lastYear, yAxisSuffix: " kg")
         } header: {
             Text("History Chart")
         }
@@ -135,7 +135,7 @@ private struct SeriesMarks: ChartContent {
     List {
         Section {
             HistoryChart(
-                series: TimeSeriesData.lastYear,
+                series: TimeSeries.lastYear,
                 colorMapping: [
                     "Bench Press": .purple,
                     "Barbell Squat": .green

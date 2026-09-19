@@ -14,9 +14,6 @@ class AnalyticsPresenter {
     let router: AnalyticsRouter
 
     var showNotifications: Bool = false
-    var isShowingInspector: Bool = false
-    private(set) var contributionChartData: [Double] = []
-    private(set) var chartEndDate: Date = Date()
 
     // Workout data (set from AnalyticsPresenter+DataLoading)
     var workoutContributionData: [Double] = []
@@ -226,10 +223,16 @@ class AnalyticsPresenter {
         "steps"
     }
 
+    /// The user's weight unit, used for every body-weight number on this tab. Weight is stored in
+    /// kilograms; only the display converts.
+    var weightUnit: WeightUnitPreference {
+        interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
+    }
+
     var scaleWeightSparklineData: [(date: Date, value: Double)] {
         scaleWeightLastEntries.compactMap { entry in
             guard let weightKg = entry.weightKg else { return nil }
-            return (date: entry.date, value: weightKg)
+            return (date: entry.date, value: UnitConversion.convertWeight(weightKg, to: weightUnit))
         }
     }
 
@@ -240,25 +243,24 @@ class AnalyticsPresenter {
     var scaleWeightLatestValueText: String {
         guard let latest = scaleWeightLastEntries.last,
               let weightKg = latest.weightKg else { return "--" }
-        return weightKg.formatted(.number.precision(.fractionLength(1)))
+        return UnitConversion.formatWeight(weightKg, unit: weightUnit)
     }
 
     var scaleWeightUnitText: String {
-        "kg"
+        weightUnit.abbreviation
     }
 
+    /// The last seven weight entries, computed once per change of `bodyMeasurements` rather than
+    /// once per read. Six properties read this, and the view reads several of them in one pass.
     private var scaleWeightLastEntries: [BodyMeasurementEntry] {
-        let filtered = interactor.bodyMeasurements.filter { $0.deletedAt == nil && $0.weightKg != nil }
-        let sorted = filtered.sorted { $0.date < $1.date }
-        return Array(sorted.suffix(7))
+        bodyMetricsCache.weightEntries
     }
 
+    /// Smoothed in kilograms and converted afterwards — the conversion is linear, so this is the
+    /// same curve. Cached: `weightTrendLatestValueText` reads it as well as the chart, so the
+    /// moving average used to run twice per body evaluation.
     var weightTrendSparklineData: [(date: Date, value: Double)] {
-        let pairs = scaleWeightLastEntries.compactMap { entry -> (date: Date, value: Double)? in
-            guard let weightKg = entry.weightKg else { return nil }
-            return (date: entry.date, value: weightKg)
-        }
-        return WeightTrendCalculator.exponentialMovingAverage(data: pairs)
+        bodyMetricsCache.weightTrend
     }
 
     var weightTrendSubtitle: String {
@@ -266,42 +268,42 @@ class AnalyticsPresenter {
     }
 
     var weightTrendLatestValueText: String {
-        let trend = weightTrendSparklineData
-        guard let last = trend.last else { return "--" }
+        guard let last = weightTrendSparklineData.last else { return "--" }
+        // Already converted by `weightTrendSparklineData`.
         return last.value.formatted(.number.precision(.fractionLength(1)))
     }
 
     var weightTrendUnitText: String {
-        "kg"
+        weightUnit.abbreviation
     }
 
-    var energyBalanceExpenditure: TimeSeriesData.TimeSeries {
+    var energyBalanceExpenditure: TimeSeries {
         let tdee = interactor.estimateTDEE(user: interactor.currentUser)
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
         guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
-            return TimeSeriesData.TimeSeries(name: "Expenditure", data: [])
+            return TimeSeries(name: "Expenditure", data: [])
         }
         var data: [TimeSeriesDatapoint] = []
         for offset in -1..<7 {
             guard let date = calendar.date(byAdding: .day, value: offset, to: startDate) else { continue }
             data.append(TimeSeriesDatapoint(id: "exp-\(offset)", date: date, value: tdee))
         }
-        return TimeSeriesData.TimeSeries(name: "Expenditure", data: data)
+        return TimeSeries(name: "Expenditure", data: data)
     }
 
-    var energyBalanceIntake: TimeSeriesData.TimeSeries {
+    var energyBalanceIntake: TimeSeries {
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
         guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
-            return TimeSeriesData.TimeSeries(name: "Intake", data: [])
+            return TimeSeries(name: "Intake", data: [])
         }
         var data: [TimeSeriesDatapoint] = []
         for (offset, totals) in macrosLast7Days.enumerated() {
             guard let date = calendar.date(byAdding: .day, value: offset, to: startDate) else { continue }
             data.append(TimeSeriesDatapoint(id: "intake-\(offset)", date: date, value: totals.calories))
         }
-        return TimeSeriesData.TimeSeries(name: "Intake", data: data)
+        return TimeSeries(name: "Intake", data: data)
     }
 
     var energyBalanceSubtitle: String {
@@ -350,11 +352,7 @@ class AnalyticsPresenter {
     }
 
     private var bodyFatLastEntries: [BodyMeasurementEntry] {
-        let filtered = interactor.bodyMeasurements.filter {
-            $0.deletedAt == nil && $0.bodyFatPercentage != nil
-        }
-        let sorted = filtered.sorted { $0.date < $1.date }
-        return Array(sorted.suffix(7))
+        bodyMetricsCache.bodyFatEntries
     }
 
     var workoutSparklineData: [(date: Date, value: Double)] {
@@ -406,10 +404,127 @@ class AnalyticsPresenter {
         "kcal"
     }
     
+    // MARK: - Body metrics cache
+
+    /// Derived from `interactor.bodyMeasurements` in one pass, and recomputed only when that
+    /// changes. These were computed properties, so every read re-filtered and re-sorted the whole
+    /// measurement history — and one body evaluation of `AnalyticsView` reads them a dozen times
+    /// between the Scale Weight, Weight Trend and Visual Body Fat cards.
+    private struct BodyMetricsCache {
+        var signature: Int = 0
+        var weightEntries: [BodyMeasurementEntry] = []
+        var bodyFatEntries: [BodyMeasurementEntry] = []
+        var weightTrend: [(date: Date, value: Double)] = []
+    }
+
+    private var cachedBodyMetrics = BodyMetricsCache()
+
+    private var bodyMetricsCache: BodyMetricsCache {
+        let measurements = interactor.bodyMeasurements
+        // Entries are immutable structs replaced on save — clearing a weight keeps the count and the
+        // id — so the signature covers the fields actually read below. That is one pass with no
+        // allocations, against the filter, two sorts and a moving average it guards.
+        var hasher = Hasher()
+        hasher.combine(measurements.count)
+        hasher.combine(weightUnit)
+        for entry in measurements {
+            hasher.combine(entry.id)
+            hasher.combine(entry.date)
+            hasher.combine(entry.weightKg)
+            hasher.combine(entry.bodyFatPercentage)
+            hasher.combine(entry.deletedAt)
+        }
+        let signature = hasher.finalize()
+
+        if cachedBodyMetrics.signature == signature {
+            return cachedBodyMetrics
+        }
+
+        let live = measurements.filter { $0.deletedAt == nil }
+        let weightEntries = Array(
+            live.filter { $0.weightKg != nil }.sorted { $0.date < $1.date }.suffix(7)
+        )
+        let bodyFatEntries = Array(
+            live.filter { $0.bodyFatPercentage != nil }.sorted { $0.date < $1.date }.suffix(7)
+        )
+        let pairs = weightEntries.compactMap { entry -> (date: Date, value: Double)? in
+            guard let weightKg = entry.weightKg else { return nil }
+            return (date: entry.date, value: weightKg)
+        }
+        let trend = WeightTrendCalculator.exponentialMovingAverage(data: pairs)
+            .map { (date: $0.date, value: UnitConversion.convertWeight($0.value, to: weightUnit)) }
+
+        let rebuilt = BodyMetricsCache(
+            signature: signature,
+            weightEntries: weightEntries,
+            bodyFatEntries: bodyFatEntries,
+            weightTrend: trend
+        )
+        cachedBodyMetrics = rebuilt
+        return rebuilt
+    }
+
+    // MARK: - Goal progress
+
+    /// The weight entries logged since the goal was set — the same window `GoalProgressView` uses,
+    /// so the card and the screen it opens cannot disagree.
+    private var goalWeightEntries: [BodyMeasurementEntry] {
+        guard let goal = interactor.currentGoal else { return [] }
+        return interactor.bodyMeasurements
+            .filter { $0.deletedAt == nil && $0.weightKg != nil && $0.date >= goal.createdAt }
+            .sorted { $0.date < $1.date }
+    }
+
+    var hasActiveGoal: Bool {
+        interactor.currentGoal != nil
+    }
+
+    /// Clamped to 0...100: the card draws it as a bar, and a goal overshot or moved away from
+    /// should read as full or empty rather than send the bar off either end.
+    var goalProgressPercent: Double {
+        guard let goal = interactor.currentGoal,
+              let latestWeight = goalWeightEntries.last?.weightKg else { return 0 }
+        return min(max(goal.calculateProgress(currentWeight: latestWeight) * 100, 0), 100)
+    }
+
+    var goalProgressSubtitle: String {
+        guard hasActiveGoal else { return "No Goal Set" }
+        return goalWeightEntries.isEmpty ? "No Entries" : "Toward Target"
+    }
+
+    var goalProgressLatestValueText: String {
+        guard hasActiveGoal, !goalWeightEntries.isEmpty else { return "--" }
+        return "\(Int(goalProgressPercent.rounded()))"
+    }
+
+    var goalProgressUnitText: String {
+        "%"
+    }
+
     /// Honours the Customise Analytics screen. Reads the settings document directly rather than
     /// snapshotting it, so hiding a section on that screen updates this one behind it.
     func isVisible(_ section: AnalyticsSection) -> Bool {
         interactor.analyticsSettings.isVisible(section)
+    }
+
+    /// The sections currently switched off, in the order they would otherwise appear. The
+    /// Customise Analytics screen promises these "stay reachable from the More list at the bottom of
+    /// the tab" — before this the More list held one row, Customise Analytics itself, so hiding a
+    /// section made it unreachable.
+    var hiddenSections: [AnalyticsSection] {
+        AnalyticsSection.allCases.filter { !isVisible($0) }
+    }
+
+    /// Opens a hidden section's own screen — the same destination its "See All" would have used.
+    func onHiddenSectionPressed(_ section: AnalyticsSection) {
+        switch section {
+        case .insightsAndAnalytics: onSeeAllInsightsPressed()
+        case .habits:               onSeeAllHabitsPressed()
+        case .nutrition:            onSeeAllNutritionAnalyticsPressed()
+        case .bodyMetrics:          onSeeAllBodyMetricsPressed()
+        case .muscleGroups:         onSeeAllMuscleGroupsPressed()
+        case .exercises:            onSeeAllExercisesPressed()
+        }
     }
 
     func onCustomiseAnalyticsPressed() {

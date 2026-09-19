@@ -16,11 +16,13 @@ protocol AnalyticsInteractor: GlobalInteractor {
     var userId: String? { get }
     var currentUser: UserModel? { get }
     var bodyMeasurements: [BodyMeasurementEntry] { get }
+    var currentGoal: WeightGoal? { get }
     var auth: UserAuthInfo? { get }
     var workoutSessions: [WorkoutSessionModel] { get }
     var allExercises: [ExerciseModel] { get }
     var systemExercises: [ExerciseModel] { get }
     var userExercises: [ExerciseModel] { get }
+    func getPreference(templateId: String) -> ExerciseUnitPreference
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?
     func estimateTDEE(user: UserModel?) -> Double

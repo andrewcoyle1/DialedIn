@@ -60,9 +60,59 @@ class CommentsPresenter {
         commentDraft = ""
         isSending = true
         Task {
-            try? await interactor.addComment(comment)
-            comments.append(comment)
+            do {
+                try await interactor.addComment(comment)
+                comments.append(comment)
+            } catch {
+                // Was `try?` followed by an unconditional append: a comment that never reached the
+                // server still appeared in the list, and the draft was already cleared, so the text
+                // was gone too.
+                commentDraft = trimmed
+                router.showSimpleAlert(title: "Unable to Post Comment", subtitle: "Please try again.")
+            }
             isSending = false
+        }
+    }
+
+    /// The Report swipe action was a `Button` with an empty closure. `ReportManager` and its remote
+    /// service were already built and wired into the container with no caller anywhere in the app;
+    /// this is the first one.
+    func onReportPressed(_ comment: WorkoutSessionComment) {
+        router.showAlert(
+            title: "Report Comment",
+            subtitle: "Why are you reporting this comment?",
+            buttons: {
+                AnyView(
+                    ForEach(ReportReason.allCases) { reason in
+                        Button(reason.displayName) {
+                            self.submitReport(comment, reason: reason)
+                        }
+                    }
+                )
+            }
+        )
+    }
+
+    private func submitReport(_ comment: WorkoutSessionComment, reason: ReportReason) {
+        Task {
+            do {
+                try await interactor.report(
+                    contentType: .comment,
+                    contentId: comment.id,
+                    authorUserId: comment.authorId,
+                    reason: reason,
+                    notes: nil
+                )
+                router.showSimpleAlert(
+                    title: "Report Sent",
+                    subtitle: "Thanks — we will take a look at this comment."
+                )
+            } catch {
+                router.showSimpleAlert(
+                    title: "Unable to Send Report",
+                    subtitle: "Please try again."
+                )
+            }
         }
     }
 
@@ -78,8 +128,14 @@ class CommentsPresenter {
     
     func onDeleteConfirmed(_ comment: WorkoutSessionComment) {
         Task {
-            try? await interactor.deleteComment(id: comment.id)
-            comments.removeAll { $0.id == comment.id }
+            do {
+                try await interactor.deleteComment(id: comment.id)
+                comments.removeAll { $0.id == comment.id }
+            } catch {
+                // Was `try?` with an unconditional removal, so a failed delete looked like it worked
+                // until the next refresh brought the comment back.
+                router.showSimpleAlert(title: "Unable to Delete Comment", subtitle: "Please try again.")
+            }
         }
     }
  }

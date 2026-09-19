@@ -10,8 +10,8 @@ import Charts
 
 struct EnergyBalanceChart: View {
 
-    let expenditure: TimeSeriesData.TimeSeries
-    let energyIntake: TimeSeriesData.TimeSeries
+    let expenditure: TimeSeries
+    let energyIntake: TimeSeries
 
     /// When set, only the last N days are shown (with 1 extra expenditure point for line extension). When nil, all data is shown with scroll/zoom.
     var maxVisibleDays: Int?
@@ -24,41 +24,65 @@ struct EnergyBalanceChart: View {
     @State private var selectedTimeRange: EnergyBalanceTimeRange = .oneWeek
     @State private var hasInitialized = false
 
+    // MARK: - Derived data
+    //
+    // These were computed properties read from `body`, which re-evaluates on every frame of a scroll
+    // or pinch. `xAxisDomain`, `totalDataDays` and `initializeScrollPosition` each concatenated both
+    // display arrays and mapped them to dates before taking min/max — three fresh arrays per frame.
+    // They are now computed once, in `init`.
+
+    private let expenditureDisplayData: [TimeSeriesDatapoint]
+    private let energyIntakeDisplayData: [TimeSeriesDatapoint]
+    private let allSeries: [TimeSeries]
+    private let xAxisDomain: ClosedRange<Date>
+    private let latestDate: Date?
+    private let totalDataDays: Double
+    private let dataSignature: Int
+
     init(
-        expenditure: TimeSeriesData.TimeSeries,
-        energyIntake: TimeSeriesData.TimeSeries,
+        expenditure: TimeSeries,
+        energyIntake: TimeSeries,
         maxVisibleDays: Int? = 7
     ) {
         self.expenditure = expenditure
         self.energyIntake = energyIntake
         self.maxVisibleDays = maxVisibleDays
-    }
+        self.allSeries = [expenditure, energyIntake]
+        self.dataSignature = expenditure.data.count * 1000 + energyIntake.data.count
 
-    private var expenditureDisplayData: [TimeSeriesDatapoint] {
-        let sorted = expenditure.sortedByDate
-        guard let limit = maxVisibleDays else { return sorted }
-        return Array(sorted.suffix(limit + 1))
-    }
-
-    private var energyIntakeDisplayData: [TimeSeriesDatapoint] {
-        let sorted = energyIntake.sortedByDate
-        guard let limit = maxVisibleDays else { return sorted }
-        return Array(sorted.suffix(limit))
-    }
-
-    private var allSeries: [TimeSeriesData.TimeSeries] {
-        [expenditure, energyIntake]
-    }
-
-    private var xAxisDomain: ClosedRange<Date> {
-        let allDates = (expenditureDisplayData + energyIntakeDisplayData).map(\.date)
-        guard let earliest = allDates.min(),
-              let latest = allDates.max() else {
-            let fallback = Date()
-            return fallback...fallback
+        // `sortedByDate` is cached on `TimeSeries`; the window is its tail.
+        let expenditurePoints: [TimeSeriesDatapoint]
+        let intakePoints: [TimeSeriesDatapoint]
+        if let limit = maxVisibleDays {
+            // One extra expenditure point so the line extends to the edge of the window.
+            expenditurePoints = Array(expenditure.sortedByDate.suffix(limit + 1))
+            intakePoints = Array(energyIntake.sortedByDate.suffix(limit))
+        } else {
+            expenditurePoints = expenditure.sortedByDate
+            intakePoints = energyIntake.sortedByDate
         }
-        let padding: TimeInterval = 4 * 24 * 60 * 60
-        return earliest.addingTimeInterval(-padding)...latest.addingTimeInterval(padding)
+        self.expenditureDisplayData = expenditurePoints
+        self.energyIntakeDisplayData = intakePoints
+
+        // Both arrays are sorted, so the extremes are their first and last elements — no need to
+        // concatenate and scan.
+        let earliest = [expenditurePoints.first?.date, intakePoints.first?.date]
+            .compactMap { $0 }
+            .min()
+        let latest = [expenditurePoints.last?.date, intakePoints.last?.date]
+            .compactMap { $0 }
+            .max()
+        self.latestDate = latest
+
+        if let earliest, let latest {
+            let padding: TimeInterval = 4 * 24 * 60 * 60
+            self.xAxisDomain = earliest.addingTimeInterval(-padding)...latest.addingTimeInterval(padding)
+            self.totalDataDays = latest.timeIntervalSince(earliest) / 86400
+        } else {
+            let fallback = Date()
+            self.xAxisDomain = fallback...fallback
+            self.totalDataDays = 90
+        }
     }
 
     private var xStrideComponent: Calendar.Component {
@@ -82,19 +106,8 @@ struct EnergyBalanceChart: View {
         }
     }
 
-    private var dataSignature: Int {
-        expenditure.data.count * 1000 + energyIntake.data.count
-    }
-
-    private var totalDataDays: Double {
-        let allDates = (expenditureDisplayData + energyIntakeDisplayData).map(\.date)
-        guard let earliest = allDates.min(), let latest = allDates.max() else { return 90 }
-        return latest.timeIntervalSince(earliest) / 86400
-    }
-
     private func initializeScrollPosition() {
-        let allDates = (expenditureDisplayData + energyIntakeDisplayData).map(\.date)
-        guard let latest = allDates.max() else { return }
+        guard let latest = latestDate else { return }
         let futureBuffer: TimeInterval = 4 * 86400
         let visibleLength = scrollZoomState.visibleDomainLength
         scrollZoomState.scrollPosition = latest.addingTimeInterval(futureBuffer - visibleLength)
@@ -109,8 +122,7 @@ struct EnergyBalanceChart: View {
         }
         scrollZoomState.currentZoomDays = 0
         scrollZoomState.totalZoomDays = scrollZoomState.clampZoomDays(days)
-        let allDates = (expenditureDisplayData + energyIntakeDisplayData).map(\.date)
-        guard let latest = allDates.max() else { return }
+        guard let latest = latestDate else { return }
         let futureBuffer: TimeInterval = 4 * 86400
         let visibleLength = scrollZoomState.visibleDomainLength
         scrollZoomState.scrollPosition = latest.addingTimeInterval(futureBuffer - visibleLength)
@@ -230,6 +242,7 @@ struct EnergyBalanceChart: View {
         .chartXScale(domain: xAxisDomain)
         .autoYScale(
             series: allSeries,
+            seriesSignature: dataSignature,
             scrollZoomState: scrollZoomState,
             metrics: $visibleMetrics,
             yDomainIncludesZero: true
@@ -294,8 +307,8 @@ struct EnergyBalanceChart: View {
 
 #Preview {
     EnergyBalanceChart(
-        expenditure: TimeSeriesData.last14Days.first!,
-        energyIntake: TimeSeriesData.last14Days.last!
+        expenditure: TimeSeries.last14Days,
+        energyIntake: TimeSeries.last14Days
     )
     .frame(width: 350, height: 200)
 }

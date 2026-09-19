@@ -6,6 +6,7 @@ protocol ExerciseAnalyticsInteractor: GlobalInteractor {
     var workoutSessions: [WorkoutSessionModel] { get }
     var systemExercises: [ExerciseModel] { get }
     var userExercises: [ExerciseModel] { get }
+    func getPreference(templateId: String) -> ExerciseUnitPreference
 }
 
 extension CoreInteractor: ExerciseAnalyticsInteractor { }

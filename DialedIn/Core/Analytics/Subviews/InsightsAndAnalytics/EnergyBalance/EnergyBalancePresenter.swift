@@ -16,8 +16,8 @@ class EnergyBalancePresenter {
     private let calendar = Calendar.current
 
     private(set) var cachedEntries: [EnergyBalanceEntry] = []
-    private(set) var cachedExpenditure: TimeSeriesData.TimeSeries = TimeSeriesData.TimeSeries(name: "Expenditure", data: [])
-    private(set) var cachedIntake: TimeSeriesData.TimeSeries = TimeSeriesData.TimeSeries(name: "Intake", data: [])
+    private(set) var cachedExpenditure: TimeSeries = TimeSeries(name: "Expenditure", data: [])
+    private(set) var cachedIntake: TimeSeries = TimeSeries(name: "Intake", data: [])
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -120,8 +120,8 @@ class EnergyBalancePresenter {
         }
 
         cachedEntries = entries.reversed()
-        cachedExpenditure = TimeSeriesData.TimeSeries(name: "Expenditure", data: expenditureData)
-        cachedIntake = TimeSeriesData.TimeSeries(name: "Intake", data: intakeData)
+        cachedExpenditure = TimeSeries(name: "Expenditure", data: expenditureData)
+        cachedIntake = TimeSeries(name: "Intake", data: intakeData)
     }
 }
 
@@ -132,7 +132,7 @@ extension EnergyBalancePresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         [cachedExpenditure, cachedIntake]
     }
 
@@ -168,8 +168,4 @@ extension EnergyBalancePresenter: @MainActor MetricDetailPresenter {
         onAddMealPressed()
     }
 
-    func onDeleteEntry(_ entry: EnergyBalanceEntry) async {
-        // Energy balance entries are derived from meals; deletion would clear meals for that day
-        // For now, no-op. User can manage meals from Nutrition.
-    }
 }

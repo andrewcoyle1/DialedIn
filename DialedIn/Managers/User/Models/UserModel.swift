@@ -355,6 +355,15 @@ enum LengthUnitPreference: String, Codable, Sendable, CaseIterable {
         }
     }
 
+    /// `abbreviation` gives `"` for inches, which reads as a stray quote mark in a card caption
+    /// under a number. Body measurements use this instead.
+    var measurementAbbreviation: String {
+        switch self {
+        case .centimeters: return "cm"
+        case .inches: return "in"
+        }
+    }
+
     var displayName: String {
         switch self {
         case .centimeters: return "Centimeters"

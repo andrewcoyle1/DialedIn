@@ -8,6 +8,8 @@
 import SwiftUI
 
 @MainActor
-protocol ExpenditureDetailRouter: GlobalRouter { }
+protocol ExpenditureDetailRouter: GlobalRouter {
+    func showAccountView(delegate: AccountDelegate)
+}
 
 extension CoreRouter: ExpenditureDetailRouter { }

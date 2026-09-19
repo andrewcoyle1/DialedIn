@@ -12,3 +12,13 @@ protocol BodyMetricsInteractor: GlobalInteractor {
 }
 
 extension CoreInteractor: BodyMetricsInteractor { }
+
+extension BodyMetricsInteractor {
+
+    /// The unit body measurements are shown in. Circumferences are stored in centimetres — see
+    /// `LogNeckMeasurementPresenter.measurementCm` — and sixteen of the eighteen detail screens
+    /// printed those centimetres under a hardcoded " in" suffix.
+    var lengthUnitPreference: LengthUnitPreference {
+        currentUser?.submittedLengthUnitPreference ?? .centimeters
+    }
+}

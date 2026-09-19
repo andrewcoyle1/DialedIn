@@ -17,7 +17,7 @@ class GoalProgressPresenter {
     }
     
     private(set) var cachedEntries: [GoalProgressEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
     private(set) var currentWeightKg: Double?
 
     init(interactor: GoalProgressInteractor, router: GoalProgressRouter) {
@@ -63,7 +63,7 @@ class GoalProgressPresenter {
             TimeSeriesDatapoint(id: $0.id, date: $0.date, value: $0.progressPercent)
         }
         cachedTimeSeries = [
-            TimeSeriesData.TimeSeries(name: "Progress", data: progressData)
+            TimeSeries(name: "Progress", data: progressData)
         ]
     }
 }
@@ -83,7 +83,7 @@ extension GoalProgressPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
     }
 
@@ -176,8 +176,4 @@ extension GoalProgressPresenter: @MainActor MetricDetailPresenter {
         onAddWeightPressed()
     }
 
-    func onDeleteEntry(_ entry: GoalProgressEntry) async {
-        // Goal progress entries are derived from weight entries; deletion not supported here
-        // User manages weight entries from Scale Weight view
-    }
 }

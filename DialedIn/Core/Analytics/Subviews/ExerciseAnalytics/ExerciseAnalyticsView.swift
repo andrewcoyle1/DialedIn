@@ -13,36 +13,32 @@ struct ExerciseAnalyticsView: View {
         List {
             Section {
                 let exerciseColor = Color.cyan
-                LazyVGrid(columns: [GridItem(), GridItem()]) {
-                    ForEach(presenter.exerciseCards) { item in
-                        AnalyticsCard(
-                            title: item.name,
-                            subtitle: "Last 7 Workouts",
-                            subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
-                            subsubsubtitle: "kg",
-                            themeColor: exerciseColor,
-                            chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                        ) {
-                            SparklineChart(
+                AnalyticsCardGrid {
+                    if presenter.exerciseCards.isEmpty {
+                        // The header used to stand over an empty grid on a fresh account.
+                        AnalyticsEmptyCard(message: "Log a workout to track your estimated one-rep max.")
+                    } else {
+                        ForEach(presenter.exerciseCards) { item in
+                            SparklineAnalyticsCard(
+                                title: item.name,
+                                subtitle: "Last 7 Workouts",
+                                value: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
+                                unit: item.unitText,
+                                themeColor: exerciseColor,
                                 data: item.sparklineData,
-                                configuration: SparklineConfiguration(
-                                    lineColor: exerciseColor,
-                                    lineWidth: 2,
-                                    fillColor: exerciseColor,
-                                    height: 36
-                                )
+                                action: {
+                                    presenter.onExercisePressed(
+                                        templateId: item.templateId,
+                                        name: item.name,
+                                        themeColor: exerciseColor
+                                    )
+                                }
                             )
-                        }
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            presenter.onExercisePressed(templateId: item.templateId, name: item.name, themeColor: exerciseColor)
                         }
                     }
                 }
-                .padding(.horizontal)
-                .removeListRowFormatting()
             } header: {
-                Text("Exercises")
+                AnalyticsSectionHeader(title: "Exercises")
             }
             .listSectionMargins(.horizontal, 0)
             .listRowSeparator(.hidden)

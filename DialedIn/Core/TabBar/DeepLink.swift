@@ -16,12 +16,14 @@ enum DeepLink: Equatable {
 
     case tab(Tab)
 
-    /// The tab bar's roots. `Add` is the search tab, which SwiftUI owns through `Tab(role: .search)`.
+    /// The tab bar's roots. `add` is the search tab, which SwiftUI owns through
+    /// `Tab(role: .search)`; it still selects by title like the rest.
     enum Tab: String, CaseIterable, Identifiable {
         case dashboard
         case training
         case nutrition
         case analytics
+        case add
 
         var id: String { rawValue }
 
@@ -52,6 +54,20 @@ enum DeepLink: Equatable {
         guard host == "tab" else { return nil }
         guard let name = firstPath ?? queryName, let tab = Tab(rawValue: name) else { return nil }
         self = .tab(tab)
+    }
+
+    /// Asks the tab bar to show this destination from inside the app — the Dashboard's empty feed
+    /// sending you to the Add tab's people search, for one. Goes through `NotificationCenter` rather
+    /// than the `compound://` scheme so iOS does not prompt to open the app from itself.
+    func post() {
+        switch self {
+        case .tab(let tab):
+            NotificationCenter.default.post(
+                name: Constants.selectTab,
+                object: nil,
+                userInfo: ["tab": tab.rawValue]
+            )
+        }
     }
 
     /// The same destinations from a push payload, so a notification tap and a link agree on what

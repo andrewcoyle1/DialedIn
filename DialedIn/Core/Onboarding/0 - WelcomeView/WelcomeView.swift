@@ -82,18 +82,20 @@ struct WelcomeView: View {
         .padding(.top, 24)
     }
     
+    /// Force-unwrapped `URL(string:)` before — a typo in either constant would have crashed the
+    /// first screen of the app.
     private var policyLinks: some View {
         HStack(spacing: 8) {
-            Link(destination: URL(string: Constants.termsofServiceURL)!) {
-                Text("Terms of Service")
+            if let url = LegalDocument.termsOfService.url {
+                Link(LegalDocument.termsOfService.title, destination: url)
             }
-            
+
             Circle()
                 .fill(.accent)
                 .frame(width: 4, height: 4)
-            
-            Link(destination: URL(string: Constants.privacyPolicyURL)!) {
-                Text("Privacy Policy")
+
+            if let url = LegalDocument.privacyPolicy.url {
+                Link(LegalDocument.privacyPolicy.title, destination: url)
             }
         }
     }

@@ -88,7 +88,10 @@ struct ContributionChartView: View {
             }
             
             chartSection
-            
+                // Scoped to the grid: animating the enclosing stack animated the GeometryReader's
+                // layout too, so the whole chart slid on any data change or resize.
+                .animation(.easeInOut(duration: 0.3), value: data)
+
             if showsCaptioning {
                 // Date range indicator
                 Text(dateRangeString)
@@ -105,7 +108,6 @@ struct ContributionChartView: View {
 //                .fill(Color.background)
 //                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
 //        )
-        .animation(.easeInOut(duration: 0.3), value: data)
         .accessibilityElement(children: .combine)
     }
     
@@ -265,11 +267,20 @@ struct ContributionChartView: View {
         return days[(weekday - 1) % 7]
     }
     
-    private func monthLabel(for columnIndex: Int) -> String {
-        let columnStart = columnStartDate(for: columnIndex)
+    private static let monthFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM"
-        return formatter.string(from: columnStart)
+        return formatter
+    }()
+
+    private static let rangeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter
+    }()
+
+    private func monthLabel(for columnIndex: Int) -> String {
+        Self.monthFormatter.string(from: columnStartDate(for: columnIndex))
     }
 
     private func shouldShowMonthLabel(for columnIndex: Int) -> Bool {
@@ -316,9 +327,7 @@ struct ContributionChartView: View {
     
     /// The date range string for debugging
     private var dateRangeString: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return "\(formatter.string(from: startDate)) to \(formatter.string(from: endDate))"
+        "\(Self.rangeFormatter.string(from: startDate)) to \(Self.rangeFormatter.string(from: endDate))"
     }
     
     /// Calculates the current study streak

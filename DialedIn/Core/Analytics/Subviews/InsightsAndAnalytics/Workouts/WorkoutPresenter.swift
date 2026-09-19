@@ -16,7 +16,7 @@ class WorkoutPresenter {
     private let calendar = Calendar.current
 
     private(set) var cachedEntries: [WorkoutEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
 
     var workoutSessions: [WorkoutSessionModel] {
         interactor.workoutSessions
@@ -65,7 +65,7 @@ class WorkoutPresenter {
                 TimeSeriesDatapoint(id: entry.id, date: entry.date, value: Double(entry.sets))
             }
             cachedTimeSeries = [
-                TimeSeriesData.TimeSeries(name: "Sets", data: seriesData)
+                TimeSeries(name: "Sets", data: seriesData)
             ]
     }
 }
@@ -77,7 +77,7 @@ extension WorkoutPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
     }
 
@@ -109,12 +109,14 @@ extension WorkoutPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "WorkoutsView",
             yAxisSuffix: "",
             seriesNames: ["Sets"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Workout History",
             emptyStateMessage: "No completed workouts",
             pageSize: 20,
             chartColor: .orange,
-            chartType: .bar
+            chartType: .bar,
+            addActionTitle: "Start Workout",
+            addActionSystemImage: "figure.run"
         )
     }
 
@@ -123,10 +125,9 @@ extension WorkoutPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        // No-op: user starts workouts from Training tab
+        // Was an empty body under a comment saying the user starts workouts from the Training
+        // tab. That was true and left them to find it themselves; now it takes them.
+        router.showWorkoutsView(delegate: WorkoutsDelegate())
     }
 
-    func onDeleteEntry(_ entry: WorkoutEntry) async {
-        // Workout deletion would go through WorkoutSessionDetail; no-op here
-    }
 }

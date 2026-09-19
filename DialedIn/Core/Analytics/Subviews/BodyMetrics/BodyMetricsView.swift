@@ -14,10 +14,11 @@ struct BodyMetricsView: View {
     var body: some View {
         List {
             Group {
-                dataDrivenSection(presenter.sections[0])
-                dataDrivenSection(presenter.sections[1])
-                dataDrivenSection(presenter.sections[2])
-                dataDrivenSection(presenter.sections[3])
+                // `presenter.sections` is a computed list; four hardcoded subscripts here traded a
+                // crash for every section the presenter might ever add or drop.
+                ForEach(presenter.sections) { section in
+                    dataDrivenSection(section)
+                }
                 ratiosSection
             }
             .listSectionMargins(.horizontal, 0)
@@ -43,17 +44,15 @@ struct BodyMetricsView: View {
 
     private func dataDrivenSection(_ section: BodyMetricsSection) -> some View {
         Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
+            AnalyticsCardGrid {
                 ForEach(section.cards) { card in
                     BodyMetricCardView(card: card, themeColor: bodyMetricsColor) {
                         presenter.onMeasurementPressed(card.id, themeColor: bodyMetricsColor)
                     }
                 }
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
         } header: {
-            Text(section.header)
+            AnalyticsSectionHeader(title: section.header)
         }
     }
 
@@ -68,17 +67,19 @@ struct BodyMetricsView: View {
     /// ratio's history on the shared `MetricDetailView`, the same as every measured card here.
     private var ratiosSection: some View {
         Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                ForEach(presenter.ratioCards) { card in
-                    BodyRatioCardView(card: card, themeColor: bodyMetricsColor) {
-                        presenter.onRatioPressed(card.id, themeColor: bodyMetricsColor)
+            AnalyticsCardGrid {
+                if presenter.ratioCards.isEmpty {
+                    AnalyticsEmptyCard(message: "Log a waist measurement to see your body ratios.")
+                } else {
+                    ForEach(presenter.ratioCards) { card in
+                        BodyRatioCardView(card: card, themeColor: bodyMetricsColor) {
+                            presenter.onRatioPressed(card.id, themeColor: bodyMetricsColor)
+                        }
                     }
                 }
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
         } header: {
-            Text("Ratios")
+            AnalyticsSectionHeader(title: "Ratios")
         }
     }
 }

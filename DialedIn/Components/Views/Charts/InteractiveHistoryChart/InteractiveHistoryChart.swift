@@ -12,7 +12,7 @@ struct InteractiveHistoryChart: View {
 
     @State private var model: InteractiveHistoryChartModel
 
-    var series: [TimeSeriesData.TimeSeries]
+    var series: [TimeSeries]
     var showsLegend: Bool = true
     var colorMapping: [String: Color]?
     var symbolMapping: [String: AnyChartSymbolShape]?
@@ -23,7 +23,7 @@ struct InteractiveHistoryChart: View {
     private let lineWidth: CGFloat = 3
 
     init(
-        series: [TimeSeriesData.TimeSeries],
+        series: [TimeSeries],
         showsLegend: Bool = true,
         colorMapping: [String: Color]? = nil,
         symbolMapping: [String: AnyChartSymbolShape]? = nil,
@@ -143,7 +143,7 @@ private struct InteractiveSeriesMarks: ChartContent {
 #Preview("Interactive History Chart") {
     List {
         Section {
-            InteractiveHistoryChart(series: TimeSeriesData.lastYear, yAxisSuffix: " kg")
+            InteractiveHistoryChart(series: TimeSeries.lastYear, yAxisSuffix: " kg")
         } header: {
             Text("Interactive History Chart")
         }

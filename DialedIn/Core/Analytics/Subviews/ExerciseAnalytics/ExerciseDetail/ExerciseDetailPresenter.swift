@@ -18,7 +18,7 @@ class ExerciseDetailPresenter {
     private let calendar = Calendar.current
 
     private(set) var cachedEntries: [ExerciseDetailEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
 
     var workoutSessions: [WorkoutSessionModel] {
         interactor.workoutSessions
@@ -59,7 +59,7 @@ class ExerciseDetailPresenter {
                 value: oneRMByDay[day] ?? 0
             )
         }
-        cachedTimeSeries = [TimeSeriesData.TimeSeries(name: "1-RM", data: seriesData)]
+        cachedTimeSeries = [TimeSeries(name: "1-RM", data: seriesData)]
     }
 
     private func computeOneRMByDay(from completed: [WorkoutSessionModel]) -> [Date: Double] {
@@ -97,22 +97,34 @@ extension ExerciseDetailPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
+    }
+
+    /// Weight unit is a per-exercise preference — the Analytics card honours it, this screen
+    /// hardcoded kilograms.
+    private var weightUnit: ExerciseWeightUnit {
+        interactor.getPreference(templateId: templateId).weightUnit
+    }
+
+    func displayValue(for entry: ExerciseDetailEntry) -> String {
+        UnitConversion.formatWeight(entry.oneRMKg, unit: weightUnit)
     }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: name,
             analyticsName: "ExerciseDetailView",
-            yAxisSuffix: " kg",
+            yAxisSuffix: " \(weightUnit.abbreviation)",
             seriesNames: ["1-RM"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Daily 1-RM",
             emptyStateMessage: "No 1-RM data for \(name)",
             pageSize: 20,
             chartColor: .blue,
-            chartType: .line
+            chartType: .line,
+            addActionTitle: "Start Workout",
+            addActionSystemImage: "figure.run"
         )
     }
 
@@ -121,6 +133,7 @@ extension ExerciseDetailPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        // No-op: 1-RM comes from workouts
+        // 1-RM is estimated from logged sets, so the way to add one is to train.
+        router.showWorkoutsView(delegate: WorkoutsDelegate())
     }
 }

@@ -19,36 +19,58 @@ struct TimeSeriesDatapoint: Identifiable {
     }
 }
 
-struct TimeSeriesData {
-    struct TimeSeries: Identifiable {
-        /// Series name
-        let name: String
+struct TimeSeries: Identifiable {
+    /// Series name
+    let name: String
+    
+    /// Dataset
+    let data: [TimeSeriesDatapoint]
+    
+    /// Cached sorted data
+    let sortedByDate: [TimeSeriesDatapoint]
+    let lastByDate: TimeSeriesDatapoint?
+    
+    /// The identifier for the series
+    var id: String {
+        name
+    }
+    
+    init(name: String, data: [TimeSeriesDatapoint]) {
+        self.name = name
+        self.data = data
+        self.sortedByDate = data.sorted { $0.date < $1.date }
+        self.lastByDate = data.max { $0.date < $1.date }
+    }
 
-        /// Dataset
-        let data: [TimeSeriesDatapoint]
+    /// Mock series with one datapoint per day from `startDate` through `endDate` (inclusive),
+    /// each value drawn uniformly at random between `lowerBound` and `upperBound`.
+    static func mock(
+        name: String = "Mock",
+        startDate: Date = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now,
+        endDate: Date = .now,
+        lowerBound: Double = 0,
+        upperBound: Double = 1
+    ) -> TimeSeries {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: startDate)
+        let end = calendar.startOfDay(for: endDate)
+        let range = min(lowerBound, upperBound)...max(lowerBound, upperBound)
 
-        /// Cached sorted data
-        let sortedByDate: [TimeSeriesDatapoint]
-        let lastByDate: TimeSeriesDatapoint?
-
-        /// The identifier for the series
-        var id: String {
-            name
+        var data: [TimeSeriesDatapoint] = []
+        var date = start
+        while date <= end {
+            data.append(TimeSeriesDatapoint(date: date, value: Double.random(in: range)))
+            guard let next = calendar.date(byAdding: .day, value: 1, to: date) else { break }
+            date = next
         }
-
-        init(name: String, data: [TimeSeriesDatapoint]) {
-            self.name = name
-            self.data = data
-            self.sortedByDate = data.sorted { $0.date < $1.date }
-            self.lastByDate = data.max { $0.date < $1.date }
-        }
+        return TimeSeries(name: name, data: data)
     }
 
     /// Mock data for demo-ing charts (approx 500 datapoints per series)
-    static let last14Days: [TimeSeries] = {
+    static let last14Days: TimeSeries = {
         let startDate = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? Date.now
         let days = 14
-        return [
+        return
             makeSeries(SeriesConfig(
                 name: "Bench Press",
                 startDate: startDate,
@@ -58,20 +80,9 @@ struct TimeSeriesData {
                 amplitude: 18,
                 trendPerDay: 4,
                 phase: 0
-            )),
-            makeSeries(SeriesConfig(
-                name: "Barbell Squat",
-                startDate: startDate,
-                days: days,
-                dayMultiplier: 1,
-                base: 55,
-                amplitude: 22,
-                trendPerDay: 5,
-                phase: 1.2
             ))
-        ]
     }()
-
+    
     /// Mock data for demo-ing charts (approx 500 datapoints per series)
     static let lastYear: [TimeSeries] = {
         let startDate = makeDate(year: 2022, month: 1, day: 1)
@@ -99,7 +110,7 @@ struct TimeSeriesData {
             ))
         ]
     }()
-
+    
     /// Mock data for demo-ing charts (approx 500 datapoints per series)
     static let last6Years: [TimeSeries] = {
         let startDate = makeDate(year: 2022, month: 1, day: 1)
@@ -127,11 +138,11 @@ struct TimeSeriesData {
             ))
         ]
     }()
-
+    
     static func makeDate(year: Int, month: Int, day: Int = 1) -> Date {
         Calendar.current.date(from: DateComponents(year: year, month: month, day: day)) ?? Date()
     }
-
+    
     struct SeriesConfig {
         let name: String
         let startDate: Date
@@ -142,7 +153,7 @@ struct TimeSeriesData {
         let trendPerDay: Double
         let phase: Double
     }
-
+    
     private static func makeSeries(_ config: SeriesConfig) -> TimeSeries {
         let calendar = Calendar.current
         let data = (0..<config.days).map { dayOffset in

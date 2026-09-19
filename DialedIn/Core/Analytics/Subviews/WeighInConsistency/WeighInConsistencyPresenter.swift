@@ -42,11 +42,22 @@ class WeighInConsistencyPresenter {
 extension WeighInConsistencyPresenter: @MainActor MetricDetailPresenter {
     typealias Entry = BodyMeasurementEntry
 
+    /// Weight is stored in kilograms; the card that opens this screen converts, and this screen
+    /// hardcoded " kg".
+    private var weightUnit: WeightUnitPreference {
+        interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
+    }
+
+    func displayValue(for entry: BodyMeasurementEntry) -> String {
+        guard let weightKg = entry.weightKg else { return "--" }
+        return UnitConversion.formatWeight(weightKg, unit: weightUnit)
+    }
+
     var entries: [BodyMeasurementEntry] {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         []
     }
 
@@ -73,7 +84,7 @@ extension WeighInConsistencyPresenter: @MainActor MetricDetailPresenter {
         MetricConfiguration(
             title: "Weigh In",
             analyticsName: "WeighInConsistencyView",
-            yAxisSuffix: " kg",
+            yAxisSuffix: " \(weightUnit.abbreviation)",
             seriesNames: ["Weight"],
             showsAddButton: true,
             sectionHeader: "Weight Entries",
@@ -91,9 +102,18 @@ extension WeighInConsistencyPresenter: @MainActor MetricDetailPresenter {
         onAddWeightPressed()
     }
 
+    var supportsDeletion: Bool { true }
+
     func onDeleteEntry(_ entry: BodyMeasurementEntry) async {
         let updatedEntry = entry.withCleared(.weightKg)
-        try? await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        do {
+            try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        } catch {
+            // Was `try?`. The refresh below re-reads unchanged data, so a failed delete put the row
+            // straight back with nothing said about why.
+            router.showSimpleAlert(title: "Unable to Delete Entry", subtitle: "Please try again.")
+            return
+        }
         rebuildCaches()
     }
 }

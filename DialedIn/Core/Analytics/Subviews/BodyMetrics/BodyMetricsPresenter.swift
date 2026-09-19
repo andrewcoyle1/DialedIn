@@ -107,16 +107,44 @@ class BodyMetricsPresenter {
         ]
     }
 
+    var weightUnit: WeightUnitPreference {
+        interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
+    }
+
+    var lengthUnit: LengthUnitPreference {
+        interactor.currentUser?.submittedLengthUnitPreference ?? .centimeters
+    }
+
+    /// Converts a stored value into what the user asked to see. Every circumference card used to
+    /// print its centimetres under the label "in" — a 40 cm neck read as 40 in — and the detail
+    /// screen behind the card said "cm" for the same number.
+    private func display(_ value: Double, as measure: BodyMetricType.Measure) -> Double {
+        switch measure {
+        case .weightKilograms:   return UnitConversion.convertWeight(value, to: weightUnit)
+        case .lengthCentimeters: return UnitConversion.convertLength(value, to: lengthUnit)
+        case .percentage:        return value
+        }
+    }
+
+    private func unitText(for measure: BodyMetricType.Measure) -> String {
+        switch measure {
+        case .weightKilograms:   return weightUnit.abbreviation
+        case .lengthCentimeters: return lengthUnit.measurementAbbreviation
+        case .percentage:        return "%"
+        }
+    }
+
     func displayModel(for type: BodyMetricType) -> BodyMetricCardModel {
         let entries = lastEntries(for: type)
+        let measure = type.measure
         let data = entries.compactMap { entry -> (date: Date, value: Double)? in
             guard let value = type.value(from: entry) else { return nil }
-            return (date: entry.date, value: value)
+            return (date: entry.date, value: display(value, as: measure))
         }
         let subtitle = entries.isEmpty ? "No Entries" : "Last 7 Entries"
         let latestValueText: String
         if let last = entries.last, let value = type.value(from: last) {
-            latestValueText = value.formatted(.number.precision(.fractionLength(1)))
+            latestValueText = display(value, as: measure).formatted(.number.precision(.fractionLength(1)))
         } else {
             latestValueText = "--"
         }
@@ -125,7 +153,7 @@ class BodyMetricsPresenter {
             title: type.displayTitle,
             subtitle: subtitle,
             latestValueText: latestValueText,
-            unitText: type.unit,
+            unitText: unitText(for: measure),
             sparklineData: data
         )
     }

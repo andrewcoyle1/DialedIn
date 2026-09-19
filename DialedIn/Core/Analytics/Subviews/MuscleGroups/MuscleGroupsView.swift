@@ -12,31 +12,8 @@ struct MuscleGroupsView: View {
     var body: some View {
         List {
             Group {
-                Section {
-                    LazyVGrid(columns: [GridItem(), GridItem()]) {
-                        ForEach(presenter.upperMuscles, id: \.self) { muscle in
-                            muscleCard(muscle: muscle)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .removeListRowFormatting()
-                    
-                } header: {
-                    Text("Upper")
-                }
-                
-                Section {
-                    LazyVGrid(columns: [GridItem(), GridItem()]) {
-                        ForEach(presenter.lowerMuscles, id: \.self) { muscle in
-                            muscleCard(muscle: muscle)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .removeListRowFormatting()
-                    
-                } header: {
-                    Text("Lower")
-                }
+                muscleSection(header: "Upper", muscles: presenter.upperMuscles)
+                muscleSection(header: "Lower", muscles: presenter.lowerMuscles)
             }
             .listSectionMargins(.horizontal, 0)
             .listRowSeparator(.hidden)
@@ -62,6 +39,23 @@ struct MuscleGroupsView: View {
         }
     }
     
+    @ViewBuilder
+    private func muscleSection(header: String, muscles: [Muscles]) -> some View {
+        Section {
+            AnalyticsCardGrid {
+                if muscles.isEmpty {
+                    AnalyticsEmptyCard(message: "No \(header.lowercased()) body muscles to show yet.")
+                } else {
+                    ForEach(muscles, id: \.self) { muscle in
+                        muscleCard(muscle: muscle)
+                    }
+                }
+            }
+        } header: {
+            AnalyticsSectionHeader(title: header)
+        }
+    }
+
     private func muscleCard(muscle: Muscles) -> some View {
         let muscleGroupColor = Color.blue
         let data = presenter.setsData(for: muscle)
@@ -71,12 +65,11 @@ struct MuscleGroupsView: View {
             subsubtitle: data.total.formatted(.number.precision(.fractionLength(0...1))),
             subsubsubtitle: "sets",
             themeColor: muscleGroupColor,
-            chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
+            chartConfiguration: .compact
         ) {
             SetsBarChart(data: data.last7Days, color: muscleGroupColor)
         }
-        .tappableBackground()
-        .anyButton(.press) {
+        .analyticsCardButton {
             presenter.onMusclePressed(muscle: muscle, themeColor: muscleGroupColor)
         }
     }
