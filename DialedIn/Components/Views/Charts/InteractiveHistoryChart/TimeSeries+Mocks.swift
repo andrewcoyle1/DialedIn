@@ -1,5 +1,5 @@
 //
-//  TimeSeriesDatapoint.swift
+//  TimeSeries+Mocks.swift
 //  ArchitectureProject
 //
 //  Created by Andrew Coyle on 05/02/2026.
@@ -7,65 +7,9 @@
 
 import SwiftUI
 
-struct TimeSeriesDatapoint: Identifiable {
-    let id: String
-    let date: Date
-    let value: Double
-    
-    init(id: String = UUID().uuidString, date: Date, value: Double) {
-        self.id = id
-        self.date = date
-        self.value = value
-    }
-}
-
-struct TimeSeries: Identifiable {
-    /// Series name
-    let name: String
-    
-    /// Dataset
-    let data: [TimeSeriesDatapoint]
-    
-    /// Cached sorted data
-    let sortedByDate: [TimeSeriesDatapoint]
-    let lastByDate: TimeSeriesDatapoint?
-    
-    /// The identifier for the series
-    var id: String {
-        name
-    }
-    
-    init(name: String, data: [TimeSeriesDatapoint]) {
-        self.name = name
-        self.data = data
-        self.sortedByDate = data.sorted { $0.date < $1.date }
-        self.lastByDate = data.max { $0.date < $1.date }
-    }
-
-    /// Mock series with one datapoint per day from `startDate` through `endDate` (inclusive),
-    /// each value drawn uniformly at random between `lowerBound` and `upperBound`.
-    static func mock(
-        name: String = "Mock",
-        startDate: Date = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now,
-        endDate: Date = .now,
-        lowerBound: Double = 0,
-        upperBound: Double = 1
-    ) -> TimeSeries {
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: startDate)
-        let end = calendar.startOfDay(for: endDate)
-        let range = min(lowerBound, upperBound)...max(lowerBound, upperBound)
-
-        var data: [TimeSeriesDatapoint] = []
-        var date = start
-        while date <= end {
-            data.append(TimeSeriesDatapoint(date: date, value: Double.random(in: range)))
-            guard let next = calendar.date(byAdding: .day, value: 1, to: date) else { break }
-            date = next
-        }
-        return TimeSeries(name: name, data: data)
-    }
-
+/// Preview data. `TimeSeries` itself, and its `mock(…)`, come from QuickCharts (see
+/// `QuickCharts+Alias.swift`).
+extension TimeSeries {
     /// Mock data for demo-ing charts (approx 500 datapoints per series)
     static let last14Days: TimeSeries = {
         let startDate = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? Date.now

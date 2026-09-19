@@ -10,7 +10,7 @@ import Charts
 
 struct NewChart: View {
     
-    let data = [
+    let data: [TimeSeries] = [
         TimeSeries.mock(
             name: "Sample Set 1",
             lowerBound: 5,

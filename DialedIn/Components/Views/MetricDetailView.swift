@@ -7,7 +7,7 @@ protocol MetricDetailPresenter {
     var entries: [Entry] { get }
     var timeSeries: [TimeSeries] { get }
     var configuration: MetricConfiguration { get }
-    /// When non-nil, this view is used instead of the default NewHistoryChart (e.g. for Energy Balance's line+bar chart).
+    /// When non-nil, this view is used instead of the default `MetricChart` (e.g. for Energy Balance's line+bar chart).
     var customChartView: AnyView? { get }
     /// When non-nil, a contribution-style chart is shown instead of the default chart.
     var contributionChartData: [Double]? { get }
@@ -47,8 +47,6 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
     @State var presenter: Presenter
     var themeColor: Color?
     @State private var page: Int = 1
-    /// Breathing room either side of the chart so its edge axis labels are not clipped.
-    private let chartGutter: CGFloat = 12
     /// The contribution grid's shape. Its cells are square, so these also give its aspect ratio.
     private let contributionRows: Int = 3
     private let contributionColumns: Int = 10
@@ -68,15 +66,14 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         let pagedEntries = MetricDetailView.paged(entries: sortedEntries, page: page, pageSize: pageSize)
         let hasMore = pagedEntries.count < entries.count
         
-        // The one-year window lives in `NewHistoryChart` now. Building it here meant a filter and a
-        // fresh `TimeSeries` per series — and `TimeSeries.init` sorts — on every body evaluation.
-        List {
-            chartSection(configuration: configuration, series: timeSeries)
+        // A Health-style screen: the chart edge to edge at the top, its background carried up behind
+        // the navigation bar, and the entries in inset sections below. `ChartScreen` sets the title.
+        ChartScreen(title: configuration.title) {
+            chart(configuration: configuration, series: timeSeries)
+        } sections: {
             listSection(configuration: configuration, entries: entries, pagedEntries: pagedEntries, hasMore: hasMore)
         }
         .scrollIndicators(.hidden)
-        .navigationTitle(configuration.title)
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }
@@ -89,50 +86,35 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
     }
     
     @ViewBuilder
-    private func chartSection(configuration: MetricConfiguration, series: [TimeSeries]) -> some View {
-        Section {
-            VStack(alignment: .leading) {
-                if let contributionData = presenter.contributionChartData {
-                    ContributionChartView(
-                        data: contributionData,
-                        rows: contributionRows,
-                        columns: contributionColumns,
-                        targetValue: 1.0,
-                        blockColor: themeColor ?? configuration.chartColor ?? .green,
-                        blockBackgroundColor: .background,
-                        rectangleWidth: .infinity,
-                        endDate: .now,
-                        showsCaptioning: false
-                    )
-                    // Not `.frame(height: 300)`. The grid draws square cells sized from the width,
-                    // so in a 300pt box it painted ~115pt of blocks at the top and left the rest as
-                    // dead space above the entry list. Ten columns of three square cells is a 10:3
-                    // box, whatever the width.
-                    .aspectRatio(
-                        CGFloat(contributionColumns) / CGFloat(contributionRows),
-                        contentMode: .fit
-                    )
-                } else if let customChart = presenter.customChartView {
-                    customChart
-                        .frame(height: 300)
-                } else {
-                    NewHistoryChart(
-                        series: series,
-                        yAxisSuffix: configuration.isMacrosChart ? (configuration.macrosYAxisSuffix ?? " g") : configuration.yAxisSuffix,
-                        chartType: configuration.chartType ?? .line,
-                        chartColor: themeColor ?? configuration.chartColor
-                    )
-                    .frame(height: 300)
-                }
-            }
-            // A gutter, not zero: the x-axis labels are centred on their tick, so the first and
-            // last of them were half-clipped by the screen edge — "15 Sep" rendered as "Sep".
-            .listRowInsets(.horizontal, chartGutter)
-            .removeListRowFormatting()
-            .listRowSeparator(.hidden)
+    private func chart(configuration: MetricConfiguration, series: [TimeSeries]) -> some View {
+        if let contributionData = presenter.contributionChartData {
+            ContributionChartView(
+                data: contributionData,
+                rows: contributionRows,
+                columns: contributionColumns,
+                targetValue: 1.0,
+                blockColor: themeColor ?? configuration.chartColor ?? .green,
+                blockBackgroundColor: .background,
+                rectangleWidth: .infinity,
+                endDate: .now,
+                showsCaptioning: false
+            )
+            // Not `.frame(height: 300)`. The grid draws square cells sized from the width,
+            // so in a 300pt box it painted ~115pt of blocks at the top and left the rest as
+            // dead space above the entry list. Ten columns of three square cells is a 10:3
+            // box, whatever the width.
+            .aspectRatio(
+                CGFloat(contributionColumns) / CGFloat(contributionRows),
+                contentMode: .fit
+            )
+            .padding(.vertical)
+        } else if let customChart = presenter.customChartView {
+            customChart
+                .frame(height: 300)
+                .padding(.vertical)
+        } else {
+            MetricChart(series: series, configuration: configuration, color: themeColor)
         }
-        .listSectionMargins(.horizontal, 0)
-        .listSectionMargins(.top, 0)
     }
 
     @ToolbarContentBuilder

@@ -173,6 +173,15 @@
       }
     },
     {
+      "identity" : "quickcharts",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/andrewcoyle1/QuickCharts",
+      "state" : {
+        "revision" : "de28e013fbf2eb26f72e738d002592ae53e1eb4d",
+        "version" : "0.1.1"
+      }
+    },
+    {
       "identity" : "sdwebimage",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SDWebImage/SDWebImage.git",

@@ -177,6 +177,7 @@ packages directly:
 | `Managers/DataManagers/SwiftfulDataManagers+Alias.swift` | `CollectionSyncEngine`, `DocumentSyncEngine`, `DataSyncModelProtocol`, the persistence types |
 | `Managers/Gamification/SwiftfulGamification+Alias.swift` | `StreakManager`, `ProgressManager`, `ExperiencePointsManager` |
 | `Managers/Haptics`, `SoundEffects`, `Utilities` | `HapticManager`, `SoundEffectManager`, `Utilities` |
+| `Components/Views/Charts/QuickCharts+Alias.swift` | `TimeSeries`, `TimeSeriesDatapoint`, `ChartScreen`, `LineChart`, `BarChart`, `StackedBarChart`, `ChartConfiguration` (from `andrewcoyle1/QuickCharts`) |
 
 So when a symbol like `AuthManager` or `CollectionSyncEngine` cannot be found in this
 repository, it is a package type — look in the alias file, then the package source. Editing its
