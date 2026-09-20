@@ -106,18 +106,21 @@ class EnergyBalancePresenter {
         for (index, dayKey) in dateKeys.enumerated() {
             guard let date = Date(dayKey: dayKey) else { continue }
 
-            let totals = totalsData.first { $0.dayKey == dayKey }?.totals ?? DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0)
-
-            let entry = EnergyBalanceEntry(
-                id: dayKey,
-                date: date,
-                expenditure: tdee,
-                intake: totals.calories
-            )
-            entries.append(entry)
-
+            // Expenditure is known for every day: it is the user's TDEE, so the line runs unbroken
+            // across the whole range.
             expenditureData.append(TimeSeriesDatapoint(id: "exp-\(index)", date: date, value: tdee))
-            intakeData.append(TimeSeriesDatapoint(id: "intake-\(index)", date: date, value: totals.calories))
+
+            // `getDailyTotals` answers for every day in the range, totalling zero where nothing was
+            // logged, so a day only counts as eaten on if it has calories against it. Without this
+            // every unlogged day was an intake of 0 kcal: a bar at the floor of the chart, a row in
+            // All Recorded Data reading "3,180 deficit", and a daily average near zero.
+            let totals = totalsData.first { $0.dayKey == dayKey }?.totals
+            guard let intake = totals?.calories, intake > 0 else { continue }
+
+            entries.append(
+                EnergyBalanceEntry(id: dayKey, date: date, expenditure: tdee, intake: intake)
+            )
+            intakeData.append(TimeSeriesDatapoint(id: "intake-\(index)", date: date, value: intake))
         }
 
         cachedEntries = entries.reversed()
