@@ -66,12 +66,30 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         let pagedEntries = MetricDetailView.paged(entries: sortedEntries, page: page, pageSize: pageSize)
         let hasMore = pagedEntries.count < entries.count
         
+        let readings = MetricChartReadings(series: timeSeries, configuration: configuration, color: themeColor)
+
         // A Health-style screen: the chart edge to edge at the top, its background carried up behind
         // the navigation bar, and the entries in inset sections below. `ChartScreen` sets the title.
-        ChartScreen(title: configuration.title) {
-            chart(configuration: configuration, series: timeSeries)
-        } sections: {
-            listSection(configuration: configuration, entries: entries, pagedEntries: pagedEntries, hasMore: hasMore)
+        Group {
+            // Only QuickCharts' own charts can mark a row's readings, so the contribution grid and
+            // the custom charts go without rows.
+            if usesMetricChart, !readings.days.isEmpty {
+                ChartScreen(title: configuration.title) {
+                    chart(configuration: configuration, series: timeSeries)
+                } accessories: {
+                    MetricChartRows(readings: readings)
+                } moreRows: {
+                    MetricChartRows(readings: readings, showsAll: true)
+                } sections: {
+                    listSection(configuration: configuration, entries: entries, pagedEntries: pagedEntries, hasMore: hasMore)
+                }
+            } else {
+                ChartScreen(title: configuration.title) {
+                    chart(configuration: configuration, series: timeSeries)
+                } sections: {
+                    listSection(configuration: configuration, entries: entries, pagedEntries: pagedEntries, hasMore: hasMore)
+                }
+            }
         }
         .scrollIndicators(.hidden)
         .toolbar {
@@ -85,6 +103,11 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         }
     }
     
+    /// Whether the chart is `MetricChart`, rather than the contribution grid or a custom chart.
+    private var usesMetricChart: Bool {
+        presenter.contributionChartData == nil && presenter.customChartView == nil
+    }
+
     @ViewBuilder
     private func chart(configuration: MetricConfiguration, series: [TimeSeries]) -> some View {
         if let contributionData = presenter.contributionChartData {
