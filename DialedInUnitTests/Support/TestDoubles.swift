@@ -54,3 +54,29 @@ class SpyGlobalInteractor: GlobalInteractor {
         playedHaptics.append(option)
     }
 }
+
+/// The onboarding destinations, recorded rather than shown.
+///
+/// `OnboardingStepRouter` is adopted by six screens that can resume onboarding, and its nine
+/// methods are the same nine every time. Subclass this and add the screen's own destinations.
+@MainActor
+class SpyOnboardingRouter: OnboardingStepRouter {
+    let router: AnyRouter = TestRouting.anyRouter
+    private(set) var shown: [String] = []
+
+    /// Records a destination. Subclasses call this from their own navigation methods so every
+    /// screen a test drives through lands in one list, in order.
+    func record(_ destination: String) {
+        shown.append(destination)
+    }
+
+    func showCompleteAccountSetupView() { record("completeAccountSetup") }
+    func showNotificationsPermissionsView() { record("notifications") }
+    func showOnboardingHealthDataView() { record("healthData") }
+    func showHealthDisclaimerView() { record("healthDisclaimer") }
+    func showGoalSettingView() { record("goalSetting") }
+    func showCreateGymProfileView(delegate: CreateGymProfileDelegate) { record("gymProfileSetup") }
+    func showOnboardingTrainingProgramView(delegate: CreateProgramDelegate) { record("trainingProgramSetup") }
+    func showCustomisingDietProgramView() { record("customisingDietProgram") }
+    func showOnboardingCompletedView() { record("onboardingCompleted") }
+}
