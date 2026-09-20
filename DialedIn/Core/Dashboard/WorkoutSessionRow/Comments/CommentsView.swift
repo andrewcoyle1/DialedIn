@@ -61,6 +61,7 @@ struct CommentsView: View {
         }
         .navigationTitle("Comments")
         .navigationBarTitleDisplayMode(.inline)
+        .scrollIndicators(.hidden)
         .onAppear {
             presenter.onViewAppear()
         }

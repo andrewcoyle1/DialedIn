@@ -38,7 +38,7 @@ struct ExerciseAnalyticsView: View {
                     }
                 }
             } header: {
-                AnalyticsSectionHeader(title: "Exercises")
+                SectionHeaderView(title: "Exercises")
             }
             .listSectionMargins(.horizontal, 0)
             .listRowSeparator(.hidden)

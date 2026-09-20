@@ -52,7 +52,7 @@ struct BodyMetricsView: View {
                 }
             }
         } header: {
-            AnalyticsSectionHeader(title: section.header)
+            SectionHeaderView(title: section.header)
         }
     }
 
@@ -79,7 +79,7 @@ struct BodyMetricsView: View {
                 }
             }
         } header: {
-            AnalyticsSectionHeader(title: "Ratios")
+            SectionHeaderView(title: "Ratios")
         }
     }
 }

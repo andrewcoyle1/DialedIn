@@ -56,9 +56,9 @@ struct WorkoutSessionDetailPresenterTests {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var shown: [String] = []
 
-#if DEV || MOCK
+        // Unguarded on purpose — see `AnalyticsRouterDouble`. The test target has no `-DDEV`, so a
+        // `#if DEV || MOCK` stub disappears while the protocol requirement stays.
         func showDevSettingsView() { shown.append("devSettings") }
-#endif
         func showExercisesPickerView(delegate: ExercisesPickerDelegate) { shown.append("exercisesPicker") }
     }
 

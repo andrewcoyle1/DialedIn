@@ -30,6 +30,7 @@ struct FollowersListView: View {
         }
         .navigationTitle(delegate.title)
         .navigationBarTitleDisplayMode(.inline)
+        .scrollIndicators(.hidden)
     }
 }
 

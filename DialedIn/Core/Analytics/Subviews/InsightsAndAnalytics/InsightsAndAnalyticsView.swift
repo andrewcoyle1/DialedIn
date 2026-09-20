@@ -139,7 +139,7 @@ struct InsightsAndAnalyticsView: View {
         Section {
             AnalyticsCardGrid(content: content)
         } header: {
-            AnalyticsSectionHeader(title: title)
+            SectionHeaderView(title: title)
         }
         .listSectionMargins(.horizontal, 0)
         .listRowSeparator(.hidden)

@@ -65,9 +65,12 @@ final class AnalyticsRouterDouble: AnalyticsRouter {
     let router: AnyRouter = TestRouting.anyRouter
     private(set) var shown: [String] = []
 
-#if DEV || MOCK
+    // Deliberately not behind `#if DEV || MOCK` the way the protocol's requirement is. The app
+    // target gets `DEV` from `-DDEV` in its Debug build settings; the unit test target does not, so
+    // under the Development scheme the requirement existed and the stub did not, and the test
+    // target stopped compiling. An extra method in a configuration that does not require it is
+    // harmless; a missing one is not.
     func showDevSettingsView() { shown.append("devSettings") }
-#endif
     func showPaywall() { shown.append("paywall") }
     func showProfileViewZoom(transitionId: String?, namespace: Namespace.ID) { shown.append("profile") }
     func showScaleWeightView(delegate: ScaleWeightDelegate, themeColor: Color?) { shown.append("scaleWeight") }

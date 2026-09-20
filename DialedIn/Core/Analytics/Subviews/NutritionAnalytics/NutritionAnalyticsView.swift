@@ -143,7 +143,7 @@ struct NutritionAnalyticsView: View {
         Section {
             AnalyticsCardGrid(content: content)
         } header: {
-            AnalyticsSectionHeader(title: header)
+            SectionHeaderView(title: header)
         }
     }
 

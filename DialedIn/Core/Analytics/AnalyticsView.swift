@@ -172,7 +172,7 @@ struct AnalyticsView<NutritionChart: View>: View {
 
 // MARK: - Analytics Sections (extracted for type_body_length)
 //
-// Every section is the same three pieces: an `AnalyticsSectionHeader`, an `AnalyticsCardGrid`, and
+// Every section is the same three pieces: a `SectionHeaderView`, an `AnalyticsCardGrid`, and
 // cards built from the shared card components in `AnalyticsSection.swift`. Sections whose contents
 // are data-driven fall back to an `AnalyticsEmptyCard` so a visible header is never followed by a
 // blank grid.
@@ -262,9 +262,9 @@ private extension AnalyticsView {
                 }
             }
         } header: {
-            AnalyticsSectionHeader(
+            SectionHeaderView(
                 title: "Insights & Analytics",
-                onSeeAllPressed: { presenter.onSeeAllInsightsPressed() }
+                onActionPressed: { presenter.onSeeAllInsightsPressed() }
             )
         }
     }
@@ -288,9 +288,9 @@ private extension AnalyticsView {
                 )
             }
         } header: {
-            AnalyticsSectionHeader(
+            SectionHeaderView(
                 title: "Habits",
-                onSeeAllPressed: { presenter.onSeeAllHabitsPressed() }
+                onActionPressed: { presenter.onSeeAllHabitsPressed() }
             )
         }
     }
@@ -337,9 +337,9 @@ private extension AnalyticsView {
                 }
             }
         } header: {
-            AnalyticsSectionHeader(
+            SectionHeaderView(
                 title: "Nutrition",
-                onSeeAllPressed: { presenter.onSeeAllNutritionAnalyticsPressed() }
+                onActionPressed: { presenter.onSeeAllNutritionAnalyticsPressed() }
             )
         }
     }
@@ -369,9 +369,9 @@ private extension AnalyticsView {
                 )
             }
         } header: {
-            AnalyticsSectionHeader(
+            SectionHeaderView(
                 title: "Body Metrics",
-                onSeeAllPressed: { presenter.onSeeAllBodyMetricsPressed() }
+                onActionPressed: { presenter.onSeeAllBodyMetricsPressed() }
             )
         }
     }
@@ -401,9 +401,9 @@ private extension AnalyticsView {
                 }
             }
         } header: {
-            AnalyticsSectionHeader(
+            SectionHeaderView(
                 title: "Muscle Groups",
-                onSeeAllPressed: { presenter.onSeeAllMuscleGroupsPressed() }
+                onActionPressed: { presenter.onSeeAllMuscleGroupsPressed() }
             )
         }
     }
@@ -435,9 +435,9 @@ private extension AnalyticsView {
                 }
             }
         } header: {
-            AnalyticsSectionHeader(
+            SectionHeaderView(
                 title: "Exercises",
-                onSeeAllPressed: { presenter.onSeeAllExercisesPressed() }
+                onActionPressed: { presenter.onSeeAllExercisesPressed() }
             )
         }
     }
@@ -457,7 +457,7 @@ private extension AnalyticsView {
                 )
             }
         } header: {
-            AnalyticsSectionHeader(title: "General")
+            SectionHeaderView(title: "General")
         }
     }
 }

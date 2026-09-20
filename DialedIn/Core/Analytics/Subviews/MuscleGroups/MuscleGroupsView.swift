@@ -52,7 +52,7 @@ struct MuscleGroupsView: View {
                 }
             }
         } header: {
-            AnalyticsSectionHeader(title: header)
+            SectionHeaderView(title: header)
         }
     }
 

@@ -84,7 +84,7 @@ struct HabitsView: View {
         Section {
             AnalyticsCardGrid(content: content)
         } header: {
-            AnalyticsSectionHeader(title: header)
+            SectionHeaderView(title: header)
         }
     }
 }

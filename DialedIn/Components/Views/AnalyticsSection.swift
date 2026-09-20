@@ -40,27 +40,9 @@ struct AnalyticsCardGrid<Content: View>: View {
     }
 }
 
-/// A section title with an optional trailing "See All". Sections without a destination simply omit
-/// the action and get the title alone.
-struct AnalyticsSectionHeader: View {
-
-    let title: String
-    var onSeeAllPressed: (() -> Void)?
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(title)
-
-            if let onSeeAllPressed {
-                Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton(.press, action: onSeeAllPressed)
-            }
-        }
-    }
-}
+// The section header that lived here is now `SectionHeaderView` in its own file: the Dashboard
+// wanted the same header, and importing an `Analytics`-named component into another tab is how a
+// second, slightly different copy gets written instead.
 
 /// The line-chart card used for every trend metric on the Analytics tab.
 struct SparklineAnalyticsCard: View {
@@ -167,7 +149,7 @@ struct AnalyticsEmptyCard: View {
                 AnalyticsEmptyCard(message: "No exercises logged yet.")
             }
         } header: {
-            AnalyticsSectionHeader(title: "Body Metrics", onSeeAllPressed: { })
+            SectionHeaderView(title: "Body Metrics", onActionPressed: { })
         }
         .listSectionMargins(.horizontal, 0)
     }

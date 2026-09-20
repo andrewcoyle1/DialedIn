@@ -6,6 +6,14 @@ struct DashboardDelegate {
     }
 }
 
+/// Gutter between the Dashboard's carousel cards, and between a card and the screen edge. Matches
+/// the Analytics tab's header carousel, which the two screens are read one after the other.
+private let carouselCardSpacing: CGFloat = 16
+
+/// How much of the next card shows past the trailing edge of the current one, so the carousel
+/// reads as scrollable without page dots.
+private let carouselCardPeek: CGFloat = 32
+
 struct DashboardView<
     WorkoutSessionRow: View,
     TodaysCard: View,
@@ -13,6 +21,7 @@ struct DashboardView<
 >: View {
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.layoutMode) private var layoutMode
     @State var presenter: DashboardPresenter
     let delegate: DashboardDelegate
 
@@ -45,51 +54,64 @@ struct DashboardView<
         }
     }
     
-    @ViewBuilder
-    private func workoutCardBuilder(first: Bool, @ViewBuilder content: () -> some View) -> some View {
-        if first {
-            Section {
-                content()
-            } header: {
-                Text("Workout Feed")
-            }
-            .listSectionMargins(.top, 0)
-        } else {
-            Section {
-                content()
-            }
-        }
-    }
-    
+    /// The carousel was a paged `TabView` with dots, sized by a `+ 60` guess and showing exactly one
+    /// card however wide the window was. The Analytics tab's header carousel is a view-aligned
+    /// scroll that sizes its cards from the container and shows two of them in split view, so the
+    /// two screens now snap and breathe the same way.
     private var cardsSection: some View {
         Section {
-            TabView {
-                if let todaysWorkoutTemplate = presenter.todaysWorkoutTemplate {
-                    Tab {
-                        todaysWorkoutCard(
-                            TodaysWorkoutCardDelegate(
-                                todaysWorkoutTemplate: todaysWorkoutTemplate
-                            )
-                        )
-                    }
-                }
-
-                Tab {
-                    workoutStreakCard(WorkoutStreakDelegate())
-                }
-
-                Tab {
-                    nutritionCard
-                }
+            // The width is measured rather than taken from `containerRelativeFrame`, which resolves
+            // against the scroll view's container and so did not agree with the gutters the content
+            // actually had: the cards came out a little wider than their slot, centred, and the
+            // overflow pushed the first card's title off the leading edge.
+            GeometryReader { proxy in
+                carousel(cardWidth: cardWidth(forContainerWidth: proxy.size.width))
             }
-            .tabViewStyle(.page)
-            // Title, card and the page dots below it. Each page used to add its own bottom padding,
-            // and two of the three disagreed about how much.
-            .frame(height: DashboardCard<EmptyView>.contentHeight + 60)
+            .frame(height: carouselHeight)
             .removeListRowFormatting()
         }
         .listSectionMargins(.all, 0)
         .listSectionSeparator(.hidden)
+    }
+
+    private var carouselHeight: CGFloat {
+        DashboardCard<EmptyView>.contentHeight + DashboardCard<EmptyView>.titleHeight
+    }
+
+    /// A single card deliberately stops short of the full width. The paged `TabView` this replaced
+    /// had dots to say there was more than one card; a full-width card in a scroll view says
+    /// nothing at all, so the next card's edge peeks instead. Two cards share the width in split
+    /// view, where there is room for both.
+    private func cardWidth(forContainerWidth width: CGFloat) -> CGFloat {
+        let available = width - (carouselCardSpacing * 2)
+        let cardWidth = layoutMode == .splitView
+            ? (available - carouselCardSpacing) / 2
+            : available - carouselCardPeek
+        return max(cardWidth, 0)
+    }
+
+    private func carousel(cardWidth: CGFloat) -> some View {
+        ScrollView(.horizontal) {
+            HStack(alignment: .top, spacing: carouselCardSpacing) {
+                if let todaysWorkoutTemplate = presenter.todaysWorkoutTemplate {
+                    todaysWorkoutCard(
+                        TodaysWorkoutCardDelegate(todaysWorkoutTemplate: todaysWorkoutTemplate)
+                    )
+                    .frame(width: cardWidth)
+                }
+
+                workoutStreakCard(WorkoutStreakDelegate())
+                    .frame(width: cardWidth)
+
+                nutritionCard
+                    .frame(width: cardWidth)
+            }
+            .padding(.horizontal, carouselCardSpacing)
+            .frame(height: carouselHeight)
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.viewAligned)
+        .scrollIndicators(.hidden)
     }
 
     private var nutritionCard: some View {
@@ -106,13 +128,12 @@ struct DashboardView<
         )
     }
     
-    @ViewBuilder
+    /// One section for the whole feed. Every row used to be wrapped in a `Section` of its own so
+    /// that the first could carry the header, which gave each row the full section inset and a
+    /// header that only appeared when the feed was non-empty in exactly the right way.
     private var workoutFeedSection: some View {
-        if presenter.feedSessions.isEmpty {
-            // Was a bare `ContentUnavailableView` outside any `Section`, so it drew inside a list
-            // row with its own inset and separator, and the "Workout Feed" header the populated
-            // state shows disappeared entirely.
-            Section {
+        Section {
+            if presenter.feedSessions.isEmpty {
                 ContentUnavailableView {
                     Label("No Activity Yet", systemImage: "figure.run")
                 } description: {
@@ -123,22 +144,30 @@ struct DashboardView<
                     }
                 }
                 .removeListRowFormatting()
-            } header: {
-                Text("Workout Feed")
-            }
-            .listSectionMargins(.top, 0)
-        } else {
-            ForEach(presenter.feedSessions) { session in
-                workoutCardBuilder(first: session == presenter.feedSessions.first) {
+            } else {
+                ForEach(presenter.feedSessions) { session in
                     if let author = presenter.author(for: session) {
-                        let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
-                        workoutSessionRow(rowDelegate)
+                        workoutSessionRow(WorkoutSessionRowDelegate(session: session, author: author))
                             .removeListRowFormatting()
+                            // The rows are separate cards with a gap between them; a divider in that
+                            // gap draws a hairline floating between two rounded surfaces.
+                            .listRowSeparator(.hidden)
                     }
                 }
             }
-            
+        } header: {
+            SectionHeaderView(
+                title: "Workout Feed",
+                actionTitle: "Find People",
+                onActionPressed: presenter.feedSessions.isEmpty ? nil : { presenter.onFindPeoplePressed() }
+            )
         }
+        .listSectionMargins(.top, 0)
+        // The section's default horizontal margin sat outside the cards' own padding, so the feed
+        // cards were inset further than the carousel cards above them. The cards bring their own
+        // gutter; the section should not add a second one.
+        .listSectionMargins(.horizontal, 0)
+        .listSectionSeparator(.hidden)
     }
     
     @ToolbarContentBuilder

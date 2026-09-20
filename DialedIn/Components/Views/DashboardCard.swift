@@ -23,17 +23,19 @@ struct DashboardCard<Content: View>: View {
     /// One height for every page of the Dashboard carousel.
     static var contentHeight: CGFloat { 200 }
 
+    /// The title above the surface, plus the stack's spacing. The carousel sizes its scroll area
+    /// from `contentHeight + titleHeight` rather than the `+ 60` guess it used to carry.
+    static var titleHeight: CGFloat { 30 }
+
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
                 .font(.headline)
                 .foregroundStyle(.secondary)
-                .padding(.leading)
 
             surface
                 .frame(height: Self.contentHeight)
         }
-        .padding(.horizontal)
     }
 
     @ViewBuilder

@@ -20,6 +20,7 @@ struct SocialProfileView: View {
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .scrollIndicators(.hidden)
         // A toolbar sat here with a share button and an ellipsis menu, both empty actions. Sharing a
         // profile needs a shareable link, and there is no user-profile deep link route (the `compound`
         // scheme has none); the ellipsis had no menu items defined at all.
@@ -31,48 +32,61 @@ struct SocialProfileView: View {
         }
     }
     
+    /// Sat in a plain list row under a "Profile" header that repeated the navigation title, on the
+    /// list's own background. It is a card now, like every other surface the app shows.
     private var profileSection: some View {
         Section {
-            VStack(alignment: .leading) {
-                HStack {
-                    // Profile Image
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 16) {
                     UserAvatarView(imageUrl: delegate.user.profileImageNameCalculated, size: 80)
 
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 4) {
                         if let name = delegate.user.fullNameCalculated {
                             Text(name)
-                                .font(.headline)
+                                .font(.title3)
+                                .fontWeight(.semibold)
                         }
+                        // Was formatted with a time component, so a date of birth read
+                        // "14 Mar 1994 at 00:00".
                         if let dob = delegate.user.submittedDateOfBirth {
-                            Text(dob.formatted(date: .abbreviated, time: .shortened))
+                            Text(dob.formatted(date: .abbreviated, time: .omitted))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
                     }
+
+                    Spacer(minLength: 0)
                 }
-                HStack {
+
+                Divider()
+
+                HStack(spacing: 32) {
                     // An "Activity 1" stat sat here, hardcoded. Nothing counts a user's activity, and
                     // followers/following beside it are real, which made the fake one look real too.
-                    Button {
-                        presenter.onFollowersPressed()
-                    } label: {
-                        StatItem(header: "Followers", value: "\(presenter.followersCount)")
-                    }
-                    .buttonStyle(.plain)
+                    StatItem(header: "Followers", value: "\(presenter.followersCount)")
+                        .tappableBackground()
+                        .anyButton(.press) {
+                            presenter.onFollowersPressed()
+                        }
                     StatItem(header: "Following", value: "\(presenter.followingCount)")
                     Spacer()
                     // A chat button sat here. There is no messaging anywhere in the app — no model, no
                     // manager, no screen — so it was an empty closure over a feature that does not exist.
                 }
-                
+
                 if !presenter.mutualFollowers.isEmpty {
+                    Divider()
                     mutualFollowersImagesSection
                 }
             }
-            
-        } header: {
-            Text("Profile")
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(colorScheme.backgroundPrimary, in: .rect(cornerRadius: 24))
+            .padding(.horizontal)
+            .removeListRowFormatting()
         }
+        .listSectionMargins(.all, 0)
+        .listSectionSeparator(.hidden)
     }
     
     // A "Data" section sat here: Activities, Statistics, Routes, Segments, Best Efforts, Posts and
@@ -99,8 +113,9 @@ struct SocialProfileView: View {
 
             Spacer()
 
-            Text("See all")
+            Text("See All")
                 .font(.caption)
+                .underline()
                 .anyButton(.press) {
                     presenter.onMutualFollowersPressed()
                 }
