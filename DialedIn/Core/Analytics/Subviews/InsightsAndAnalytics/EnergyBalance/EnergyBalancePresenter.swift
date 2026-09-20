@@ -105,6 +105,7 @@ class EnergyBalancePresenter {
         let dateKeys = Date.dayKeys(from: startDate, to: startOfToday)
         for (index, dayKey) in dateKeys.enumerated() {
             guard let date = Date(dayKey: dayKey) else { continue }
+
             let totals = totalsData.first { $0.dayKey == dayKey }?.totals ?? DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0)
 
             let entry = EnergyBalanceEntry(
@@ -132,30 +133,25 @@ extension EnergyBalancePresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
+    /// Intake first: it is the series the chart's bars and its Latest row describe, and the combo
+    /// chart draws the bar series before the line.
     var timeSeries: [TimeSeries] {
-        [cachedExpenditure, cachedIntake]
-    }
-
-    var customChartView: AnyView? {
-        AnyView(
-            EnergyBalanceChart(
-                expenditure: cachedExpenditure,
-                energyIntake: cachedIntake,
-                maxVisibleDays: nil
-            )
-        )
+        [cachedIntake, cachedExpenditure]
     }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: "Energy Balance",
             analyticsName: "EnergyBalanceView",
-            yAxisSuffix: "",
-            seriesNames: ["Expenditure", "Intake"],
+            yAxisSuffix: " kcal",
+            seriesNames: ["Intake", "Expenditure"],
             showsAddButton: true,
             sectionHeader: "Daily Balance",
             emptyStateMessage: "No data for the last 90 days",
-            chartColor: nil
+            chartColor: EnergyBalanceChart.intakeColor,
+            chartType: .combo,
+            lineSeriesNames: ["Expenditure"],
+            lineSeriesColor: EnergyBalanceChart.expenditureColor
         )
     }
 

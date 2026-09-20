@@ -25,6 +25,8 @@ struct MetricChart: View {
             BarChart(data: series, configuration: chartConfiguration)
         case .stackedBar:
             StackedBarChart(data: series, configuration: chartConfiguration)
+        case .combo:
+            ComboChart(data: series, lineSeries: configuration.lineSeriesNames, configuration: chartConfiguration)
         }
     }
 }
@@ -145,12 +147,14 @@ struct MetricChartReadings {
 
 @MainActor
 extension MetricConfiguration {
-    /// Bars and stacked bars are daily totals; lines are readings.
+    /// Bars and stacked bars are daily totals; lines are readings. A combo chart's bars are a daily
+    /// total too, but its line is the level they are compared against, so bucketing them apart would
+    /// put the two on different footings: both are averaged into a daily rate instead.
     fileprivate var isTotalChart: Bool { chartType == .bar || chartType == .stackedBar }
 
-    /// Totals are whole numbers; readings keep one decimal place.
+    /// Totals are whole numbers, as are the combo chart's calories; readings keep one decimal place.
     fileprivate var valueFormat: FloatingPointFormatStyle<Double> {
-        .number.precision(.fractionLength(isTotalChart ? 0 : 1))
+        .number.precision(.fractionLength(isTotalChart || chartType == .combo ? 0 : 1))
     }
 
     /// Bars are daily totals — steps, sets, calories — so a week or month bucket adds them up and the
@@ -176,6 +180,10 @@ extension MetricConfiguration {
     /// A single colour paints every series. The macros chart keeps the
     /// protein, carbs and fat colours used everywhere else in the app.
     private func seriesColors(color: Color?) -> [Color] {
+        // The bars first, then the line, matching the order a combo chart's series are given in.
+        if chartType == .combo, let lineSeriesColor {
+            return [color ?? ChartConfiguration().seriesColors[0], lineSeriesColor]
+        }
         if isMacrosChart {
             return [MacroProgressChart.proteinColor, MacroProgressChart.carbsColor, MacroProgressChart.fatColor]
         }

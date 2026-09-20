@@ -13,4 +13,7 @@ enum MetricChartType {
     case line
     case bar
     case stackedBar
+    /// Bars with one series drawn as a line over them, named by
+    /// `MetricConfiguration.lineSeriesNames`. The bar series come first.
+    case combo
 }

@@ -13,6 +13,10 @@ struct MetricConfiguration {
     let chartColor: Color?
     /// Chart display style. Defaults to line when nil.
     let chartType: MetricChartType?
+    /// For `.combo`, which of `seriesNames` are drawn as lines over the bars. Ignored otherwise.
+    let lineSeriesNames: Set<String>
+    /// For `.combo`, the line's colour when it should differ from `chartColor`'s bars.
+    let lineSeriesColor: Color?
     /// When true, chart shows stacked protein/carbs/fat bars with three-averages header.
     let isMacrosChart: Bool
     /// Y-axis suffix for stacked macros chart (e.g. " g").
@@ -45,6 +49,8 @@ struct MetricConfiguration {
         emptyStateMessage: String,
         chartColor: Color? = nil,
         chartType: MetricChartType? = nil,
+        lineSeriesNames: Set<String> = [],
+        lineSeriesColor: Color? = nil,
         isMacrosChart: Bool = false,
         macrosYAxisSuffix: String? = nil,
         addActionTitle: String = "Add Entry",
@@ -59,6 +65,8 @@ struct MetricConfiguration {
         self.emptyStateMessage = emptyStateMessage
         self.chartColor = chartColor
         self.chartType = chartType
+        self.lineSeriesNames = lineSeriesNames
+        self.lineSeriesColor = lineSeriesColor
         self.isMacrosChart = isMacrosChart
         self.macrosYAxisSuffix = macrosYAxisSuffix
         self.addActionTitle = addActionTitle

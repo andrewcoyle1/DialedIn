@@ -19,3 +19,4 @@ typealias ChartHighlight = QuickCharts.ChartHighlight
 typealias LineChart = QuickCharts.LineChart
 typealias BarChart = QuickCharts.BarChart
 typealias StackedBarChart = QuickCharts.StackedBarChart
+typealias ComboChart = QuickCharts.ComboChart
