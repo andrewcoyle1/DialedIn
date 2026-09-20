@@ -36,6 +36,10 @@ class StepsPresenter {
         let history = interactor.stepsHistory
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
+        // Up to the end of today, not its start. A steps sample keeps the time it was recorded at,
+        // so `<= startOfToday` compared every reading against midnight and dropped today's
+        // altogether — the screen was always a day behind.
+        let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday) ?? now
         guard let startDate = calendar.date(byAdding: .day, value: -89, to: startOfToday) else {
             cachedEntries = []
             cachedTimeSeries = []
@@ -43,7 +47,7 @@ class StepsPresenter {
         }
         let userId = interactor.userId
         let last90 = history
-            .filter { $0.deletedAt == nil && $0.date >= startDate && $0.date <= startOfToday && (userId == nil || $0.authorId == userId) }
+            .filter { $0.deletedAt == nil && $0.date >= startDate && $0.date < endOfToday && (userId == nil || $0.authorId == userId) }
             .sorted { $0.date < $1.date }
         let consolidated = Self.consolidateStepsByDay(Array(last90))
         cachedEntries = consolidated
