@@ -47,6 +47,9 @@ struct AnalyticsView<NutritionChart: View>: View {
             .listRowSeparator(.hidden)
             moreSection
         }
+        // As QuickCharts' `ChartScreen` does for its chart: the header's colour carries on up behind
+        // the navigation bar, even when the list is pulled down.
+        .topFill(Color(.secondarySystemGroupedBackground))
         .navigationTitle("Analytics")
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
@@ -82,10 +85,13 @@ struct AnalyticsView<NutritionChart: View>: View {
             }
             .contentMargins(.horizontal, headerCardSpacing, for: .scrollContent)
             .scrollTargetBehavior(.viewAligned)
-            .removeListRowFormatting()
+            .topFillEdge()
+            // Edge to edge and up to the navigation bar, on the colour `topFill` carries above it.
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
         }
-        .listSectionMargins(.top, 0)
-
+        .listSectionMargins(.all, 0)
+        .listSectionSeparator(.hidden)
     }
     
     // A `carouselSection` was rendered here as `Section { } header: { }` — an empty section with an
