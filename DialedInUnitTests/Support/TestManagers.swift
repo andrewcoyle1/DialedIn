@@ -97,6 +97,51 @@ enum TestManagers {
         GymProfileManager(gymProfileSyncEngine: collectionEngine(profiles, key: "gym-profiles"))
     }
 
+    static func workoutSessionManager(
+        sessions: [WorkoutSessionModel] = [],
+        following: [WorkoutSessionModel] = []
+    ) -> WorkoutSessionManager {
+        WorkoutSessionManager(
+            likeService: MockWorkoutSessionLikeService(),
+            activeWorkoutSessionPersistence: MockLocalDocumentPersistence<WorkoutSessionModel>(),
+            userWorkoutSessionSyncEngine: collectionEngine(sessions, key: "workout-sessions"),
+            followingWorkoutSessionSyncEngine: CollectionGroupSyncEngine<WorkoutSessionModel>(
+                remote: MockRemoteCollectionGroupService(collection: following),
+                managerKey: key("following-sessions"),
+                enableLocalPersistence: false
+            )
+        )
+    }
+
+    /// A workout session manager already listening, so `workoutSessions` holds `sessions`.
+    static func signedInWorkoutSessionManager(
+        sessions: [WorkoutSessionModel]
+    ) async -> WorkoutSessionManager {
+        let manager = workoutSessionManager(sessions: sessions)
+        await manager.signIn(userId: "author-1")
+        await eventually { manager.workoutSessions.count == sessions.count }
+        return manager
+    }
+
+    static func bodyMeasurementsManager(
+        entries: [BodyMeasurementEntry] = []
+    ) -> BodyMeasurementsManager {
+        BodyMeasurementsManager(
+            bodyMeasurementsSyncEngine: collectionEngine(entries, key: "body-measurements"),
+            healthKitService: MockHealthKitWeightService()
+        )
+    }
+
+    /// A body measurements manager already listening, so `bodyMeasurements` holds `entries`.
+    static func signedInBodyMeasurementsManager(
+        entries: [BodyMeasurementEntry]
+    ) async -> BodyMeasurementsManager {
+        let manager = bodyMeasurementsManager(entries: entries)
+        await manager.signIn(userId: "author-1")
+        await eventually { manager.bodyMeasurements.count == entries.count }
+        return manager
+    }
+
     static func mealLogManager(meals: [MealLogModel] = []) -> MealLogManager {
         MealLogManager(
             draftMealLogPersistence: MockLocalDocumentPersistence<MealLogModel>(),
