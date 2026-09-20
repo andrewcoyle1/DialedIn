@@ -149,8 +149,7 @@ private extension ExerciseModelDetailView {
                 Text("You have not logged this exercise yet.")
                     .foregroundColor(.secondary)
             } else {
-                NewHistoryChart(series: presenter.weightSeries, yAxisSuffix: "kg")
-                    .frame(height: 220)
+                LineChart(data: presenter.weightSeries, configuration: presenter.weightChartConfiguration)
             }
         }
     }
@@ -162,8 +161,7 @@ private extension ExerciseModelDetailView {
                 Text("You have not logged this exercise yet.")
                     .foregroundColor(.secondary)
             } else {
-                NewHistoryChart(series: presenter.repsSeries, chartType: .bar)
-                    .frame(height: 220)
+                BarChart(data: presenter.repsSeries, configuration: presenter.repsChartConfiguration)
             }
         }
     }

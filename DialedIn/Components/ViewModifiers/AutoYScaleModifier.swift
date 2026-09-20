@@ -8,10 +8,33 @@
 import SwiftUI
 import Charts
 
+/// What the chart shows for the range in view: the dates it spans and the figures its header reads.
+/// Owned here, with the modifier that fills it in, since `NewHistoryChart` that used to own it is
+/// gone.
+struct VisibleMetrics {
+    var startDate: Date?
+    var endDate: Date?
+    var average: Double?
+    var delta: Double?
+    var averageProtein: Double?
+    var averageCarbs: Double?
+    var averageFat: Double?
+
+    static let empty = VisibleMetrics(
+        startDate: nil,
+        endDate: nil,
+        average: nil,
+        delta: nil,
+        averageProtein: nil,
+        averageCarbs: nil,
+        averageFat: nil
+    )
+}
+
 struct AutoYScaleModifier: ViewModifier {
     let series: [TimeSeries]
     @Bindable var scrollZoomState: ChartScrollZoomState
-    @Binding var metrics: NewHistoryChart.VisibleMetrics
+    @Binding var metrics: VisibleMetrics
     /// When true, lower bound is always 0 and only the upper bound is auto-scaled (for BarMark charts).
     var yDomainIncludesZero: Bool = false
     /// When true, y-domain max is sum of series per date; metrics include averageProtein, averageCarbs, averageFat.
@@ -231,8 +254,8 @@ struct AutoYScaleModifier: ViewModifier {
         return MacroSums(maxSum: maxSum, sumP: sumP, sumC: sumC, sumF: sumF)
     }
 
-    private func emptyMetrics(startDate: Date, endDate: Date) -> NewHistoryChart.VisibleMetrics {
-        NewHistoryChart.VisibleMetrics(
+    private func emptyMetrics(startDate: Date, endDate: Date) -> VisibleMetrics {
+        VisibleMetrics(
             startDate: startDate,
             endDate: endDate,
             average: nil,
@@ -243,9 +266,9 @@ struct AutoYScaleModifier: ViewModifier {
         )
     }
 
-    private func stackedBarMetrics(start: Date, end: Date, count: Int, sums: MacroSums) -> NewHistoryChart.VisibleMetrics {
+    private func stackedBarMetrics(start: Date, end: Date, count: Int, sums: MacroSums) -> VisibleMetrics {
         let number = Double(count)
-        return NewHistoryChart.VisibleMetrics(
+        return VisibleMetrics(
             startDate: start,
             endDate: end,
             average: nil,
@@ -270,7 +293,7 @@ struct AutoYScaleModifier: ViewModifier {
             return end - start
         }()
         
-        metrics = NewHistoryChart.VisibleMetrics(
+        metrics = VisibleMetrics(
             startDate: xStart,
             endDate: xEnd,
             average: average,
@@ -325,7 +348,7 @@ extension View {
         series: [TimeSeries],
         seriesSignature: Int,
         scrollZoomState: ChartScrollZoomState,
-        metrics: Binding<NewHistoryChart.VisibleMetrics>,
+        metrics: Binding<VisibleMetrics>,
         yDomainIncludesZero: Bool = false,
         isStackedBar: Bool = false,
         debounce: Duration = .milliseconds(50),

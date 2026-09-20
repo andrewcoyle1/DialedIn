@@ -12,7 +12,7 @@ struct MetricConfiguration {
     /// Optional color for the chart. When provided, all series will use this color.
     let chartColor: Color?
     /// Chart display style. Defaults to line when nil.
-    let chartType: NewHistoryChart.ChartType?
+    let chartType: MetricChartType?
     /// When true, chart shows stacked protein/carbs/fat bars with three-averages header.
     let isMacrosChart: Bool
     /// Y-axis suffix for stacked macros chart (e.g. " g").
@@ -44,7 +44,7 @@ struct MetricConfiguration {
         sectionHeader: String,
         emptyStateMessage: String,
         chartColor: Color? = nil,
-        chartType: NewHistoryChart.ChartType? = nil,
+        chartType: MetricChartType? = nil,
         isMacrosChart: Bool = false,
         macrosYAxisSuffix: String? = nil,
         addActionTitle: String = "Add Entry",

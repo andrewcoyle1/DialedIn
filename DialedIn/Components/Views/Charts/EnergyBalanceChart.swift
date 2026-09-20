@@ -20,7 +20,7 @@ struct EnergyBalanceChart: View {
         initialVisibleDays: 7,
         config: ChartScrollZoomState.Configuration(maxZoomDays: 365)
     )
-    @State private var visibleMetrics: NewHistoryChart.VisibleMetrics = .empty
+    @State private var visibleMetrics: VisibleMetrics = .empty
     @State private var selectedTimeRange: EnergyBalanceTimeRange = .oneWeek
     @State private var hasInitialized = false
 

@@ -50,13 +50,49 @@ class ExerciseModelDetailPresenter {
         return "Performed \(times) \(noun) · last \(date)"
     }
 
+    /// The unit the charts and figures are in.
+    var weightUnit: ExerciseWeightUnit { unitPreference?.weightUnit ?? .kilograms }
+
     /// One point per session, so the charts follow workouts rather than calendar days — this
-    /// exercise is not necessarily trained daily.
+    /// exercise is not necessarily trained daily. In the user's own unit: sessions are stored in
+    /// kilograms, and the chart used to plot those under a "kg" axis whatever the preference.
     var weightSeries: [TimeSeries] {
         let points = stats.performances
             .sorted { $0.date < $1.date }
-            .map { TimeSeriesDatapoint(id: $0.sessionId, date: $0.date, value: $0.heaviestWeightKg) }
+            .map { TimeSeriesDatapoint(id: $0.sessionId, date: $0.date, value: weightInPreferredUnit($0.heaviestWeightKg)) }
         return [TimeSeries(name: "Top Set", data: points)]
+    }
+
+    private func weightInPreferredUnit(_ kilos: Double) -> Double {
+        weightUnit == .pounds ? UnitConversion.kgToLbs(kilos) : kilos
+    }
+
+    /// Whole kilograms or pounds, as the rows show them, and a range that suits sessions rather
+    /// than days: a lift is not trained daily, so D and W would often be empty.
+    var weightChartConfiguration: ChartConfiguration {
+        ChartConfiguration(
+            unit: weightUnit.abbreviation,
+            valueFormat: .number.precision(.fractionLength(0)),
+            availableScales: [.month, .sixMonths, .year],
+            initialScale: .month,
+            seriesColors: [.orange],
+            height: 220,
+            accessibilityTitle: "Top Set"
+        )
+    }
+
+    /// Reps are counted, so a bucket adds them up and the header shows the total.
+    var repsChartConfiguration: ChartConfiguration {
+        ChartConfiguration(
+            aggregation: .sum,
+            unit: "reps",
+            valueFormat: .number.precision(.fractionLength(0)),
+            availableScales: [.month, .sixMonths, .year],
+            initialScale: .month,
+            seriesColors: [.orange],
+            height: 220,
+            accessibilityTitle: "Reps Per Session"
+        )
     }
 
     var repsSeries: [TimeSeries] {
@@ -78,11 +114,7 @@ class ExerciseModelDetailPresenter {
     }
 
     func formattedWeight(_ kilos: Double) -> String {
-        let unit = unitPreference?.weightUnit ?? .kilograms
-        if unit == .pounds {
-            return String(format: "%.0f lbs", UnitConversion.kgToLbs(kilos))
-        }
-        return String(format: "%.0f kg", kilos)
+        String(format: "%.0f %@", weightInPreferredUnit(kilos), weightUnit.abbreviation)
     }
 
     func formattedVolume(_ kilos: Double) -> String {

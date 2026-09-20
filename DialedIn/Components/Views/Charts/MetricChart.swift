@@ -173,7 +173,7 @@ extension MetricConfiguration {
         )
     }
 
-    /// A single colour paints every series, as `NewHistoryChart` did. The macros chart keeps the
+    /// A single colour paints every series. The macros chart keeps the
     /// protein, carbs and fat colours used everywhere else in the app.
     private func seriesColors(color: Color?) -> [Color] {
         if isMacrosChart {

@@ -21,7 +21,7 @@ final class NutritionMetricDetailPresenter: @MainActor MetricDetailPresenter {
 
     private(set) var entries: [NutritionMetricEntry] = []
 
-    /// Nutrition metrics use NewHistoryChart (bar/stackedBar), not the contribution chart.
+    /// Nutrition metrics use a bar or stacked bar chart, not the contribution chart.
     var contributionChartData: [Double]? { nil }
 
     var timeSeries: [TimeSeries] {

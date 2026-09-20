@@ -100,7 +100,7 @@ extension WorkoutPresenter: @MainActor MetricDetailPresenter {
 //        return data
 //    }
     
-    /// Nutrition metrics use NewHistoryChart (bar/stackedBar), not the contribution chart.
+    /// Nutrition metrics use a bar or stacked bar chart, not the contribution chart.
     var contributionChartData: [Double]? { nil }
 
     var configuration: MetricConfiguration {
