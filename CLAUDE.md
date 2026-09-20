@@ -27,13 +27,22 @@ xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
-⚠️ **The unit test target currently does not compile**, so this command fails before running
-anything. Eight of the 22 files in `DialedInUnitTests/` reference types that earlier refactors
-deleted (`MockUserServices`, `MockExerciseModelServices`, `GymProfileServices`,
-`RemoteGymProfileService`, `ExerciseModelModel`, `ExerciseCategory`, `MockGymProfilePersistence`),
-mostly under `Services/Training/ExerciseTemplate/`, `Services/Training/GymProfile*` and
-`Services/User/`. Do not read a `TEST FAILED` here as a regression from your change — verify with
-a `build` first, and fix or delete the stale files if you are asked to get tests green.
+The unit tests compile and pass (181 tests). Treat a `TEST FAILED` as a regression from your
+change.
+
+Managers take sync engines rather than a services struct, so tests build them through
+**`DialedInUnitTests/Support/TestManagers.swift`**, which wires them the way `Dependencies` does
+for `.mock` but with `enableLocalPersistence: false` — otherwise each engine opens SwiftData
+storage under its `managerKey`, shared between tests and left behind after them.
+
+A sync engine applies a write when its listener next emits, on its own task, so
+`currentCollection` and `currentUser` are not up to date the instant `saveDocument` or `signIn`
+returns. Assert through `TestManagers.eventually { … }` rather than reading straight after the
+call or sleeping for a fixed time. For the same reason a manager holds nothing until it has
+signed in, even when its mock remote is already populated.
+
+`UserModel.mock` and the other model mocks are computed properties built from `Date()`, so two
+reads of one are never equal — capture the value once and compare against that.
 
 If a build fails with `build.db is locked`, Xcode is building the same DerivedData
 concurrently — wait and retry rather than changing anything.

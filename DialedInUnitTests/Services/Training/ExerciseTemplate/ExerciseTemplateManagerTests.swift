@@ -9,398 +9,136 @@ import Testing
 import Foundation
 @testable import DialedIn
 
+/// The manager keeps two libraries: the seeded system exercises, read from local persistence, and
+/// the user's own, synced from Firestore. Most of what this file used to cover — fetching by name,
+/// top-by-clicks, bookmarking, favouriting, interaction counts — went with the services layer those
+/// methods lived on; the manager now only reads the two collections and saves or deletes the user's.
 @MainActor
 struct ExerciseModelManagerTests {
-    // MARK: - Local Operations Tests
 
-    @Test("Test Get All Local Exercise Templates")
-    func testGetAllLocalExerciseModels() throws {
-        let mockExercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: mockExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let exercises = try manager.getAllLocalExerciseModels()
-        
-        #expect(exercises.count == mockExercises.count)
-    }
-    
-    @Test("Test Get Local Exercise Template By ID")
-    func testGetLocalExerciseModelById() throws {
-        let mockExercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: mockExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let firstExercise = mockExercises[0]
-        let retrieved = try manager.getLocalExerciseModel(id: firstExercise.id)
-        
-        #expect(retrieved.id == firstExercise.id)
-        #expect(retrieved.name == firstExercise.name)
-    }
-    
-    @Test("Test Get Local Exercise Template Throws Error For Invalid ID")
-    func testGetLocalExerciseModelThrowsErrorForInvalidId() {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        #expect(throws: Error.self) {
-            try manager.getLocalExerciseModel(id: "non-existent-id")
-        }
-    }
-    
-    @Test("Test Get Local Exercise Templates With Multiple IDs")
-    func testGetLocalExerciseModelsWithMultipleIds() throws {
-        let mockExercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: mockExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let idsToRetrieve = [mockExercises[0].id, mockExercises[1].id, mockExercises[2].id]
-        let retrieved = try manager.getLocalExerciseModels(ids: idsToRetrieve)
-        
-        #expect(retrieved.count == 3)
-        #expect(retrieved.map { $0.id }.allSatisfy { idsToRetrieve.contains($0) })
-    }
-    
-    @Test("Test Get Local Exercise Templates With Empty IDs Array")
-    func testGetLocalExerciseModelsWithEmptyIdsArray() throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let retrieved = try manager.getLocalExerciseModels(ids: [])
-        
-        #expect(retrieved.isEmpty)
-    }
-    
-    @Test("Test Get System Exercise Templates")
-    func testGetSystemExerciseModels() throws {
-        let systemExercise = ExerciseModel(
-            id: "system-1",
-            authorId: "test-user",
-            name: "System Exercise",
-            trackableMetrics: [],
-            type: nil,
-            laterality: nil,
-            muscleGroups: [:],
+    private func exercise(id: String, name: String, isSystem: Bool = false) -> ExerciseModel {
+        ExerciseModel(
+            id: id,
+            authorId: "author-1",
+            name: name,
+            trackableMetrics: [.weight, .reps],
+            type: .compoundUpper,
+            laterality: .bilateral,
+            muscleGroups: [.chest: .primary],
             isBodyweight: false,
-            resistanceEquipment: [],
-            supportEquipment: [],
+            equipmentVariations: [],
             rangeOfMotion: 4,
             stability: 5,
-            bodyWeightContribution: 75,
-            alternateNames: []
+            bodyWeightContribution: 0,
+            alternateNames: [],
+            isSystemExercise: isSystem
+        )
+    }
+
+    // MARK: - The two libraries
+
+    @Test("Test System Exercises Come From Local Persistence")
+    func testSystemExercisesComeFromLocalPersistence() {
+        let manager = TestManagers.exerciseModelManager(
+            system: [exercise(id: "system-1", name: "System Exercise", isSystem: true)]
         )
 
-        let userExercise = ExerciseModel.mock
-        
-        let exercises = [systemExercise, userExercise]
-        let services = MockExerciseModelServices(exercises: exercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let systemExercises = try manager.getSystemExerciseModels()
-        
-        #expect(systemExercises.count == 1)
-        #expect(systemExercises[0].isSystemExercise == true)
-        #expect(systemExercises[0].id == "system-1")
-    }
-    
-    @Test("Test Add Local Exercise Template")
-    func testAddLocalExerciseModel() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let newExercise = ExerciseModel.mock
-        
-        try manager.addLocalExerciseModel(exercise: newExercise)
-        
-        // If no error is thrown, the add was successful
-        #expect(true)
+        #expect(manager.systemExercises.count == 1)
+        #expect(manager.systemExercises[0].id == "system-1")
     }
 
-    // MARK: - Remote Operations Tests
-
-    @Test("Test Create Exercise Template")
-    func testCreateExerciseModel() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let newExercise = ExerciseModel.mock
-        
-        try await manager.createExerciseModel(exercise: newExercise, image: nil)
-        
-        // If no error is thrown, the creation was successful
-        #expect(true)
+    @Test("Test System Exercises Are Empty When None Are Seeded")
+    func testSystemExercisesAreEmptyWhenNoneAreSeeded() {
+        #expect(TestManagers.exerciseModelManager().systemExercises.isEmpty)
     }
 
-    @Test("Test Get Exercise Template From Remote")
-    func testGetExerciseModelFromRemote() async throws {
-        let mockExercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: mockExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let exerciseId = mockExercises[0].id
-        let retrieved = try await manager.getExerciseModel(id: exerciseId)
-        
-        #expect(retrieved.id == exerciseId)
-    }
-    
-    @Test("Test Get Exercise Template Throws Error For Invalid ID")
-    func testGetExerciseModelThrowsErrorForInvalidId() async {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        await #expect(throws: Error.self) {
-            try await manager.getExerciseModel(id: "non-existent-id")
-        }
-    }
-    
-    @Test("Test Get Exercise Templates From Remote")
-    func testGetExerciseModelsFromRemote() async throws {
-        let mockExercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: mockExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let ids = mockExercises.prefix(3).map { $0.id }
-        let retrieved = try await manager.getExerciseModels(ids: ids)
-        
-        #expect(retrieved.count == 3)
-        #expect(retrieved.allSatisfy { exercise in ids.contains(exercise.id) })
-    }
-    
-    @Test("Test Get Exercise Templates With Limit")
-    func testGetExerciseModelsWithLimit() async throws {
-        let mockExercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: mockExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let ids = mockExercises.map { $0.id }
-        let limit = 5
-        let retrieved = try await manager.getExerciseModels(ids: ids, limitTo: limit)
-        
-        #expect(retrieved.count <= limit)
-        #expect(retrieved.count == min(limit, mockExercises.count))
-    }
-    
-    @Test("Test Get Exercise Templates By Name")
-    func testGetExerciseModelsByName() async throws {
-        let exercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: exercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let retrieved = try await manager.getExerciseModelsByName(name: "Press")
-        
-        #expect(retrieved.count == 2)
-        #expect(retrieved.allSatisfy { $0.name.contains("Press") })
-    }
-    
-    @Test("Test Get Exercise Templates For Author")
-    func testGetExerciseModelsForAuthor() async throws {
-        let exercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: exercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let retrieved = try await manager.getExerciseModelsForAuthor(authorId: "author-1")
-        
-        #expect(retrieved.count == 2)
-        #expect(retrieved.allSatisfy { $0.authorId == "author-1" })
-    }
-    
-    @Test("Test Get Top Exercise Templates By Clicks")
-    func testGetTopExerciseModelsByClicks() async throws {
-        let exercises = ExerciseModel.mocks
-        
-        let services = MockExerciseModelServices(exercises: exercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let top = try await manager.getTopExerciseModelsByClicks(limitTo: 2)
-        
-        #expect(top.count == 2)
-        // Should be sorted by clicks descending
-        #expect((top[0].clickCount ?? 0) >= (top[1].clickCount ?? 0))
-        #expect(top[0].clickCount == 100)
-        #expect(top[1].clickCount == 50)
-    }
-    
-    @Test("Test Get Top Exercise Templates With Different Limit")
-    func testGetTopExerciseModelsWithDifferentLimit() async throws {
-        let mockExercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: mockExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let limit = 3
-        let top = try await manager.getTopExerciseModelsByClicks(limitTo: limit)
-        
-        #expect(top.count <= limit)
+    @Test("Test User Exercises Are Empty Until Signed In")
+    func testUserExercisesAreEmptyUntilSignedIn() {
+        // The sync engine holds nothing until it listens, so the user's library needs a sign-in
+        // even though the remote already has exercises for them.
+        let manager = TestManagers.exerciseModelManager(user: ExerciseModel.userMocks)
+
+        #expect(manager.userExercises.isEmpty)
     }
 
-    // MARK: - Interaction Operations Tests
+    @Test("Test Signing In Loads The User's Own Exercises")
+    func testSigningInLoadsTheUsersOwnExercises() async {
+        let manager = TestManagers.exerciseModelManager(user: ExerciseModel.userMocks)
 
-    @Test("Test Increment Exercise Template Interaction")
-    func testIncrementExerciseModelInteraction() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let exerciseId = ExerciseModel.mocks[0].id
-        try await manager.incrementExerciseModelInteraction(id: exerciseId)
-        
-        // If no error is thrown, the increment was successful
-        #expect(true)
-    }
-    
-    @Test("Test Remove Author ID From Exercise Template")
-    func testRemoveAuthorIdFromExerciseModel() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let exerciseId = ExerciseModel.mocks[0].id
-        try await manager.removeAuthorIdFromExerciseModel(id: exerciseId)
-        
-        // If no error is thrown, the operation was successful
-        #expect(true)
-    }
-    
-    @Test("Test Remove Author ID From All Exercise Templates")
-    func testRemoveAuthorIdFromAllExerciseModels() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let authorId = "test-author"
-        try await manager.removeAuthorIdFromAllExerciseModels(id: authorId)
-        
-        // If no error is thrown, the operation was successful
-        #expect(true)
-    }
-    
-    @Test("Test Bookmark Exercise Template")
-    func testBookmarkExerciseModel() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let exerciseId = ExerciseModel.mocks[0].id
-        try await manager.bookmarkExerciseModel(id: exerciseId, isBookmarked: true)
-        
-        // If no error is thrown, the bookmark was successful
-        #expect(true)
-    }
-    
-    @Test("Test Unbookmark Exercise Template")
-    func testUnbookmarkExerciseModel() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let exerciseId = ExerciseModel.mocks[0].id
-        try await manager.bookmarkExerciseModel(id: exerciseId, isBookmarked: false)
-        
-        // If no error is thrown, the unbookmark was successful
-        #expect(true)
-    }
-    
-    @Test("Test Favourite Exercise Template")
-    func testFavouriteExerciseModel() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let exerciseId = ExerciseModel.mocks[0].id
-        try await manager.favouriteExerciseModel(id: exerciseId, isFavourited: true)
-        
-        // If no error is thrown, the favourite was successful
-        #expect(true)
-    }
-    
-    @Test("Test Unfavourite Exercise Template")
-    func testUnfavouriteExerciseModel() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let exerciseId = ExerciseModel.mocks[0].id
-        try await manager.favouriteExerciseModel(id: exerciseId, isFavourited: false)
-        
-        // If no error is thrown, the unfavourite was successful
-        #expect(true)
+        await manager.signIn(userId: "mock_user_123")
+
+        #expect(manager.userExercises.count == ExerciseModel.userMocks.count)
     }
 
-    // MARK: - Edge Cases Tests
+    @Test("Test All Exercises Joins Both Libraries")
+    func testAllExercisesJoinsBothLibraries() async {
+        let manager = TestManagers.exerciseModelManager(
+            user: [exercise(id: "user-1", name: "Mine")],
+            system: [exercise(id: "system-1", name: "Seeded", isSystem: true)]
+        )
+        await manager.signIn(userId: "author-1")
 
-    @Test("Test Get System Exercise Templates Returns Empty When No System Exercises")
-    func testGetSystemExerciseModelsReturnsEmptyWhenNoSystemExercises() throws {
-        let userExercises = ExerciseModel.mocks
-        
-        let services = MockExerciseModelServices(exercises: userExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let systemExercises = try manager.getSystemExerciseModels()
-        
-        #expect(systemExercises.isEmpty)
+        #expect(manager.allExercises.count == 2)
+        #expect(manager.allExercises.map(\.id).contains("system-1"))
+        #expect(manager.allExercises.map(\.id).contains("user-1"))
     }
-    
-    @Test("Test Get All Local Exercise Templates With Empty Collection")
-    func testGetAllLocalExerciseModelsWithEmptyCollection() throws {
-        let services = MockExerciseModelServices(exercises: [])
-        let manager = ExerciseModelManager(services: services)
-        
-        let exercises = try manager.getAllLocalExerciseModels()
-        
-        #expect(exercises.isEmpty)
+
+    /// Both libraries are sorted by name, so the picker reads alphabetically rather than in
+    /// whatever order Firestore answered in.
+    @Test("Test Each Library Is Sorted By Name")
+    func testEachLibraryIsSortedByName() async {
+        let manager = TestManagers.exerciseModelManager(
+            user: [exercise(id: "u2", name: "Zercher Squat"), exercise(id: "u1", name: "Ab Wheel")],
+            system: [
+                exercise(id: "s2", name: "Pull Up", isSystem: true),
+                exercise(id: "s1", name: "Bench Press", isSystem: true)
+            ]
+        )
+        await manager.signIn(userId: "author-1")
+
+        #expect(manager.systemExercises.map(\.name) == ["Bench Press", "Pull Up"])
+        #expect(manager.userExercises.map(\.name) == ["Ab Wheel", "Zercher Squat"])
+        // The seeded library comes first, so a user's "Ab Wheel" does not lead the whole list.
+        #expect(manager.allExercises.map(\.name) == ["Bench Press", "Pull Up", "Ab Wheel", "Zercher Squat"])
     }
-    
-    @Test("Test Get Local Exercise Templates With Partial Match")
-    func testGetLocalExerciseModelsWithPartialMatch() throws {
-        let mockExercises = ExerciseModel.mocks
-        let services = MockExerciseModelServices(exercises: mockExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let idsToRetrieve = [mockExercises[0].id, "non-existent-id", mockExercises[1].id]
-        let retrieved = try manager.getLocalExerciseModels(ids: idsToRetrieve)
-        
-        // Should only return the exercises that exist
-        #expect(retrieved.count == 2)
+
+    // MARK: - Writing
+
+    @Test("Test Saving An Exercise Adds It To The User's Library")
+    func testSavingAnExerciseAddsItToTheUsersLibrary() async throws {
+        let manager = TestManagers.exerciseModelManager()
+        await manager.signIn(userId: "author-1")
+
+        try await manager.saveExerciseModel(exercise: exercise(id: "new-1", name: "New Exercise"), image: nil)
+
+        let added = await TestManagers.eventually { manager.userExercises.map(\.id).contains("new-1") }
+        #expect(added)
     }
-    
-    @Test("Test Create Multiple Exercise Templates In Sequence")
-    func testCreateMultipleExerciseModelsInSequence() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        for iteration in 1...5 {
-            let exercise = ExerciseModel.mock
-            try await manager.createExerciseModel(exercise: exercise, image: nil)
-        }
-        
-        // All should succeed without errors
-        #expect(true)
+
+    @Test("Test Deleting An Exercise Removes It From The User's Library")
+    func testDeletingAnExerciseRemovesItFromTheUsersLibrary() async throws {
+        let manager = TestManagers.exerciseModelManager(user: [exercise(id: "user-1", name: "Mine")])
+        await manager.signIn(userId: "author-1")
+        #expect(manager.userExercises.count == 1)
+
+        try await manager.deleteExerciseModel(exerciseId: "user-1")
+
+        let removed = await TestManagers.eventually { manager.userExercises.isEmpty }
+        #expect(removed)
     }
-    
-    @Test("Test Get Exercise Templates With Mixed Exercise Types")
-    func testGetExerciseModelsWithMixedExerciseTypes() throws {
-        let mixedExercises = ExerciseModel.mocks
-        
-        let services = MockExerciseModelServices(exercises: mixedExercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let all = try manager.getAllLocalExerciseModels()
-        
-        #expect(all.count == 4)
-        let types = Set(all.map { $0.type })
-    }
-    
-    @Test("Test Get Exercise Templates With Different Muscle Groups")
-    func testGetExerciseModelsWithDifferentMuscleGroups() throws {
-        let exercises = ExerciseModel.mocks
-        
-        let services = MockExerciseModelServices(exercises: exercises)
-        let manager = ExerciseModelManager(services: services)
-        
-        let all = try manager.getAllLocalExerciseModels()
-        
-    }
-    
-    @Test("Test Add Local Exercise Template With New Exercise Factory Method")
-    func testAddLocalExerciseModelWithNewExerciseFactoryMethod() async throws {
-        let services = MockExerciseModelServices()
-        let manager = ExerciseModelManager(services: services)
-        
-        let newExercise = ExerciseModel.mock
-        try manager.addLocalExerciseModel(exercise: newExercise)
-        
-        // Should succeed without errors
-        #expect(true)
+
+    @Test("Test Deleting All Exercises Leaves The Seeded Library Alone")
+    func testDeletingAllExercisesLeavesTheSeededLibraryAlone() async throws {
+        let manager = TestManagers.exerciseModelManager(
+            user: [exercise(id: "user-1", name: "Mine"), exercise(id: "user-2", name: "Also Mine")],
+            system: [exercise(id: "system-1", name: "Seeded", isSystem: true)]
+        )
+        await manager.signIn(userId: "author-1")
+
+        try await manager.deleteAllExercises()
+
+        let removed = await TestManagers.eventually { manager.userExercises.isEmpty }
+        #expect(removed)
+        #expect(manager.systemExercises.count == 1)
     }
 }

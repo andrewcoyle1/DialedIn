@@ -48,7 +48,6 @@ struct WeightGoalInitializationTests {
     
     private func createWeightGoalTestData() -> WeightGoalTestData {
         return WeightGoalTestData(
-            goalId: String.random,
             userId: String.random,
             objective: .loseWeight,
             startingWeightKg: 75.0,
@@ -61,7 +60,6 @@ struct WeightGoalInitializationTests {
     }
     
     private struct WeightGoalTestData {
-        let goalId: String
         let userId: String
         let objective: OverarchingObjective
         let startingWeightKg: Double
@@ -74,7 +72,6 @@ struct WeightGoalInitializationTests {
     
     private func createWeightGoalWithAllProperties(data: WeightGoalTestData) -> WeightGoal {
         return WeightGoal(
-            goalId: data.goalId,
             userId: data.userId,
             objective: data.objective,
             startingWeightKg: data.startingWeightKg,
@@ -87,7 +84,6 @@ struct WeightGoalInitializationTests {
     }
     
     private func verifyWeightGoalProperties(goal: WeightGoal, data: WeightGoalTestData) {
-        #expect(goal.goalId == data.goalId)
         #expect(goal.userId == data.userId)
         #expect(goal.objective == data.objective)
         #expect(goal.startingWeightKg == data.startingWeightKg)

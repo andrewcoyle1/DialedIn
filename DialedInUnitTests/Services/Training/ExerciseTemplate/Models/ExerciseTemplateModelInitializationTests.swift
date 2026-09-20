@@ -1,5 +1,5 @@
 //
-//  ExerciseModelModelInitializationTests.swift
+//  ExerciseTemplateModelInitializationTests.swift
 //  DialedInUnitTests
 //
 //  Created by Andrew Coyle on 28/10/2025.
@@ -9,269 +9,202 @@ import Testing
 import Foundation
 @testable import DialedIn
 
+/// Building an `ExerciseModel` and round-tripping it through `Codable`.
+///
+/// This file used to cover `ExerciseModelModel`, whose `type` was a single `ExerciseCategory` and
+/// whose muscles were a flat `[MuscleGroup]`. An exercise now records what it measures
+/// (`trackableMetrics`), its movement pattern (`type`), how it loads the body (`laterality`,
+/// `isBodyweight`, `bodyWeightContribution`) and the muscles it works with each one's role.
 @MainActor
-struct ExerciseModelInitTests {
+struct ExerciseModelInitializationTests {
 
-    // MARK: - Initialization Tests
-    
-    @Test("Test Basic Initialization")
-    func testBasicInitialization() {
-        let randomExerciseId = String.random
-        let randomName = String.random
-        let randomDate = Date.random
-        
-        let exercise = ExerciseModelModel(
-            exerciseId: randomExerciseId,
-            name: randomName,
-            dateCreated: randomDate,
-            dateModified: randomDate
+    private func exercise(
+        id: String = String.random,
+        name: String = "Bench Press",
+        muscleGroups: [Muscles: MuscleTargetType] = [.chest: .primary, .triceps: .secondary],
+        isSystemExercise: Bool = false
+    ) -> ExerciseModel {
+        ExerciseModel(
+            id: id,
+            authorId: "author-1",
+            name: name,
+            trackableMetrics: [.weight, .reps],
+            type: .compoundUpper,
+            laterality: .bilateral,
+            muscleGroups: muscleGroups,
+            isBodyweight: false,
+            rangeOfMotion: 4,
+            stability: 5,
+            bodyWeightContribution: 0,
+            alternateNames: ["Barbell Bench Press"],
+            isSystemExercise: isSystemExercise
         )
-        
-        #expect(exercise.exerciseId == randomExerciseId)
-        #expect(exercise.name == randomName)
-        #expect(exercise.dateCreated == randomDate)
-        #expect(exercise.dateModified == randomDate)
-        #expect(exercise.authorId == nil)
-        #expect(exercise.description == nil)
-        #expect(exercise.instructions.isEmpty)
-        #expect(exercise.type == .none)
-        #expect(exercise.muscleGroups.isEmpty)
-        #expect(exercise.imageURL == nil)
-        #expect(exercise.isSystemExercise == false)
-        #expect(exercise.clickCount == nil)
-        #expect(exercise.bookmarkCount == nil)
-        #expect(exercise.favouriteCount == nil)
     }
-    
-    @Test("Test Initialization With All Properties")
-    func testInitializationWithAllProperties() {
-        let randomExerciseId = String.random
-        let randomAuthorId = String.random
-        let randomName = String.random
-        let randomDescription = String.random
-        let randomInstructions = ["Step 1", "Step 2", "Step 3"]
-        let randomImageUrl = "https://example.com/image.jpg"
-        let randomDate = Date.random
-        
-        let exercise = ExerciseModelModel(
-            exerciseId: randomExerciseId,
-            authorId: randomAuthorId,
-            name: randomName,
-            description: randomDescription,
-            instructions: randomInstructions,
-            type: .barbell,
-            muscleGroups: [.chest, .arms],
-            imageURL: randomImageUrl,
-            isSystemExercise: true,
-            dateCreated: randomDate,
-            dateModified: randomDate,
-            clickCount: 10,
-            bookmarkCount: 5,
-            favouriteCount: 2
-        )
-        
-        #expect(exercise.exerciseId == randomExerciseId)
-        #expect(exercise.authorId == randomAuthorId)
-        #expect(exercise.name == randomName)
-        #expect(exercise.description == randomDescription)
-        #expect(exercise.instructions == randomInstructions)
-        #expect(exercise.type == .barbell)
-        #expect(exercise.muscleGroups == [.chest, .arms])
-        #expect(exercise.imageURL == randomImageUrl)
-        #expect(exercise.isSystemExercise == true)
-        #expect(exercise.clickCount == 10)
-        #expect(exercise.bookmarkCount == 5)
-        #expect(exercise.favouriteCount == 2)
+
+    // MARK: - Initialization
+
+    @Test("Test Initialization Keeps What It Was Given")
+    func testInitializationKeepsWhatItWasGiven() {
+        let model = exercise(id: "exercise-1", name: "Bench Press")
+
+        #expect(model.id == "exercise-1")
+        #expect(model.authorId == "author-1")
+        #expect(model.name == "Bench Press")
+        #expect(model.trackableMetrics == [.weight, .reps])
+        #expect(model.type == .compoundUpper)
+        #expect(model.laterality == .bilateral)
+        #expect(model.isBodyweight == false)
+        #expect(model.rangeOfMotion == 4)
+        #expect(model.stability == 5)
+        #expect(model.bodyWeightContribution == 0)
+        #expect(model.alternateNames == ["Barbell Bench Press"])
     }
-    
-    @Test("Test Initialization With Nil Optional Values")
-    func testInitializationWithNilOptionalValues() {
-        let randomExerciseId = String.random
-        let randomName = String.random
-        let randomDate = Date.random
-        
-        let exercise = ExerciseModelModel(
-            exerciseId: randomExerciseId,
-            authorId: nil,
-            name: randomName,
-            description: nil,
-            instructions: [],
-            type: .none,
-            muscleGroups: [],
-            imageURL: nil,
-            isSystemExercise: false,
-            dateCreated: randomDate,
-            dateModified: randomDate,
-            clickCount: nil,
-            bookmarkCount: nil,
-            favouriteCount: nil
-        )
-        
-        #expect(exercise.authorId == nil)
-        #expect(exercise.description == nil)
-        #expect(exercise.instructions.isEmpty)
-        #expect(exercise.muscleGroups.isEmpty)
-        #expect(exercise.imageURL == nil)
-        #expect(exercise.clickCount == nil)
-        #expect(exercise.bookmarkCount == nil)
-        #expect(exercise.favouriteCount == nil)
+
+    @Test("Test Defaults For What Was Not Given")
+    func testDefaultsForWhatWasNotGiven() {
+        let model = exercise()
+
+        #expect(model.description == nil)
+        #expect(model.imageURL == nil)
+        #expect(model.equipmentVariations.isEmpty)
+        #expect(model.isSystemExercise == false)
+        #expect(model.clickCount == 0)
+        #expect(model.bookmarkCount == 0)
+        #expect(model.favouriteCount == 0)
     }
-    
-    @Test("Test Initialization With Different Exercise Types")
-    func testInitializationWithDifferentExerciseTypes() {
-        let randomExerciseId = String.random
-        let randomName = String.random
-        let randomDate = Date.random
-        
-        let barbellExercise = ExerciseModelModel(
-            exerciseId: randomExerciseId,
-            name: randomName,
-            type: .barbell,
-            dateCreated: randomDate,
-            dateModified: randomDate
+
+    @Test("Test An Exercise Gets An Id When None Is Given")
+    func testAnExerciseGetsAnIdWhenNoneIsGiven() {
+        let first = ExerciseModel(
+            authorId: "author-1",
+            name: "Squat",
+            trackableMetrics: [.weight, .reps],
+            type: .compoundLower,
+            laterality: .bilateral,
+            muscleGroups: [.quads: .primary],
+            isBodyweight: false,
+            rangeOfMotion: 4,
+            stability: 4,
+            bodyWeightContribution: 0,
+            alternateNames: []
         )
-        
-        let dumbbellExercise = ExerciseModelModel(
-            exerciseId: String.random,
-            name: randomName,
-            type: .dumbbell,
-            dateCreated: randomDate,
-            dateModified: randomDate
+        let second = ExerciseModel(
+            authorId: "author-1",
+            name: "Squat",
+            trackableMetrics: [.weight, .reps],
+            type: .compoundLower,
+            laterality: .bilateral,
+            muscleGroups: [.quads: .primary],
+            isBodyweight: false,
+            rangeOfMotion: 4,
+            stability: 4,
+            bodyWeightContribution: 0,
+            alternateNames: []
         )
-        
-        let bodyweightExercise = ExerciseModelModel(
-            exerciseId: String.random,
-            name: randomName,
-            type: .weightedBodyweight,
-            dateCreated: randomDate,
-            dateModified: randomDate
-        )
-        
-        #expect(barbellExercise.type == .barbell)
-        #expect(dumbbellExercise.type == .dumbbell)
-        #expect(bodyweightExercise.type == .weightedBodyweight)
+
+        #expect(!first.id.isEmpty)
+        #expect(first.id != second.id)
     }
-    
-    @Test("Test Initialization With Different Muscle Groups")
-    func testInitializationWithDifferentMuscleGroups() {
-        let randomExerciseId = String.random
-        let randomName = String.random
-        let randomDate = Date.random
-        
-        let chestExercise = ExerciseModelModel(
-            exerciseId: randomExerciseId,
-            name: randomName,
-            muscleGroups: [.chest],
-            dateCreated: randomDate,
-            dateModified: randomDate
-        )
-        
-        let compoundExercise = ExerciseModelModel(
-            exerciseId: String.random,
-            name: randomName,
-            muscleGroups: [.legs, .back, .core],
-            dateCreated: randomDate,
-            dateModified: randomDate
-        )
-        
-        #expect(chestExercise.muscleGroups == [.chest])
-        #expect(compoundExercise.muscleGroups == [.legs, .back, .core])
+
+    // MARK: - Muscles
+
+    /// A muscle is recorded with the part it plays, so a chart of what an exercise works can weigh
+    /// the prime mover against the supporting muscles.
+    @Test("Test Muscles Carry Their Role")
+    func testMusclesCarryTheirRole() {
+        let model = exercise(muscleGroups: [.chest: .primary, .triceps: .secondary, .frontDelts: .secondary])
+
+        #expect(model.muscleGroups[.chest] == .primary)
+        #expect(model.muscleGroups[.triceps] == .secondary)
+        #expect(model.muscleGroups[.frontDelts] == .secondary)
+        #expect(model.muscleGroups.filter { $0.value == .primary }.count == 1)
     }
-    
-    @Test("Test Initialization With Empty Instructions")
-    func testInitializationWithEmptyInstructions() {
-        let randomExerciseId = String.random
-        let randomName = String.random
-        let randomDate = Date.random
-        
-        let exercise = ExerciseModelModel(
-            exerciseId: randomExerciseId,
-            name: randomName,
-            instructions: [],
-            dateCreated: randomDate,
-            dateModified: randomDate
-        )
-        
-        #expect(exercise.instructions.isEmpty)
-        #expect(exercise.instructions.count == 0)
+
+    @Test("Test An Exercise Can Work Any Muscle")
+    func testAnExerciseCanWorkAnyMuscle() {
+        for muscle in Muscles.allCases {
+            let model = exercise(muscleGroups: [muscle: .primary])
+            #expect(model.muscleGroups[muscle] == .primary)
+        }
     }
-    
-    @Test("Test Initialization With Multiple Instructions")
-    func testInitializationWithMultipleInstructions() {
-        let randomExerciseId = String.random
-        let randomName = String.random
-        let randomDate = Date.random
-        let instructions = [
-            "Step 1: Setup",
-            "Step 2: Execute",
-            "Step 3: Return to starting position"
-        ]
-        
-        let exercise = ExerciseModelModel(
-            exerciseId: randomExerciseId,
-            name: randomName,
-            instructions: instructions,
-            dateCreated: randomDate,
-            dateModified: randomDate
-        )
-        
-        #expect(exercise.instructions.count == 3)
-        #expect(exercise.instructions[0] == "Step 1: Setup")
-        #expect(exercise.instructions[1] == "Step 2: Execute")
-        #expect(exercise.instructions[2] == "Step 3: Return to starting position")
+
+    @Test("Test An Exercise Can Have No Muscles Recorded")
+    func testAnExerciseCanHaveNoMusclesRecorded() {
+        #expect(exercise(muscleGroups: [:]).muscleGroups.isEmpty)
     }
-    
-    @Test("Test New Exercise Template Factory Method")
-    func testNewExerciseModelFactoryMethod() {
-        let randomName = String.random
-        let randomAuthorId = String.random
-        let randomDescription = String.random
-        let instructions = ["Step 1", "Step 2"]
-        
-        let exercise = ExerciseModelModel.newExerciseModel(
-            name: randomName,
-            authorId: randomAuthorId,
-            description: randomDescription,
-            instructions: instructions,
-            type: .dumbbell,
-            muscleGroups: [.chest, .shoulders]
-        )
-        
-        #expect(exercise.name == randomName)
-        #expect(exercise.authorId == randomAuthorId)
-        #expect(exercise.description == randomDescription)
-        #expect(exercise.instructions == instructions)
-        #expect(exercise.type == .dumbbell)
-        #expect(exercise.muscleGroups == [.chest, .shoulders])
-        #expect(exercise.clickCount == 0)
-        #expect(exercise.bookmarkCount == 0)
-        #expect(exercise.favouriteCount == 0)
-        #expect(!exercise.exerciseId.isEmpty)
+
+    // MARK: - Codable
+
+    @Test("Test Encoding And Decoding Round Trips")
+    func testEncodingAndDecodingRoundTrips() throws {
+        let original = exercise(id: "exercise-1", name: "Bench Press")
+
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        let data = try encoder.encode(original)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        let decoded = try decoder.decode(ExerciseModel.self, from: data)
+
+        #expect(decoded.id == original.id)
+        #expect(decoded.name == original.name)
+        #expect(decoded.authorId == original.authorId)
+        #expect(decoded.trackableMetrics == original.trackableMetrics)
+        #expect(decoded.type == original.type)
+        #expect(decoded.laterality == original.laterality)
+        #expect(decoded.muscleGroups == original.muscleGroups)
+        #expect(decoded.isBodyweight == original.isBodyweight)
+        #expect(decoded.rangeOfMotion == original.rangeOfMotion)
+        #expect(decoded.alternateNames == original.alternateNames)
     }
-    
-    @Test("Test System Exercise Flag")
-    func testSystemExerciseFlag() {
-        let randomExerciseId = String.random
-        let randomName = String.random
-        let randomDate = Date.random
-        
-        let systemExercise = ExerciseModelModel(
-            exerciseId: randomExerciseId,
-            name: randomName,
-            isSystemExercise: true,
-            dateCreated: randomDate,
-            dateModified: randomDate
-        )
-        
-        let userExercise = ExerciseModelModel(
-            exerciseId: String.random,
-            name: randomName,
-            isSystemExercise: false,
-            dateCreated: randomDate,
-            dateModified: randomDate
-        )
-        
-        #expect(systemExercise.isSystemExercise == true)
-        #expect(userExercise.isSystemExercise == false)
+
+    /// Firestore reads these keys, so they are part of the stored shape rather than an internal
+    /// detail.
+    @Test("Test Coding Keys Are Snake Case")
+    func testCodingKeysAreSnakeCase() throws {
+        let model = exercise(id: "exercise-1", isSystemExercise: true)
+
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        let data = try encoder.encode(model)
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+
+        #expect(json?["id"] as? String == "exercise-1")
+        #expect(json?["author_id"] as? String == "author-1")
+        #expect(json?["trackable_metrics"] as? [String] == ["weight", "reps"])
+        #expect(json?["is_bodyweight"] as? Bool == false)
+        #expect(json?["is_system_exercise"] as? Bool == true)
+        #expect(json?["range_of_motion"] as? Int == 4)
+        #expect(json?["body_weight_contribution"] as? Int == 0)
+        #expect(json?["alternate_names"] as? [String] == ["Barbell Bench Press"])
+        #expect(json?["muscle_groups"] as? [String: String] == ["chest": "primary", "triceps": "secondary"])
+    }
+
+    // MARK: - Identity
+
+    @Test("Test Exercises Are Equal When Their Contents Match")
+    func testExercisesAreEqualWhenTheirContentsMatch() {
+        let created = Date.random
+        func make() -> ExerciseModel {
+            ExerciseModel(
+                id: "exercise-1",
+                authorId: "author-1",
+                name: "Bench Press",
+                trackableMetrics: [.weight, .reps],
+                type: .compoundUpper,
+                laterality: .bilateral,
+                muscleGroups: [.chest: .primary],
+                isBodyweight: false,
+                rangeOfMotion: 4,
+                stability: 5,
+                bodyWeightContribution: 0,
+                alternateNames: [],
+                dateCreated: created,
+                dateModified: created
+            )
+        }
+
+        #expect(make() == make())
     }
 }

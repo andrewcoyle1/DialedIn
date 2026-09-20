@@ -23,10 +23,7 @@ struct FoodCodableTests {
         let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
-            calories: 100.0,
-            protein: 10.0,
-            carbs: 50.0,
-            fatTotal: 5.0,
+            nutrients: [.calories: 100.0, .protein: 10.0, .carbs: 50.0, .fatTotal: 5.0],
             dateCreated: randomDate,
             dateModified: randomDate
         )
@@ -47,10 +44,7 @@ struct FoodCodableTests {
         var ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
-            calories: 100.0,
-            protein: 10.0,
-            carbs: 50.0,
-            fatTotal: 5.0,
+            nutrients: [.calories: 100.0, .protein: 10.0, .carbs: 50.0, .fatTotal: 5.0],
             dateCreated: randomDate,
             dateModified: randomDate
         )
@@ -80,12 +74,7 @@ struct FoodCodableTests {
             name: randomName,
             description: randomDescription,
             measurementMethod: .weight,
-            calories: 250.0,
-            protein: 15.0,
-            carbs: 30.0,
-            fatTotal: 8.0,
-            fiber: 5.0,
-            sugar: 10.0,
+            nutrients: [.calories: 250.0, .protein: 15.0, .carbs: 30.0, .fatTotal: 8.0, .fiber: 5.0, .sugar: 10.0],
             imageURL: randomImageUrl,
             dateCreated: randomDateCreated,
             dateModified: randomDateModified,
@@ -128,10 +117,7 @@ struct FoodCodableTests {
             authorId: randomAuthorId,
             name: randomName,
             measurementMethod: .weight,
-            calories: 100.0,
-            protein: 10.0,
-            carbs: 50.0,
-            fatTotal: 5.0,
+            nutrients: [.calories: 100.0, .protein: 10.0, .carbs: 50.0, .fatTotal: 5.0],
             dateCreated: randomDate,
             dateModified: randomDate
         )
@@ -146,10 +132,13 @@ struct FoodCodableTests {
         #expect(json?["author_id"] as? String == randomAuthorId)
         #expect(json?["name"] as? String == randomName)
         #expect(json?["measurement_method"] as? String == "weight")
-        #expect(json?["calories"] as? Double == 100.0)
-        #expect(json?["protein"] as? Double == 10.0)
-        #expect(json?["carbs"] as? Double == 50.0)
-        #expect(json?["fat_total"] as? Double == 5.0)
+        // The macros are no longer top-level keys: they are entries in `nutrients`, keyed by
+        // `NutrientKey`'s raw values, which is what lets a food carry micronutrients too.
+        let nutrients = json?["nutrients"] as? [String: Double]
+        #expect(nutrients?["calories"] == 100.0)
+        #expect(nutrients?["protein"] == 10.0)
+        #expect(nutrients?["carbs"] == 50.0)
+        #expect(nutrients?["fat_total"] == 5.0)
     }
     
     // MARK: - MeasurementMethod Enum Tests
@@ -179,10 +168,7 @@ struct FoodCodableTests {
         let ingredient1 = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
-            calories: 100.0,
-            protein: 10.0,
-            carbs: 50.0,
-            fatTotal: 5.0,
+            nutrients: [.calories: 100.0, .protein: 10.0, .carbs: 50.0, .fatTotal: 5.0],
             dateCreated: randomDate,
             dateModified: randomDate
         )
@@ -190,10 +176,7 @@ struct FoodCodableTests {
         let ingredient2 = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
-            calories: 100.0,
-            protein: 10.0,
-            carbs: 50.0,
-            fatTotal: 5.0,
+            nutrients: [.calories: 100.0, .protein: 10.0, .carbs: 50.0, .fatTotal: 5.0],
             dateCreated: randomDate,
             dateModified: randomDate
         )

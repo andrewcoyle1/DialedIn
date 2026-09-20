@@ -14,12 +14,28 @@ struct ExerciseUnitPreferenceManagerTests {
     
     // MARK: - Helper Methods
     
-    private func createManager(user: UserModel? = nil) -> (ExerciseUnitPreferenceManager, UserDefaults) {
+    /// A manager over its own empty `UserDefaults`, reading the defaults of a signed-in user.
+    /// `UserManager` now holds its user in a sync engine, which only has one once it is listening,
+    /// so the sign-in is what puts `user` behind `currentUser`.
+    private func createManager(user: UserModel? = nil) async throws -> (ExerciseUnitPreferenceManager, UserDefaults) {
         let userDefaults = UserDefaults(suiteName: "test_\(UUID().uuidString)")!
-        let userServices = MockUserServices(user: user)
-        let userManager = UserManager(services: userServices)
-        let manager = ExerciseUnitPreferenceManager(userDefaults: userDefaults, userManager: userManager)
+        let manager = try await ExerciseUnitPreferenceManager(
+            userDefaults: userDefaults,
+            userManager: TestManagers.signedInUserManager(user)
+        )
         return (manager, userDefaults)
+    }
+
+    /// A second manager over storage a first one already wrote to, for checking that a preference
+    /// was persisted rather than only cached.
+    private func reopenManager(
+        userDefaults: UserDefaults,
+        user: UserModel?
+    ) async throws -> ExerciseUnitPreferenceManager {
+        try await ExerciseUnitPreferenceManager(
+            userDefaults: userDefaults,
+            userManager: TestManagers.signedInUserManager(user)
+        )
     }
     
     private func createUserWithPreferences(
@@ -37,45 +53,43 @@ struct ExerciseUnitPreferenceManagerTests {
     // MARK: - Initialization Tests
     
     @Test("Test Initialization With Default User Defaults")
-    func testInitializationWithDefaultUserDefaults() {
-        let userServices = MockUserServices(user: UserModel.mock)
-        let userManager = UserManager(services: userServices)
-        let manager = ExerciseUnitPreferenceManager(userManager: userManager)
+    func testInitializationWithDefaultUserDefaults() async throws {
+        let manager = ExerciseUnitPreferenceManager(
+            userManager: try await TestManagers.signedInUserManager(UserModel.mock)
+        )
         
         // Manager should be initialized successfully
         let preference = manager.getPreference(for: "test-template")
-        #expect(preference.ExerciseModelId == "test-template")
+        #expect(preference.exerciseModelId == "test-template")
     }
     
     @Test("Test Initialization With Custom User Defaults")
-    func testInitializationWithCustomUserDefaults() {
+    func testInitializationWithCustomUserDefaults() async throws {
         let customDefaults = UserDefaults(suiteName: "test_custom")!
-        let userServices = MockUserServices(user: UserModel.mock)
-        let userManager = UserManager(services: userServices)
-        let manager = ExerciseUnitPreferenceManager(userDefaults: customDefaults, userManager: userManager)
+        let manager = try await reopenManager(userDefaults: customDefaults, user: UserModel.mock)
         
         let preference = manager.getPreference(for: "test-template")
-        #expect(preference.ExerciseModelId == "test-template")
+        #expect(preference.exerciseModelId == "test-template")
     }
     
     // MARK: - Get Preference Tests
     
     @Test("Test Get Preference Returns Default When No Saved Preference")
-    func testGetPreferenceReturnsDefaultWhenNoSavedPreference() {
+    func testGetPreferenceReturnsDefaultWhenNoSavedPreference() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "template1")
         
-        #expect(preference.ExerciseModelId == "template1")
+        #expect(preference.exerciseModelId == "template1")
         #expect(preference.weightUnit == .kilograms)
         #expect(preference.distanceUnit == .meters)
     }
     
     @Test("Test Get Preference Uses User Weight Preference For Default")
-    func testGetPreferenceUsesUserWeightPreferenceForDefault() {
+    func testGetPreferenceUsesUserWeightPreferenceForDefault() async throws {
         let user = createUserWithPreferences(weightUnit: .pounds, lengthUnit: .inches)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "template1")
         
@@ -83,9 +97,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Get Preference Uses User Length Preference For Default Distance")
-    func testGetPreferenceUsesUserLengthPreferenceForDefaultDistance() {
+    func testGetPreferenceUsesUserLengthPreferenceForDefaultDistance() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .inches)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "template1")
         
@@ -93,9 +107,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Get Preference Returns Kilograms When User Has No Weight Preference")
-    func testGetPreferenceReturnsKilogramsWhenUserHasNoWeightPreference() {
+    func testGetPreferenceReturnsKilogramsWhenUserHasNoWeightPreference() async throws {
         let user = UserModel(userId: "testUser")
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "template1")
         
@@ -103,9 +117,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Get Preference Returns Meters When User Has No Length Preference")
-    func testGetPreferenceReturnsMetersWhenUserHasNoLengthPreference() {
+    func testGetPreferenceReturnsMetersWhenUserHasNoLengthPreference() async throws {
         let user = UserModel(userId: "testUser")
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "template1")
         
@@ -113,9 +127,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Get Preference Returns Cached Value On Second Call")
-    func testGetPreferenceReturnsCachedValueOnSecondCall() {
+    func testGetPreferenceReturnsCachedValueOnSecondCall() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference1 = manager.getPreference(for: "template1")
         let preference2 = manager.getPreference(for: "template1")
@@ -126,9 +140,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Get Preference Loads From User Defaults When Available")
-    func testGetPreferenceLoadsFromUserDefaultsWhenAvailable() {
+    func testGetPreferenceLoadsFromUserDefaultsWhenAvailable() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (_, userDefaults) = createManager(user: user)
+        let (_, userDefaults) = try await createManager(user: user)
         
         // Manually save a preference to UserDefaults
         let savedPreference = ExerciseUnitPreference(
@@ -142,7 +156,7 @@ struct ExerciseUnitPreferenceManagerTests {
         }
         
         // Create a new manager instance to avoid cache
-        let newManager = ExerciseUnitPreferenceManager(userDefaults: userDefaults, userManager: UserManager(services: MockUserServices(user: user)))
+        let newManager = try await reopenManager(userDefaults: userDefaults, user: user)
         let preference = newManager.getPreference(for: "template1")
         
         #expect(preference.weightUnit == .pounds)
@@ -150,23 +164,23 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Get Preference For Different Templates Returns Different Preferences")
-    func testGetPreferenceForDifferentTemplatesReturnsDifferentPreferences() {
+    func testGetPreferenceForDifferentTemplatesReturnsDifferentPreferences() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference1 = manager.getPreference(for: "template1")
         let preference2 = manager.getPreference(for: "template2")
         
-        #expect(preference1.ExerciseModelId == "template1")
-        #expect(preference2.ExerciseModelId == "template2")
+        #expect(preference1.exerciseModelId == "template1")
+        #expect(preference2.exerciseModelId == "template2")
     }
     
     // MARK: - Set Weight Unit Tests
     
     @Test("Test Set Weight Unit Updates Preference")
-    func testSetWeightUnitUpdatesPreference() {
+    func testSetWeightUnitUpdatesPreference() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         manager.setWeightUnit(.pounds, for: "template1")
         
@@ -175,23 +189,23 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Weight Unit Persists To User Defaults")
-    func testSetWeightUnitPersistsToUserDefaults() {
+    func testSetWeightUnitPersistsToUserDefaults() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, userDefaults) = createManager(user: user)
+        let (manager, userDefaults) = try await createManager(user: user)
         
         manager.setWeightUnit(.pounds, for: "template1")
         
         // Create new manager to verify persistence
-        let newManager = ExerciseUnitPreferenceManager(userDefaults: userDefaults, userManager: UserManager(services: MockUserServices(user: user)))
+        let newManager = try await reopenManager(userDefaults: userDefaults, user: user)
         let preference = newManager.getPreference(for: "template1")
         
         #expect(preference.weightUnit == .pounds)
     }
     
     @Test("Test Set Weight Unit Does Not Affect Distance Unit")
-    func testSetWeightUnitDoesNotAffectDistanceUnit() {
+    func testSetWeightUnitDoesNotAffectDistanceUnit() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .inches)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let originalPreference = manager.getPreference(for: "template1")
         manager.setWeightUnit(.pounds, for: "template1")
@@ -201,9 +215,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Weight Unit For Multiple Templates")
-    func testSetWeightUnitForMultipleTemplates() {
+    func testSetWeightUnitForMultipleTemplates() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         manager.setWeightUnit(.pounds, for: "template1")
         manager.setWeightUnit(.kilograms, for: "template2")
@@ -216,9 +230,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Weight Unit Overwrites Previous Value")
-    func testSetWeightUnitOverwritesPreviousValue() {
+    func testSetWeightUnitOverwritesPreviousValue() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         manager.setWeightUnit(.pounds, for: "template1")
         manager.setWeightUnit(.kilograms, for: "template1")
@@ -230,9 +244,9 @@ struct ExerciseUnitPreferenceManagerTests {
     // MARK: - Set Distance Unit Tests
     
     @Test("Test Set Distance Unit Updates Preference")
-    func testSetDistanceUnitUpdatesPreference() {
+    func testSetDistanceUnitUpdatesPreference() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         manager.setDistanceUnit(.miles, for: "template1")
         
@@ -241,23 +255,23 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Distance Unit Persists To User Defaults")
-    func testSetDistanceUnitPersistsToUserDefaults() {
+    func testSetDistanceUnitPersistsToUserDefaults() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, userDefaults) = createManager(user: user)
+        let (manager, userDefaults) = try await createManager(user: user)
         
         manager.setDistanceUnit(.miles, for: "template1")
         
         // Create new manager to verify persistence
-        let newManager = ExerciseUnitPreferenceManager(userDefaults: userDefaults, userManager: UserManager(services: MockUserServices(user: user)))
+        let newManager = try await reopenManager(userDefaults: userDefaults, user: user)
         let preference = newManager.getPreference(for: "template1")
         
         #expect(preference.distanceUnit == .miles)
     }
     
     @Test("Test Set Distance Unit Does Not Affect Weight Unit")
-    func testSetDistanceUnitDoesNotAffectWeightUnit() {
+    func testSetDistanceUnitDoesNotAffectWeightUnit() async throws {
         let user = createUserWithPreferences(weightUnit: .pounds, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let originalPreference = manager.getPreference(for: "template1")
         manager.setDistanceUnit(.miles, for: "template1")
@@ -267,9 +281,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Distance Unit For Multiple Templates")
-    func testSetDistanceUnitForMultipleTemplates() {
+    func testSetDistanceUnitForMultipleTemplates() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         manager.setDistanceUnit(.miles, for: "template1")
         manager.setDistanceUnit(.meters, for: "template2")
@@ -282,9 +296,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Distance Unit Overwrites Previous Value")
-    func testSetDistanceUnitOverwritesPreviousValue() {
+    func testSetDistanceUnitOverwritesPreviousValue() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         manager.setDistanceUnit(.miles, for: "template1")
         manager.setDistanceUnit(.meters, for: "template1")
@@ -296,9 +310,9 @@ struct ExerciseUnitPreferenceManagerTests {
     // MARK: - Set Preference (Both Units) Tests
     
     @Test("Test Set Preference Updates Both Units")
-    func testSetPreferenceUpdatesBothUnits() {
+    func testSetPreferenceUpdatesBothUnits() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         manager.setPreference(weightUnit: .pounds, distanceUnit: .miles, for: "template1")
         
@@ -308,9 +322,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Preference Updates Only Weight Unit When Distance Unit Is Nil")
-    func testSetPreferenceUpdatesOnlyWeightUnitWhenDistanceUnitIsNil() {
+    func testSetPreferenceUpdatesOnlyWeightUnitWhenDistanceUnitIsNil() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let originalPreference = manager.getPreference(for: "template1")
         manager.setPreference(weightUnit: .pounds, distanceUnit: nil, for: "template1")
@@ -321,9 +335,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Preference Updates Only Distance Unit When Weight Unit Is Nil")
-    func testSetPreferenceUpdatesOnlyDistanceUnitWhenWeightUnitIsNil() {
+    func testSetPreferenceUpdatesOnlyDistanceUnitWhenWeightUnitIsNil() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let originalPreference = manager.getPreference(for: "template1")
         manager.setPreference(weightUnit: nil, distanceUnit: .miles, for: "template1")
@@ -334,9 +348,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Preference Does Not Update When Both Parameters Are Nil")
-    func testSetPreferenceDoesNotUpdateWhenBothParametersAreNil() {
+    func testSetPreferenceDoesNotUpdateWhenBothParametersAreNil() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let originalPreference = manager.getPreference(for: "template1")
         manager.setPreference(weightUnit: nil, distanceUnit: nil, for: "template1")
@@ -347,14 +361,14 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Preference Persists To User Defaults")
-    func testSetPreferencePersistsToUserDefaults() {
+    func testSetPreferencePersistsToUserDefaults() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, userDefaults) = createManager(user: user)
+        let (manager, userDefaults) = try await createManager(user: user)
         
         manager.setPreference(weightUnit: .pounds, distanceUnit: .miles, for: "template1")
         
         // Create new manager to verify persistence
-        let newManager = ExerciseUnitPreferenceManager(userDefaults: userDefaults, userManager: UserManager(services: MockUserServices(user: user)))
+        let newManager = try await reopenManager(userDefaults: userDefaults, user: user)
         let preference = newManager.getPreference(for: "template1")
         
         #expect(preference.weightUnit == .pounds)
@@ -364,9 +378,9 @@ struct ExerciseUnitPreferenceManagerTests {
     // MARK: - Clear Cache Tests
     
     @Test("Test Clear Cache Removes Cached Preferences")
-    func testClearCacheRemovesCachedPreferences() {
+    func testClearCacheRemovesCachedPreferences() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         // Get preference to populate cache
         _ = manager.getPreference(for: "template1")
@@ -383,15 +397,15 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Clear Cache Does Not Affect Persisted Data")
-    func testClearCacheDoesNotAffectPersistedData() {
+    func testClearCacheDoesNotAffectPersistedData() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, userDefaults) = createManager(user: user)
+        let (manager, userDefaults) = try await createManager(user: user)
         
         manager.setPreference(weightUnit: .pounds, distanceUnit: .miles, for: "template1")
         manager.clearCache()
         
         // Create new manager to verify persistence
-        let newManager = ExerciseUnitPreferenceManager(userDefaults: userDefaults, userManager: UserManager(services: MockUserServices(user: user)))
+        let newManager = try await reopenManager(userDefaults: userDefaults, user: user)
         let preference = newManager.getPreference(for: "template1")
         
         #expect(preference.weightUnit == .pounds)
@@ -399,9 +413,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Clear Cache With Multiple Templates")
-    func testClearCacheWithMultipleTemplates() {
+    func testClearCacheWithMultipleTemplates() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         manager.setWeightUnit(.pounds, for: "template1")
         manager.setWeightUnit(.kilograms, for: "template2")
@@ -419,19 +433,19 @@ struct ExerciseUnitPreferenceManagerTests {
     // MARK: - Edge Cases Tests
     
     @Test("Test Get Preference With No User Returns Default Values")
-    func testGetPreferenceWithNoUserReturnsDefaultValues() {
-        let (manager, _) = createManager(user: nil)
+    func testGetPreferenceWithNoUserReturnsDefaultValues() async throws {
+        let (manager, _) = try await createManager(user: nil)
         
         let preference = manager.getPreference(for: "template1")
         
-        #expect(preference.ExerciseModelId == "template1")
+        #expect(preference.exerciseModelId == "template1")
         #expect(preference.weightUnit == .kilograms)
         #expect(preference.distanceUnit == .meters)
     }
     
     @Test("Test Set Weight Unit With No User Does Not Save")
-    func testSetWeightUnitWithNoUserDoesNotSave() {
-        let (manager, userDefaults) = createManager(user: nil)
+    func testSetWeightUnitWithNoUserDoesNotSave() async throws {
+        let (manager, userDefaults) = try await createManager(user: nil)
         
         manager.setWeightUnit(.pounds, for: "template1")
         
@@ -442,8 +456,8 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Set Distance Unit With No User Does Not Save")
-    func testSetDistanceUnitWithNoUserDoesNotSave() {
-        let (manager, userDefaults) = createManager(user: nil)
+    func testSetDistanceUnitWithNoUserDoesNotSave() async throws {
+        let (manager, userDefaults) = try await createManager(user: nil)
         
         manager.setDistanceUnit(.miles, for: "template1")
         
@@ -454,19 +468,19 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Get Preference With Empty Template ID")
-    func testGetPreferenceWithEmptyTemplateId() {
+    func testGetPreferenceWithEmptyTemplateId() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "")
         
-        #expect(preference.ExerciseModelId == "")
+        #expect(preference.exerciseModelId == "")
     }
     
     @Test("Test Set Weight Unit With Special Characters In Template ID")
-    func testSetWeightUnitWithSpecialCharactersInTemplateId() {
+    func testSetWeightUnitWithSpecialCharactersInTemplateId() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let specialId = "template-123_test@example.com"
         manager.setWeightUnit(.pounds, for: specialId)
@@ -476,9 +490,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Concurrent Get Preference Calls")
-    func testConcurrentGetPreferenceCalls() {
+    func testConcurrentGetPreferenceCalls() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference1 = manager.getPreference(for: "template1")
         let preference2 = manager.getPreference(for: "template1")
@@ -489,9 +503,9 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Multiple Set Operations On Same Template")
-    func testMultipleSetOperationsOnSameTemplate() {
+    func testMultipleSetOperationsOnSameTemplate() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         manager.setWeightUnit(.pounds, for: "template1")
         manager.setDistanceUnit(.miles, for: "template1")
@@ -505,36 +519,36 @@ struct ExerciseUnitPreferenceManagerTests {
     // MARK: - Unit Mapping Tests
     
     @Test("Test Centimeters Maps To Meters")
-    func testCentimetersMapsToMeters() {
+    func testCentimetersMapsToMeters() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "template1")
         #expect(preference.distanceUnit == .meters)
     }
     
     @Test("Test Inches Maps To Miles")
-    func testInchesMapsToMiles() {
+    func testInchesMapsToMiles() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .inches)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "template1")
         #expect(preference.distanceUnit == .miles)
     }
     
     @Test("Test Kilograms Maps To Kilograms")
-    func testKilogramsMapsToKilograms() {
+    func testKilogramsMapsToKilograms() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "template1")
         #expect(preference.weightUnit == .kilograms)
     }
     
     @Test("Test Pounds Maps To Pounds")
-    func testPoundsMapsToLounds() {
+    func testPoundsMapsToLounds() async throws {
         let user = createUserWithPreferences(weightUnit: .pounds, lengthUnit: .centimeters)
-        let (manager, _) = createManager(user: user)
+        let (manager, _) = try await createManager(user: user)
         
         let preference = manager.getPreference(for: "template1")
         #expect(preference.weightUnit == .pounds)
@@ -543,9 +557,9 @@ struct ExerciseUnitPreferenceManagerTests {
     // MARK: - Persistence Key Tests
     
     @Test("Test Preference Key Format Is Correct")
-    func testPreferenceKeyFormatIsCorrect() {
+    func testPreferenceKeyFormatIsCorrect() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, userDefaults) = createManager(user: user)
+        let (manager, userDefaults) = try await createManager(user: user)
         
         manager.setWeightUnit(.pounds, for: "template1")
         
@@ -556,20 +570,14 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Different Users Have Different Preference Keys")
-    func testDifferentUsersHaveDifferentPreferenceKeys() {
+    func testDifferentUsersHaveDifferentPreferenceKeys() async throws {
         let user1 = UserModel(userId: "user1", submittedLengthUnitPreference: .centimeters, submittedWeightUnitPreference: .kilograms)
         let user2 = UserModel(userId: "user2", submittedLengthUnitPreference: .inches, submittedWeightUnitPreference: .pounds)
         
         let userDefaults = UserDefaults(suiteName: "test_\(UUID().uuidString)")!
         
-        let manager1 = ExerciseUnitPreferenceManager(
-            userDefaults: userDefaults,
-            userManager: UserManager(services: MockUserServices(user: user1))
-        )
-        let manager2 = ExerciseUnitPreferenceManager(
-            userDefaults: userDefaults,
-            userManager: UserManager(services: MockUserServices(user: user2))
-        )
+        let manager1 = try await reopenManager(userDefaults: userDefaults, user: user1)
+        let manager2 = try await reopenManager(userDefaults: userDefaults, user: user2)
         
         manager1.setWeightUnit(.pounds, for: "template1")
         manager2.setWeightUnit(.kilograms, for: "template1")
@@ -582,20 +590,14 @@ struct ExerciseUnitPreferenceManagerTests {
     }
     
     @Test("Test Preferences Persist Across Manager Instances")
-    func testPreferencesPersistAcrossManagerInstances() {
+    func testPreferencesPersistAcrossManagerInstances() async throws {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
         let userDefaults = UserDefaults(suiteName: "test_\(UUID().uuidString)")!
         
-        let manager1 = ExerciseUnitPreferenceManager(
-            userDefaults: userDefaults,
-            userManager: UserManager(services: MockUserServices(user: user))
-        )
+        let manager1 = try await reopenManager(userDefaults: userDefaults, user: user)
         manager1.setPreference(weightUnit: .pounds, distanceUnit: .miles, for: "template1")
         
-        let manager2 = ExerciseUnitPreferenceManager(
-            userDefaults: userDefaults,
-            userManager: UserManager(services: MockUserServices(user: user))
-        )
+        let manager2 = try await reopenManager(userDefaults: userDefaults, user: user)
         let preference = manager2.getPreference(for: "template1")
         
         #expect(preference.weightUnit == .pounds)

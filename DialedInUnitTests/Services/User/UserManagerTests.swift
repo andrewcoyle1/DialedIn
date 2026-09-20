@@ -11,175 +11,121 @@ import Foundation
 
 @MainActor
 struct UserManagerTests {
-    
-    // MARK: - Initialization Tests
-    
-    @Test("Test Initialization With Existing User In Local Storage")
-    func testInitializationWithExistingUser() async {
-        let existingUser = UserModel.mock
-        let userSyncEngine = DocumentSyncEngine<UserModel>(remote: MockRemoteDocumentService(document: UserModel.mock), managerKey: Keys.userManagerKey)
-        let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
-            remote: MockRemoteCollectionService(collection: UserModel.mocks),
-            managerKey: Keys.followingUsersManagerKey
-        )
-        let manager = UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
-        
-        #expect(manager.currentUser == existingUser)
+
+    // MARK: - Current User
+
+    @Test("Test Current User Comes From The Sync Engine")
+    func testCurrentUserComesFromTheSyncEngine() async throws {
+        // Captured once: `UserModel.mock` is computed, and builds its dates from `Date()`, so two
+        // reads of it are never equal.
+        let mockUser = UserModel.mock
+        let manager = TestManagers.userManager(user: mockUser)
+
+        try await manager.signIn(auth: auth(uid: mockUser.userId), isNewUser: false)
+
+        await TestManagers.eventually { manager.currentUser != nil }
+        #expect(manager.currentUser == mockUser)
     }
-    
-    @Test("Test Initialization With No User In Local Storage")
-    func testInitializationWithNoUser() async {
-        let userSyncEngine = DocumentSyncEngine<UserModel>(remote: MockRemoteDocumentService(document: nil), managerKey: Keys.userManagerKey)
-        let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
-            remote: MockRemoteCollectionService(collection: []),
-            managerKey: Keys.followingUsersManagerKey
-        )
-        let manager = UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+
+    @Test("Test Current User Is Nil Before Signing In")
+    func testCurrentUserIsNilBeforeSigningIn() async {
+        let manager = TestManagers.userManager(user: UserModel.mock)
+
+        // The engine only holds a document once it is listening, so a manager that has not signed
+        // in has no user, whatever the remote holds.
+        #expect(manager.currentUser == nil)
+    }
+
+    @Test("Test Current User Is Nil When The Remote Has No Document")
+    func testCurrentUserIsNilWhenTheRemoteHasNoDocument() async throws {
+        let manager = TestManagers.userManager(user: nil)
+
+        try await manager.signIn(auth: auth(), isNewUser: false)
 
         #expect(manager.currentUser == nil)
     }
-    
-    // MARK: - Current User ID Tests
-    
-    @Test("Test Current User Id Returns User Id When User Exists")
-    func testCurrentUserIdReturnsUserIdWhenUserExists() async throws {
-        let mockUser = UserModel.mock
-        let services = MockUserServices(user: mockUser)
-        let manager = UserManager(services: services)
-        
-        let userId = try manager.currentUserId()
-        
-        #expect(userId == mockUser.userId)
+
+    // MARK: - Sign in
+
+    @Test("Test Signing In As A New User Creates Their Document")
+    func testSigningInAsANewUserCreatesTheirDocument() async throws {
+        let manager = TestManagers.userManager(user: nil)
+        let authInfo = auth(email: "\(String.random)@example.com")
+
+        try await manager.signIn(auth: authInfo, isNewUser: true)
+
+        await TestManagers.eventually { manager.currentUser != nil }
+        let user = try #require(manager.currentUser)
+        #expect(user.userId == authInfo.uid)
+        #expect(user.email == authInfo.email)
+        #expect(user.didCompleteOnboarding == false)
     }
-    
-    @Test("Test Current User Id Throws Error When No User Exists")
-    func testCurrentUserIdThrowsErrorWhenNoUserExists() async {
-        let services = MockUserServices(user: nil)
-        let manager = UserManager(services: services)
-        
-        #expect(throws: UserManager.UserManagerError.self) {
-            try manager.currentUserId()
-        }
-    }
-    
-    // MARK: - Login Tests
-    
-    @Test("Test Login With New User Creates User With Onboarding Step")
-    func testLoginWithNewUserCreatesUserWithOnboardingStep() async throws {
-        let services = MockUserServices(user: nil)
-        let manager = UserManager(services: services)
-        
-        let authInfo = UserAuthInfo(
-            uid: String.random,
-            email: "\(String.random)@example.com",
-            isAnonymous: false,
-            creationDate: Date(),
-            lastSignInDate: Date()
-        )
-        
-        try await manager.logIn(auth: authInfo, image: nil)
-        
-        // Verify current user is set
-        #expect(manager.currentUser != nil)
-        #expect(manager.currentUser?.userId == authInfo.uid)
-        #expect(manager.currentUser?.email == authInfo.email)
-        #expect(manager.currentUser?.inferredOnboardingStep == .subscription)
-        #expect(manager.currentUser?.didCompleteOnboarding == false)
-    }
-    
-    @Test("Test Login With Existing User Does Not Reset Onboarding")
-    func testLoginWithExistingUserDoesNotResetOnboarding() async throws {
-        let userId = String.random
-        let email = "\(String.random)@example.com"
-        
-        // Create an existing user with no onboarding step set (as it would be for an existing user)
+
+    /// A returning user's stored profile is what counts: signing in must not write a fresh document
+    /// over it and send them back through onboarding.
+    @Test("Test Signing In As An Existing User Keeps Their Profile")
+    func testSigningInAsAnExistingUserKeepsTheirProfile() async throws {
         let existingUser = UserModel.mockExisting
-        
-        let services = MockUserServices(user: existingUser)
-        let manager = UserManager(services: services)
-        
-        let authInfo = UserAuthInfo(
-            uid: userId,
+        let manager = TestManagers.userManager(user: existingUser)
+
+        try await manager.signIn(auth: auth(uid: existingUser.userId), isNewUser: false)
+
+        await TestManagers.eventually { manager.currentUser != nil }
+        let user = try #require(manager.currentUser)
+        #expect(user.userId == existingUser.userId)
+        #expect(user.didCompleteOnboarding == true)
+        #expect(user.inferredOnboardingStep == OnboardingStep.complete)
+    }
+
+    @Test("Test Signing In Anonymously Keeps No Email")
+    func testSigningInAnonymouslyKeepsNoEmail() async throws {
+        let manager = TestManagers.userManager(user: nil)
+
+        try await manager.signIn(auth: auth(email: nil, isAnonymous: true), isNewUser: true)
+
+        await TestManagers.eventually { manager.currentUser != nil }
+        let user = try #require(manager.currentUser)
+        #expect(user.isAnonymous == true)
+        #expect(user.email == nil)
+    }
+
+    // MARK: - Sign out
+
+    @Test("Test Signing Out Clears The Current User")
+    func testSigningOutClearsTheCurrentUser() async throws {
+        let mockUser = UserModel.mock
+        let manager = TestManagers.userManager(user: mockUser)
+        try await manager.signIn(auth: auth(uid: mockUser.userId), isNewUser: false)
+        await TestManagers.eventually { manager.currentUser != nil }
+        #expect(manager.currentUser != nil)
+
+        manager.signOut()
+
+        #expect(manager.currentUser == nil)
+    }
+
+    // MARK: - Following
+
+    @Test("Test Following Users Are Empty Until Refreshed")
+    func testFollowingUsersAreEmptyUntilRefreshed() async {
+        let manager = TestManagers.userManager(user: UserModel.mock, following: UserModel.mocks)
+
+        #expect(manager.followingUsers.isEmpty)
+    }
+
+    // MARK: - Helpers
+
+    private func auth(
+        uid: String = String.random,
+        email: String? = "\(String.random)@example.com",
+        isAnonymous: Bool = false
+    ) -> UserAuthInfo {
+        UserAuthInfo(
+            uid: uid,
             email: email,
-            isAnonymous: false,
+            isAnonymous: isAnonymous,
             creationDate: Date(),
             lastSignInDate: Date()
         )
-        
-        try await manager.logIn(auth: authInfo, image: nil)
-        
-        // Give the async stream a moment to process (stream finishes after yielding in mock)
-        try await Task.sleep(for: .milliseconds(50))
-        
-        // Verify current user is set from the stream
-        #expect(manager.currentUser != nil)
-        #expect(manager.currentUser?.userId == authInfo.uid)
-        // For existing users, onboarding step should not be initialized
-        #expect(manager.currentUser?.inferredOnboardingStep == OnboardingStep.complete)
-        #expect(manager.currentUser?.didCompleteOnboarding == true)
     }
-    
-    @Test("Test Login With Anonymous User")
-    func testLoginWithAnonymousUser() async throws {
-        let services = MockUserServices(user: nil)
-        let manager = UserManager(services: services)
-        
-        let authInfo = UserAuthInfo(
-            uid: String.random,
-            email: nil,
-            isAnonymous: true,
-            creationDate: Date(),
-            lastSignInDate: Date(),
-        )
-        
-        try await manager.logIn(auth: authInfo, image: nil)
-        
-        #expect(manager.currentUser != nil)
-        #expect(manager.currentUser?.isAnonymous == true)
-        #expect(manager.currentUser?.email == nil)
-    }
-    
-    // MARK: - Logout Tests
-    
-    @Test("Test Logout Clears Current User")
-    func testLogoutClearsCurrentUser() async throws {
-        let mockUser = UserModel.mock
-        let services = MockUserServices(user: mockUser)
-        let manager = UserManager(services: services)
-        
-        #expect(manager.currentUser != nil)
-        
-        manager.signOut()
-        
-        #expect(manager.currentUser == nil)
-    }
-    
-    // MARK: - Clear All Local Data Tests
-    
-    @Test("Test Clear All Local Data Removes Current User")
-    func testClearAllLocalDataRemovesCurrentUser() async {
-        let mockUser = UserModel.mock
-        let services = MockUserServices(user: mockUser)
-        let manager = UserManager(services: services)
-        
-        #expect(manager.currentUser != nil)
-        
-        manager.clearAllLocalData()
-        
-        #expect(manager.currentUser == nil)
-    }
-    
-    // MARK: - Mark Unanonymous Tests
-    
-    @Test("Test Mark Unanonymous Succeeds With Current User")
-    func testMarkUnanonymousSucceedsWithCurrentUser() async throws {
-        let mockUser = UserModel.mock
-        let services = MockUserServices(user: mockUser)
-        let manager = UserManager(services: services)
-        
-        try await manager.remote.markOnboardingCompleted(userId: mockUser.userId)
-        
-        // No error should be thrown
-    }
-    
 }
