@@ -96,4 +96,19 @@ enum TestManagers {
     static func gymProfileManager(profiles: [GymProfileModel] = []) -> GymProfileManager {
         GymProfileManager(gymProfileSyncEngine: collectionEngine(profiles, key: "gym-profiles"))
     }
+
+    static func mealLogManager(meals: [MealLogModel] = []) -> MealLogManager {
+        MealLogManager(
+            draftMealLogPersistence: MockLocalDocumentPersistence<MealLogModel>(),
+            mealLogSyncEngine: collectionEngine(meals, key: "meal-logs")
+        )
+    }
+
+    /// A meal log manager already listening, so `userMeals` holds `meals`.
+    static func signedInMealLogManager(meals: [MealLogModel]) async -> MealLogManager {
+        let manager = mealLogManager(meals: meals)
+        await manager.signIn(userId: "author-1")
+        await eventually { manager.userMeals.count == meals.count }
+        return manager
+    }
 }
