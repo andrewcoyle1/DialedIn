@@ -208,13 +208,16 @@ extension AnalyticsPresenter {
         let history = interactor.stepsHistory
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
-        guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday),
+              let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday) else {
             stepsLast7 = []
             return
         }
         let userId = interactor.userId
+        // Bounded by the end of today, not its start: a reading is dated when it was taken, so
+        // `<= startOfToday` kept only a reading timed exactly at midnight and dropped today's.
         let last7 = history
-            .filter { $0.deletedAt == nil && $0.date >= startDate && $0.date <= startOfToday && (userId == nil || $0.authorId == userId) }
+            .filter { $0.deletedAt == nil && $0.date >= startDate && $0.date < endOfToday && (userId == nil || $0.authorId == userId) }
             .sorted { $0.date < $1.date }
         stepsLast7 = Array(Self.consolidateStepsByDay(Array(last7)).suffix(7))
     }
