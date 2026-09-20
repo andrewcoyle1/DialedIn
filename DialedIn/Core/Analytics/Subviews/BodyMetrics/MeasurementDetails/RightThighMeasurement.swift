@@ -64,7 +64,6 @@ final class RightThighMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No right thigh measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

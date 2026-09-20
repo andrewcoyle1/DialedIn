@@ -85,7 +85,6 @@ extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Weight Entries",
             emptyStateMessage: "No weight entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

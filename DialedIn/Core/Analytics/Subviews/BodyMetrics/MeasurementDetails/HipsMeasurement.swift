@@ -60,7 +60,6 @@ final class HipsMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No hips measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

@@ -60,7 +60,6 @@ final class BustMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No bust measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

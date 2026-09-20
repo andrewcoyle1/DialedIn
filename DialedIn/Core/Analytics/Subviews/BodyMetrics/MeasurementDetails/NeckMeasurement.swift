@@ -60,7 +60,6 @@ final class NeckMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No neck measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

@@ -46,7 +46,6 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
 
     @State var presenter: Presenter
     var themeColor: Color?
-    @State private var page: Int = 1
     /// The contribution grid's shape. Its cells are square, so these also give its aspect ratio.
     private let contributionRows: Int = 3
     private let contributionColumns: Int = 10
@@ -60,12 +59,6 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         let configuration = presenter.configuration
         let timeSeries = presenter.timeSeries
         let entries = presenter.entries
-        let pageSize = configuration.pageSize
-
-        let sortedEntries = entries.sorted { $0.date > $1.date }
-        let pagedEntries = MetricDetailView.paged(entries: sortedEntries, page: page, pageSize: pageSize)
-        let hasMore = pagedEntries.count < entries.count
-        
         let readings = MetricChartReadings(series: timeSeries, configuration: configuration, color: themeColor)
 
         // A Health-style screen: the chart edge to edge at the top, its background carried up behind
@@ -81,13 +74,13 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
                 } moreRows: {
                     MetricChartRows(readings: readings, showsAll: true)
                 } sections: {
-                    listSection(configuration: configuration, entries: entries, pagedEntries: pagedEntries, hasMore: hasMore)
+                    listSection(configuration: configuration, entries: entries)
                 }
             } else {
                 ChartScreen(title: configuration.title) {
                     chart(configuration: configuration, series: timeSeries)
                 } sections: {
-                    listSection(configuration: configuration, entries: entries, pagedEntries: pagedEntries, hasMore: hasMore)
+                    listSection(configuration: configuration, entries: entries)
                 }
             }
         }
@@ -97,9 +90,6 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         }
         .onFirstTask {
             await presenter.onAppear()
-        }
-        .onChange(of: entries.count) { _, _ in
-            page = 1
         }
     }
     
@@ -162,70 +152,32 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         }
     }
     
+    /// The entries themselves live one push away, on All Recorded Data, as in Health: listing them
+    /// all here buried everything below the chart under months of rows.
     @ViewBuilder
-    private func listSection(configuration: MetricConfiguration, entries: [Presenter.Entry], pagedEntries: ArraySlice<Presenter.Entry>, hasMore: Bool) -> some View {
+    private func listSection(configuration: MetricConfiguration, entries: [Presenter.Entry]) -> some View {
         if entries.isEmpty {
             emptySection(configuration: configuration)
         } else {
-            let grouped = groupedByMonth(Array(pagedEntries))
-            ForEach(grouped.sorted(by: { $0.key > $1.key }), id: \.key) { group in
-                Section {
-                    ForEach(group.entries) { entry in
-                        entryRow(entry, configuration: configuration)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            if presenter.supportsDeletion {
-                                Button(role: .destructive) {
-                                    Task { await presenter.onDeleteEntry(entry) }
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                        }
-                    }
-                } header: {
-                    Text(group.title)
-                }
-            }
-
-            if hasMore {
-                Section {
+            Section {
+                // Pushed with the sheet's own router rather than through each of the thirty-odd
+                // presenters that share this view, which would each need the same route.
+                RouterReader { router in
                     Button {
-                        page += 1
+                        router.showScreen(.push) { _ in
+                            MetricAllDataView(presenter: presenter)
+                        }
                     } label: {
                         HStack {
-                            Text("Load more")
+                            Text("Show All Data")
                             Spacer()
-                            Text("\(pagedEntries.count) of \(entries.count)")
-                                .foregroundStyle(.secondary)
-                                .font(.caption)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary)
                         }
+                        .contentShape(.rect)
                     }
-                }
-            }
-        }
-    }
-
-    /// Date on the leading edge, value on the trailing edge. The whole row used to be one
-    /// concatenated string — `"12 Jan 2026 72.4  kg"` — so nothing lined up down the list and the
-    /// chart's axis suffix brought its leading space along with it.
-    private func entryRow(_ entry: Presenter.Entry, configuration: MetricConfiguration) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            Label(entry.displayLabel, systemImage: entry.systemImageName)
-
-            Spacer(minLength: 12)
-
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                // A macro row carries three values ("148g P · 214g C · 69.7g F"). Wrapping it broke
-                // the line mid-item and left rows of uneven height, so it scales down to fit on one
-                // line instead.
-                Text(presenter.displayValue(for: entry))
-                    .monospacedDigit()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                if !configuration.unitText.isEmpty {
-                    Text(configuration.unitText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                 }
             }
         }
@@ -249,39 +201,4 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
             Text(configuration.sectionHeader)
         }
     }
-
-    private func groupedByMonth(_ entries: [Presenter.Entry]) -> [MonthGroup<Presenter.Entry>] {
-        let calendar = Calendar.current
-        var groups: [DateComponents: [Presenter.Entry]] = [:]
-        var order: [DateComponents] = []
-
-        for entry in entries {
-            let components = calendar.dateComponents([.year, .month], from: entry.date)
-            if groups[components] == nil {
-                order.append(components)
-            }
-            groups[components, default: []].append(entry)
-        }
-
-        return order.compactMap { components in
-            guard let entries = groups[components],
-                  let date = calendar.date(from: components) else { return nil }
-            let title = date.formatted(.dateTime.month(.wide).year())
-            let key = String(format: "%04d-%02d", components.year ?? 0, components.month ?? 0)
-            return MonthGroup(key: key, title: title, entries: entries)
-        }
-    }
-
-    private static func paged(entries: [Presenter.Entry], page: Int, pageSize: Int?) -> ArraySlice<Presenter.Entry> {
-        guard let pageSize, pageSize > 0 else { return entries[entries.startIndex..<entries.endIndex] }
-        let safePage = max(1, page)
-        let limit = min(entries.count, safePage * pageSize)
-        return entries.prefix(limit)
-    }
-}
-
-private struct MonthGroup<Entry: MetricEntry> {
-    let key: String
-    let title: String
-    let entries: [Entry]
 }

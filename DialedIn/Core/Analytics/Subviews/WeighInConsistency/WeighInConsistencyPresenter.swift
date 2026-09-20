@@ -89,7 +89,6 @@ extension WeighInConsistencyPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Weight Entries",
             emptyStateMessage: "No weigh-ins logged",
-            pageSize: 20,
             chartColor: .green
         )
     }

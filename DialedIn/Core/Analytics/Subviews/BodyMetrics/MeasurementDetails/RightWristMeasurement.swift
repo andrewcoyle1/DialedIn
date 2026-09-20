@@ -60,7 +60,6 @@ final class RightWristMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No right wrist measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

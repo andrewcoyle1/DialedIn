@@ -60,7 +60,6 @@ final class RightForearmMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No right forearm measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

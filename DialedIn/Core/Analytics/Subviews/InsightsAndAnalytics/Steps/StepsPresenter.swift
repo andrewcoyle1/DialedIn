@@ -89,7 +89,6 @@ extension StepsPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Daily Steps",
             emptyStateMessage: "No step data",
-            pageSize: 20,
             chartType: .bar,
             addActionTitle: "Sync from Health",
             addActionSystemImage: "arrow.clockwise"

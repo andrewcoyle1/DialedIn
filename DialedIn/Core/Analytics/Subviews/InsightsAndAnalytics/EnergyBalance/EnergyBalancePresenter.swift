@@ -155,7 +155,6 @@ extension EnergyBalancePresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Daily Balance",
             emptyStateMessage: "No data for the last 90 days",
-            pageSize: 20,
             chartColor: nil
         )
     }

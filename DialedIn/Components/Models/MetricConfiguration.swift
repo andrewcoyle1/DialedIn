@@ -9,8 +9,6 @@ struct MetricConfiguration {
     let showsAddButton: Bool
     let sectionHeader: String
     let emptyStateMessage: String
-    /// If set, the metric entries list paginates using this page size.
-    let pageSize: Int?
     /// Optional color for the chart. When provided, all series will use this color.
     let chartColor: Color?
     /// Chart display style. Defaults to line when nil.
@@ -45,7 +43,6 @@ struct MetricConfiguration {
         showsAddButton: Bool,
         sectionHeader: String,
         emptyStateMessage: String,
-        pageSize: Int? = nil,
         chartColor: Color? = nil,
         chartType: NewHistoryChart.ChartType? = nil,
         isMacrosChart: Bool = false,
@@ -60,7 +57,6 @@ struct MetricConfiguration {
         self.showsAddButton = showsAddButton
         self.sectionHeader = sectionHeader
         self.emptyStateMessage = emptyStateMessage
-        self.pageSize = pageSize
         self.chartColor = chartColor
         self.chartType = chartType
         self.isMacrosChart = isMacrosChart

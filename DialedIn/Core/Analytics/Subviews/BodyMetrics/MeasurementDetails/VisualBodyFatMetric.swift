@@ -60,7 +60,6 @@ final class VisualBodyFatPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No body fat entries",
-            pageSize: 20,
             chartColor: .green,
             addActionTitle: "Sync from Health",
             addActionSystemImage: "arrow.clockwise"

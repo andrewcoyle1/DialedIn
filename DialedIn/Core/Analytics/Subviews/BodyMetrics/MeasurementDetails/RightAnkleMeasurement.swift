@@ -60,7 +60,6 @@ final class RightAnkleMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No right ankle measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

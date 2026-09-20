@@ -72,7 +72,6 @@ final class FoodLoggingConsistencyPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Days Logged",
             emptyStateMessage: "No food logged. Log meals to see your consistency.",
-            pageSize: 20,
             chartColor: .orange,
             addActionTitle: "Log Meal",
             addActionSystemImage: "plus"

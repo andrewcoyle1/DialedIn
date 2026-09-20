@@ -60,7 +60,6 @@ final class LeftForearmMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No left forearm measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

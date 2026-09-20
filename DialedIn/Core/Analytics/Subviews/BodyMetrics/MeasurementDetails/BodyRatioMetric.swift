@@ -82,7 +82,6 @@ final class BodyRatioPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: kind.requirement,
-            pageSize: 20,
             chartColor: .green,
             addActionTitle: "Log Waist",
             addActionSystemImage: "plus"

@@ -98,7 +98,6 @@ extension WorkoutConsistencyPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Workout History",
             emptyStateMessage: "No completed workouts",
-            pageSize: 20,
             chartColor: .orange,
             addActionTitle: "Start Workout",
             addActionSystemImage: "figure.run"

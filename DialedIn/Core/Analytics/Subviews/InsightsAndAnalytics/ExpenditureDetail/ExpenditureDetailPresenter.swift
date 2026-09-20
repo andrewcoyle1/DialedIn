@@ -79,7 +79,6 @@ extension ExpenditureDetailPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Daily Expenditure",
             emptyStateMessage: "No expenditure data",
-            pageSize: 20,
             chartType: .line,
             addActionTitle: "Edit Profile",
             addActionSystemImage: "person.crop.circle"

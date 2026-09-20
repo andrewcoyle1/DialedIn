@@ -112,7 +112,6 @@ extension WorkoutPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Workout History",
             emptyStateMessage: "No completed workouts",
-            pageSize: 20,
             chartColor: .orange,
             chartType: .bar,
             addActionTitle: "Start Workout",

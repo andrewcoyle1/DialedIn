@@ -100,7 +100,6 @@ extension WeightTrendPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Trend History",
             emptyStateMessage: "No weight entries",
-            pageSize: 20,
             chartColor: nil
         )
     }

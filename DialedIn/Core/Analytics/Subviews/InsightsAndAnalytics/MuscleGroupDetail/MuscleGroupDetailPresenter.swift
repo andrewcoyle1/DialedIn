@@ -116,7 +116,6 @@ extension MuscleGroupDetailPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Daily Sets",
             emptyStateMessage: "No sets for \(muscle.name) in recent workouts",
-            pageSize: 20,
             chartColor: .blue,
             chartType: .bar,
             addActionTitle: "Start Workout",

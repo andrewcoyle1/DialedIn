@@ -60,7 +60,6 @@ final class LeftBicepMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No left bicep measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }

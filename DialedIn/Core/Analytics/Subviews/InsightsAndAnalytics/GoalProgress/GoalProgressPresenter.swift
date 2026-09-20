@@ -167,7 +167,6 @@ extension GoalProgressPresenter: @MainActor MetricDetailPresenter {
             emptyStateMessage: activeGoal == nil
                 ? "Set a weight goal in Profile to track your progress."
                 : "Log your weight to track progress toward your target.",
-            pageSize: 20,
             chartColor: .green
         )
     }

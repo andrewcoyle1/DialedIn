@@ -60,7 +60,6 @@ final class ChestMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No chest measurement entries",
-            pageSize: 20,
             chartColor: .green
         )
     }
