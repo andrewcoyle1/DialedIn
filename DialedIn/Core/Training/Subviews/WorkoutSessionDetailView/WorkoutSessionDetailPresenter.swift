@@ -23,8 +23,13 @@ class WorkoutSessionDetailPresenter {
     
     var selectedExerciseModels: [WorkoutTemplateExercise] = []
     
+    /// Whether the signed-in user wrote this workout, and so may edit or delete it.
+    ///
+    /// Both sides are optional, and comparing them directly made a signed-out reader the author of
+    /// an unattributed session, since `nil == nil`. Nobody owns a workout with no author.
     func isAuthor(sessionAuthorId: String?) -> Bool {
-        interactor.currentUser?.userId == sessionAuthorId
+        guard let userId = interactor.currentUser?.userId, let sessionAuthorId else { return false }
+        return userId == sessionAuthorId
     }
         
     func hasUnsavedChanges(session: WorkoutSessionModel, editedSession: WorkoutSessionModel) -> Bool {
