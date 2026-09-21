@@ -178,7 +178,11 @@ class AccountPresenter {
         )
     }
 
-    private func onDeleteAccountConfirmed() {
+    /// Only ever called from the Delete button inside the confirmation above. Not private so that
+    /// the half of account deletion that runs after the user says yes can be tested: the alert
+    /// itself goes out through a `GlobalRouter` extension, which dispatches statically and so
+    /// cannot be intercepted.
+    func onDeleteAccountConfirmed() {
         interactor.trackEvent(event: Event.deleteAccountStartConfirm)
 
         Task {
