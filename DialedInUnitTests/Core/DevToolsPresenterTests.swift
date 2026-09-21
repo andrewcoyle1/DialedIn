@@ -26,6 +26,11 @@ enum DevToolsTestError: Error { case failed }
 ///
 /// The A/B overrides are the other: a toggle that fails to save has to snap back, or the menu says
 /// the app is in one variant while it is running the other.
+///
+/// Serialized because the reseed tests read and write the real `UserDefaults.standard` — the
+/// presenter names those keys literally, so there is nowhere else to put them — and run in
+/// parallel they would clear each other's flags and disagree about which library was reset.
+@Suite(.serialized)
 @MainActor
 struct DevToolsSettingsPresenterTests {
 

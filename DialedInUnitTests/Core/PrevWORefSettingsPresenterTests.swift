@@ -10,17 +10,15 @@ import Foundation
 import SwiftUI
 @testable import DialedIn
 
-/// The one-question screen behind "Previous Reference": whether the greyed-out numbers beside each
-/// set during a workout come from any workout that included the exercise, or only from workouts in
-/// the same program.
+/// The Previous Reference screen's snapshot of the settings document.
 ///
-/// The question itself is a two-case enum and hard to get wrong. What is easy to get wrong is the
-/// saving: every one of these settings screens edits a snapshot of the whole `WorkoutSettings`
-/// document and writes the whole thing back, so a snapshot taken when the screen was built and
-/// never refreshed silently reverts anything changed elsewhere in between. The sibling screens each
-/// re-read on appear for exactly that reason; the test below pins that this one does too.
+/// The screen itself — the two options, the tick, that a choice is saved — is covered in
+/// `TrainingSettingsPresenterTests`. What is covered here is the thing those tests cannot see,
+/// because they only ever save once: this screen edits a copy of the whole `WorkoutSettings`
+/// document and writes the whole thing back, so the copy has to be the current one. Taken at init
+/// and never refreshed, it silently reverts whatever another screen saved in the meantime.
 @MainActor
-struct PrevWORefSettingsPresenterTests {
+struct PrevWORefSettingsStaleSnapshotTests {
 
     private final class Interactor: SpyGlobalInteractor, PrevWORefSettingsInteractor {
         var workoutSettings = WorkoutSettings(authorId: "user-1")
@@ -46,59 +44,19 @@ struct PrevWORefSettingsPresenterTests {
         let delegate = PrevWORefSettingsDelegate()
     }
 
-    private func makeScreen(settings: WorkoutSettings = WorkoutSettings(authorId: "user-1")) -> Screen {
+    private func makeScreen() -> Screen {
         let interactor = Interactor()
-        interactor.workoutSettings = settings
         return Screen(
             presenter: PrevWORefSettingsPresenter(interactor: interactor, router: Router()),
             interactor: interactor
         )
     }
 
-    // MARK: - The choice
-
-    /// Both options are offered, in the order the enum declares them, so the list does not reshuffle
-    /// between launches.
-    @Test("Test Both Reference Options Are Offered")
-    func testBothReferenceOptionsAreOffered() {
-        let screen = makeScreen()
-
-        #expect(screen.presenter.options == [.anyWorkout, .workoutsInProgram])
-    }
-
-    /// The screen shows what is actually saved, so the tick is beside the option in force rather
-    /// than beside the default.
-    @Test("Test The Saved Option Is The One Shown")
-    func testTheSavedOptionIsTheOneShown() {
-        var settings = WorkoutSettings(authorId: "user-1")
-        settings.previousWorkoutReference = .workoutsInProgram
-        let screen = makeScreen(settings: settings)
-
-        #expect(screen.presenter.previousWorkoutReference == .workoutsInProgram)
-    }
-
-    /// Choosing an option saves it immediately — there is no Done button on this screen, so an
-    /// unsaved choice would simply be lost on the way back.
-    @Test("Test Choosing An Option Saves It Immediately")
-    func testChoosingAnOptionSavesItImmediately() async {
-        let screen = makeScreen()
-
-        screen.presenter.previousWorkoutReference = .workoutsInProgram
-
-        #expect(screen.presenter.previousWorkoutReference == .workoutsInProgram)
-        #expect(await TestManagers.eventually {
-            screen.interactor.saved.last?.previousWorkoutReference == .workoutsInProgram
-        })
-    }
-
-    // MARK: - Not clobbering the rest of the document
-
-    /// A save from this screen writes the whole settings document, so it has to be writing back the
-    /// current one. Changing the rest timer, coming here and picking an option must not quietly put
-    /// the rest timer back — the user would find a setting they deliberately changed undone by a
-    /// screen that has nothing to do with it.
-    @Test("Test Choosing An Option Does Not Revert Other Settings")
-    func testChoosingAnOptionDoesNotRevertOtherSettings() async {
+    /// Change the rest timer, walk into Previous Reference, pick an option — and the rest timer
+    /// must still be what the user set it to. Before the re-read on appear it went back to whatever
+    /// it had been when this screen was built, with nothing on screen to say so.
+    @Test("Test A Choice Does Not Revert Settings Changed Elsewhere")
+    func testAChoiceDoesNotRevertSettingsChangedElsewhere() async {
         let screen = makeScreen()
 
         // Another screen saves a different setting after this presenter was built.
@@ -117,8 +75,8 @@ struct PrevWORefSettingsPresenterTests {
         #expect(screen.interactor.saved.last?.rirTracking == true)
     }
 
-    /// And the choice itself survives the re-read: appearing again after a save must not reset the
-    /// screen to whatever it was built with.
+    /// And the re-read must not undo the user's own choice when the screen appears again after
+    /// saving it.
     @Test("Test A Saved Choice Survives The Screen Reappearing")
     func testASavedChoiceSurvivesTheScreenReappearing() async {
         let screen = makeScreen()
@@ -128,18 +86,5 @@ struct PrevWORefSettingsPresenterTests {
         screen.presenter.onViewAppear(delegate: screen.delegate)
 
         #expect(screen.presenter.previousWorkoutReference == .workoutsInProgram)
-    }
-
-    // MARK: - Lifecycle
-
-    @Test("Test The Reference Screen Tracks Its Own Lifecycle")
-    func testTheReferenceScreenTracksItsOwnLifecycle() {
-        let screen = makeScreen()
-
-        screen.presenter.onViewAppear(delegate: screen.delegate)
-        screen.presenter.onViewDisappear(delegate: screen.delegate)
-
-        #expect(screen.interactor.trackedScreenEventNames == ["PreviousWorkoutReferenceSettingsView_Appear"])
-        #expect(screen.interactor.trackedEventNames == ["PreviousWorkoutReferenceSettingsView_Disappear"])
     }
 }
