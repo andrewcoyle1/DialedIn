@@ -26,7 +26,11 @@ class PrevWORefSettingsPresenter {
         Task { try? await interactor.saveWorkoutSettings(settings) }
     }
 
+    /// Re-read rather than trusting the snapshot taken at init: `save()` writes the whole
+    /// `WorkoutSettings` document back, so a stale copy would revert anything another screen
+    /// changed in the meantime.
     func onViewAppear(delegate: PrevWORefSettingsDelegate) {
+        settings = interactor.workoutSettings
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
     }
     
