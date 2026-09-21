@@ -4,6 +4,7 @@ import SwiftUI
 protocol ExerciseSettingsRouter: GlobalRouter {
     func showExerciseModelDetailView(delegate: ExerciseModelDetailDelegate)
     func showWorkoutNotesView(delegate: WorkoutNotesDelegate)
+    func showRestTimerSettingsView(delegate: RestTimerSettingsDelegate)
     func showRestModal(
         primaryButtonAction: @escaping () -> Void,
         secondaryButtonAction: @escaping () -> Void,

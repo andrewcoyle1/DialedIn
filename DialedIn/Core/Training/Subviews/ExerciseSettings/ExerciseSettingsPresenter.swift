@@ -40,6 +40,23 @@ class ExerciseSettingsPresenter {
         return "Default (\(defaultSecs)s)"
     }
 
+    /// Whether this exercise is worked one limb at a time, which is what decides if the
+    /// left/right rest row means anything here. Derived from the metrics it is tracked by rather
+    /// than `laterality`, which almost every exercise leaves empty.
+    var isPerSide: Bool {
+        WorkoutSessionModel.isPerSide(exercise)
+    }
+
+    /// What currently happens between the two halves of a set. The rest itself is one setting for
+    /// the whole app rather than a per-exercise override, so this reports it and the row opens the
+    /// screen that owns it.
+    var sideSetRestSubtitle: String {
+        let settings = interactor.workoutSettings
+        guard settings.restBetweenSideSets else { return "Off" }
+        let percent = Int((settings.sideSetRestScaling * 100).rounded())
+        return "\(percent)% of the rest timer"
+    }
+
     var noteSubtitle: String {
         let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "None" }
@@ -128,6 +145,10 @@ class ExerciseSettingsPresenter {
                 set: { self.restPickerSeconds = $0 }
             )
         )
+    }
+
+    func onSideSetRestPressed() {
+        router.showRestTimerSettingsView(delegate: RestTimerSettingsDelegate())
     }
 
     func onNotePressed() {

@@ -186,8 +186,12 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         Section {
             ForEach(session.exercises) { exercise in
                 DisclosureGroup {
-                    ForEach(exercise.sets.filter { !$0.isWarmup }.enumerated(), id: \.element.id) { setIndex, set in
-                        SetDetailRow(set: set, index: setIndex + 1, trackingMode: exercise.trackingMode)
+                    ForEach(exercise.workingSets, id: \.id) { set in
+                        SetDetailRow(
+                            set: set,
+                            index: exercise.workingSetNumber(for: set),
+                            trackingMode: exercise.trackingMode
+                        )
                     }
                 } label: {
                     let volume: Double = exercise.sets

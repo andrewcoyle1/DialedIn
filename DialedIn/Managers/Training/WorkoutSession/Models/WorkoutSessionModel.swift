@@ -108,7 +108,8 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
             var workingSets = WorkoutSessionModel.defaultSets(
                 trackingMode: mode,
                 authorId: authorId,
-                targetCount: max(targetCount, 1)
+                targetCount: max(targetCount, 1),
+                perSide: WorkoutSessionModel.isPerSide(exerciseModel.exercise)
             )
             
             // Populate working sets with values from previous workout (smart progression)
@@ -153,6 +154,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                         durationSec: prevSet.durationSec ?? workingSets[index].durationSec,
                         distanceMeters: prevSet.distanceMeters ?? workingSets[index].distanceMeters,
                         rpe: workingSets[index].rpe,
+                        side: workingSets[index].side,
                         isWarmup: false,
                         completedAt: nil,
                         dateCreated: .now
@@ -191,6 +193,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                     durationSec: set.durationSec,
                     distanceMeters: set.distanceMeters,
                     rpe: set.rpe,
+                    side: set.side,
                     isWarmup: set.isWarmup,
                     completedAt: set.completedAt,
                     dateCreated: set.dateCreated
@@ -236,6 +239,26 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
             return .timeOnly
         }
         return .repsOnly
+    }
+
+    /// Whether this exercise is worked one limb at a time, so each set is logged twice — once per
+    /// side — and the two rows are the one set.
+    ///
+    /// Read off the metrics the exercise is tracked by, because that is the only field every
+    /// exercise has. `laterality` would look like the obvious answer and is not: it is optional,
+    /// user-created exercises almost always leave it empty, and only three of the seeded thirty-two
+    /// set it, so it would silently classify nearly everything as two-sided.
+    ///
+    /// Only three of the five `*PerSide` metrics mean one side at a time. The weight ones do not:
+    /// "per side" there means the plates on each end of a barbell, or one weight held in both
+    /// hands, neither of which splits a set in two.
+    static func isPerSide(_ exercise: ExerciseModel) -> Bool {
+        let perSideMetrics: Set<TrackableExerciseMetric> = [
+            .repsPerSide,
+            .durationPerSide,
+            .distanceShortPerSide
+        ]
+        return !Set(exercise.trackableMetrics).isDisjoint(with: perSideMetrics)
     }
 
     // Mutating methods for workout tracker
@@ -436,38 +459,56 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         return UnitConversion.convertWeightToKg(roundedWeight, from: preferredUnit)
     }
     
+    /// The empty sets an exercise starts a session with.
+    ///
+    /// `targetCount` is how many sets the user is being asked to do. For an exercise worked one
+    /// limb at a time that is twice as many rows, left then right, because each side is filled in
+    /// separately — but it is still that many sets, and everything that counts them says so.
     static func defaultSets(
         trackingMode: TrackingMode,
         authorId: String,
-        targetCount: Int = 3
+        targetCount: Int = 3,
+        perSide: Bool = false
     ) -> [WorkoutSetModel] {
         let count = max(targetCount, 1)
-        switch trackingMode {
-        case .weightReps:
-            return (0..<count).map { index in
-                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
-                                weightKg: nil, durationSec: nil, distanceMeters: nil, rpe: nil,
-                                isWarmup: false, completedAt: nil, dateCreated: .now)
-            }
-        case .repsOnly:
-            return (0..<count).map { index in
-                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
-                                weightKg: nil, durationSec: nil, distanceMeters: nil, rpe: nil,
-                                isWarmup: false, completedAt: nil, dateCreated: .now)
-            }
-        case .timeOnly:
-            return (0..<count).map { index in
-                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
-                                    weightKg: nil, durationSec: 60, distanceMeters: nil, rpe: nil,
-                                    isWarmup: false, completedAt: nil, dateCreated: .now)
-            }
-        case .distanceTime:
-            return (0..<count).map { index in
-                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
-                                    weightKg: nil, durationSec: 120, distanceMeters: 400, rpe: nil,
-                                    isWarmup: false, completedAt: nil, dateCreated: .now)
+        let sides: [SetSide?] = perSide ? SetSide.ordered.map { $0 } : [nil]
+        var sets: [WorkoutSetModel] = []
+
+        for _ in 0..<count {
+            for side in sides {
+                sets.append(
+                    WorkoutSetModel(
+                        id: UUID().uuidString,
+                        authorId: authorId,
+                        index: sets.count + 1,
+                        reps: nil,
+                        weightKg: nil,
+                        durationSec: defaultDurationSec(for: trackingMode),
+                        distanceMeters: defaultDistanceMeters(for: trackingMode),
+                        rpe: nil,
+                        side: side,
+                        isWarmup: false,
+                        completedAt: nil,
+                        dateCreated: .now
+                    )
+                )
             }
         }
+
+        return sets
+    }
+
+    /// Timed and distance work starts from a figure worth showing; weight and reps start empty.
+    private static func defaultDurationSec(for trackingMode: TrackingMode) -> Int? {
+        switch trackingMode {
+        case .weightReps, .repsOnly: return nil
+        case .timeOnly:              return 60
+        case .distanceTime:          return 120
+        }
+    }
+
+    private static func defaultDistanceMeters(for trackingMode: TrackingMode) -> Double? {
+        trackingMode == .distanceTime ? 400 : nil
     }
     
     @MainActor

@@ -358,7 +358,7 @@ class AnalyticsPresenter {
     var workoutSparklineData: [(date: Date, value: Double)] {
         workoutLast7Sessions.map { session in
             let date = session.endedAt ?? session.dateCreated
-            let setCount = session.exercises.flatMap { $0.sets }.filter { !$0.isWarmup }.count
+            let setCount = session.exercises.reduce(0) { $0 + $1.workingSetCount }
             return (date: date, value: Double(setCount))
         }
     }
@@ -369,7 +369,7 @@ class AnalyticsPresenter {
 
     var workoutLatestValueText: String {
         let total = workoutLast7Sessions.reduce(0) { sum, session in
-            sum + session.exercises.flatMap { $0.sets }.filter { !$0.isWarmup }.count
+            sum + session.exercises.reduce(0) { $0 + $1.workingSetCount }
         }
         return total > 0 ? "\(total)" : "--"
     }

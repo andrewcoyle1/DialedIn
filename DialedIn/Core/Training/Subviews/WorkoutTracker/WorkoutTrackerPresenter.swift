@@ -168,12 +168,13 @@ class WorkoutTrackerPresenter {
         return Date() < end
     }
     
+    /// Counted per exercise so a left/right pair is the one set it is — see `WorkoutSetPairing`.
     var completedSetsCount: Int {
-        return workoutSession.exercises.flatMap { $0.sets }.filter { $0.completedAt != nil }.count
+        workoutSession.exercises.reduce(0) { $0 + $1.sets.filter { $0.completedAt != nil }.pairedSetCount }
     }
     
     var totalSetsCount: Int {
-        return workoutSession.exercises.flatMap { $0.sets }.count
+        workoutSession.exercises.reduce(0) { $0 + $1.sets.pairedSetCount }
     }
     
     var formattedVolume: String {
@@ -487,6 +488,10 @@ class WorkoutTrackerPresenter {
 
     /// Copies a weight/reps edit onto sibling sets that still hold the previous values, when
     /// the propagate-changes setting is on.
+    ///
+    /// Kept within a side: typing a heavier weight on the left arm must not quietly move the right
+    /// arm's sets too, because the two limbs are not equally strong and that is why they are
+    /// logged apart.
     private func propagateChanges(
         of updatedSet: WorkoutSetModel,
         replacing original: WorkoutSetModel,
@@ -501,7 +506,8 @@ class WorkoutTrackerPresenter {
 
         for index in sets.indices where index != setIndex {
             var sibling = sets[index]
-            guard sibling.completedAt == nil,
+            guard sibling.side == updatedSet.side,
+                  sibling.completedAt == nil,
                   sibling.weightKg == original.weightKg,
                   sibling.reps == original.reps else { continue }
             if weightChanged { sibling.weightKg = updatedSet.weightKg }

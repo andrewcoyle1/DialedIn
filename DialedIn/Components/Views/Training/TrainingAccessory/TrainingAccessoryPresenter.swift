@@ -49,12 +49,13 @@ class TrainingAccessoryPresenter {
         router.showWorkoutTrackerView()
     }
 
+    /// A left/right pair is one set, so the accessory's "4/12 sets" matches the screen behind it.
     func completedSetsCount(_ session: WorkoutSessionModel) -> Int {
-        session.exercises.flatMap(\.sets).filter { $0.completedAt != nil }.count
+        session.exercises.reduce(0) { $0 + $1.sets.filter { $0.completedAt != nil }.pairedSetCount }
     }
 
     func totalSetsCount(_ session: WorkoutSessionModel) -> Int {
-        session.exercises.flatMap(\.sets).count
+        session.exercises.reduce(0) { $0 + $1.sets.pairedSetCount }
     }
 
     func totalVolume(_ session: WorkoutSessionModel) -> Double {

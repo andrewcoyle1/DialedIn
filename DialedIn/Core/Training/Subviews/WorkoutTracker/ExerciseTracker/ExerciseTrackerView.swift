@@ -63,9 +63,10 @@ struct ExerciseTrackerView<SetTracker: View>: View {
                     }
                 }
 
-                Text("Set \(min(exercise.completedSetsCount + 1, exercise.sets.filter { !$0.isWarmup }.count))/\(exercise.sets.filter { !$0.isWarmup }.count)")
+                // Counted in sets, not rows: three sets a side reads "Set 2/3", not "Set 4/6".
+                Text("Set \(min(exercise.loggedSetCount + 1, exercise.workingSetCount))/\(exercise.workingSetCount)")
                     .font(.caption)
-                    .foregroundColor(exercise.completedSetsCount == exercise.sets.count ? .green : .secondary)
+                    .foregroundColor(exercise.loggedSetCount == exercise.workingSetCount ? .green : .secondary)
             }
         }
         .tappableBackground()

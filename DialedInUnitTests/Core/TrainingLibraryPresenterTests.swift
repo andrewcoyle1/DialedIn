@@ -67,6 +67,10 @@ struct TrainingExerciseSettingsPresenterTests {
             noteDelegates.append(delegate)
         }
 
+        func showRestTimerSettingsView(delegate: RestTimerSettingsDelegate) {
+            shown.append("restTimerSettings")
+        }
+
         func showRestModal(
             primaryButtonAction: @escaping () -> Void,
             secondaryButtonAction: @escaping () -> Void,
