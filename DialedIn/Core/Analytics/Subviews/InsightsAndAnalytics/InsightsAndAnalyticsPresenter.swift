@@ -8,7 +8,13 @@ class InsightsAndAnalyticsPresenter {
     private let router: InsightsAndAnalyticsRouter
     private let calendar = Calendar.current
 
-    private(set) var scaleWeightEntries: [BodyMeasurementEntry] = []
+    /// The weigh-ins behind the Weight Trend card. This was a stored property nothing ever wrote
+    /// to, so the card read "No Entries" and drew a flat line however many times the user had
+    /// weighed themselves.
+    private var scaleWeightEntries: [BodyMeasurementEntry] {
+        interactor.bodyMeasurements
+    }
+
     private(set) var macrosLast7Days: [DailyMacroTarget] = []
     var workoutLast7Sessions: [WorkoutSessionModel] {
         let completed = workoutSessions
