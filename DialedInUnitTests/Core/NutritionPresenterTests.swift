@@ -350,26 +350,55 @@ struct NutritionPresenterTests {
         #expect(screen.presenter.timelineHours.isEmpty)
     }
 
-    /// A meal logged outside the configured window does not appear on the timeline at all, while
-    /// its calories still count toward the day's totals and rings.
+    /// A meal logged outside the configured window is still shown, in its own hour.
     ///
-    /// This pins current behaviour rather than endorsing it: a 2am snack under the default 7–23
-    /// window is counted but unreachable, so it cannot be edited or deleted from this screen.
-    @Test("Test A Meal Outside The Window Is Counted But Not Shown")
-    func testAMealOutsideTheWindowIsCountedButNotShown() {
+    /// It counts toward the day's totals and marks the calendar either way, so leaving it off the
+    /// timeline made it unreachable: a 2am snack under the default 7–23 window could not be
+    /// edited or deleted from this screen.
+    @Test("Test A Meal Outside The Window Is Still Shown")
+    func testAMealOutsideTheWindowIsStillShown() {
         var settings = FoodLogSettings(authorId: "user-1")
         settings.startHour = 7
         settings.endHour = 23
         let snack = meal(id: "snack", hour: 2, calories: 400)
         let screen = makeScreen(meals: [snack], settings: settings)
 
-        let shown = screen.presenter.timelineHours.flatMap(\.meals).map(\.mealId)
+        let hours = screen.presenter.timelineHours
+        let snackHour = hours.first { Calendar.current.component(.hour, from: $0.hour) == 2 }
 
-        #expect(shown.isEmpty)
-        // It is still part of the day, which is what makes the omission a problem.
+        #expect(snackHour?.meals.map(\.mealId) == ["snack"])
+        // It sorts ahead of the configured window rather than being appended after it.
+        #expect(hours.first?.id == snackHour?.id)
         #expect(screen.presenter.mealsForSelectedDate.map(\.mealId) == ["snack"])
-        let day = Calendar.current.startOfDay(for: monday)
-        #expect(screen.presenter.calorieMarkersByDay()[day] != nil)
+    }
+
+    /// Out-of-window meals are shown with empty hours hidden too — that setting drops empty hours,
+    /// not logged ones.
+    @Test("Test Hiding Empty Hours Still Shows An Out Of Window Meal")
+    func testHidingEmptyHoursStillShowsAnOutOfWindowMeal() {
+        var settings = FoodLogSettings(authorId: "user-1")
+        settings.startHour = 7
+        settings.endHour = 23
+        settings.hideEmptyHours = true
+        let screen = makeScreen(meals: [meal(id: "snack", hour: 2), meal(id: "lunch", hour: 13)], settings: settings)
+
+        let hours = screen.presenter.timelineHours
+
+        #expect(hours.map { Calendar.current.component(.hour, from: $0.hour) } == [2, 13])
+    }
+
+    /// The window still governs the empty scaffolding: an hour with nothing in it outside the
+    /// window is not drawn.
+    @Test("Test Empty Hours Outside The Window Are Not Drawn")
+    func testEmptyHoursOutsideTheWindowAreNotDrawn() {
+        var settings = FoodLogSettings(authorId: "user-1")
+        settings.startHour = 8
+        settings.endHour = 10
+        let screen = makeScreen(meals: [meal(id: "snack", hour: 2)], settings: settings)
+
+        let hours = screen.presenter.timelineHours.map { Calendar.current.component(.hour, from: $0.hour) }
+
+        #expect(hours == [2, 8, 9, 10])
     }
 
     /// Only the selected day is shown; yesterday's meals belong to yesterday's timeline.

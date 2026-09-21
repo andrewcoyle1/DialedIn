@@ -61,27 +61,27 @@ class NutritionPresenter {
             calendar.dateInterval(of: .hour, for: meal.date)?.start ?? meal.date
         }
 
-        guard
-            let start = calendar.date(bySettingHour: startHour, minute: 0, second: 0, of: selectedDate),
-            let end = calendar.date(bySettingHour: endHour, minute: 0, second: 0, of: selectedDate)
-        else {
-            return []
-        }
+        // An hour holding food is always shown, in or out of the configured window. The window
+        // decides how much empty timeline to draw around the day, never whether something logged
+        // is reachable: a 2am snack under a 7-23 window used to count toward the day's totals and
+        // mark the calendar while appearing nowhere, so it could not be edited or deleted.
+        var shownHours = Set(mealsByHour.keys)
 
-        var hours: [TimelineHour] = []
-        var current = start
-
-        // Step through hour by hour until reaching the end.
-        while current <= end {
-            let meals = mealsByHour[current] ?? []
-            if !meals.isEmpty || !hideEmptyHours {
-                hours.append(TimelineHour(id: current, meals: meals))
+        if !hideEmptyHours,
+           let start = calendar.date(bySettingHour: startHour, minute: 0, second: 0, of: selectedDate),
+           let end = calendar.date(bySettingHour: endHour, minute: 0, second: 0, of: selectedDate) {
+            var current = start
+            // Step through hour by hour until reaching the end.
+            while current <= end {
+                shownHours.insert(current)
+                guard let next = calendar.date(byAdding: .hour, value: 1, to: current) else { break }
+                current = next
             }
-            guard let next = calendar.date(byAdding: .hour, value: 1, to: current) else { break }
-            current = next
         }
 
-        return hours
+        return shownHours.sorted().map { hour in
+            TimelineHour(id: hour, meals: mealsByHour[hour] ?? [])
+        }
     }
 
     /// How every row in the timeline is drawn, resolved from `FoodLogSettings` in one place
