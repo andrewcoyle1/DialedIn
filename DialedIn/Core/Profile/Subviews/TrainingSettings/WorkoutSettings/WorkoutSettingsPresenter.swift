@@ -15,7 +15,12 @@ class WorkoutSettingsPresenter {
         self.settings = interactor.workoutSettings
     }
 
+    /// Re-read rather than trusted from init: every screen this one pushes to edits the same
+    /// settings document, and this screen stays alive underneath them. Saving a toggle writes the
+    /// whole document back, so a copy taken before the user visited the rest timer would undo
+    /// everything they changed there.
     func onViewAppear(delegate: WorkoutSettingsDelegate) {
+        settings = interactor.workoutSettings
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
     }
 
