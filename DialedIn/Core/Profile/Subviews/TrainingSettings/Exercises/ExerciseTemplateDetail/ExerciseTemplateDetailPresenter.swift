@@ -36,6 +36,7 @@ class ExerciseModelDetailPresenter {
     /// Rebuilt on appear rather than computed per section: all three history-bearing tabs walk the
     /// same sessions, and the collection only changes when a workout is logged.
     func onViewAppear(delegate: ExerciseModelDetailDelegate) {
+        unitPreference = interactor.getPreference(templateId: delegate.exerciseModel.id)
         stats = ExerciseModelDetailStats.make(
             from: interactor.workoutSessions,
             templateId: delegate.exerciseModel.id
