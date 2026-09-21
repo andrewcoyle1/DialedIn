@@ -367,7 +367,6 @@ struct FoodLibraryPresenterTests {
 struct NutritionPickerPresenterTests {
 
     private final class PickerInteractor: SpyGlobalInteractor, NutritionLibraryPickerInteractor {
-        var foods: [FoodModel] = []
         private(set) var savedExternalFoods: [FoodModel] = []
 
         func saveExternalFood(_ food: FoodModel) async {

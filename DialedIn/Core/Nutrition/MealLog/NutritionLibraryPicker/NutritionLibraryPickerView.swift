@@ -88,55 +88,7 @@ struct NutritionLibraryPickerView<
             .scrollIndicators(.hidden)
         }
     }
-    
-    private var describeSection: some View {
-        Text("Describe Section...")
-    }
-        
-    private var ingredientsSection: some View {
-        Section {
-            if presenter.foods.isEmpty {
-                Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No ingredients to show yet" : "No results")
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(presenter.foods) { ingredient in
-                    Button {
-                        presenter.navToIngredientAmount(ingredient, onPick: delegate.onPick)
-                    } label: {
-                        CustomListCellView(
-                            imageName: ingredient.imageURL,
-                            title: ingredient.name,
-                            subtitle: ingredient.description
-                        )
-                    }
-                }
-                .removeListRowFormatting()
-            }
-        }
-        
-    }
-    
-    private var recipesSection: some View {
-        Section {
-            if presenter.recipes.isEmpty {
-                Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No recipes to show yet" : "No results")
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(presenter.recipes) { recipe in
-                    Button {
-                        presenter.navToRecipeAmount(recipe, onPick: delegate.onPick)
-                    } label: {
-                        CustomListCellView(
-                            imageName: nil,
-                            title: recipe.name,
-                            subtitle: recipe.description
-                        )
-                    }
-                }
-                .removeListRowFormatting()
-            }
-        }
-    }
+
 }
 
 extension CoreBuilder {

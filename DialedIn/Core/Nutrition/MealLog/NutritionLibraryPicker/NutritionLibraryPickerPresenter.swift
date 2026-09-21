@@ -14,15 +14,6 @@ class NutritionLibraryPickerPresenter {
     private let router: NutritionLibraryPickerRouter
 
     private(set) var mode: NutritionPickerMode = .search
-    var searchText: String = ""
-    private(set) var recipes: [RecipeTemplateModel] = []
-
-    var foods: [FoodModel] {
-        interactor.foods
-            .filter {
-                $0.name == searchText
-            }
-    }
     
     init(
         interactor: NutritionLibraryPickerInteractor,
