@@ -94,6 +94,13 @@ class FoodLogSettingsPresenter {
     }
 
     func onViewAppear() {
+        // Six of this screen's rows push a sub-screen that edits the *same* settings document and
+        // saves it. Coming back, the snapshot taken when this screen was first pushed is out of
+        // date, so the next toggle here would save it and undo whatever was changed in there.
+        // Re-reading on every appear — including the pop back from a sub-screen — keeps the two in
+        // step. The same is true of the favourite food and recipe ids, which are written from the
+        // nutrition tab and live in this document too.
+        settings = interactor.foodLogSettings
         interactor.trackScreenEvent(event: Event.onAppear)
     }
 
