@@ -35,7 +35,10 @@ class WorkoutConsistencyPresenter {
 
     private func rebuildCaches() {
         let completed = workoutSessions
-            .filter { $0.endedAt != nil }
+            // A rest day is written ahead of time by the training program, already ended and dated
+            // into the future. Counted as a workout it put tomorrow at the top of the history as a
+            // zero-set session and shaded grid squares for days that had not happened.
+            .filter { $0.endedAt != nil && !$0.isRestDay }
             .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
         
         cachedEntries = completed.map { session in

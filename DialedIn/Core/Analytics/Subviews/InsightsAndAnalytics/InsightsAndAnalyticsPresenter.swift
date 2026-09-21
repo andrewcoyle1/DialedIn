@@ -8,11 +8,20 @@ class InsightsAndAnalyticsPresenter {
     private let router: InsightsAndAnalyticsRouter
     private let calendar = Calendar.current
 
-    private(set) var scaleWeightEntries: [BodyMeasurementEntry] = []
+    /// The weigh-ins behind the Weight Trend card. This was a stored property nothing ever wrote
+    /// to, so the card read "No Entries" and drew a flat line however many times the user had
+    /// weighed themselves.
+    private var scaleWeightEntries: [BodyMeasurementEntry] {
+        interactor.bodyMeasurements
+    }
+
     private(set) var macrosLast7Days: [DailyMacroTarget] = []
     var workoutLast7Sessions: [WorkoutSessionModel] {
         let completed = workoutSessions
-            .filter { $0.endedAt != nil }
+            // A rest day is written ahead of time by the training program, already ended and dated
+            // into the future, so counting it as a workout filled this card with sessions that had
+            // not happened and had no sets in them.
+            .filter { $0.endedAt != nil && !$0.isRestDay }
             .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
         return Array(completed.prefix(7))
             .sorted { ($0.endedAt ?? .distantPast) < ($1.endedAt ?? .distantPast) }
