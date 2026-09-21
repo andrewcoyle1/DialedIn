@@ -16,10 +16,13 @@ struct WorkoutSetModel: Identifiable, Codable, Hashable {
     var durationSec: Int?
     var distanceMeters: Double?
     var rpe: Double?
+    /// Which limb this set was worked with, for exercises done one side at a time. `nil` for every
+    /// two-sided exercise, and for every set logged before sides existed.
+    var side: SetSide?
     var isWarmup: Bool
     var completedAt: Date?
     var dateCreated: Date
-    
+
     init(
         id: String,
         authorId: String,
@@ -29,6 +32,7 @@ struct WorkoutSetModel: Identifiable, Codable, Hashable {
         durationSec: Int? = nil,
         distanceMeters: Double? = nil,
         rpe: Double? = nil,
+        side: SetSide? = nil,
         isWarmup: Bool,
         completedAt: Date? = nil,
         dateCreated: Date
@@ -41,6 +45,7 @@ struct WorkoutSetModel: Identifiable, Codable, Hashable {
         self.durationSec = durationSec
         self.distanceMeters = distanceMeters
         self.rpe = rpe
+        self.side = side
         self.isWarmup = isWarmup
         self.completedAt = completedAt
         self.dateCreated = dateCreated
@@ -55,6 +60,7 @@ struct WorkoutSetModel: Identifiable, Codable, Hashable {
         case durationSec = "duration_sec"
         case distanceMeters = "distance_meters"
         case rpe
+        case side
         case isWarmup
         case completedAt = "completed_at"
         case dateCreated = "date_created"
