@@ -52,11 +52,15 @@ class ExerciseDetailPresenter {
                 oneRMKg: oneRMByDay[day] ?? 0
             )
         }
+        // Plotted in the exercise's own unit, like the rows and the axis label. The chart used to
+        // plot stored kilograms under a "lbs" axis, so a 100kg bench drew at 100 beside rows
+        // reading 220.5.
+        let unit = weightUnit
         let seriesData = sortedDays.map { day in
             TimeSeriesDatapoint(
                 id: day.timeIntervalSince1970.description,
                 date: day,
-                value: oneRMByDay[day] ?? 0
+                value: UnitConversion.convertWeight(oneRMByDay[day] ?? 0, to: unit)
             )
         }
         cachedTimeSeries = [TimeSeries(name: "1-RM", data: seriesData)]
