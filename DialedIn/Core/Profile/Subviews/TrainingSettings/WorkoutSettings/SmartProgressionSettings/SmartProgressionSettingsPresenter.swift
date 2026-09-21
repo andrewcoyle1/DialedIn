@@ -38,6 +38,10 @@ class SmartProgressionSettingsPresenter {
     }
 
     func onViewAppear(delegate: SmartProgressionSettingsDelegate) {
+        // Every workout-settings screen edits a copy of the one settings document and writes the
+        // whole thing back, so a copy taken at init and never refreshed reverts anything saved
+        // elsewhere in the meantime. Re-reading here is what the sibling screens do.
+        settings = interactor.workoutSettings
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
     }
     

@@ -397,6 +397,24 @@ struct SmartProgressionSettingsPresenterTests {
 
         #expect(screen.interactor.trackedScreenEventNames == ["SmartProgressionSettingsView_Appear"])
     }
+
+    /// All five workout-settings screens edit a copy of the one settings document and write the
+    /// whole thing back, so a copy taken when the screen was built reverts anything saved
+    /// elsewhere since. Change your rest timer, walk in here, pick an option, and the rest timer
+    /// silently goes back — with nothing on screen to say it happened.
+    @Test("Test Settings Changed Elsewhere Are Not Undone")
+    func testSettingsChangedElsewhereAreNotUndone() async {
+        let screen = makeScreen()
+
+        // Saved from another screen after this presenter was built.
+        screen.interactor.workoutSettings.defaultRestDurationSeconds = 240
+        screen.presenter.onViewAppear(delegate: SmartProgressionSettingsDelegate())
+        screen.presenter.applyInSession = true
+        await TestManagers.eventually { !screen.interactor.savedSettings.isEmpty }
+
+        #expect(screen.interactor.savedSettings.last?.defaultRestDurationSeconds == 240)
+        #expect(screen.interactor.savedSettings.last?.smartProgressionApplyInSession == true)
+    }
 }
 
 /// Which earlier workout the "last time" figures are taken from.
