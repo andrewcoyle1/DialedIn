@@ -18,7 +18,10 @@ class InsightsAndAnalyticsPresenter {
     private(set) var macrosLast7Days: [DailyMacroTarget] = []
     var workoutLast7Sessions: [WorkoutSessionModel] {
         let completed = workoutSessions
-            .filter { $0.endedAt != nil }
+            // A rest day is written ahead of time by the training program, already ended and dated
+            // into the future, so counting it as a workout filled this card with sessions that had
+            // not happened and had no sets in them.
+            .filter { $0.endedAt != nil && !$0.isRestDay }
             .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
         return Array(completed.prefix(7))
             .sorted { ($0.endedAt ?? .distantPast) < ($1.endedAt ?? .distantPast) }
