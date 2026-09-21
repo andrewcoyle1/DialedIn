@@ -38,7 +38,10 @@ struct SetTrackerRowView: View {
         }
         .swipeActions(edge: .leading, allowsFullSwipe: false) {
             Button {
-                presenter.onRestPickerRequested(setId: delegate.set.wrappedValue.id)
+                presenter.onRestPickerRequested(
+                    exercise: delegate.exercise.wrappedValue,
+                    setId: delegate.set.wrappedValue.id
+                )
             } label: {
                 Label("Rest Timer", systemImage: "timer")
             }
