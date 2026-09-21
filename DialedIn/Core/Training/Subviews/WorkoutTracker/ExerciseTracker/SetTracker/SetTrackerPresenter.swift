@@ -140,7 +140,11 @@ class SetTrackerPresenter {
     func addSet(exercise: Binding<WorkoutExerciseModel>) {
         guard let userId = interactor.userId else { return }
         let existingSets = exercise.wrappedValue.sets
-        let newIndex = existingSets.count + 1
+        // One past the highest index, not one past the count. Deleting a set does not renumber the
+        // rest, so after deleting any set but the last, the count no longer reaches the top index
+        // and this handed the new set an index another set already held. Warmup sets share the
+        // same numbering, which makes it easier still to hit.
+        let newIndex = (existingSets.map(\.index).max() ?? 0) + 1
         let lastSet = existingSets.last
 
         let newSet = WorkoutSetModel(
@@ -357,8 +361,12 @@ class SetTrackerPresenter {
             return [:]
         }
         
-        // Map sets by index
-        return Dictionary(uniqueKeysWithValues: prevExercise.sets.map { ($0.index, $0) })
+        // Map sets by index, keeping the last of any duplicates rather than trapping on them.
+        // `Dictionary(uniqueKeysWithValues:)` crashes on a repeated key, and sessions saved before
+        // `addSet` stopped reusing indices are still out there holding two sets numbered the same —
+        // this is read when the exercise is next tracked, so such a session would take the screen
+        // down every time it was opened.
+        return Dictionary(prevExercise.sets.map { ($0.index, $0) }, uniquingKeysWith: { _, latest in latest })
     }
 
 }
