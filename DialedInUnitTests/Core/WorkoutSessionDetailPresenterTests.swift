@@ -554,6 +554,7 @@ struct WorkoutSessionDetailPresenterTests {
 
     /// A session held by reference, so the presenter's editing methods — which all take a
     /// `Binding` — can be driven without a view, and the result read back afterwards.
+    @MainActor
     private final class MutableSession {
         var value: WorkoutSessionModel
 
@@ -561,8 +562,15 @@ struct WorkoutSessionDetailPresenterTests {
             self.value = value
         }
 
+        /// `Binding`'s accessors are `@Sendable`, so they cannot carry this class's isolation and
+        /// the capture has to be safe on its own terms. Being main-actor isolated makes the class
+        /// `Sendable`; the accessors then assume the isolation rather than hop, which holds because
+        /// every presenter method that reads or writes one of these bindings is `@MainActor` too.
         var binding: Binding<WorkoutSessionModel> {
-            Binding(get: { self.value }, set: { self.value = $0 })
+            Binding(
+                get: { MainActor.assumeIsolated { self.value } },
+                set: { newValue in MainActor.assumeIsolated { self.value = newValue } }
+            )
         }
     }
 }

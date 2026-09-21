@@ -36,8 +36,20 @@ struct FoodDefinitionPresenterTests {
     }
 
     /// Holds the meal items the "create and add" path appends to.
+    ///
+    /// Main-actor isolated so it is `Sendable` and can be captured by the `@Sendable` accessors of
+    /// the `Binding` built from it; the accessors assume that isolation rather than hop, which
+    /// holds because the presenter writes through the binding on the main actor.
+    @MainActor
     private final class ItemBox {
         var items: [MealItemModel] = []
+
+        var binding: Binding<[MealItemModel]> {
+            Binding(
+                get: { MainActor.assumeIsolated { self.items } },
+                set: { newValue in MainActor.assumeIsolated { self.items = newValue } }
+            )
+        }
     }
 
     private struct Screen {
@@ -57,7 +69,7 @@ struct FoodDefinitionPresenterTests {
         let interactor = Interactor()
         let box = ItemBox()
         let delegate = FoodDefinitionDelegate(
-            mealItems: Binding(get: { box.items }, set: { box.items = $0 }),
+            mealItems: box.binding,
             nutritionDefinitionOption: option,
             image: nil,
             name: name,
