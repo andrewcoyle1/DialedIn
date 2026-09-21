@@ -26,7 +26,15 @@ class BodyMetricsPresenter {
     }
 
     func onMeasurementPressed(_ type: BodyMetricType, themeColor: Color?) {
-        routeToWeightOrUpperBody(type, themeColor: themeColor)
+        switch type {
+        case .scaleWeight:
+            router.showScaleWeightView(delegate: ScaleWeightDelegate(), themeColor: themeColor)
+        case .visualBodyFat:
+            router.showVisualBodyFatView(delegate: VisualBodyFatDelegate(), themeColor: themeColor)
+        default:
+            guard let kind = type.measurementKind else { return }
+            router.showBodyMeasurementDetailView(kind: kind, themeColor: themeColor)
+        }
     }
 
     // MARK: - Ratios
@@ -167,68 +175,6 @@ class BodyMetricsPresenter {
         return Array(sorted.suffix(7))
     }
 
-    private func routeToWeightOrUpperBody(_ type: BodyMetricType, themeColor: Color?) {
-        switch type {
-        case .scaleWeight:
-            router.showScaleWeightView(delegate: ScaleWeightDelegate(), themeColor: themeColor)
-        case .visualBodyFat:
-            router.showVisualBodyFatView(delegate: VisualBodyFatDelegate(), themeColor: themeColor)
-        case .neck:
-            router.showNeckMeasurementView(delegate: NeckMeasurementDelegate(), themeColor: themeColor)
-        case .shoulders:
-            router.showShouldersMeasurementView(delegate: ShouldersMeasurementDelegate(), themeColor: themeColor)
-        case .bust:
-            router.showBustMeasurementView(delegate: BustMeasurementDelegate(), themeColor: themeColor)
-        case .chest:
-            router.showChestMeasurementView(delegate: ChestMeasurementDelegate(), themeColor: themeColor)
-        case .waist:
-            router.showWaistMeasurementView(delegate: WaistMeasurementDelegate(), themeColor: themeColor)
-        case .hips:
-            router.showHipsMeasurementView(delegate: HipsMeasurementDelegate(), themeColor: themeColor)
-        case .leftBicep, .rightBicep, .leftForearm, .rightForearm, .leftWrist, .rightWrist:
-            routeToArms(type, themeColor: themeColor)
-        case .leftThigh, .rightThigh, .leftCalf, .rightCalf, .leftAnkle, .rightAnkle:
-            routeToLegs(type, themeColor: themeColor)
-        }
-    }
-
-    private func routeToArms(_ type: BodyMetricType, themeColor: Color?) {
-        switch type {
-        case .leftBicep:
-            router.showLeftBicepMeasurementView(delegate: LeftBicepMeasurementDelegate(), themeColor: themeColor)
-        case .rightBicep:
-            router.showRightBicepMeasurementView(delegate: RightBicepMeasurementDelegate(), themeColor: themeColor)
-        case .leftForearm:
-            router.showLeftForearmMeasurementView(delegate: LeftForearmMeasurementDelegate(), themeColor: themeColor)
-        case .rightForearm:
-            router.showRightForearmMeasurementView(delegate: RightForearmMeasurementDelegate(), themeColor: themeColor)
-        case .leftWrist:
-            router.showLeftWristMeasurementView(delegate: LeftWristMeasurementDelegate(), themeColor: themeColor)
-        case .rightWrist:
-            router.showRightWristMeasurementView(delegate: RightWristMeasurementDelegate(), themeColor: themeColor)
-        default:
-            break
-        }
-    }
-
-    private func routeToLegs(_ type: BodyMetricType, themeColor: Color?) {
-        switch type {
-        case .leftThigh:
-            router.showLeftThighMeasurementView(delegate: LeftThighMeasurementDelegate(), themeColor: themeColor)
-        case .rightThigh:
-            router.showRightThighMeasurementView(delegate: RightThighMeasurementDelegate(), themeColor: themeColor)
-        case .leftCalf:
-            router.showLeftCalfMeasurementView(delegate: LeftCalfMeasurementDelegate(), themeColor: themeColor)
-        case .rightCalf:
-            router.showRightCalfMeasurementView(delegate: RightCalfMeasurementDelegate(), themeColor: themeColor)
-        case .leftAnkle:
-            router.showLeftAnkleMeasurementView(delegate: LeftAnkleMeasurementDelegate(), themeColor: themeColor)
-        case .rightAnkle:
-            router.showRightAnkleMeasurementView(delegate: RightAnkleMeasurementDelegate(), themeColor: themeColor)
-        default:
-            break
-        }
-    }
 }
 
 extension BodyMetricsPresenter {

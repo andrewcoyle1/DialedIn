@@ -27,8 +27,21 @@ xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
-The unit tests compile and pass (181 tests). Treat a `TEST FAILED` as a regression from your
+The tests compile and pass (735 tests). Treat a `TEST FAILED` as a regression from your
 change.
+
+`-only-testing:DialedInTests` is rejected — the unit-test target's productName is `DialedInTests`
+but that is not how the scheme names it, so run the whole `xcodebuild test` and read the counts
+from the result bundle:
+
+```bash
+xcrun xcresulttool get test-results summary \
+  --path "$(ls -td ~/Library/Developer/Xcode/DerivedData/DialedIn-*/Logs/Test/*.xcresult | head -1)"
+```
+
+The UI-test runner often fails to launch in the simulator (`FBSOpenApplicationServiceErrorDomain
+Code=1`). That does not fail the run — `** TEST SUCCEEDED **` with `failedTests: 0` is the signal
+that matters.
 
 Managers take sync engines rather than a services struct, so tests build them through
 **`DialedInUnitTests/Support/TestManagers.swift`**, which wires them the way `Dependencies` does
@@ -186,7 +199,7 @@ packages directly:
 | `Managers/DataManagers/SwiftfulDataManagers+Alias.swift` | `CollectionSyncEngine`, `DocumentSyncEngine`, `DataSyncModelProtocol`, the persistence types |
 | `Managers/Gamification/SwiftfulGamification+Alias.swift` | `StreakManager`, `ProgressManager`, `ExperiencePointsManager` |
 | `Managers/Haptics`, `SoundEffects`, `Utilities` | `HapticManager`, `SoundEffectManager`, `Utilities` |
-| `Components/Views/Charts/QuickCharts+Alias.swift` | `TimeSeries`, `TimeSeriesDatapoint`, `ChartScreen`, `LineChart`, `BarChart`, `StackedBarChart`, `ComboChart`, `ChartConfiguration` (from `andrewcoyle1/QuickCharts`) |
+| `Components/Views/Charts/QuickCharts+Alias.swift` | `TimeSeries`, `TimeSeriesDatapoint`, `ChartScreen`, `LineChart`, `BarChart`, `StackedBarChart`, `ComboChart`, `ChartConfiguration`, `ContributionChart` and its pieces (`ContributionGrid`, `ContributionGridView`, `ContributionLegend`, `ContributionStyle`, `ContributionLayout`, `ContributionCell`) (from `andrewcoyle1/QuickCharts`) |
 
 So when a symbol like `AuthManager` or `CollectionSyncEngine` cannot be found in this
 repository, it is a package type — look in the alias file, then the package source. Editing its
@@ -264,6 +277,32 @@ screen that needs to resume onboarding routes via **`OnboardingStepRouter`**
 `routeToOnboardingStep(_:onComplete:)` switch. Six presenters used to carry their own copies of
 that switch and had drifted out of sync. Add new steps there, not in a presenter.
 
+## Body Measurements
+
+The eighteen circumference measurements (neck, waist, left bicep, …) are **one** VIPER module,
+not eighteen. `BodyMeasurementKind`
+(`Core/Analytics/Subviews/BodyMetrics/LogMeasurement/BodyMeasurementKind.swift`) is a table with
+one line per measurement carrying everything that differs: display name, cm and inch picker
+ranges, the two defaults, the `KeyPath` that reads it off `BodyMeasurementEntry`, and the
+`CircumferenceUpdate` that writes it back. `LogMeasurementView` and its presenter are driven by
+that kind, and `BodyMetricsRouter` exposes a single `showLogMeasurementView(kind:)`.
+
+To add a measurement: add a field to `BodyMeasurementEntry` with its `CircumferenceUpdate` and
+`ClearedField` cases, then add one line to the `BodyMeasurementKind` table. Do not copy a module.
+
+The detail screens behind those loggers are collapsed the same way:
+`MeasurementDetails/BodyMeasurementDetail.swift` holds one `MetricDetailPresenter` for all
+eighteen, reached by `showBodyMeasurementDetailView(kind:themeColor:)`. `BodyRatioMetric` and
+`VisualBodyFatMetric` are genuinely different and stay as their own files.
+
+`BodyMeasurementKind` is the **only** table for these eighteen. `BodyMetricType` (which also
+covers `scaleWeight` and `visualBodyFat`, so it cannot simply be replaced) maps into it via
+`measurementKind`, and its `value(from:)` and `displayTitle` defer to that rather than keeping
+their own keypath and title dictionaries.
+
+Together these two passes removed ~7,400 lines across 90 files whose only real differences were
+the values now in the table.
+
 ## Backend (Cloud Functions)
 
 `functions/` holds Firebase Cloud Functions v2 (Node, ES modules) using Genkit with Vertex AI.
@@ -290,9 +329,9 @@ under `functions/` have no effect until deployed.
 
 ## Code Health Baseline
 
-As of the latest commit on `fix/xcode26-build-and-appcheck`, all three schemes build with **zero
-warnings** and `swiftlint` reports **zero violations**. Treat any new warning as something to fix
-rather than accumulate.
+As of the latest commit on `development`, all three schemes build with **zero warnings** and
+`swiftlint` reports **zero violations** across 1,201 files. Treat any new warning as something to
+fix rather than accumulate.
 
 Two deliberate suppressions exist, each documented at the site:
 - `Dependencies.swift` disables `type_body_length`/`file_length` — it is one long DI root whose
