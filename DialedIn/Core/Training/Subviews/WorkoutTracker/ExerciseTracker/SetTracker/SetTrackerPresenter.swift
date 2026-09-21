@@ -17,7 +17,7 @@ class SetTrackerPresenter {
     
     var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
     var previousWorkoutSession: WorkoutSessionModel?
-    var previousLookup: [Int: WorkoutSetModel] = [:]
+    var previousLookup: [PreviousSetKey: WorkoutSetModel] = [:]
 
     var userId: String? {
         interactor.userId
@@ -72,7 +72,12 @@ class SetTrackerPresenter {
             exercise.wrappedValue.trackingMode = newMode
             exercise.wrappedValue.equipmentVariations = newExercise.equipmentVariations
             exercise.wrappedValue.imageName = Constants.exerciseImageName(for: newExercise.name)
-            exercise.wrappedValue.sets = WorkoutSessionModel.defaultSets(trackingMode: newMode, authorId: userId, targetCount: 3)
+            exercise.wrappedValue.sets = WorkoutSessionModel.defaultSets(
+                trackingMode: newMode,
+                authorId: userId,
+                targetCount: 3,
+                perSide: WorkoutSessionModel.isPerSide(newExercise)
+            )
             exercise.wrappedValue.setTargets = [SetTarget(setNumber: 1, setType: .standard)]
             exercise.wrappedValue.chosenVariationId = nil
         }
@@ -133,10 +138,16 @@ class SetTrackerPresenter {
         return result
     }
 
+    /// Deleting half of a left/right pair would leave the other half standing alone, numbering and
+    /// resting as a set in its own right, so the pair goes together.
     func deleteSet(setId: String, exercise: Binding<WorkoutExerciseModel>) {
-        exercise.wrappedValue.sets.removeAll(where: { $0.id == setId })
+        let removing = Set(exercise.wrappedValue.sets.pairedSetIds(for: setId))
+        guard !removing.isEmpty else { return }
+        exercise.wrappedValue.sets.removeAll(where: { removing.contains($0.id) })
     }
 
+    /// Adds one more set — which is two rows for an exercise worked a side at a time, so the user
+    /// is never handed a left with no right to follow it.
     func addSet(exercise: Binding<WorkoutExerciseModel>) {
         guard let userId = interactor.userId else { return }
         let existingSets = exercise.wrappedValue.sets
@@ -144,24 +155,32 @@ class SetTrackerPresenter {
         // rest, so after deleting any set but the last, the count no longer reaches the top index
         // and this handed the new set an index another set already held. Warmup sets share the
         // same numbering, which makes it easier still to hit.
-        let newIndex = (existingSets.map(\.index).max() ?? 0) + 1
-        let lastSet = existingSets.last
+        var nextIndex = (existingSets.map(\.index).max() ?? 0) + 1
+        let isPerSide = existingSets.contains { !$0.isWarmup && $0.side != nil }
+        let sides: [SetSide?] = isPerSide ? SetSide.ordered.map { $0 } : [nil]
 
-        let newSet = WorkoutSetModel(
-            id: UUID().uuidString,
-            authorId: userId,
-            index: newIndex,
-            reps: lastSet?.reps,
-            weightKg: lastSet?.weightKg,
-            durationSec: lastSet?.durationSec,
-            distanceMeters: lastSet?.distanceMeters,
-            rpe: lastSet?.rpe,
-            isWarmup: false,
-            completedAt: nil,
-            dateCreated: Date()
-        )
-
-        exercise.wrappedValue.sets.append(newSet)
+        for side in sides {
+            // Carry forward the figures of the last set on the same side, so a left set copies the
+            // left arm's weight rather than the right one's.
+            let lastSet = existingSets.last(where: { side == nil || $0.side == side }) ?? existingSets.last
+            exercise.wrappedValue.sets.append(
+                WorkoutSetModel(
+                    id: UUID().uuidString,
+                    authorId: userId,
+                    index: nextIndex,
+                    reps: lastSet?.reps,
+                    weightKg: lastSet?.weightKg,
+                    durationSec: lastSet?.durationSec,
+                    distanceMeters: lastSet?.distanceMeters,
+                    rpe: lastSet?.rpe,
+                    side: side,
+                    isWarmup: false,
+                    completedAt: nil,
+                    dateCreated: Date()
+                )
+            )
+            nextIndex += 1
+        }
     }
 
     func onWarmupSetHelpPressed() {
@@ -353,7 +372,7 @@ class SetTrackerPresenter {
         interactor.setDistanceUnit(unit, for: templateId)
     }
 
-    func buildPreviousLookup(for exercise: WorkoutExerciseModel) -> [Int: WorkoutSetModel] {
+    func buildPreviousLookup(for exercise: WorkoutExerciseModel) -> [PreviousSetKey: WorkoutSetModel] {
         guard let prevSession = previousWorkoutSession else { return [:] }
         
         // Find matching exercise by templateId
@@ -361,12 +380,18 @@ class SetTrackerPresenter {
             return [:]
         }
         
-        // Map sets by index, keeping the last of any duplicates rather than trapping on them.
-        // `Dictionary(uniqueKeysWithValues:)` crashes on a repeated key, and sessions saved before
-        // `addSet` stopped reusing indices are still out there holding two sets numbered the same —
-        // this is read when the exercise is next tracked, so such a session would take the screen
-        // down every time it was opened.
-        return Dictionary(prevExercise.sets.map { ($0.index, $0) }, uniquingKeysWith: { _, latest in latest })
+        // Map sets by index and side, keeping the last of any duplicates rather than trapping on
+        // them. `Dictionary(uniqueKeysWithValues:)` crashes on a repeated key, and sessions saved
+        // before `addSet` stopped reusing indices are still out there holding two sets numbered the
+        // same — this is read when the exercise is next tracked, so such a session would take the
+        // screen down every time it was opened.
+        //
+        // The side is part of the key because a left set showing the right arm's last weight is
+        // worse than showing nothing: the user chases a number the other arm set.
+        return Dictionary(
+            prevExercise.sets.map { (PreviousSetKey($0), $0) },
+            uniquingKeysWith: { _, latest in latest }
+        )
     }
 
 }

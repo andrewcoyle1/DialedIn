@@ -102,10 +102,10 @@ struct WorkoutExerciseModel: Identifiable, DataSyncModelProtocol, Equatable {
         try container.encodeIfPresent(supersetGroupId, forKey: .supersetGroupId)
     }
 
+    /// How many working sets are logged, with a left/right pair counted as the one set it is.
+    /// See `WorkoutSetPairing`.
     var completedSetsCount: Int {
-        return sets.filter { set in
-            return set.completedAt != nil && !set.isWarmup
-        }.count
+        loggedSetCount
     }
 
     static var mock: WorkoutExerciseModel {

@@ -11,11 +11,17 @@ struct SetDetailRow: View {
     let set: WorkoutSetModel
     let index: Int
     let trackingMode: TrackingMode
-    
+
+    /// A left/right pair shares its number and is told apart by the marker, so three sets a side
+    /// read 1L, 1R, 2L, 2R rather than 1 through 4.
+    private var label: String {
+        "Set \(index)\(set.side?.initial ?? "")"
+    }
+
     var body: some View {
         HStack {
             // Set number
-            Text("Set \(index)")
+            Text(label)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .frame(width: 50, alignment: .leading)

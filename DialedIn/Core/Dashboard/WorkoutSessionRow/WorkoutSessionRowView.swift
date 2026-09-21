@@ -146,9 +146,10 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
     // MARK: - Helpers
 
     private func setsDescription(for exercise: WorkoutExerciseModel) -> String {
-        let sets = exercise.sets.filter { !$0.isWarmup }
+        let sets = exercise.workingSets
         guard !sets.isEmpty else { return "\(exercise.setTargets.count) sets" }
-        let count = sets.count
+        // "3 × 10" is three sets of ten a side, not six of them.
+        let count = exercise.workingSetCount
         switch exercise.trackingMode {
         case .weightReps:
             if let first = sets.first, let reps = first.reps, let weight = first.weightKg {

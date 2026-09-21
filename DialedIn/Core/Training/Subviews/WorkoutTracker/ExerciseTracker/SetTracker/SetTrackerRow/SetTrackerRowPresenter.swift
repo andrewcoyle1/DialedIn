@@ -14,7 +14,7 @@ class SetTrackerRowPresenter {
     var restBeforeSetIdToSec: [String: Int] = [:]
     var onStartRest: ((Int) -> Void)?
 
-    var previousLookup: [Int: WorkoutSetModel] = [:]
+    var previousLookup: [PreviousSetKey: WorkoutSetModel] = [:]
     var defaultRestDurationSeconds: Int {
         interactor.workoutSettings.defaultRestDurationSeconds
     }
@@ -32,8 +32,12 @@ class SetTrackerRowPresenter {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
     
+    /// A left set and its right partner are one set, so swiping either away removes both — a
+    /// surviving half would number and rest as a set of its own.
     func deleteSet(setId: String, exercise: Binding<WorkoutExerciseModel>) {
-        exercise.wrappedValue.sets.removeAll(where: { $0.id == setId })
+        let removing = Set(exercise.wrappedValue.sets.pairedSetIds(for: setId))
+        guard !removing.isEmpty else { return }
+        exercise.wrappedValue.sets.removeAll(where: { removing.contains($0.id) })
     }
     
     func onSetComplete(_ exercise: WorkoutExerciseModel, _ set: Binding<WorkoutSetModel>) {
@@ -60,9 +64,10 @@ class SetTrackerRowPresenter {
     ///
     /// A rest set by hand on the set wins outright and unscaled: the user typed that number for
     /// that set and meant it. Everything else starts from the base below and is then scaled by
-    /// where the set sits in the exercise, because the three moments are not the same rest — a
-    /// warm-up is a ramp, the gap after the last set is the walk to the next exercise, and the gap
-    /// between sets is the one that actually needs to be long.
+    /// where the set sits in the exercise, because the four moments are not the same rest — a
+    /// warm-up is a ramp, the gap between the two limbs of one set is the time it takes to swap
+    /// hands, the gap after the last set is the walk to the next exercise, and the gap between
+    /// sets is the one that actually needs to be long.
     func restAfterCompleting(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Int? {
         if let custom = restBeforeSetIdToSec[set.id] {
             return custom
@@ -78,6 +83,13 @@ class SetTrackerRowPresenter {
                 return nil
             }
             return scale(base, by: settings.warmUpRestScaling)
+        }
+
+        // Before the last-set check, because the left half of a pair is never the last working
+        // set and would otherwise fall through to the full between-sets rest.
+        if hasFollowingSidePartner(set, in: exercise) {
+            guard settings.restBetweenSideSets else { return nil }
+            return scale(base, by: settings.sideSetRestScaling)
         }
 
         if isLastWorkingSet(set, in: exercise) {
@@ -102,6 +114,12 @@ class SetTrackerRowPresenter {
     private func scale(_ base: Int, by factor: Double) -> Int? {
         let scaled = Int((Double(base) * factor).rounded())
         return scaled > 0 ? scaled : nil
+    }
+
+    /// True when this set is the first limb of a pair whose other limb is still to come, so what
+    /// follows is a swap of hands rather than a rest between sets.
+    private func hasFollowingSidePartner(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Bool {
+        set.side == .left && exercise.sets.pairedSetIds(for: set.id).count == 2
     }
 
     private func isLastWarmup(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Bool {

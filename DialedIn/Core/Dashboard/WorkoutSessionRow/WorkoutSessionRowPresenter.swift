@@ -66,11 +66,14 @@ class WorkoutSessionRowPresenter {
     /// sharing on its own, and the view hands this to a `ShareLink`.
     var shareSummary: String {
         let workingSets = session.exercises.flatMap { $0.sets }.filter { !$0.isWarmup }
+        // Every row counts towards the volume — both sides were lifted — but a left and a right
+        // are one set, so the set count pairs them.
         let volume = workingSets.reduce(0.0) { $0 + (($1.weightKg ?? 0) * Double($1.reps ?? 0)) }
+        let setCount = session.exercises.reduce(0) { $0 + $1.workingSetCount }
         var parts = [
             session.name,
             "\(session.exercises.count) exercises",
-            "\(workingSets.count) sets"
+            "\(setCount) sets"
         ]
         if volume > 0 {
             parts.append("\(Int(volume)) kg lifted")

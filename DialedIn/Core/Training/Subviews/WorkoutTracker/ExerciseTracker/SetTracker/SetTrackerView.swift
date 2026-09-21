@@ -29,9 +29,9 @@ struct SetTrackerView<SetTrackerRow: View>: View {
                 columnHeaders
             }
             ForEach(delegate.exercise.sets.filter { $0.wrappedValue.completedAt == nil || !$0.wrappedValue.isWarmup }) { set in
-                let lastSet = delegate.lastExercise?.sets.first { previousSet in
-                    previousSet.index == set.wrappedValue.index
-                }
+                // Matched on the side as well as the number: a left set inheriting the right
+                // arm's last weight sends the user chasing the other arm's numbers.
+                let lastSet = delegate.lastExercise?.matchingSet(for: set.wrappedValue)
                 setTrackerRow(
                     SetTrackerRowDelegate(
                         exercise: delegate.exercise,

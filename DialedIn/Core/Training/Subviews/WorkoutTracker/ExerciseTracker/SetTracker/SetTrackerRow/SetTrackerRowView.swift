@@ -69,18 +69,7 @@ struct SetTrackerRowView: View {
                 Label("What's a warmup set?", systemImage: "info.circle")
             }
         } label: {
-            let label: String = {
-                if set.wrappedValue.isWarmup {
-                    return "W"
-                } else {
-                    let workingIndex = delegate.exercise.wrappedValue.sets
-                        .prefix(while: { $0.id != set.wrappedValue.id })
-                        .filter { !$0.isWarmup }
-                        .count + 1
-                    return "\(workingIndex)"
-                }
-            }()
-            Text(label)
+            Text(setLabel(for: set.wrappedValue))
                 .font(.caption)
         }
         .buttonStyle(.bordered)
@@ -88,6 +77,15 @@ struct SetTrackerRowView: View {
         .tint(set.wrappedValue.isWarmup ? Color.orange : .secondary)
         .foregroundColor(.secondary)
         .frame(width: 34, alignment: .center)
+    }
+
+    /// What the circle beside a set shows. Both halves of a left/right pair carry the same number
+    /// with an L or R after it, because they are one set — numbering them 1 and 2 would tell a
+    /// user doing three sets a side that they were on their fourth.
+    private func setLabel(for set: WorkoutSetModel) -> String {
+        guard !set.isWarmup else { return "W" }
+        let number = delegate.exercise.wrappedValue.workingSetNumber(for: set)
+        return "\(number)\(set.side?.initial ?? "")"
     }
 
     func weightRepsFields(exercise: Binding<WorkoutExerciseModel>, set: Binding<WorkoutSetModel>) -> some View {
@@ -166,10 +164,9 @@ struct SetTrackerRowView: View {
         if set.isWarmup {
             emptyTargetLabel
         } else {
-            let workingIndex = exercise.sets
-                .prefix(while: { $0.id != set.id })
-                .filter { !$0.isWarmup }
-                .count + 1
+            // The same number the row is labelled with, so a pair shares one target: a target
+            // describes a set, and a left and a right are the one set.
+            let workingIndex = exercise.workingSetNumber(for: set)
             let target = exercise.setTargets.first { $0.setNumber == workingIndex }
             let unitPreference = presenter.getUnitPreference(for: exercise)
             let suggestion = target.flatMap { target in

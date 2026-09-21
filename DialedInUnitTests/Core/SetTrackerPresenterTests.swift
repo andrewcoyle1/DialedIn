@@ -298,8 +298,8 @@ struct SetTrackerPresenterTests {
         )
     }
 
-    @Test("Test Last Sessions Sets Are Matched By Index")
-    func testLastSessionsSetsAreMatchedByIndex() {
+    @Test("Test Last Sessions Sets Are Matched By Index And Side")
+    func testLastSessionsSetsAreMatchedByIndexAndSide() {
         let screen = makeScreen()
         screen.presenter.previousWorkoutSession = previousSession(sets: [
             set(id: "p1", index: 1, reps: 8, weightKg: 80),
@@ -308,8 +308,8 @@ struct SetTrackerPresenterTests {
 
         let lookup = screen.presenter.buildPreviousLookup(for: exercise(sets: []))
 
-        #expect(lookup[1]?.weightKg == 80)
-        #expect(lookup[2]?.weightKg == 90)
+        #expect(lookup[PreviousSetKey(index: 1, side: nil)]?.weightKg == 80)
+        #expect(lookup[PreviousSetKey(index: 2, side: nil)]?.weightKg == 90)
     }
 
     /// Sessions saved before the index reuse was fixed are still in people's histories, holding
@@ -327,9 +327,9 @@ struct SetTrackerPresenterTests {
         let lookup = screen.presenter.buildPreviousLookup(for: exercise(sets: []))
 
         #expect(lookup.count == 2)
-        #expect(lookup[1]?.weightKg == 80)
+        #expect(lookup[PreviousSetKey(index: 1, side: nil)]?.weightKg == 80)
         // The later set wins, which is the one further down the screen last time.
-        #expect(lookup[3]?.weightKg == 95)
+        #expect(lookup[PreviousSetKey(index: 3, side: nil)]?.weightKg == 95)
     }
 
     @Test("Test A Different Exercise Has No Previous Sets")
