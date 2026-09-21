@@ -8,7 +8,6 @@ class DefineWorkoutWrapperPresenter {
     private let router: DefineWorkoutWrapperRouter
     
     var exercises: [WorkoutTemplateExercise] = []
-    var saveToLibrary: Bool = false
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -47,24 +46,21 @@ class DefineWorkoutWrapperPresenter {
                 buttons: {
                     AnyView(
                         HStack {
-                            Button("No") { self.saveToLibrary = false }
-                            
-                            Button("Yes") { self.saveToLibrary = true }
+                            Button("No") {
+                                Task { @MainActor in
+                                    self.finishWithoutSaving(workout: workout, onWorkoutCreated: onWorkoutCreated)
+                                }
+                            }
+
+                            Button("Yes") {
+                                Task { @MainActor in
+                                    await self.saveThenFinish(workout: workout, onWorkoutCreated: onWorkoutCreated)
+                                }
+                            }
                         }
                     )
                 }
             )
-            if saveToLibrary {
-                Task {
-                    do {
-                        try await interactor.saveWorkoutTemplate(workoutTemplate: workout, image: nil)
-                    } catch {
-                        router.showSimpleAlert(title: "Unable to Save Workout", subtitle: "Please try again.")
-                    }
-                }
-            }
-            router.dismissEnvironment()
-            onWorkoutCreated(workout)
         } else {
             defer {
                 router.dismissEnvironment()
@@ -78,7 +74,32 @@ class DefineWorkoutWrapperPresenter {
             }
         }
     }
-    
+
+    /// The user answered "Yes" to saving the workout to their library, so persist it and only then start it.
+    /// If the save fails we stay on the screen with the failure alert rather than dismissing out from
+    /// under it — otherwise the alert is torn down before it can be read and the template is silently lost.
+    private func saveThenFinish(
+        workout: WorkoutTemplateModel,
+        onWorkoutCreated: @escaping @Sendable (WorkoutTemplateModel) -> Void
+    ) async {
+        do {
+            try await interactor.saveWorkoutTemplate(workoutTemplate: workout, image: nil)
+        } catch {
+            router.showSimpleAlert(title: "Unable to Save Workout", subtitle: "Please try again.")
+            return
+        }
+        finishWithoutSaving(workout: workout, onWorkoutCreated: onWorkoutCreated)
+    }
+
+    /// The user answered "No", so start the workout without adding it to the library.
+    private func finishWithoutSaving(
+        workout: WorkoutTemplateModel,
+        onWorkoutCreated: @escaping @Sendable (WorkoutTemplateModel) -> Void
+    ) {
+        router.dismissEnvironment()
+        onWorkoutCreated(workout)
+    }
+
 }
 
 extension DefineWorkoutWrapperPresenter {
