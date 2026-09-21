@@ -204,7 +204,10 @@ class WorkoutSessionDetailPresenter {
         let userId = interactor.currentUser?.userId else { return }
         var updatedExercises = session.wrappedValue.exercises
         let exercise = updatedExercises[exerciseIndex]
-        let newIndex = exercise.sets.count + 1
+        // One past the highest index, not one past the count: deleting a set leaves a gap in the
+        // numbering, and counting instead of looking handed the new set an index another set
+        // already held. Duplicate indices are what last session's figures are matched on.
+        let newIndex = (exercise.sets.map(\.index).max() ?? 0) + 1
         
         // Create new set based on the last set's values or default
         let lastSet = exercise.sets.last
