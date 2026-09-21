@@ -275,46 +275,108 @@ struct FoodDefinitionPresenterTests {
         #expect(screen.interactor.trackedEventNames.contains("FoodDefinitionView_CreateFood_Start") == false)
     }
 
-    // MARK: - Known gaps
+    // MARK: - The whole form
 
-    /// Twenty-one of the nutrient fields this screen collects are discarded on save, because
-    /// `NutrientKey` has no case to store them under.
+    /// Every nutrient the form collects reaches the saved food.
     ///
-    /// This pins the gap rather than endorsing it: the user types trans fats, omega-3 and its
-    /// fractions, omega-6, starch, added sugars, alcohol, water and all eleven amino acids into
-    /// the form, presses Create, and none of it is kept. Closing it means extending `NutrientKey`,
-    /// not changing this screen.
-    @Test("Test Nutrients With No Key Are Discarded")
-    func testNutrientsWithNoKeyAreDiscarded() async {
+    /// Twenty-one of these fields used to be discarded on save — trans fats, omega-3 and its
+    /// fractions, omega-6, starch, added sugars, alcohol, water and all eleven amino acids had no
+    /// `NutrientKey` to be stored under, so the user typed them in and they were dropped without
+    /// a word. They have keys now, and this holds them there.
+    @Test("Test Every Collected Nutrient Is Stored")
+    func testEveryCollectedNutrientIsStored() async {
         let screen = makeScreen()
         screen.presenter.energy = 250
         screen.presenter.transFats = 1.5
         screen.presenter.omega3 = 0.8
-        screen.presenter.leucine = 2.2
-        screen.presenter.alcohol = 12
+        screen.presenter.omega3Ala = 0.3
+        screen.presenter.omega3Dha = 0.2
+        screen.presenter.omega3Epa = 0.1
+        screen.presenter.omega6 = 2.4
         screen.presenter.starch = 30
+        screen.presenter.addedSugars = 6
+        screen.presenter.alcohol = 12
+        screen.presenter.water = 88
+        screen.presenter.leucine = 2.2
+        screen.presenter.lysine = 1.8
 
         await create(screen)
 
         let saved = try? #require(screen.interactor.savedFoods.first)
-        // The one nutrient with a key survives; the rest leave no trace at all. They cannot even
-        // be looked up to assert their absence — there is no `NutrientKey` to look them up by.
-        let storedKeys = Array(saved?.nutrients ?? NutrientMap()).map(\.key)
-        #expect(storedKeys == [.calories])
-        #expect(saved?.nutrients[.calories] == 250)
+        #expect(saved?.nutrients[.fatTrans] == 1.5)
+        #expect(saved?.nutrients[.omega3] == 0.8)
+        #expect(saved?.nutrients[.omega3Ala] == 0.3)
+        #expect(saved?.nutrients[.omega3Dha] == 0.2)
+        #expect(saved?.nutrients[.omega3Epa] == 0.1)
+        #expect(saved?.nutrients[.omega6] == 2.4)
+        #expect(saved?.nutrients[.starch] == 30)
+        #expect(saved?.nutrients[.addedSugars] == 6)
+        #expect(saved?.nutrients[.alcohol] == 12)
+        #expect(saved?.nutrients[.water] == 88)
+        #expect(saved?.nutrients[.leucine] == 2.2)
+        #expect(saved?.nutrients[.lysine] == 1.8)
     }
 
-    /// The create flow logs a start and a failure but never a success, so the success rate cannot
-    /// be read from the events. `createFoodSuccess` is declared on both this presenter and
-    /// `CreateFoodPresenter` and logged by neither.
-    @Test("Test Success Is Not Logged")
-    func testSuccessIsNotLogged() async {
+    /// The newly stored nutrients are normalised with the rest — a per-serving amino acid figure
+    /// is per-100g in the library too.
+    @Test("Test New Nutrients Are Normalised Too")
+    func testNewNutrientsAreNormalisedToo() async {
+        let screen = makeScreen(option: .serving, servingWeight: 50)
+        screen.presenter.energy = 100
+        screen.presenter.leucine = 1
+        screen.presenter.water = 20
+
+        await create(screen)
+
+        let saved = try? #require(screen.interactor.savedFoods.first)
+        #expect(saved?.nutrients[.leucine] == 2)
+        #expect(saved?.nutrients[.water] == 40)
+    }
+
+    /// Each new nutrient falls under a category the breakdown already draws, so it is reachable
+    /// once stored rather than saved into a section nothing renders.
+    @Test("Test New Nutrients Belong To A Drawn Category")
+    func testNewNutrientsBelongToADrawnCategory() {
+        #expect(NutrientKey.fatTrans.category == .fat)
+        #expect(NutrientKey.omega3.category == .fat)
+        #expect(NutrientKey.starch.category == .carbs)
+        #expect(NutrientKey.addedSugars.category == .carbs)
+        #expect(NutrientKey.leucine.category == .protein)
+        #expect(NutrientKey.alcohol.category == .other)
+        #expect(NutrientKey.water.category == .other)
+        // They are entered in grams on the form, so that is what they are stored and shown in.
+        #expect(NutrientKey.leucine.unit == "g")
+        #expect(NutrientKey.omega3Dha.unit == "g")
+    }
+
+    /// A successful creation is logged, so the success rate can be read from the events. It used
+    /// to log a start and a failure only, leaving an abandoned form and a completed one
+    /// indistinguishable.
+    @Test("Test Success Is Logged")
+    func testSuccessIsLogged() async {
         let screen = makeScreen()
         screen.presenter.energy = 250
 
         await create(screen)
+        await TestManagers.eventually {
+            screen.interactor.trackedEventNames.contains("FoodDefinitionView_CreateFood_Success")
+        }
 
         #expect(screen.interactor.trackedEventNames.contains("FoodDefinitionView_CreateFood_Start"))
-        #expect(screen.interactor.trackedEventNames.contains("FoodDefinitionView_CreateFood_Success") == false)
+        #expect(screen.interactor.trackedEventNames.contains("FoodDefinitionView_CreateFood_Success"))
+    }
+
+    /// Create-and-add logs it too — it is the same creation with a different next step.
+    @Test("Test Create And Add Logs Success")
+    func testCreateAndAddLogsSuccess() async {
+        let screen = makeScreen()
+        screen.presenter.energy = 250
+
+        screen.presenter.onCreateAndAddPressed(delegate: screen.delegate)
+        await TestManagers.eventually {
+            screen.interactor.trackedEventNames.contains("FoodDefinitionView_CreateFood_Success")
+        }
+
+        #expect(screen.box.items.count == 1)
     }
 }

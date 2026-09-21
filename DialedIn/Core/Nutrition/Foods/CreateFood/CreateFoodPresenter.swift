@@ -136,9 +136,6 @@ func onDevSettingsPressed() {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
-        case createFoodStart
-        case createFoodSuccess
-        case createFoodFail(error: Error)
         case imageSelectorStart
         case imageSelectorSuccess
         case imageSelectorCancel
@@ -149,9 +146,6 @@ func onDevSettingsPressed() {
             switch self {
             case .onAppear:                         return "CreateFoodView_Appear"
             case .onDisappear:                      return "CreateFoodView_Disappear"
-            case .createFoodStart:            return "CreateFood_Start"
-            case .createFoodSuccess:          return "CreateFood_Success"
-            case .createFoodFail:             return "CreateFood_Fail"
             case .imageSelectorStart:               return "IngredientImageSelector_Start"
             case .imageSelectorSuccess:             return "IngredientImageSelector_Success"
             case .imageSelectorCancel:              return "IngredientImageSelector_Cancel"
@@ -162,7 +156,7 @@ func onDevSettingsPressed() {
 
         var parameters: [String: Any]? {
             switch self {
-            case .createFoodFail(error: let error), .imageSelectorFail(error: let error):
+            case .imageSelectorFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -171,7 +165,7 @@ func onDevSettingsPressed() {
 
         var type: LogType {
             switch self {
-            case .createFoodFail, .imageSelectorFail:
+            case .imageSelectorFail:
                 return .severe
             default:
                 return .analytic

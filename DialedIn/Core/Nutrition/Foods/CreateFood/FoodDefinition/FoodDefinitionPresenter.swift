@@ -93,6 +93,7 @@ class FoodDefinitionPresenter {
             interactor.trackEvent(event: Event.createFoodStart)
             do {
                 _ = try await self.createFood(userId: userId, delegate: delegate)
+                interactor.trackEvent(event: Event.createFoodSuccess)
                 router.dismissScreen()
             } catch {
                 interactor.trackEvent(event: Event.createFoodFail(error: error))
@@ -115,6 +116,7 @@ class FoodDefinitionPresenter {
                     unit: "grams"
                 )
                 delegate.mealItems?.wrappedValue.append(mealLogItem)
+                interactor.trackEvent(event: Event.createFoodSuccess)
                 router.dismissScreen()
             } catch {
                 interactor.trackEvent(event: Event.createFoodFail(error: error))
@@ -192,7 +194,36 @@ class FoodDefinitionPresenter {
         set(.riboflavinMg, b2Riboflavin)
         set(.cholesterolMg, cholesterol)
         set(.pantothenicAcidMg, b5PantothenicAcid)
+        set(.fatTrans, transFats)
+        set(.omega3, omega3)
+        set(.omega3Ala, omega3Ala)
+        set(.omega3Dha, omega3Dha)
+        set(.omega3Epa, omega3Epa)
+        set(.omega6, omega6)
+        set(.addedSugars, addedSugars)
+        set(.starch, starch)
+        set(.alcohol, alcohol)
+        set(.water, water)
+        setAminoAcids(into: &nutrients)
         return nutrients
+    }
+
+    /// The eleven amino acids, split out so `enteredNutrients` stays inside the body-length limit.
+    private func setAminoAcids(into nutrients: inout NutrientMap) {
+        func set(_ key: NutrientKey, _ value: Double?) {
+            if let value { nutrients[key] = value }
+        }
+        set(.cysteine, cysteine)
+        set(.histidine, histidine)
+        set(.isoleucine, isoleucine)
+        set(.leucine, leucine)
+        set(.lysine, lysine)
+        set(.methionine, methionine)
+        set(.phenylalanine, phenylalinine)
+        set(.threonine, threonine)
+        set(.tryptophan, tryptophan)
+        set(.tyrosine, tyrosine)
+        set(.valine, valine)
     }
 }
 
