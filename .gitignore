@@ -52,3 +52,6 @@ DialedIn/Info.plist
 # API Keys - exclude actual Keys.swift but allow example
 DialedIn/Utilities/Keys.swift
 !DialedIn/Utilities/Keys.swift.example
+
+# Agent worktrees created by Claude Code — scratch checkouts, never part of a commit
+.claude/worktrees/
