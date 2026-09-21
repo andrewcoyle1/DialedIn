@@ -62,10 +62,10 @@ struct EditWeightRangeView<Range: WeightRange>: View {
         .navigationSubtitle(delegate.equipmentName)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            presenter.onViewAppear()
+            presenter.onViewAppear(delegate: delegate)
         }
         .onDisappear {
-            presenter.onViewDisappear()
+            presenter.onViewDisappear(delegate: delegate)
         }
         .toolbar {
             toolbarContent
@@ -76,7 +76,7 @@ struct EditWeightRangeView<Range: WeightRange>: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onDismissPressed()
+                presenter.onDismissPressed(delegate: delegate)
             } label: {
                 Image(systemName: "xmark")
             }
