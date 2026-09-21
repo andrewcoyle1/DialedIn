@@ -69,7 +69,7 @@ extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
     }
 
     /// Scale weight uses the history chart (time series), not the contribution chart.
-    var contributionChartData: [Double]? { nil }
+    var contributionSeries: TimeSeries? { nil }
 
     func displayValue(for entry: BodyMeasurementEntry) -> String {
         guard let weightKg = entry.weightKg else { return "--" }

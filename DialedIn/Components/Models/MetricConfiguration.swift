@@ -27,6 +27,9 @@ struct MetricConfiguration {
     /// ("plus" is wrong for "Start Workout" or "Sync from Health").
     let addActionTitle: String
     let addActionSystemImage: String
+    /// What one unit of a contribution grid's day is called, e.g. "workouts" — the callout reads
+    /// "2 workouts" when a day is pressed. Only used by the screens that show a grid.
+    let contributionUnit: String
 
     /// `yAxisSuffix` carries a leading space because a chart axis wants one (" kg"). An entry row
     /// builds its own spacing, so it needs the bare unit — concatenating the suffix there produced
@@ -54,7 +57,8 @@ struct MetricConfiguration {
         isMacrosChart: Bool = false,
         macrosYAxisSuffix: String? = nil,
         addActionTitle: String = "Add Entry",
-        addActionSystemImage: String = "plus"
+        addActionSystemImage: String = "plus",
+        contributionUnit: String = ""
     ) {
         self.title = title
         self.analyticsName = analyticsName
@@ -71,5 +75,6 @@ struct MetricConfiguration {
         self.macrosYAxisSuffix = macrosYAxisSuffix
         self.addActionTitle = addActionTitle
         self.addActionSystemImage = addActionSystemImage
+        self.contributionUnit = contributionUnit
     }
 }

@@ -8,6 +8,20 @@ import SwiftUI
 
 public extension Color {
 
+    /// The system background colours, named without the `system` prefix. They lived on the old
+    /// contribution chart, which is now a package type; nothing about them was ever about charts.
+    #if os(macOS)
+    static let background = Color(NSColor.windowBackgroundColor)
+    static let secondaryBackground = Color(NSColor.underPageBackgroundColor)
+    static let tertiaryBackground = Color(NSColor.controlBackgroundColor)
+    #elseif os(watchOS)
+    static let background = Color.black
+    #else
+    static let background = Color(UIColor.systemBackground)
+    static let secondaryBackground = Color(UIColor.secondarySystemBackground)
+    static let tertiaryBackground = Color(UIColor.tertiarySystemBackground)
+    #endif
+
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0

@@ -44,23 +44,13 @@ final class FoodLoggingConsistencyPresenter: @MainActor MetricDetailPresenter {
 
     var timeSeries: [TimeSeries] { [] }
 
-    var contributionChartData: [Double]? {
-        let foodLoggedDates = Set(entries.map { calendar.startOfDay(for: $0.date) })
-        let endDate = calendar.startOfDay(for: Date())
-        let totalDays = 3 * 10
-        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
-        var data = Array(repeating: 0.0, count: 30)
-        for column in 0..<10 {
-            for row in 0..<3 {
-                let dayOffset = column * 3 + row
-                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
-                      dayOffset < 30 else { continue }
-                if foodLoggedDates.contains(calendar.startOfDay(for: cellDate)) {
-                    data[dayOffset] = 1.0
-                }
-            }
-        }
-        return data
+    /// One point per day with food logged, over every entry there is.
+    var contributionSeries: TimeSeries? {
+        guard !entries.isEmpty else { return nil }
+        return TimeSeries(
+            name: "Days Logged",
+            data: entries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: 1) }
+        )
     }
 
     var configuration: MetricConfiguration {

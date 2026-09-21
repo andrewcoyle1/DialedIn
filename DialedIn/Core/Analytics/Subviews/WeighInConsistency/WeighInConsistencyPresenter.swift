@@ -61,23 +61,13 @@ extension WeighInConsistencyPresenter: @MainActor MetricDetailPresenter {
         []
     }
 
-    var contributionChartData: [Double]? {
-        let endDate = calendar.startOfDay(for: Date())
-        let totalDays = 3 * 10
-        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
-        let weighInDates = Set(cachedEntries.map { calendar.startOfDay(for: $0.date) })
-        var data = Array(repeating: 0.0, count: 30)
-        for column in 0..<10 {
-            for row in 0..<3 {
-                let dayOffset = column * 3 + row
-                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
-                      dayOffset < 30 else { continue }
-                if weighInDates.contains(calendar.startOfDay(for: cellDate)) {
-                    data[dayOffset] = 1.0
-                }
-            }
-        }
-        return data
+    /// One point per weigh-in, over every entry there is.
+    var contributionSeries: TimeSeries? {
+        guard !cachedEntries.isEmpty else { return nil }
+        return TimeSeries(
+            name: "Weigh-Ins",
+            data: cachedEntries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: 1) }
+        )
     }
 
     var configuration: MetricConfiguration {
@@ -89,7 +79,8 @@ extension WeighInConsistencyPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Weight Entries",
             emptyStateMessage: "No weigh-ins logged",
-            chartColor: .green
+            chartColor: .green,
+            contributionUnit: "weigh-ins"
         )
     }
 

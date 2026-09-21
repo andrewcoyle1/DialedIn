@@ -70,23 +70,14 @@ extension WorkoutConsistencyPresenter: @MainActor MetricDetailPresenter {
         []
     }
 
-    var contributionChartData: [Double]? {
-        let endDate = calendar.startOfDay(for: Date())
-        let totalDays = 3 * 10
-        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
-        let workoutDates = Set(cachedEntries.map { calendar.startOfDay(for: $0.date) })
-        var data = Array(repeating: 0.0, count: 30)
-        for column in 0..<10 {
-            for row in 0..<3 {
-                let dayOffset = column * 3 + row
-                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
-                      dayOffset < 30 else { continue }
-                if workoutDates.contains(calendar.startOfDay(for: cellDate)) {
-                    data[dayOffset] = 1.0
-                }
-            }
-        }
-        return data
+    /// One point per completed workout, so a day's squares shade by how many were done and the
+    /// callout can say "2 workouts". Every session there is: the grid scrolls back through them.
+    var contributionSeries: TimeSeries? {
+        guard !cachedEntries.isEmpty else { return nil }
+        return TimeSeries(
+            name: "Workouts",
+            data: cachedEntries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: 1) }
+        )
     }
 
     var configuration: MetricConfiguration {
@@ -100,7 +91,8 @@ extension WorkoutConsistencyPresenter: @MainActor MetricDetailPresenter {
             emptyStateMessage: "No completed workouts",
             chartColor: .orange,
             addActionTitle: "Start Workout",
-            addActionSystemImage: "figure.run"
+            addActionSystemImage: "figure.run",
+            contributionUnit: "workouts"
         )
     }
 

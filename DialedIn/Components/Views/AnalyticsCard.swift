@@ -32,15 +32,10 @@ struct AnalyticsCard<MetricChart: View>: View {
         themeColor: Color? = nil,
         chartConfiguration: AnalyticsCardChartConfiguration = AnalyticsCardChartConfiguration(),
         chart: @escaping () -> MetricChart = {
-            ContributionChartView(
-                data: [0, 0.1, 0.3, 0.5, 0.7, 0.9],
-                rows: 3,
-                columns: 10,
-                targetValue: 1,
-                blockColor: .red,
-                rectangleWidth: .infinity,
-                endDate: .now,
-                showsCaptioning: false
+            ContributionGridView(
+                grid: ContributionGrid(values: [0, 0.1, 0.3, 0.5, 0.7, 0.9], layout: .packed(rows: 3, columns: 10)),
+                color: .red,
+                style: .card()
             )
         }
     ) {

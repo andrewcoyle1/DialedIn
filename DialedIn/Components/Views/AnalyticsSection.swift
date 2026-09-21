@@ -96,16 +96,12 @@ struct ConsistencyAnalyticsCard: View {
             themeColor: themeColor,
             chartConfiguration: .compact
         ) {
-            ContributionChartView(
-                data: data,
-                rows: 3,
-                columns: 10,
-                targetValue: 1.0,
-                blockColor: themeColor,
-                blockBackgroundColor: .background,
-                rectangleWidth: .infinity,
-                endDate: .now,
-                showsCaptioning: false
+            // The static grid, not `ContributionChart`: a card is one tap target that opens the
+            // full chart, so it must not scroll or take a press of its own.
+            ContributionGridView(
+                grid: ContributionGrid(values: data, layout: .packed(rows: 3, columns: 10)),
+                color: themeColor,
+                style: .card()
             )
         }
         .analyticsCardButton(action: action)

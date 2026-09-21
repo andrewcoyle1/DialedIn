@@ -9,8 +9,9 @@ protocol MetricDetailPresenter {
     var configuration: MetricConfiguration { get }
     /// When non-nil, this view is used instead of the default `MetricChart` (e.g. for Energy Balance's line+bar chart).
     var customChartView: AnyView? { get }
-    /// When non-nil, a contribution-style chart is shown instead of the default chart.
-    var contributionChartData: [Double]? { get }
+    /// When non-nil, a contribution grid is shown instead of the default chart. Give it every day
+    /// there is, not a fixed window: the grid scrolls back through whatever it's handed.
+    var contributionSeries: TimeSeries? { get }
     /// Whether the entry rows offer a Delete swipe. Defaults to false: most of these screens show
     /// values derived from meals, workouts or the user profile, and their `onDeleteEntry` is a
     /// documented no-op — the swipe action was offered on every one of them regardless, so
@@ -30,7 +31,7 @@ protocol MetricDetailPresenter {
 
 extension MetricDetailPresenter {
     var customChartView: AnyView? { nil }
-    var contributionChartData: [Double]? { nil }
+    var contributionSeries: TimeSeries? { nil }
     var supportsDeletion: Bool { false }
 
     func displayValue(for entry: Entry) -> String {
@@ -46,9 +47,6 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
 
     @State var presenter: Presenter
     var themeColor: Color?
-    /// The contribution grid's shape. Its cells are square, so these also give its aspect ratio.
-    private let contributionRows: Int = 3
-    private let contributionColumns: Int = 10
 
     init(presenter: Presenter, themeColor: Color? = nil) {
         _presenter = State(initialValue: presenter)
@@ -95,30 +93,23 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
     
     /// Whether the chart is `MetricChart`, rather than the contribution grid or a custom chart.
     private var usesMetricChart: Bool {
-        presenter.contributionChartData == nil && presenter.customChartView == nil
+        presenter.contributionSeries == nil && presenter.customChartView == nil
     }
 
     @ViewBuilder
     private func chart(configuration: MetricConfiguration, series: [TimeSeries]) -> some View {
-        if let contributionData = presenter.contributionChartData {
-            ContributionChartView(
-                data: contributionData,
-                rows: contributionRows,
-                columns: contributionColumns,
-                targetValue: 1.0,
-                blockColor: themeColor ?? configuration.chartColor ?? .green,
-                blockBackgroundColor: .background,
-                rectangleWidth: .infinity,
-                endDate: .now,
-                showsCaptioning: false
-            )
-            // Not `.frame(height: 300)`. The grid draws square cells sized from the width,
-            // so in a 300pt box it painted ~115pt of blocks at the top and left the rest as
-            // dead space above the entry list. Ten columns of three square cells is a 10:3
-            // box, whatever the width.
-            .aspectRatio(
-                CGFloat(contributionColumns) / CGFloat(contributionRows),
-                contentMode: .fit
+        if let contributionSeries = presenter.contributionSeries {
+            // A week per column, seven weekdays down the rows, scrolling back through every week
+            // there is data for. No frame: the chart's height follows from its square size.
+            ContributionChart(
+                data: [contributionSeries],
+                configuration: ChartConfiguration(
+                    aggregation: .sum,
+                    unit: configuration.contributionUnit,
+                    seriesColors: [themeColor ?? configuration.chartColor ?? .green],
+                    goal: 1,
+                    accessibilityTitle: configuration.title
+                )
             )
             .padding(.vertical)
         } else if let customChart = presenter.customChartView {
