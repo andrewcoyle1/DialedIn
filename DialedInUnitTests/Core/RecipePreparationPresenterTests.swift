@@ -158,7 +158,7 @@ struct RecipePreparationPresenterTests {
         screen.presenter.onCreatePressed(delegate: delegate())
         await TestManagers.eventually { !screen.interactor.savedRecipes.isEmpty }
 
-        let recipe = try? #require(screen.interactor.savedRecipes.first)
+        let recipe = screen.interactor.savedRecipes.first
         #expect(recipe?.prepTimeMins == 15)
         #expect(recipe?.cookTimeMins == 40)
         #expect(recipe?.sourceURL == "https://example.com/chilli")
@@ -359,7 +359,7 @@ struct RecipePreparationPresenterTests {
 
         let item = await createAndAdd(screen, delegate: delegate(name: "Chilli"))
 
-        let recipe = try? #require(screen.interactor.savedRecipes.first)
+        let recipe = screen.interactor.savedRecipes.first
         #expect(item?.sourceType == .recipe)
         #expect(item?.sourceId == recipe?.recipeId)
         #expect(item?.displayName == "Chilli")

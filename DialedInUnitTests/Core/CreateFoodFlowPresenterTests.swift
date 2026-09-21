@@ -138,7 +138,7 @@ struct CreateFoodPresenterTests {
 
         screen.presenter.onNextPressed(delegate: CreateFoodDelegate())
 
-        let delegate = try? #require(screen.router.portionDelegates.first)
+        let delegate = screen.router.portionDelegates.first
         #expect(delegate?.name == "Oat Milk")
         #expect(delegate?.brandName == "Brand")
         #expect(delegate?.barcode == "5012345678900")
@@ -151,7 +151,7 @@ struct CreateFoodPresenterTests {
 
         screen.presenter.onNextPressed(delegate: CreateFoodDelegate())
 
-        let delegate = try? #require(screen.router.packagingDelegates.first)
+        let delegate = screen.router.packagingDelegates.first
         #expect(delegate?.name == "Oat Milk")
         #expect(delegate?.brandName == "Brand")
         #expect(delegate?.barcode == "5012345678900")
@@ -165,7 +165,7 @@ struct CreateFoodPresenterTests {
 
         screen.presenter.onNextPressed(delegate: CreateFoodDelegate())
 
-        let delegate = try? #require(screen.router.portionDelegates.first)
+        let delegate = screen.router.portionDelegates.first
         #expect(delegate?.productFront == nil)
         #expect(delegate?.nutritionPhoto == nil)
     }
@@ -179,7 +179,7 @@ struct CreateFoodPresenterTests {
         let screen = makeScreen()
 
         screen.presenter.onBarcodeScannerPressed()
-        let delegate = try? #require(screen.router.barcodeDelegates.first)
+        let delegate = screen.router.barcodeDelegates.first
         delegate?.onBarcodeScanned?("5012345678900")
 
         #expect(screen.presenter.barcode == "5012345678900")
@@ -291,7 +291,7 @@ struct FoodPackagingPresenterTests {
 
         screen.presenter.onNextPressed(delegate: delegate())
 
-        let passed = try? #require(screen.router.portionDelegates.first)
+        let passed = screen.router.portionDelegates.first
         #expect(passed?.name == "Oat Milk")
         #expect(passed?.brandName == "Brand")
         #expect(passed?.barcode == "5012345678900")
@@ -305,7 +305,7 @@ struct FoodPackagingPresenterTests {
 
         screen.presenter.onNextPressed(delegate: delegate())
 
-        let passed = try? #require(screen.router.portionDelegates.first)
+        let passed = screen.router.portionDelegates.first
         #expect(passed?.productFront != nil)
         #expect(passed?.nutritionPhoto != nil)
     }
@@ -319,7 +319,7 @@ struct FoodPackagingPresenterTests {
 
         screen.presenter.onNextPressed(delegate: delegate())
 
-        let passed = try? #require(screen.router.portionDelegates.first)
+        let passed = screen.router.portionDelegates.first
         #expect(passed?.productFront == nil)
         #expect(passed?.nutritionPhoto != nil)
     }
@@ -330,7 +330,7 @@ struct FoodPackagingPresenterTests {
 
         screen.presenter.onNextPressed(delegate: delegate())
 
-        let passed = try? #require(screen.router.portionDelegates.first)
+        let passed = screen.router.portionDelegates.first
         #expect(passed?.productFront == nil)
         #expect(passed?.nutritionPhoto == nil)
     }

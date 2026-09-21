@@ -234,7 +234,7 @@ struct BarcodeScannerPresenterTests {
 
         await screen.presenter.onParseLabelPressed()
 
-        let food = try? #require(screen.presenter.parsedIngredient)
+        let food = screen.presenter.parsedIngredient
         #expect(food?.name == "Oat Milk")
         #expect(food?.calories == 46)
         #expect(food?.protein == 1.2)

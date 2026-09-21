@@ -249,7 +249,7 @@ struct LogMeasurementPresenterTests {
 
         await screen.presenter.saveMeasurement()
 
-        let saved = try? #require(screen.interactor.saved.first)
+        let saved = screen.interactor.saved.first
         #expect(saved?.waistCircumference == 32 * 2.54)
         #expect(screen.router.didDismiss)
     }
@@ -265,7 +265,7 @@ struct LogMeasurementPresenterTests {
 
         await screen.presenter.saveMeasurement()
 
-        let saved = try? #require(screen.interactor.saved.first)
+        let saved = screen.interactor.saved.first
         #expect(saved?.id == existing.id)
         #expect(saved?.waistCircumference == 81)
         // The neck logged earlier the same day survives the waist being written onto it.
@@ -281,7 +281,7 @@ struct LogMeasurementPresenterTests {
 
         await screen.presenter.saveMeasurement()
 
-        let saved = try? #require(screen.interactor.saved.first)
+        let saved = screen.interactor.saved.first
         #expect(saved?.id != "old")
         #expect(saved?.authorId == "user-1")
         #expect(saved?.chestCircumference == 104)
@@ -423,7 +423,7 @@ struct BodyMeasurementDetailPresenterTests {
 
         await screen.presenter.onAppear()
 
-        let value = try? #require(screen.presenter.entries.first?.value)
+        let value = screen.presenter.entries.first?.value
         #expect(abs((value ?? 0) - (80 / 2.54)) < 0.0001)
         #expect(screen.presenter.configuration.yAxisSuffix.contains("in"))
     }
@@ -471,11 +471,11 @@ struct BodyMeasurementDetailPresenterTests {
         let shared = entry(id: "day", kind: .waist, centimetres: 80, daysAgo: 1).withUpdated(BodyMeasurementKind.neck.update(to: 38))
         let screen = makeScreen(kind: .waist, measurements: [shared])
         await screen.presenter.onAppear()
-        let row = try? #require(screen.presenter.entries.first)
+        let row = screen.presenter.entries.first
 
         if let row { await screen.presenter.onDeleteEntry(row) }
 
-        let saved = try? #require(screen.interactor.saved.first)
+        let saved = screen.interactor.saved.first
         #expect(saved?.waistCircumference == nil)
         #expect(saved?.neckCircumference == 38)
     }
@@ -487,7 +487,7 @@ struct BodyMeasurementDetailPresenterTests {
         let screen = makeScreen(kind: .waist, measurements: [entry(id: "w", kind: .waist, centimetres: 80, daysAgo: 1)])
         await screen.presenter.onAppear()
         screen.interactor.saveError = URLError(.timedOut)
-        let row = try? #require(screen.presenter.entries.first)
+        let row = screen.presenter.entries.first
 
         if let row { await screen.presenter.onDeleteEntry(row) }
 

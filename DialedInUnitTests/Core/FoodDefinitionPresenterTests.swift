@@ -108,7 +108,7 @@ struct FoodDefinitionPresenterTests {
 
         await create(screen)
 
-        let saved = try? #require(screen.interactor.savedFoods.first)
+        let saved = screen.interactor.savedFoods.first
         #expect(saved?.nutrients[.calories] == 250)
         #expect(saved?.nutrients[.protein] == 12)
         #expect(saved?.nutrients[.carbs] == 30)
@@ -124,7 +124,7 @@ struct FoodDefinitionPresenterTests {
 
         await create(screen)
 
-        let saved = try? #require(screen.interactor.savedFoods.first)
+        let saved = screen.interactor.savedFoods.first
         #expect(saved?.nutrients[.calories] == 250)
         #expect(saved?.nutrients[.ironMg] == nil)
         #expect(saved?.nutrients[.vitaminCMg] == nil)
@@ -150,7 +150,7 @@ struct FoodDefinitionPresenterTests {
 
         await create(screen)
 
-        let saved = try? #require(screen.interactor.savedFoods.first)
+        let saved = screen.interactor.savedFoods.first
         #expect(saved?.name == "Oat Milk")
         #expect(saved?.brandName == "Oatly")
         #expect(saved?.barcode == "5012345678900")
@@ -172,7 +172,7 @@ struct FoodDefinitionPresenterTests {
 
         await create(screen)
 
-        let saved = try? #require(screen.interactor.savedFoods.first)
+        let saved = screen.interactor.savedFoods.first
         #expect(saved?.nutrients[.calories] == 200)
         #expect(saved?.nutrients[.protein] == 10)
     }
@@ -236,8 +236,8 @@ struct FoodDefinitionPresenterTests {
         screen.presenter.onCreateAndAddPressed(delegate: screen.delegate)
         await TestManagers.eventually { !screen.box.items.isEmpty }
 
-        let added = try? #require(screen.box.items.first)
-        let saved = try? #require(screen.interactor.savedFoods.first)
+        let added = screen.box.items.first
+        let saved = screen.interactor.savedFoods.first
         #expect(added?.displayName == "Oat Milk")
         #expect(added?.sourceId == saved?.id)
         #expect(added?.amount == 100)
@@ -314,7 +314,7 @@ struct FoodDefinitionPresenterTests {
 
         await create(screen)
 
-        let saved = try? #require(screen.interactor.savedFoods.first)
+        let saved = screen.interactor.savedFoods.first
         #expect(saved?.nutrients[.fatTrans] == 1.5)
         #expect(saved?.nutrients[.omega3] == 0.8)
         #expect(saved?.nutrients[.omega3Ala] == 0.3)
@@ -340,7 +340,7 @@ struct FoodDefinitionPresenterTests {
 
         await create(screen)
 
-        let saved = try? #require(screen.interactor.savedFoods.first)
+        let saved = screen.interactor.savedFoods.first
         #expect(saved?.nutrients[.leucine] == 2)
         #expect(saved?.nutrients[.water] == 40)
     }

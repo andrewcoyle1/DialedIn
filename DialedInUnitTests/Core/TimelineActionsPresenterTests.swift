@@ -167,7 +167,7 @@ struct TimelineActionsPresenterTests {
         screen.presenter.hideEmptyHours = true
         await TestManagers.eventually { screen.interactor.savedSettings.count >= 2 }
 
-        let saved = try? #require(screen.interactor.savedSettings.last)
+        let saved = screen.interactor.savedSettings.last
         #expect(saved?.hideFoodDetails == true)
         #expect(saved?.hideEmptyHours == true)
     }
@@ -233,7 +233,7 @@ struct TimelineActionsPresenterTests {
         screen.presenter.onCopyDayConfirmed(delegate: screen.delegate)
         await TestManagers.eventually { !screen.interactor.savedMeals.isEmpty }
 
-        let saved = try? #require(screen.interactor.savedMeals.first)
+        let saved = screen.interactor.savedMeals.first
         let components = Calendar.current.dateComponents([.hour, .minute], from: saved?.date ?? Date())
         #expect(components.hour == 8)
         #expect(components.minute == 45)
@@ -245,7 +245,7 @@ struct TimelineActionsPresenterTests {
         screen.presenter.onCopyDayConfirmed(delegate: screen.delegate)
         await TestManagers.eventually { !screen.interactor.savedMeals.isEmpty }
 
-        let saved = try? #require(screen.interactor.savedMeals.first)
+        let saved = screen.interactor.savedMeals.first
         #expect(saved?.items.map(\.displayName) == ["Food m1-item"])
         #expect(saved?.notes == "Post-run")
     }

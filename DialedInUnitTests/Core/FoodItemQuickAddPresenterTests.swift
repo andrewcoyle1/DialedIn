@@ -213,7 +213,7 @@ struct FoodItemQuickAddPresenterTests {
 
         screen.presenter.onQuickAddPressed(delegate: screen.delegate)
 
-        let item = try? #require(screen.box.picked.first)
+        let item = screen.box.picked.first
         #expect(item?.displayName == "Leftovers")
         #expect(item?.sourceType == .quickAdd)
         #expect(screen.interactor.trackedEventNames.contains("FoodItemQuickAddView_QuickAdd"))
@@ -228,7 +228,7 @@ struct FoodItemQuickAddPresenterTests {
 
         screen.presenter.onQuickAddPressed(delegate: screen.delegate)
 
-        let item = try? #require(screen.box.picked.first)
+        let item = screen.box.picked.first
         #expect(item?.amount == 1)
         #expect(item?.unit == "serving")
         #expect(item?.resolvedGrams == nil)
@@ -242,7 +242,7 @@ struct FoodItemQuickAddPresenterTests {
 
         screen.presenter.onQuickAddPressed(delegate: screen.delegate)
 
-        let item = try? #require(screen.box.picked.first)
+        let item = screen.box.picked.first
         #expect(item?.nutrients[.protein] == 10)
         #expect(item?.nutrients[.carbs] == 20)
         #expect(item?.nutrients[.fatTotal] == 5)
@@ -268,7 +268,7 @@ struct FoodItemQuickAddPresenterTests {
 
         screen.presenter.onQuickAddPressed(delegate: screen.delegate)
 
-        let item = try? #require(screen.box.picked.first)
+        let item = screen.box.picked.first
         #expect(item?.nutrients[.protein] == 10)
         #expect(item?.nutrients[.carbs] == nil)
         #expect(item?.nutrients[.fatTotal] == nil)
@@ -284,7 +284,7 @@ struct FoodItemQuickAddPresenterTests {
         screen.presenter.onLogFoodPressed()
         await TestManagers.eventually { !screen.interactor.savedMeals.isEmpty }
 
-        let meal = try? #require(screen.interactor.savedMeals.first)
+        let meal = screen.interactor.savedMeals.first
         #expect(meal?.authorId == "user-1")
         #expect(meal?.items.map(\.displayName) == ["Leftovers"])
         #expect(meal?.dayKey == Date().dayKey)
