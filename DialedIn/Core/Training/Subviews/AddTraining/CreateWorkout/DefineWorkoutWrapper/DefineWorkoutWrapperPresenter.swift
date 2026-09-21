@@ -33,6 +33,7 @@ class DefineWorkoutWrapperPresenter {
             authorId: uid,
             name: delegate.name,
             description: nil,
+            gymProfileId: delegate.gymProfile.id,
             imageURL: nil,
             dateCreated: Date.now,
             dateModified: Date.now,
