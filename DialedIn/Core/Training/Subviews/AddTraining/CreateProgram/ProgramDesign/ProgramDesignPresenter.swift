@@ -21,7 +21,17 @@ class ProgramDesignPresenter {
         
     ]
     
-    var dayPlans: [WorkoutTemplateModel]
+    /// The program's days, read and written straight through to `program.workoutTemplates`.
+    ///
+    /// This used to be a second array holding its own copy of the days. The program settings
+    /// sheet edits the program through a `Binding`, so reordering the days there changed
+    /// `program.workoutTemplates` while this copy kept the old order — the day tabs carried on
+    /// showing the old order, and the next edit on this screen wrote the stale copy back over
+    /// the reorder. One array cannot drift from itself.
+    var dayPlans: [WorkoutTemplateModel] {
+        get { program.workoutTemplates }
+        set { program.workoutTemplates = newValue }
+    }
     
     var selectedWorkoutTemplateModel: WorkoutTemplateModel
     
@@ -49,24 +59,24 @@ class ProgramDesignPresenter {
     init(interactor: ProgramDesignInteractor, router: ProgramDesignRouter, program: TrainingProgram) {
         self.interactor = interactor
         self.router = router
-        self.program = program
-        
-        let uid = interactor.userId
+
+        var program = program
         let initialPlans = program.workoutTemplates.isEmpty ? Self.defaultWorkoutTemplateModels : program.workoutTemplates
-        self.dayPlans = initialPlans
 
         if let firstPlan = initialPlans.first {
             self.selectedWorkoutTemplateModel = firstPlan
+            program.workoutTemplates = initialPlans
         } else {
-            self.selectedWorkoutTemplateModel = WorkoutTemplateModel(
+            let restDay = WorkoutTemplateModel(
                 id: UUID().uuidString,
-                authorId: uid ?? "",
+                authorId: interactor.userId ?? "",
                 name: "Rest",
                 exercises: []
             )
-            self.dayPlans = [self.selectedWorkoutTemplateModel]
+            self.selectedWorkoutTemplateModel = restDay
+            program.workoutTemplates = [restDay]
         }
-        self.program.workoutTemplates = self.dayPlans
+        self.program = program
     }
 
     func onViewAppear() {
@@ -114,7 +124,6 @@ class ProgramDesignPresenter {
                     guard let index = self.dayPlans.firstIndex(where: { $0.id == selectedId }) else { return }
                     self.dayPlans[index].name = newName
                     self.selectedWorkoutTemplateModel = self.dayPlans[index]
-                    self.program.workoutTemplates = self.dayPlans
                 }
             )
         )
@@ -219,9 +228,10 @@ class ProgramDesignPresenter {
     }
 
     private func recalculateAutoWorkoutTemplateModelNames() {
+        var plans = dayPlans
         var workoutIndex = 0
-        for index in dayPlans.indices {
-            let isRestDay = dayPlans[index].exercises.isEmpty
+        for index in plans.indices {
+            let isRestDay = plans[index].exercises.isEmpty
             let desiredName: String
             if isRestDay {
                 desiredName = "Rest Day"
@@ -230,15 +240,15 @@ class ProgramDesignPresenter {
                 workoutIndex += 1
             }
             
-            if isDefaultWorkoutTemplateModelName(dayPlans[index].name) {
-                dayPlans[index].name = desiredName
+            if isDefaultWorkoutTemplateModelName(plans[index].name) {
+                plans[index].name = desiredName
             }
         }
+        dayPlans = plans
         
         if let selectedIndex = dayPlans.firstIndex(where: { $0.id == selectedWorkoutTemplateModel.id }) {
             selectedWorkoutTemplateModel = dayPlans[selectedIndex]
         }
-        program.workoutTemplates = dayPlans
     }
     
     private func isDefaultWorkoutTemplateModelName(_ name: String) -> Bool {
