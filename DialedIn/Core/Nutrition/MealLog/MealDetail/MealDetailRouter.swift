@@ -7,7 +7,6 @@
 
 @MainActor
 protocol MealDetailRouter: GlobalRouter {
-    func showSimpleAlert(title: String, subtitle: String?)
 #if DEV || MOCK
 func showDevSettingsView()
 #endif

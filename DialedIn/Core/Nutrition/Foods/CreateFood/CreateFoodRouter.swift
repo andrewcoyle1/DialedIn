@@ -13,7 +13,6 @@ protocol CreateFoodRouter: GlobalRouter {
     func showPortionDefinitionView(delegate: PortionDefinitionDelegate)
     func showFoodPackagingView(delegate: FoodPackagingDelegate)
     func showBarcodeScannerView(delegate: BarcodeScannerDelegate)
-    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: CreateFoodRouter { }

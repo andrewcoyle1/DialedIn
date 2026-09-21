@@ -10,6 +10,14 @@ import SwiftUI
 @MainActor
 protocol GlobalRouter {
     var router: AnyRouter { get }
+
+    // Alerts are protocol requirements rather than extension-only helpers so that a test double can
+    // substitute its own implementation. Several destructive flows (delete, discard, clear day) only
+    // do their work inside an alert button, and a statically dispatched helper made those unreachable
+    // from a test. The default implementations below keep the behaviour identical for real routers.
+    func showAlert(error: Error)
+    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension GlobalRouter {

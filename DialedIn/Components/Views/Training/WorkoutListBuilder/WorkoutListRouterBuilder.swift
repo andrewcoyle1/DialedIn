@@ -12,8 +12,6 @@ protocol WorkoutListRouterBuilder: GlobalRouter {
     #endif
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate)
-    
-    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: WorkoutListRouterBuilder { }

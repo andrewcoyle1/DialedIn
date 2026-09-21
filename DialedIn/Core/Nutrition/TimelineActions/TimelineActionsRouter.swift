@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol TimelineActionsRouter: GlobalRouter {
-    func showSimpleAlert(title: String, subtitle: String?)
-}
+protocol TimelineActionsRouter: GlobalRouter { }
 
 extension CoreRouter: TimelineActionsRouter { }
