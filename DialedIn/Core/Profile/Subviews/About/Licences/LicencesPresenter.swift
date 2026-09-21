@@ -34,8 +34,8 @@ extension LicencesPresenter {
 
         var eventName: String {
             switch self {
-            case .onAppear:             return "AppView_Appear"
-            case .onDisappear:          return "AppView_Disappear"
+            case .onAppear:             return "LicencesView_Appear"
+            case .onDisappear:          return "LicencesView_Disappear"
             }
         }
         
