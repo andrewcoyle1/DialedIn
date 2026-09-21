@@ -428,10 +428,13 @@ struct MealItemAmountPresenterTests {
     }
 }
 
-/// The two amount screens on the recipe side: one adds a food to the plate, the other adds it to a
-/// recipe. Both scale from per-100g figures and both must pick the right unit for the food.
+/// The two ingredient-amount screens: one adds a food to the plate, the other adds it to a recipe.
+/// Both scale from per-100g figures and both must pick the right unit for the food.
+///
+/// Named for the ingredient rather than the recipe — `RecipeAmountPresenterTests` covers the
+/// screen that logs servings of a finished recipe.
 @MainActor
-struct RecipeAmountPresenterTests {
+struct IngredientAmountPresenterTests {
 
     private final class IngredientInteractor: SpyGlobalInteractor, IngredientAmountInteractor { }
     /// Declared unguarded: the test target builds without `-DDEV`, so guarding it the way the
