@@ -36,7 +36,11 @@ class CommentsPresenter {
 
     private func loadComments() async {
         isLoading = true
-        comments = (try? await interactor.fetchComments(sessionId: session.id)) ?? []
+        // Sorted here because the query that fetches them has no order clause, so they arrive in
+        // document-id order — effectively at random. A reply read before the thing it replies to is
+        // nonsense, and new comments are appended to the end, so the thread is oldest first.
+        comments = ((try? await interactor.fetchComments(sessionId: session.id)) ?? [])
+            .sorted { $0.dateCreated < $1.dateCreated }
         isLoading = false
     }
 
@@ -45,7 +49,9 @@ class CommentsPresenter {
     }
 
     func onSendPressed() {
-        let trimmed = commentDraft.trimmingCharacters(in: .whitespaces)
+        // Newlines as well as spaces: a draft of nothing but returns is not a comment, and trimming
+        // only spaces let it through as a blank row under someone's workout.
+        let trimmed = commentDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let user = interactor.currentUser else { return }
         let comment = WorkoutSessionComment(
             id: UUID().uuidString,
