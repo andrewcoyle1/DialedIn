@@ -299,6 +299,145 @@ struct SetTrackerRowPresenterTests {
         #expect(started == [90])
     }
 
+    // MARK: - Where the set sits changes the rest
+
+    /// A warm-up is a ramp, not work, so its rest is a fraction of the real one.
+    @Test("Test A Warm-Up Rests For A Fraction Of The Working Rest")
+    func testAWarmUpRestsForAFractionOfTheWorkingRest() {
+        let screen = makeScreen()
+        let warmup = set(id: "w1", index: 1, isWarmup: true)
+        let box = Box(warmup)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(
+            exercise(sets: [warmup, set(id: "w2", index: 2, isWarmup: true), set(id: "s1", index: 3)]),
+            box.binding
+        )
+
+        // 90 at the default scaling of 0.75.
+        #expect(started == [68])
+    }
+
+    /// The point of the last warm-up is to run straight into the first working set, so by default
+    /// no rest follows it at all.
+    @Test("Test The Last Warm-Up Rests Not At All By Default")
+    func testTheLastWarmUpRestsNotAtAllByDefault() {
+        let screen = makeScreen()
+        let last = set(id: "w2", index: 2, isWarmup: true)
+        let box = Box(last)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(
+            exercise(sets: [set(id: "w1", index: 1, isWarmup: true), last, set(id: "s1", index: 3)]),
+            box.binding
+        )
+
+        #expect(box.value.completedAt != nil)
+        #expect(started.isEmpty)
+    }
+
+    @Test("Test The Last Warm-Up Rests When Asked To")
+    func testTheLastWarmUpRestsWhenAskedTo() {
+        let screen = makeScreen()
+        screen.interactor.workoutSettings.restAfterLastWarmUp = true
+        let last = set(id: "w2", index: 2, isWarmup: true)
+        let box = Box(last)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(
+            exercise(sets: [set(id: "w1", index: 1, isWarmup: true), last, set(id: "s1", index: 3)]),
+            box.binding
+        )
+
+        #expect(started == [68])
+    }
+
+    /// The gap after the last set is the walk to the next exercise, which is its own setting.
+    @Test("Test The Last Set Rests At The Between-Exercises Scaling")
+    func testTheLastSetRestsAtTheBetweenExercisesScaling() {
+        let screen = makeScreen()
+        screen.interactor.workoutSettings.betweenExercisesRestScaling = 0.5
+        let last = set(id: "s2", index: 2)
+        let box = Box(last)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(exercise(sets: [set(id: "s1", index: 1), last]), box.binding)
+
+        #expect(started == [45])
+    }
+
+    @Test("Test The Last Set Rests Not At All When Turned Off")
+    func testTheLastSetRestsNotAtAllWhenTurnedOff() {
+        let screen = makeScreen()
+        screen.interactor.workoutSettings.restBetweenExercises = false
+        let last = set(id: "s2", index: 2)
+        let box = Box(last)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(exercise(sets: [set(id: "s1", index: 1), last]), box.binding)
+
+        #expect(box.value.completedAt != nil)
+        #expect(started.isEmpty)
+    }
+
+    /// A set in the middle of an exercise is the one that actually needs the full rest, so none of
+    /// the scalings touch it.
+    @Test("Test A Set Between Others Rests At Full Length")
+    func testASetBetweenOthersRestsAtFullLength() {
+        let screen = makeScreen()
+        screen.interactor.workoutSettings.warmUpRestScaling = 0.25
+        screen.interactor.workoutSettings.betweenExercisesRestScaling = 0.25
+        let middle = set(id: "s2", index: 2)
+        let box = Box(middle)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(
+            exercise(sets: [set(id: "s1", index: 1), middle, set(id: "s3", index: 3)]),
+            box.binding
+        )
+
+        #expect(started == [90])
+    }
+
+    /// A rest typed for this set is what the user asked for, so no scaling is applied on top.
+    @Test("Test A Hand-Set Rest Is Not Scaled")
+    func testAHandSetRestIsNotScaled() {
+        let screen = makeScreen()
+        let warmup = set(id: "w1", index: 1, isWarmup: true)
+        screen.presenter.updateRestBefore(setId: "w1", seconds: 45)
+        let box = Box(warmup)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(exercise(sets: [warmup, set(id: "s1", index: 2)]), box.binding)
+
+        #expect(started == [45])
+    }
+
+    /// Scaling a rest to nothing means no rest, not a zero-second one that fires and ends.
+    @Test("Test Scaling To Zero Means No Rest")
+    func testScalingToZeroMeansNoRest() {
+        let screen = makeScreen()
+        screen.interactor.workoutSettings.warmUpRestScaling = 0
+        let warmup = set(id: "w1", index: 1, isWarmup: true)
+        let box = Box(warmup)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(
+            exercise(sets: [warmup, set(id: "w2", index: 2, isWarmup: true), set(id: "s1", index: 3)]),
+            box.binding
+        )
+
+        #expect(started.isEmpty)
+    }
+
     // MARK: - The rest picker
 
     /// The one that used to be wrong. Swiping a row opens the picker on the rest that would

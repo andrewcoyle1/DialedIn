@@ -40,15 +40,15 @@ class SetTrackerRowPresenter {
         if set.wrappedValue.completedAt == nil, validateSetData(trackingMode: exercise.trackingMode, set: set.wrappedValue) {
             set.wrappedValue.completedAt = Date()
             let useRestTimers = interactor.workoutSettings.useRestTimers
-            let duration = restDuration(for: exercise, customSetId: set.wrappedValue.id)
+            let duration = restAfterCompleting(set.wrappedValue, in: exercise)
             interactor.trackEvent(event: Event.setCompleted(
                 setId: set.wrappedValue.id,
                 exerciseId: exercise.id,
                 useRestTimers: useRestTimers,
-                restDurationSeconds: duration,
+                restDurationSeconds: duration ?? 0,
                 onStartRestIsNil: onStartRest == nil
             ))
-            if useRestTimers {
+            if useRestTimers, let duration {
                 onStartRest?(duration)
             }
         } else {
@@ -56,10 +56,41 @@ class SetTrackerRowPresenter {
         }
     }
 
-    private func restDuration(for exercise: WorkoutExerciseModel, customSetId: String?) -> Int {
-        if let setId = customSetId, let custom = restBeforeSetIdToSec[setId] {
+    /// How long to rest after this set, or `nil` when the settings say not to rest here at all.
+    ///
+    /// A rest set by hand on the set wins outright and unscaled: the user typed that number for
+    /// that set and meant it. Everything else starts from the base below and is then scaled by
+    /// where the set sits in the exercise, because the three moments are not the same rest — a
+    /// warm-up is a ramp, the gap after the last set is the walk to the next exercise, and the gap
+    /// between sets is the one that actually needs to be long.
+    func restAfterCompleting(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Int? {
+        if let custom = restBeforeSetIdToSec[set.id] {
             return custom
         }
+
+        let settings = interactor.workoutSettings
+        let base = baseRestDuration(for: exercise)
+
+        if set.isWarmup {
+            // The last warm-up runs straight into the first working set unless asked otherwise,
+            // which is the whole point of warming up.
+            if isLastWarmup(set, in: exercise), !settings.restAfterLastWarmUp {
+                return nil
+            }
+            return scale(base, by: settings.warmUpRestScaling)
+        }
+
+        if isLastWorkingSet(set, in: exercise) {
+            guard settings.restBetweenExercises else { return nil }
+            return scale(base, by: settings.betweenExercisesRestScaling)
+        }
+
+        return base
+    }
+
+    /// The unscaled rest for this exercise: a per-exercise-type override if one is set, otherwise
+    /// the global default.
+    private func baseRestDuration(for exercise: WorkoutExerciseModel) -> Int {
         if let exerciseType = interactor.allExercises.first(where: { $0.id == exercise.templateId })?.type,
            let typeDuration = interactor.workoutSettings.restDurationsByExerciseType[exerciseType.rawValue] {
             return typeDuration
@@ -67,9 +98,32 @@ class SetTrackerRowPresenter {
         return interactor.workoutSettings.defaultRestDurationSeconds
     }
 
+    /// Scaling to nothing means no rest rather than a zero-second one.
+    private func scale(_ base: Int, by factor: Double) -> Int? {
+        let scaled = Int((Double(base) * factor).rounded())
+        return scaled > 0 ? scaled : nil
+    }
+
+    private func isLastWarmup(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Bool {
+        exercise.sets.last(where: { $0.isWarmup })?.id == set.id
+    }
+
+    /// Warm-ups are prepended, so the last working set is the last of the sets that are not one.
+    private func isLastWorkingSet(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Bool {
+        exercise.sets.last(where: { !$0.isWarmup })?.id == set.id
+    }
+
     func onRestPickerRequested(exercise: WorkoutExerciseModel, setId: String) {
         restPickerTargetSetId = setId
-        let existing = restDuration(for: exercise, customSetId: setId)
+        // Open on the rest that would actually run for this set, scaling included. A rest already
+        // set by hand is keyed by id alone, so it is honoured whether or not the set is among the
+        // ones passed in. Where the settings say no rest runs here, offer the unscaled base
+        // instead — the user opening the picker plainly wants a rest, and there is nothing else to
+        // show them.
+        let existing = restBeforeSetIdToSec[setId]
+            ?? exercise.sets.first(where: { $0.id == setId })
+                .flatMap { restAfterCompleting($0, in: exercise) }
+            ?? baseRestDuration(for: exercise)
         restPickerMinutesSelection = existing / 60
         restPickerSecondsSelection = existing % 60
 
