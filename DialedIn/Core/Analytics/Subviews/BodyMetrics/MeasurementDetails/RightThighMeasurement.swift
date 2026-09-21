@@ -81,7 +81,7 @@ final class RightThighMeasurementPresenter: @MainActor MetricDetailPresenter {
     func onAppear() async { }
 
     func onAddPressed() {
-        router.showLogRightThighMeasurementView()
+        router.showLogMeasurementView(kind: .rightThigh)
     }
 
     func onDismissPressed() {

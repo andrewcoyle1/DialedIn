@@ -79,7 +79,7 @@ final class NeckMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        router.showLogNeckMeasurementView()
+        router.showLogMeasurementView(kind: .neck)
     }
 
     func onDismissPressed() {

@@ -1,21 +1,23 @@
 //
-//  LogLeftWristMeasurementPresenter.swift
+//  LogMeasurementPresenter.swift
 //  DialedIn
 //
-//  Created by Andrew Coyle on 06/02/2026.
+//  Created by Andrew Coyle on 21/09/2026.
 //
 
 import SwiftUI
 
 @Observable
 @MainActor
-class LogLeftWristMeasurementPresenter {
-    private let interactor: LogLeftWristMeasurementInteractor
-    private let router: LogLeftWristMeasurementRouter
+class LogMeasurementPresenter {
+    private let interactor: LogMeasurementInteractor
+    private let router: LogMeasurementRouter
+
+    let kind: BodyMeasurementKind
 
     var selectedDate = Date()
-    var selectedCentimeters: Int = 18
-    var selectedInches: Int = 7
+    var selectedCentimeters: Int
+    var selectedInches: Int
     var unit: UnitOfLength = .centimeters
     var isLoading: Bool = false
 
@@ -29,11 +31,15 @@ class LogLeftWristMeasurementPresenter {
     }
 
     init(
-        interactor: LogLeftWristMeasurementInteractor,
-        router: LogLeftWristMeasurementRouter
+        kind: BodyMeasurementKind,
+        interactor: LogMeasurementInteractor,
+        router: LogMeasurementRouter
     ) {
+        self.kind = kind
         self.interactor = interactor
         self.router = router
+        self.selectedCentimeters = kind.defaultCentimetres
+        self.selectedInches = kind.defaultInches
     }
 
     func loadInitialData() async {
@@ -44,12 +50,12 @@ class LogLeftWristMeasurementPresenter {
         }
 
         if let latest = interactor.bodyMeasurements
-            .filter({ $0.deletedAt == nil && $0.leftWristCircumference != nil })
+            .filter({ $0.deletedAt == nil && $0[keyPath: kind.entryValue] != nil })
             .sorted(by: { $0.date > $1.date })
             .first,
-           let leftWristCircumference = latest.leftWristCircumference {
-            selectedCentimeters = Int(leftWristCircumference)
-            selectedInches = Int(leftWristCircumference / 2.54)
+           let circumference = latest[keyPath: kind.entryValue] {
+            selectedCentimeters = Int(circumference)
+            selectedInches = Int(circumference / 2.54)
         }
     }
 
@@ -62,18 +68,8 @@ class LogLeftWristMeasurementPresenter {
             let existingEntries = interactor.bodyMeasurements
                 .filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) && $0.deletedAt == nil }
 
-            if let existingEntry = existingEntries.first {
-                let updatedEntry = existingEntry.withUpdated(.leftWrist(measurementCm))
-                try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
-            } else {
-                let entry = BodyMeasurementEntry(
-                    authorId: user.userId,
-                    weightKg: nil,
-                    leftWristCircumference: measurementCm,
-                    date: selectedDate
-                )
-                try await interactor.saveBodyMeasurement(bodyMeasurement: entry)
-            }
+            let base = existingEntries.first ?? BodyMeasurementEntry(authorId: user.userId, date: selectedDate)
+            try await interactor.saveBodyMeasurement(bodyMeasurement: base.withUpdated(kind.update(to: measurementCm)))
 
             #if os(iOS)
             let generator = UINotificationFeedbackGenerator()

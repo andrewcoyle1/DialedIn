@@ -79,7 +79,7 @@ final class RightAnkleMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        router.showLogRightAnkleMeasurementView()
+        router.showLogMeasurementView(kind: .rightAnkle)
     }
 
     func onDismissPressed() {

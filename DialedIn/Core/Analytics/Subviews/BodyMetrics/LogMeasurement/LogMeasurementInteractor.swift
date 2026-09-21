@@ -1,17 +1,17 @@
 //
-//  LogRightThighMeasurementInteractor.swift
+//  LogMeasurementInteractor.swift
 //  DialedIn
 //
-//  Created by Andrew Coyle on 06/02/2026.
+//  Created by Andrew Coyle on 21/09/2026.
 //
 
 import SwiftUI
 
 @MainActor
-protocol LogRightThighMeasurementInteractor: GlobalInteractor {
+protocol LogMeasurementInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     var bodyMeasurements: [BodyMeasurementEntry] { get }
     func saveBodyMeasurement(bodyMeasurement: BodyMeasurementEntry) async throws
 }
 
-extension CoreInteractor: LogRightThighMeasurementInteractor { }
+extension CoreInteractor: LogMeasurementInteractor { }

@@ -79,7 +79,7 @@ final class BustMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        router.showLogBustMeasurementView()
+        router.showLogMeasurementView(kind: .bust)
     }
 
     func onDismissPressed() {

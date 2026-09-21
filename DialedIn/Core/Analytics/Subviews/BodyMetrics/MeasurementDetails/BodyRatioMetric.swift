@@ -110,7 +110,7 @@ final class BodyRatioPresenter: @MainActor MetricDetailPresenter {
     /// A ratio is computed rather than logged, but the waist is the input measurement both kinds
     /// need, and `kind.requirement` already tells the user to log one — so this does it.
     func onAddPressed() {
-        router.showLogWaistMeasurementView()
+        router.showLogMeasurementView(kind: .waist)
     }
 
     func onDismissPressed() {

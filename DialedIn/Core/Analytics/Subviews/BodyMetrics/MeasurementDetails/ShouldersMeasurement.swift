@@ -79,7 +79,7 @@ final class ShouldersMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        router.showLogShouldersMeasurementView()
+        router.showLogMeasurementView(kind: .shoulders)
     }
 
     func onDismissPressed() {

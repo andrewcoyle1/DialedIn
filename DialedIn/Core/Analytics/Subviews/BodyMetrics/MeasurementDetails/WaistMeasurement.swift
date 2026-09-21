@@ -79,7 +79,7 @@ final class WaistMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        router.showLogWaistMeasurementView()
+        router.showLogMeasurementView(kind: .waist)
     }
 
     func onDismissPressed() {

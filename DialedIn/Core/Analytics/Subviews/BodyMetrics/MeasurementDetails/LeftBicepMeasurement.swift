@@ -79,7 +79,7 @@ final class LeftBicepMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        router.showLogLeftBicepMeasurementView()
+        router.showLogMeasurementView(kind: .leftBicep)
     }
 
     func onDismissPressed() {

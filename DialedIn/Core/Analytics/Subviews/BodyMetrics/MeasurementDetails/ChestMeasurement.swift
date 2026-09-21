@@ -79,7 +79,7 @@ final class ChestMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        router.showLogChestMeasurementView()
+        router.showLogMeasurementView(kind: .chest)
     }
 
     func onDismissPressed() {

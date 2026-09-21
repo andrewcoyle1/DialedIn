@@ -1,16 +1,16 @@
 //
-//  LogShouldersMeasurementView.swift
+//  LogMeasurementView.swift
 //  DialedIn
 //
-//  Created by Andrew Coyle on 06/02/2026.
+//  Created by Andrew Coyle on 21/09/2026.
 //
 
 import SwiftUI
 
-struct LogShouldersMeasurementView: View {
+struct LogMeasurementView: View {
 
-    @State var presenter: LogShouldersMeasurementPresenter
-    
+    @State var presenter: LogMeasurementPresenter
+
     var body: some View {
         List {
             dateSection
@@ -18,7 +18,7 @@ struct LogShouldersMeasurementView: View {
             unitPickerSection
             measurementPickerSection
         }
-        .navigationTitle("Log Shoulders Measurement")
+        .navigationTitle(presenter.kind.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
@@ -27,7 +27,7 @@ struct LogShouldersMeasurementView: View {
             await presenter.loadInitialData()
         }
     }
-    
+
     private var dateSection: some View {
         Section {
             DatePicker(
@@ -43,7 +43,7 @@ struct LogShouldersMeasurementView: View {
             Text("Select the date for this measurement entry")
         }
     }
-    
+
     private var unitPickerSection: some View {
         Section {
             Picker("Units", selection: $presenter.unit) {
@@ -54,12 +54,12 @@ struct LogShouldersMeasurementView: View {
         }
         .removeListRowFormatting()
     }
-    
+
     private var measurementPickerSection: some View {
         Section {
             if presenter.unit == .centimeters {
-                Picker("Shoulders Circumference", selection: $presenter.selectedCentimeters) {
-                    ForEach((80...150).reversed(), id: \.self) { value in
+                Picker(presenter.kind.fieldLabel, selection: $presenter.selectedCentimeters) {
+                    ForEach(presenter.kind.centimetreRange.reversed(), id: \.self) { value in
                         Text("\(value) cm").tag(value)
                     }
                 }
@@ -70,8 +70,8 @@ struct LogShouldersMeasurementView: View {
                     presenter.selectedInches = Int(Double(newValue) / 2.54)
                 }
             } else {
-                Picker("Shoulders Circumference", selection: $presenter.selectedInches) {
-                    ForEach((32...60).reversed(), id: \.self) { value in
+                Picker(presenter.kind.fieldLabel, selection: $presenter.selectedInches) {
+                    ForEach(presenter.kind.inchRange.reversed(), id: \.self) { value in
                         Text("\(value) in").tag(value)
                     }
                 }
@@ -83,11 +83,11 @@ struct LogShouldersMeasurementView: View {
                 }
             }
         } header: {
-            Text("Shoulders Circumference")
+            Text(presenter.kind.fieldLabel)
         }
         .removeListRowFormatting()
     }
-    
+
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
@@ -95,7 +95,7 @@ struct LogShouldersMeasurementView: View {
                 presenter.onDismissPressed()
             }
         }
-        
+
         ToolbarItem(placement: .primaryAction) {
             Button(role: .confirm) {
                 Task {
@@ -108,17 +108,21 @@ struct LogShouldersMeasurementView: View {
 }
 
 extension CoreBuilder {
-    func logShouldersMeasurementView(router: AnyRouter) -> some View {
-        LogShouldersMeasurementView(
-            presenter: LogShouldersMeasurementPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+    func logMeasurementView(router: AnyRouter, kind: BodyMeasurementKind) -> some View {
+        LogMeasurementView(
+            presenter: LogMeasurementPresenter(
+                kind: kind,
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
         )
     }
 }
 
 extension CoreRouter {
-    func showLogShouldersMeasurementView() {
+    func showLogMeasurementView(kind: BodyMeasurementKind) {
         router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.5)]))) { router in
-            builder.logShouldersMeasurementView(router: router)
+            builder.logMeasurementView(router: router, kind: kind)
         }
     }
 }
@@ -128,7 +132,6 @@ extension CoreRouter {
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
-        builder.logShouldersMeasurementView(router: router)
+        builder.logMeasurementView(router: router, kind: .waist)
     }
-    
 }

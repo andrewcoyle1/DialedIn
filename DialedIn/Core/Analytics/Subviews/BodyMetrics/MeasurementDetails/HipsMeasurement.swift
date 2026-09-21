@@ -79,7 +79,7 @@ final class HipsMeasurementPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        router.showLogHipsMeasurementView()
+        router.showLogMeasurementView(kind: .hips)
     }
 
     func onDismissPressed() {

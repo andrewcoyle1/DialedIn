@@ -24,25 +24,7 @@ protocol BodyMetricsRouter: GlobalRouter {
     func showLeftAnkleMeasurementView(delegate: LeftAnkleMeasurementDelegate, themeColor: Color?)
     func showRightAnkleMeasurementView(delegate: RightAnkleMeasurementDelegate, themeColor: Color?)
     
-    // Logging view methods
-    func showLogNeckMeasurementView()
-    func showLogShouldersMeasurementView()
-    func showLogBustMeasurementView()
-    func showLogChestMeasurementView()
-    func showLogWaistMeasurementView()
-    func showLogHipsMeasurementView()
-    func showLogLeftBicepMeasurementView()
-    func showLogRightBicepMeasurementView()
-    func showLogLeftForearmMeasurementView()
-    func showLogRightForearmMeasurementView()
-    func showLogLeftWristMeasurementView()
-    func showLogRightWristMeasurementView()
-    func showLogLeftThighMeasurementView()
-    func showLogRightThighMeasurementView()
-    func showLogLeftCalfMeasurementView()
-    func showLogRightCalfMeasurementView()
-    func showLogLeftAnkleMeasurementView()
-    func showLogRightAnkleMeasurementView()
+    func showLogMeasurementView(kind: BodyMeasurementKind)
 }
 
 extension CoreRouter: BodyMetricsRouter { }
