@@ -67,9 +67,9 @@ class SetTrackerRowPresenter {
         return interactor.workoutSettings.defaultRestDurationSeconds
     }
 
-    func onRestPickerRequested(setId: String) {
+    func onRestPickerRequested(exercise: WorkoutExerciseModel, setId: String) {
         restPickerTargetSetId = setId
-        let existing = restBeforeSetIdToSec[setId] ?? defaultRestDurationSeconds
+        let existing = restDuration(for: exercise, customSetId: setId)
         restPickerMinutesSelection = existing / 60
         restPickerSecondsSelection = existing % 60
 
