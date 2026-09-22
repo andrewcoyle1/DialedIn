@@ -288,6 +288,33 @@ struct GymProfilePresenterTests {
         #expect(screen.interactor.trackedEventNames.last == "GymProfileView_Save_Fail")
     }
 
+    /// Saving is what dismisses this screen, so a failed save leaves the user on it. Without an
+    /// alert the Back button simply looks broken.
+    @Test("Test A Failed Save Tells The User Why The Screen Did Not Close")
+    func testAFailedSaveTellsTheUserWhyTheScreenDidNotClose() async {
+        let screen = makeScreen()
+        screen.interactor.saveError = URLError(.notConnectedToInternet)
+
+        screen.presenter.onBackButtonPressed()
+        await settle()
+
+        #expect(screen.router.alertTitles == ["Unable to Save Gym Profile"])
+    }
+
+    /// Continuing through onboarding has the same failure: nothing is saved, nothing is routed to,
+    /// and the step has no other way forward.
+    @Test("Test A Failed Save Blocks Continuing And Says So")
+    func testAFailedSaveBlocksContinuingAndSaysSo() async {
+        let screen = makeScreen(user: UserModel(userId: "user-1"))
+        screen.interactor.saveError = URLError(.notConnectedToInternet)
+
+        screen.presenter.onContinuePressed(delegate: GymProfileDelegate(gymProfile: screen.presenter.gymProfile))
+        await settle()
+
+        #expect(screen.router.shown.isEmpty)
+        #expect(screen.router.alertTitles == ["Unable to Save Gym Profile"])
+    }
+
     // MARK: - Continuing through onboarding
 
     /// Continuing makes this the user's gym before moving on, so the next screen knows what
