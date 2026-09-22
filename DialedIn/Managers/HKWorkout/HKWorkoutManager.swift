@@ -477,8 +477,14 @@ extension HKWorkoutManager {
         let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
         let delta = max(0, endTime.timeIntervalSinceNow)
         timer.schedule(deadline: .now() + delta)
-        timer.setEventHandler { [weak self] in
-            // Use Task to safely call MainActor-isolated method from the background timer queue.
+        // `@Sendable` is load-bearing, not decoration. This function is MainActor-isolated so that
+        // `restTimer` can be assigned synchronously below, but a DispatchSource event handler runs
+        // on the queue the source was made with — the global utility queue here. Without the
+        // annotation the closure inherits this function's MainActor isolation, and Swift's
+        // isolation check asserts it is on the main queue when it is not, trapping the process the
+        // moment a rest runs out. Marking it explicitly keeps the handler nonisolated, and the
+        // hop to MainActor stays where it belongs, inside the Task.
+        timer.setEventHandler { @Sendable [weak self] in
             Task { @MainActor [weak self] in
                 self?.logger.trackEvent(event: Event.restTimerFired)
                 self?.endRest()
