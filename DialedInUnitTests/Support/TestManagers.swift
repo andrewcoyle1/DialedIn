@@ -168,4 +168,27 @@ enum TestManagers {
         await eventually { manager.userMeals.count == meals.count }
         return manager
     }
+
+    #if canImport(HealthKit)
+    static func stepsManager(
+        entries: [StepsModel] = [],
+        healthKitService: HealthKitStepsService? = nil
+    ) -> StepsManager {
+        StepsManager(
+            stepsSyncEngine: collectionEngine(entries, key: "steps"),
+            healthKitService: healthKitService ?? MockHealthKitStepsService()
+        )
+    }
+
+    /// A steps manager already listening, so `stepsHistory` holds `entries`.
+    static func signedInStepsManager(
+        entries: [StepsModel] = [],
+        healthKitService: HealthKitStepsService? = nil
+    ) async -> StepsManager {
+        let manager = stepsManager(entries: entries, healthKitService: healthKitService)
+        await manager.signIn()
+        await eventually { manager.stepsHistory.count == entries.count }
+        return manager
+    }
+    #endif
 }

@@ -373,12 +373,22 @@ extension HKWorkoutManager {
     /// Begin a rest period and schedule a background-safe update at rest end.
     @MainActor
     func startRest(durationSeconds: Int, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {
-        logger.trackEvent(event: Event.startRestCalled(durationSeconds: durationSeconds, liveActivityUpdaterIsNil: liveActivityUpdater == nil))
+        startRest(duration: TimeInterval(durationSeconds), session: session, currentExerciseIndex: currentExerciseIndex)
+    }
+
+    /// The same thing as an interval rather than whole seconds.
+    ///
+    /// Rest durations are whole seconds everywhere a user sets one, so the caller above is the one
+    /// the app uses. This spelling exists so a test can drive a rest that runs out in a fraction of
+    /// a second instead of waiting out a real one.
+    @MainActor
+    func startRest(duration durationSeconds: TimeInterval, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {
+        logger.trackEvent(event: Event.startRestCalled(durationSeconds: Int(durationSeconds), liveActivityUpdaterIsNil: liveActivityUpdater == nil))
         // Cancel any existing rest to avoid multiple timers
         cancelRest()
 
         let duration = max(0, durationSeconds)
-        restEndTime = Date().addingTimeInterval(TimeInterval(duration))
+        restEndTime = Date().addingTimeInterval(duration)
 
         // Write to shared storage so widget can read it
         SharedWorkoutStorage.restEndTime = restEndTime
