@@ -168,6 +168,81 @@ enum TestManagers {
         await eventually { manager.userMeals.count == meals.count }
         return manager
     }
+
+    // MARK: - Training
+
+    static func workoutTemplateManager(
+        user userTemplates: [WorkoutTemplateModel] = [],
+        system systemTemplates: [WorkoutTemplateModel] = [],
+        userDefaults: UserDefaults = .standard
+    ) -> WorkoutTemplateManager {
+        WorkoutTemplateManager(
+            userWorkoutTemplateSyncEngine: collectionEngine(userTemplates, key: "user-workout-templates"),
+            systemWorkoutTemplatePersistence: MockLocalCollectionPersistence(collection: systemTemplates),
+            userDefaults: userDefaults
+        )
+    }
+
+    /// A workout template manager already listening, so `userWorkoutTemplates` holds `user`.
+    static func signedInWorkoutTemplateManager(
+        user userTemplates: [WorkoutTemplateModel] = [],
+        system systemTemplates: [WorkoutTemplateModel] = [],
+        userDefaults: UserDefaults = .standard
+    ) async -> WorkoutTemplateManager {
+        let manager = workoutTemplateManager(user: userTemplates, system: systemTemplates, userDefaults: userDefaults)
+        await manager.signIn()
+        await eventually { manager.userWorkoutTemplates.count == userTemplates.count }
+        return manager
+    }
+
+    /// A `UserDefaults` of its own, so a test that writes the seeding flags cannot disturb the
+    /// flags another suite is asserting on — they are real entries in `UserDefaults.standard`
+    /// otherwise, shared by every test in the process.
+    static func scratchDefaults(_ name: String = "seeding") -> UserDefaults {
+        UserDefaults(suiteName: key(name)) ?? .standard
+    }
+
+    static func trainingProgramManager(
+        programs: [TrainingProgram] = [],
+        logManager: LogManager? = nil
+    ) -> TrainingProgramManager {
+        TrainingProgramManager(
+            trainingProgramSyncEngine: collectionEngine(programs, key: "training-programs"),
+            logManager: logManager ?? LogManager(services: [])
+        )
+    }
+
+    /// A training program manager already listening, so `trainingPrograms` holds `programs`.
+    static func signedInTrainingProgramManager(
+        programs: [TrainingProgram] = [],
+        logManager: LogManager? = nil
+    ) async -> TrainingProgramManager {
+        let manager = trainingProgramManager(programs: programs, logManager: logManager)
+        await manager.signIn(userId: "author-1")
+        await eventually { manager.trainingPrograms.count == programs.count }
+        return manager
+    }
+
+    static func exerciseSettingsManager(
+        settings: [ExerciseSettingsModel] = []
+    ) -> ExerciseSettingsManager {
+        ExerciseSettingsManager(syncEngine: collectionEngine(settings, key: "exercise-settings"))
+    }
+
+    /// An exercise settings manager already listening, so `allExerciseSettings` holds `settings`.
+    static func signedInExerciseSettingsManager(
+        settings: [ExerciseSettingsModel] = [],
+        userId: String = "author-1"
+    ) async -> ExerciseSettingsManager {
+        let manager = exerciseSettingsManager(settings: settings)
+        await manager.signIn(userId: userId)
+        await eventually { manager.allExerciseSettings.count == settings.count }
+        return manager
+    }
+
+    static func workoutSettingsManager(_ settings: WorkoutSettings? = nil) -> WorkoutSettingsManager {
+        WorkoutSettingsManager(workoutSettingsSyncEngine: documentEngine(settings, key: "workout-settings"))
+    }
 }
 
 // MARK: - Nutrition, settings and shortcut managers

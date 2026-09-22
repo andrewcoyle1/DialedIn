@@ -116,7 +116,7 @@ struct CoreInteractor: GlobalInteractor {
     // swiftlint:disable:next function_body_length
     func logIn(user: UserAuthInfo, isNewUser: Bool) async throws {
         try await userManager.signIn(auth: user, isNewUser: isNewUser)
-        async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: user.uid)
+        async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
         async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
         async let nutritionStrategySignIn: () = nutritionStrategySettingsManager.signIn(
             userId: user.uid, isNewUser: isNewUser

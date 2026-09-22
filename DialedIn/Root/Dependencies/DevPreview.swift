@@ -296,7 +296,7 @@ class DevPreview {
             Task { @MainActor in
                 let mockUser = UserAuthInfo.mock(isAnonymous: false)
                 try? await userManager.signIn(auth: mockUser, isNewUser: false)
-                async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: mockUser.uid)
+                async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: mockUser.uid, isNewUser: false)
                 async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: mockUser.uid)
                 async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: mockUser.uid, isNewUser: false)
                 async let nutritionStrategySettingsSignIn: () = nutritionStrategySettingsManager.signIn(
