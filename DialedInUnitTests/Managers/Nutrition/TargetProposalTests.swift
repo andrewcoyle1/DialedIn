@@ -315,6 +315,26 @@ struct TargetProposalTests {
         #expect(proposal.proposedTargetKcal == 2800)
     }
 
+    /// Two people on one device, or one person with two accounts: a dismissal belongs to whoever
+    /// made it, or the second account never sees a card it was never shown.
+    @Test("Test The Dismissed Key Is Scoped Per Account")
+    func testTheDismissedKeyIsScopedPerAccount() {
+        let mine = TargetProposal.dismissedDefaultsKey(userId: "user-1")
+        let theirs = TargetProposal.dismissedDefaultsKey(userId: "user-2")
+
+        #expect(mine != theirs)
+        #expect(mine.hasPrefix(TargetProposal.dismissedDefaultsKeyPrefix))
+        #expect(theirs.hasPrefix(TargetProposal.dismissedDefaultsKeyPrefix))
+    }
+
+    /// Before sign-in there is no plan to propose against, so the bare prefix is a fine home for a
+    /// dismissal that cannot happen.
+    @Test("Test A Missing User Id Falls Back To The Bare Prefix")
+    func testAMissingUserIdFallsBackToTheBarePrefix() {
+        #expect(TargetProposal.dismissedDefaultsKey(userId: nil) == TargetProposal.dismissedDefaultsKeyPrefix)
+        #expect(TargetProposal.dismissedDefaultsKey(userId: "") == TargetProposal.dismissedDefaultsKeyPrefix)
+    }
+
     // MARK: - The signed goal rate
 
     @Test("Test A Goal's Weekly Change Takes Its Sign From Its Two Weights")

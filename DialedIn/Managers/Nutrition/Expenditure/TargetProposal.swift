@@ -33,7 +33,16 @@ struct TargetProposal: Equatable {
     /// The most the predictive correction may add or take away in a day.
     static let maximumCorrectionKcal: Double = 200
     /// Where the dismissed figure is remembered, so a waved-away card stays away.
-    static let dismissedDefaultsKey = "dismissedTargetProposalKcal"
+    static let dismissedDefaultsKeyPrefix = "dismissedTargetProposalKcal"
+
+    /// Scoped per account: two people sharing a device — or one person switching accounts — must
+    /// not inherit each other's dismissal and lose a card they were never shown. A missing user id
+    /// falls back to the bare prefix, which is the pre-sign-in case where there is no plan to
+    /// propose against anyway.
+    static func dismissedDefaultsKey(userId: String?) -> String {
+        guard let userId, !userId.isEmpty else { return dismissedDefaultsKeyPrefix }
+        return "\(dismissedDefaultsKeyPrefix).\(userId)"
+    }
 
     /// The whole propose-or-stay-quiet decision, as a pure function of what it reads.
     ///
