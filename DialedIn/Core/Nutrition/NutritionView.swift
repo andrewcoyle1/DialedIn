@@ -73,7 +73,8 @@ struct NutritionView<
                     showCaloriesRing: presenter.showCaloriesRing,
                     showProteinRing: presenter.showProteinRing,
                     showFatRing: presenter.showFatRing,
-                    showCarbsRing: presenter.showCarbsRing
+                    showCarbsRing: presenter.showCarbsRing,
+                    showOverages: presenter.showOverages
                 )
             }
         }

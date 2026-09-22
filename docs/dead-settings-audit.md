@@ -84,7 +84,7 @@ document per exercise template.
 
 | Setting | Defined in | Written by | Read by | Verdict |
 |---|---|---|---|---|
-| **`showOverages`** | `FoodLogSettings` | `FoodLogSettingsPresenter.showOverages` | **nothing** | `wire` — `MacroHeader` / `LoggerBannerPresenter`, which draw the rings that would show an overage. |
+| `showOverages` | `FoodLogSettings` | `FoodLogSettingsPresenter.showOverages` | `NutritionPresenter.showOverages` → `MacroHeader.remaining(total:target:showOverages:)` | live — **wired**. The remaining page clamped at zero, so a target passed read "0 left" whatever the excess; on, it counts past zero. Default `false` keeps the clamp. The row's subtitle described the opposite state and was fixed alongside. |
 | `showsFoodTimestamps` | `FoodLogSettings` | `FoodLogSettingsPresenter.showsFoodTimestamps` | `NutritionPresenter.showsFoodTimestamps` → `MealItemRowStyle` | live |
 | `showHourlyMacroTotals` | `FoodLogSettings` | `FoodLogSettingsPresenter.showHourlyMacroTotals` | `MealHourHeaderPresenter.showHourlyMacroTotals` | live |
 | `showCalendarWeekBanner` | `FoodLogSettings` | `FoodLogSettingsPresenter.showCalendarWeekBanner` | `NutritionPresenter` → `NutritionView` | live |
