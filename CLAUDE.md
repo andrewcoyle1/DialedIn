@@ -30,9 +30,19 @@ xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
 The tests compile and pass (2,216 tests). Treat a `TEST FAILED` as a regression from your
 change.
 
-`-only-testing:DialedInTests` is rejected — the unit-test target's productName is `DialedInTests`
-but that is not how the scheme names it, so run the whole `xcodebuild test` and read the counts
-from the result bundle:
+`-only-testing` works, but only under the scheme's own name for the target. The productName is
+`DialedInTests`, and `-only-testing:DialedInTests` is rejected; the BlueprintName is
+`DialedInUnitTests`, so a single suite runs with:
+
+```bash
+xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -only-testing:DialedInUnitTests/OnboardingHeightConversionTests
+```
+
+That is roughly two minutes against twenty-five for the whole suite, so use it while iterating.
+Verify a change with a full run before calling it done, and read the counts from the result
+bundle:
 
 ```bash
 xcrun xcresulttool get test-results summary \
