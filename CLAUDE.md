@@ -129,7 +129,7 @@ SwiftLint config (`.swiftlint.yml`): line limit 300, type body 500 lines, file l
    run-script phase reads the plists and it exits early on simulator builds. The `Keys.swift`
    example defines all 30 constants the app references, so it compiles unchanged.
 2. Runs `swiftlint --strict`, before the build so a style failure fails fast. `main` is at zero
-   violations, so any warning fails the job.
+   violations, so any warning fails the job. SwiftLint is **pinned** — see below.
 3. Runs `xcodebuild test` for `DialedIn - Development` with `-skip-testing:DialedInUITests`,
    writing `TestResults.xcresult`, which is uploaded as an artifact only when the job fails.
 
@@ -141,9 +141,17 @@ runtimes that cannot run an iOS 26 deployment target are usually installed along
 SwiftPM checkouts are cached under `SourcePackages` (via `-clonedSourcePackagesDirPath`), keyed on
 `Package.resolved`. `concurrency` cancels superseded runs per ref; `timeout-minutes: 60`.
 
-Because CI installs SwiftLint from Homebrew, it can drift ahead of the local version (0.59.1 at the
-time of writing) and a newly added rule can fail `--strict` on code that lints clean locally. If CI
-reports violations that you cannot reproduce, compare `swiftlint version` first.
+**SwiftLint is pinned to a single `SWIFTLINT_VERSION` env var at the top of the workflow**
+(currently `0.59.1`). CI downloads the official `portable_swiftlint.zip` for that exact version,
+caches it keyed on the version, and fails the job if `swiftlint version` does not match before
+linting. It does **not** use `brew install swiftlint`.
+
+This pin exists because Homebrew tracks latest: the first CI run installed a newer SwiftLint whose
+`legacy_swiftui_aspect_ratio` rule reported 12 violations under `--strict` that do not exist
+locally. The pin must stay **in step with the version developers install locally** — if you upgrade
+your local SwiftLint, bump `SWIFTLINT_VERSION` too, and the reverse holds: bumping the pin means
+fixing whatever the new rules report, as its own change rather than folded into an unrelated PR. If
+CI reports violations you cannot reproduce, compare `swiftlint version` first.
 
 ## First-Time Setup
 
