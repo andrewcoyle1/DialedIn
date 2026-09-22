@@ -66,9 +66,6 @@ func onDevSettingsPressed() {
         case favouriteIngredientStart
         case favouriteIngredientSuccess
         case favouriteIngredientFail(error: Error)
-        case bookmarkIngredientStart
-        case bookmarkIngredientSuccess
-        case bookmarkIngredientFail(error: Error)
 
         var eventName: String {
             switch self {
@@ -77,15 +74,12 @@ func onDevSettingsPressed() {
             case .favouriteIngredientStart:     return "FoodDetailView_Favourite_Start"
             case .favouriteIngredientSuccess:   return "FoodDetailView_Favourite_Success"
             case .favouriteIngredientFail:      return "FoodDetailView_Favourite_Fail"
-            case .bookmarkIngredientStart:      return "FoodDetailView_Bookmark_Start"
-            case .bookmarkIngredientSuccess:    return "FoodDetailView_Bookmark_Success"
-            case .bookmarkIngredientFail:       return "FoodDetailView_Bookmark_Fail"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
-            case .favouriteIngredientFail(error: let error), .bookmarkIngredientFail(error: let error):
+            case .favouriteIngredientFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -94,11 +88,10 @@ func onDevSettingsPressed() {
 
         var type: LogType {
             switch self {
-            case .favouriteIngredientFail, .bookmarkIngredientFail:
+            case .favouriteIngredientFail:
                 return .severe
             default:
                 return .analytic
-
             }
         }
     }

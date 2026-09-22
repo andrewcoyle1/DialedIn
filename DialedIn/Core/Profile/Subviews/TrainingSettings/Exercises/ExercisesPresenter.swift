@@ -25,35 +25,4 @@ class ExercisesPresenter {
         router.showExerciseModelDetailView(delegate: ExerciseModelDetailDelegate(exerciseModel: exercise))
     }
 
-    enum ExercisesViewEvents: LoggableEvent {
-        case incrementExerciseStart
-        case incrementExerciseSuccess
-        case incrementExerciseFail(error: Error)
-
-        var eventName: String {
-            switch self {
-            case .incrementExerciseStart:              return "ExercisesView_IncrementExercise_Start"
-            case .incrementExerciseSuccess:            return "ExercisesView_IncrementExercise_Success"
-            case .incrementExerciseFail:               return "ExercisesView_IncrementExercise_Fail"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            case .incrementExerciseFail(error: let error):
-                return error.eventParameters
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            case .incrementExerciseFail:
-                return .severe
-            default:
-                return .analytic
-            }
-        }
-    }
 }

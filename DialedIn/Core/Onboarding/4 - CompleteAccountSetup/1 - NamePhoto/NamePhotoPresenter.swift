@@ -92,8 +92,11 @@ func onDevSettingsPressed() {
     }
     
     func handlePhotoSelection() async {
-        guard let photoItem = selectedPhotoItem else { 
-            return 
+        guard let photoItem = selectedPhotoItem else {
+            // The picker handing back nothing is the one outcome of this flow that logged nothing,
+            // so the photo funnel counted fewer attempts than the screen actually made.
+            interactor.trackEvent(event: Event.profilePhotoNotSelected)
+            return
         }
         interactor.trackEvent(event: Event.profilePhotoSelected)
         interactor.trackEvent(event: Event.profilePhotoLoadStart)
@@ -120,8 +123,6 @@ func onDevSettingsPressed() {
         case namePhotoSaveStart
         case namePhotoSaveSuccess
         case namePhotoSaveFail(error: Error)
-        case navigate
-        case noUserId
 
         var eventName: String {
             switch self {
@@ -134,37 +135,28 @@ func onDevSettingsPressed() {
             case .namePhotoSaveStart:       return "NamePhoto_Save_Start"
             case .namePhotoSaveSuccess:     return "NamePhoto_Save_Success"
             case .namePhotoSaveFail:        return "NamePhoto_Save_Fail"
-            case .navigate:                 return "NamePhoto_Navigate"
-            case .noUserId:                 return "NamePhoto_NoUserID"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate:
-                return nil
             case .profilePhotoLoadFail(error: let error), .namePhotoSaveFail(error: let error):
                 return error.eventParameters
-            case .noUserId:
-                return [
-                    "error": "Missing current user ID"
-                ]
-            default: 
+            default:
                 return nil
             }
         }
 
         var type: LogType {
             switch self {
-            case .profilePhotoSelected, 
-                 .profilePhotoNotSelected, 
-                 .profilePhotoLoadStart, 
-                 .profilePhotoLoadSuccess, 
-                 .profilePhotoLoadEmpty, 
-                 .profilePhotoLoadFail, 
-                 .navigate: 
+            case .profilePhotoSelected,
+                 .profilePhotoNotSelected,
+                 .profilePhotoLoadStart,
+                 .profilePhotoLoadSuccess,
+                 .profilePhotoLoadEmpty,
+                 .profilePhotoLoadFail:
                 return .info
-            case .noUserId, .namePhotoSaveFail:
+            case .namePhotoSaveFail:
                 return .severe
             default:
                 return .analytic

@@ -214,6 +214,7 @@ class GymProfilePresenter {
     }
     
     func onImageSelectorChanged(_ newItem: PhotosPickerItem) async {
+        interactor.trackEvent(event: Event.imageSelectorStart)
         do {
             if let data = try await newItem.loadTransferable(type: Data.self) {
                 selectedImageData = data

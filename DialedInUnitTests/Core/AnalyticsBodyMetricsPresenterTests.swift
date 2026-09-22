@@ -460,6 +460,31 @@ struct AnalyticsScaleWeightPresenterTests {
         #expect(screen.presenter.entries.map(\.id) == ["a"])
     }
 
+    /// The alert was the only thing a failed delete produced. Nothing reached analytics, so a
+    /// backend refusing every write looked the same as nobody deleting anything.
+    @Test("Test A Failed Delete Reports The Failure")
+    func testAFailedDeleteReportsTheFailure() async throws {
+        let screen = makeScreen(measurements: [entry(id: "a", kilograms: 82, day: 4)])
+        await screen.presenter.onAppear()
+        screen.interactor.saveError = URLError(.notConnectedToInternet)
+        let row = try #require(screen.presenter.entries.first)
+
+        await screen.presenter.onDeleteEntry(row)
+
+        #expect(screen.interactor.trackedEventNames == ["ScaleWeightView_DeleteEntry_Fail"])
+    }
+
+    @Test("Test A Delete That Works Reports Nothing")
+    func testADeleteThatWorksReportsNothing() async throws {
+        let screen = makeScreen(measurements: [entry(id: "a", kilograms: 82, day: 4)])
+        await screen.presenter.onAppear()
+        let row = try #require(screen.presenter.entries.first)
+
+        await screen.presenter.onDeleteEntry(row)
+
+        #expect(screen.interactor.trackedEventNames.isEmpty)
+    }
+
     @Test("Test Adding Opens The Weight Logger")
     func testAddingOpensTheWeightLogger() {
         let screen = makeScreen()

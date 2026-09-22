@@ -122,6 +122,7 @@ class CalendarHeaderPresenter {
     }
 
     func onDatePressed(_ date: Date) {
+        interactor.trackEvent(event: Event.dateSelectionFunctionTriggered)
         focusedDate = date
         delegate.onDatePressed(date)
     }

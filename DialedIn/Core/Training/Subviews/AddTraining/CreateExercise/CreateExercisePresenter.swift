@@ -116,38 +116,16 @@ func onDevSettingsPressed() {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
-        case createExerciseStart
-        case createExerciseSuccess
-        case createExerciseFail(error: Error)
-        case exerciseGenerateImageStart
-        case exerciseGenerateImageSuccess
-        case exerciseGenerateImageFail(error: Error)
-        case imageSelectorStart
-        case imageSelectorSuccess
-        case imageSelectorCancel
-        case imageSelectorFail(error: Error)
 
         var eventName: String {
             switch self {
-            case .onAppear:                     return "CreateExerciseView_Appear"
-            case .onDisappear:                  return "CreateExerciseView_Disappear"
-            case .createExerciseStart:          return "CreateExercise_Start"
-            case .createExerciseSuccess:        return "CreateExercise_Success"
-            case .createExerciseFail:           return "CreateExercise_Fail"
-            case .exerciseGenerateImageStart:   return "ExerciseGenerateImage_Start"
-            case .exerciseGenerateImageSuccess: return "ExerciseGenerateImage_Success"
-            case .exerciseGenerateImageFail:    return "ExerciseGenerateImage_Fail"
-            case .imageSelectorStart:           return "ExerciseImageSelector_Start"
-            case .imageSelectorSuccess:         return "ExerciseImageSelector_Success"
-            case .imageSelectorCancel:          return "ExerciseImageSelector_Cancel"
-            case .imageSelectorFail:            return "ExerciseImageSelector_Fail"
+            case .onAppear:     return "CreateExerciseView_Appear"
+            case .onDisappear:  return "CreateExerciseView_Disappear"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
-            case .createExerciseFail(error: let error), .exerciseGenerateImageFail(error: let error), .imageSelectorFail(error: let error):
-                return error.eventParameters
             default:
                 return nil
             }
@@ -155,11 +133,8 @@ func onDevSettingsPressed() {
 
         var type: LogType {
             switch self {
-            case .createExerciseFail, .exerciseGenerateImageFail, .imageSelectorFail:
-                return .severe
             default:
                 return .analytic
-
             }
         }
     }

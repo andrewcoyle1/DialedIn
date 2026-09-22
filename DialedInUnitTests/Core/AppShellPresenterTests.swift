@@ -152,6 +152,18 @@ struct AppShellAppPresenterTests {
         #expect(screen.interactor.trackedEventNames.contains("AppView_ExistingAuth_Start"))
     }
 
+    /// Every returning-user launch logged a Start, and only the failures logged a terminal event.
+    /// The success rate of the commonest launch path was therefore unmeasurable.
+    @Test("Test A Successful Existing Login Reports Success")
+    func testASuccessfulExistingLoginReportsSuccess() async {
+        let screen = makeScreen(auth: UserAuthInfo(uid: "existing-1"))
+
+        await screen.presenter.checkUserStatus()
+
+        #expect(screen.interactor.trackedEventNames.contains("AppView_ExistingAuth_Success"))
+        #expect(!screen.interactor.trackedEventNames.contains("AppView_ExistingAuth_Fail"))
+    }
+
     /// A user with no account is signed in anonymously, so the app always has someone to show
     /// something to. Only the attempt is asserted: the success path continues into Firebase
     /// Messaging, which is not configured in a test process.

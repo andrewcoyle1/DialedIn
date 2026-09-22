@@ -138,7 +138,14 @@ class AuthPresenter {
                 try await interactor.logIn(user: user, isNewUser: isNewUser)
                 interactor.trackEvent(event: Event.userLoginSuccess)
                 
-                guard let user = currentUser else { return }
+                // The profile lands when the sync engine's listener next emits, not when `logIn`
+                // returns, so this can lose the race. Returning silently left the user on the auth
+                // screen after a *successful* login, with a Success event and no destination — the
+                // one shape analytics could not tell from a user who simply stopped here.
+                guard let user = currentUser else {
+                    interactor.trackEvent(event: Event.userLoginNoCurrentUser)
+                    return
+                }
                 // The subscription gate comes first, ahead of every other destination. This is a
                 // premium app: a user without a subscription is shown the subscription page no
                 // matter how far through onboarding they are. It used to sit after the returning
@@ -222,10 +229,9 @@ func onDevSettingsPressed() {
         case userLoginStart
         case userLoginSuccess
         case userLoginFail(error: Error)
+        case userLoginNoCurrentUser
 
         case navigate
-        case signInPressed
-        case signUpPressed
         case paywallShownAfterLogin
 
         var eventName: String {
@@ -239,9 +245,8 @@ func onDevSettingsPressed() {
             case .userLoginStart:    return "Auth_UserLogin_Start"
             case .userLoginSuccess:  return "Auth_UserLogin_Success"
             case .userLoginFail:     return "Auth_UserLogin_Fail"
+            case .userLoginNoCurrentUser: return "Auth_UserLogin_NoCurrentUser"
             case .navigate:          return "Auth_Navigate"
-            case .signInPressed:     return "Auth_SignIn_Pressed"
-            case .signUpPressed:     return "Auth_SignUp_Pressed"
             case .paywallShownAfterLogin: return "Auth_PaywallShownAfterLogin"
             }
         }
@@ -257,9 +262,9 @@ func onDevSettingsPressed() {
 
         var type: LogType {
             switch self {
-            case .appleAuthFail, .googleAuthFail, .userLoginFail:
+            case .appleAuthFail, .googleAuthFail, .userLoginFail, .userLoginNoCurrentUser:
                 return LogType.severe
-            case .signInPressed, .signUpPressed, .navigate, .paywallShownAfterLogin:
+            case .navigate, .paywallShownAfterLogin:
                 return LogType.info
             default:
                 return LogType.analytic

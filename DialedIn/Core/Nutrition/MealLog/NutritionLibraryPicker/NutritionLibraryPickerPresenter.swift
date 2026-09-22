@@ -44,30 +44,6 @@ class NutritionLibraryPickerPresenter {
         router.showRecipeAmountView(delegate: RecipeAmountDelegate(recipe: recipe, onPick: onPick))
     }
 
-    enum Event: LoggableEvent {
-        case navigate
-
-        var eventName: String {
-            switch self {
-            case .navigate: return "NutritionLibrary_Navigate"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            case .navigate:
-                return .info
-            }
-        }
-    }
-
     func dismissScreen() {
         router.dismissScreen()
     }
