@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol NutritionTargetChartInteractor {
+protocol NutritionTargetChartInteractor: GlobalInteractor {
     var currentDietPlan: DietPlan? { get }
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
 }

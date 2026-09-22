@@ -472,7 +472,7 @@ extension CoreBuilder {
             ),
             delegate: delegate,
             nutritionTargetChartView: {
-                self.nutritionTargetChartView()
+                self.nutritionTargetChartView(router: router)
             }
         )
     }
