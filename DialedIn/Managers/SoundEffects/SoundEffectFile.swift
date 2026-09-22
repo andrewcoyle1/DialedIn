@@ -11,11 +11,17 @@ import Foundation
 
 enum SoundEffectFile: String, Equatable {
     case sample
-    
+    /// Played when a rest timer runs out, if `WorkoutSettings.restTimerPlaySound` is on. The audio
+    /// file is not in the bundle yet, so this is silent until one is added under that name — `url`
+    /// below returns nil rather than crashing, and the rest-end haptic still fires.
+    case restComplete
+
     var fileName: String {
         switch self {
         case .sample:
             return "Sample.wav"
+        case .restComplete:
+            return "RestComplete.wav"
         }
     }
     

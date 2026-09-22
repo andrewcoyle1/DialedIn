@@ -40,6 +40,9 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
             }
         }
         .task {
+            await presenter.observeRestCompletions()
+        }
+        .task {
             await presenter.onAppear()
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in

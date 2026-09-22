@@ -428,6 +428,11 @@ extension HKWorkoutManager {
         // Clear from shared storage
         SharedWorkoutStorage.clearRestEndTime()
 
+        // Announced before the Live Activity guards below: a rest that has run out is over whether
+        // or not there is an activity left to redraw, and the screen that tells the user is not
+        // this manager's business.
+        NotificationCenter.default.post(name: Constants.workoutRestDidComplete, object: nil)
+
         guard activeSessionModel != nil else {
             logger.trackEvent(event: Event.endRestNoSession)
             return

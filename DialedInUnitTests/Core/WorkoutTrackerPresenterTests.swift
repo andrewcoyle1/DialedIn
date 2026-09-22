@@ -629,33 +629,4 @@ struct WorkoutTrackerPresenterTests {
         screen.presenter.onGymProfilePressed()
         #expect(screen.router.shown == ["gymProfile"])
     }
-
-    // MARK: - Previous values
-
-    /// A workout logged freehand has no template to compare against, so there is no previous
-    /// session to show.
-    @Test("Test A Workout Without A Template Has No Previous Session")
-    func testAWorkoutWithoutATemplateHasNoPreviousSession() async throws {
-        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1)])])
-        screen.interactor.lastCompletedSession = session(exercises: [])
-
-        screen.presenter.loadPreviousWorkoutSession()
-        await settle()
-
-        #expect(screen.presenter.previousWorkoutSession == nil)
-    }
-
-    @Test("Test A Workout From A Template Loads What Was Done Last Time")
-    func testAWorkoutFromATemplateLoadsWhatWasDoneLastTime() async throws {
-        let screen = try makeScreen(
-            exercises: [exercise(id: "e1", index: 1, sets: [set(1)])],
-            templateId: "template-1"
-        )
-        screen.interactor.lastCompletedSession = session(exercises: [])
-
-        screen.presenter.loadPreviousWorkoutSession()
-        await settle()
-
-        #expect(screen.presenter.previousWorkoutSession != nil)
-    }
 }

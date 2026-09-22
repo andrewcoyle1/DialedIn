@@ -35,6 +35,8 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     private(set) var didClearPendingSet = false
     private(set) var didAddStreakEvent = false
     private(set) var stravaUploads: [String] = []
+    private(set) var preparedSounds: [SoundEffectFile] = []
+    private(set) var playedSounds: [SoundEffectFile] = []
 
     func setActiveWorkoutGymProfile(_ profile: GymProfileModel?) { }
     func getGymProfile(gymProfileId: String) async throws -> GymProfileModel {
@@ -90,6 +92,12 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     func cancelRest() {
         didCancelRest = true
         restEndTime = nil
+    }
+    func prepareSoundEffect(sound: SoundEffectFile, simultaneousPlayers: Int) {
+        preparedSounds.append(sound)
+    }
+    func playSoundEffect(sound: SoundEffectFile) {
+        playedSounds.append(sound)
     }
     func addWorkoutStreakEvent() async throws { didAddStreakEvent = true }
     func getPreference(templateId: String) -> ExerciseUnitPreference {

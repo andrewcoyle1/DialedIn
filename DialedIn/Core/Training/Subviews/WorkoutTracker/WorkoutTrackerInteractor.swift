@@ -132,6 +132,13 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     /// Cancel any running rest timer.
     func cancelRest()
 
+    /// Load the players for a sound before it is needed — the manager cannot play a sound it has
+    /// not prepared, and a rest ending is too late to start loading one.
+    func prepareSoundEffect(sound: SoundEffectFile, simultaneousPlayers: Int)
+
+    /// Play a prepared sound.
+    func playSoundEffect(sound: SoundEffectFile)
+
     /// The current workout settings.
     var workoutSettings: WorkoutSettings { get }
     
