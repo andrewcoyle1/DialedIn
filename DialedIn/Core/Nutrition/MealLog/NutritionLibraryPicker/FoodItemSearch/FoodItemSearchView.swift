@@ -52,6 +52,9 @@ struct FoodItemSearchView: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
+                } else if presenter.searchFailed {
+                    Text("Couldn't search right now")
+                        .foregroundStyle(.secondary)
                 } else if presenter.openFoodFactsFoods.isEmpty && !trimmed.isEmpty {
                     Text("No results found")
                         .foregroundStyle(.secondary)

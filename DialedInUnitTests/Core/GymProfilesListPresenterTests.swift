@@ -44,6 +44,14 @@ struct GymProfilesListPresenterTests {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var openedProfiles: [GymProfileModel] = []
 
+        /// Bound on the class declaring the conformance, or the protocol's default implementation
+        /// runs and the alert escapes to the real router unseen.
+        private(set) var alertTitles: [String] = []
+
+        func showAlert(error: Error) { alertTitles.append("Error") }
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { alertTitles.append(title) }
+        func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
+
         func showGymProfileView(delegate: GymProfileDelegate) {
             openedProfiles.append(delegate.gymProfile)
         }
@@ -198,6 +206,19 @@ struct GymProfilesListPresenterTests {
         #expect(!screen.interactor.trackedEventNames.contains("GymProfilesView_DeleteProfile_Success"))
     }
 
+    /// And said out loud: the gym is still in the list afterwards, which on its own reads as a
+    /// swipe that did not take.
+    @Test("Test A Failed Delete Is Reported To The User")
+    func testAFailedDeleteIsReportedToTheUser() async {
+        let screen = makeScreen(profiles: [gym("a", name: "Commercial")])
+        screen.interactor.deleteError = TestError()
+
+        screen.presenter.deleteGymProfile(profile: gym("a", name: "Commercial"))
+        await settle()
+
+        #expect(screen.router.alertTitles == ["Unable to delete gym profile"])
+    }
+
     /// The usual gym is what a new workout is filled in against, so marking one has to reach the
     /// user's profile rather than only the row's star.
     @Test("Test Favouriting A Gym Records It Against The User")
@@ -220,6 +241,7 @@ struct GymProfilesListPresenterTests {
         await settle()
 
         #expect(screen.interactor.trackedEventNames.contains("GymProfilesView_FavouriteGymProfile_Fail"))
+        #expect(screen.router.alertTitles == ["Unable to set your usual gym"])
     }
 
     @Test("Test Appearing Is Tracked As A Screen View")

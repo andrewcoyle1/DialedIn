@@ -57,6 +57,9 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         .onAppear {
             presenter.loadUnitPreferences(for: session)
         }
+        .task {
+            await presenter.loadAuthor(for: session)
+        }
     }
 
     private var startTimeSheet: some View {
@@ -122,11 +125,14 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         .presentationDetents([.medium])
     }
     
+    @ViewBuilder
     private var authorHeaderSection: some View {
-        Section {
-            authorHeader(AuthorHeaderDelegate(author: .mock, date: session.dateCreated))
+        if let author = presenter.author {
+            Section {
+                authorHeader(AuthorHeaderDelegate(author: author, date: session.dateCreated))
+            }
+            .listSectionMargins(.top, 0)
         }
-        .listSectionMargins(.top, 0)
     }
     
     private var workoutDetailsSection: some View {

@@ -30,6 +30,9 @@ struct WorkoutSessionDetailPresenterTests {
         private(set) var preferenceReads: [String] = []
         var saveError: Error?
 
+        /// Exercised in `WorkoutSessionAuthorTests`; unused here.
+        func getUser(userId: String) async throws -> UserModel { throw URLError(.fileDoesNotExist) }
+
         func saveWorkoutSession(_ session: WorkoutSessionModel) async throws {
             if let saveError { throw saveError }
             savedSessions.append(session)

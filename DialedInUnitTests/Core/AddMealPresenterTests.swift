@@ -64,6 +64,16 @@ struct AddMealPresenterTests {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var shown: [String] = []
 
+        /// The alert witnesses have to be bound on the class declaring the conformance, or the
+        /// protocol's default implementation runs and the alert escapes to the real router unseen.
+        private(set) var alerts: [(title: String, subtitle: String?)] = []
+
+        func showAlert(error: Error) { alerts.append((title: "Error", subtitle: error.localizedDescription)) }
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+            alerts.append((title: title, subtitle: subtitle))
+        }
+        func showSimpleAlert(title: String, subtitle: String?) { alerts.append((title: title, subtitle: subtitle)) }
+
         func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerDelegate) { shown.append("picker") }
         func showMealItemAmountViewView(delegate: MealItemAmountViewDelegate) { shown.append("itemAmount") }
     }
@@ -361,6 +371,30 @@ struct AddMealPresenterTests {
         #expect(screen.interactor.savedMeals.isEmpty)
         #expect(screen.interactor.draftDeletes == 0)
         #expect(screen.interactor.trackedEventNames.contains("AddMealView_SaveMeal_Success") == false)
+    }
+
+    /// Saving is also what closes this screen, so a failure that says nothing reads as a dead
+    /// button on the meal the user just built.
+    @Test("Test A Failed Save Tells The User The Meal Was Not Logged")
+    func testAFailedSaveTellsTheUserTheMealWasNotLogged() async {
+        let screen = makeScreen(meal: meal(items: [item(id: "a", calories: 100)]))
+        screen.interactor.saveError = URLError(.notConnectedToInternet)
+
+        screen.presenter.saveMeal()
+        await TestManagers.eventually { !screen.router.alerts.isEmpty }
+
+        #expect(screen.router.alerts.map(\.title) == ["Unable to Save Meal"])
+    }
+
+    /// The draft failure alert used to talk about a workout on the meal screen.
+    @Test("Test A Failed Draft Write Talks About The Meal")
+    func testAFailedDraftWriteTalksAboutTheMeal() {
+        let screen = makeScreen(meal: meal(items: [item(id: "a", calories: 100)]))
+        screen.interactor.draftWriteError = URLError(.notConnectedToInternet)
+
+        screen.presenter.saveDraftMeal()
+
+        #expect(screen.router.alerts.first?.subtitle?.contains("workout") == false)
     }
 
     // MARK: - Moving the meal

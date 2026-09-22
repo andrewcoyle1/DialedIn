@@ -112,6 +112,12 @@ class GymProfilePresenter {
                 onComplete()
             } catch {
                 interactor.trackEvent(event: Event.saveGymProfileFail(error: error))
+                // `onComplete` is what leaves this screen, so a silent failure leaves Back and
+                // Continue looking broken. Say why nothing moved.
+                router.showSimpleAlert(
+                    title: "Unable to Save Gym Profile",
+                    subtitle: "Please check your internet connection and try again."
+                )
             }
         }
 

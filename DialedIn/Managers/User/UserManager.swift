@@ -491,6 +491,10 @@ extension CoreInteractor {
         userManager.followingUsers
     }
 
+    func getUser(userId: String) async throws -> UserModel {
+        try await userManager.getUser(userId: userId)
+    }
+
     func followUser(userId: String) async throws {
         try await userManager.followUser(userId: userId)
         let ids = userManager.currentUser?.followingIds ?? []
