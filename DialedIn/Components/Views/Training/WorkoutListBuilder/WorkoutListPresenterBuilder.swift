@@ -75,10 +75,13 @@ class WorkoutListPresenterBuilder {
         router.showCreateWorkoutView(delegate: CreateWorkoutDelegate(workoutTemplate: nil))
     }
 
+    /// Picking a workout is what this screen exists for, and it passed straight through to the
+    /// delegate untracked — so the one action worth measuring here was never measured.
     func onWorkoutPressed(
         workout: WorkoutTemplateModel,
         onWorkoutPressed: ((WorkoutTemplateModel) -> Void)? = nil
     ) {
+        interactor.trackEvent(event: Event.workoutSelected(workout: workout))
         onWorkoutPressed?(workout)
     }
 
@@ -94,17 +97,23 @@ extension WorkoutListPresenterBuilder {
         case onAppear
         case onDisappear
         case onAddWorkoutPressed
+        case workoutSelected(workout: WorkoutTemplateModel)
 
         var eventName: String {
             switch self {
             case .onAppear:            return "WorkoutsView_Appear"
             case .onDisappear:         return "WorkoutsView_Disappear"
             case .onAddWorkoutPressed: return "WorkoutsView_AddWorkoutPressed"
+            case .workoutSelected:     return "WorkoutsView_Workout_Selected"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
+            // Id and name rather than the model's full `eventParameters`: this fires on every tap,
+            // and the rest of the record is recoverable from the id.
+            case .workoutSelected(workout: let workout):
+                return ["workout_id": workout.id, "workout_name": workout.name]
             default:
                 return nil
             }

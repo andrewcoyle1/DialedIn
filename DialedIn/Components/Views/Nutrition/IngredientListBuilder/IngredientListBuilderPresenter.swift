@@ -55,11 +55,11 @@ class IngredientListBuilderPresenter {
         router.showCreateFoodView(delegate: CreateFoodDelegate(mealItems: delegate.mealItems))
     }
 
-    func onIngredientPressed(ingredient: FoodModel, onIngredientPressed: ((FoodModel) -> Void)?) {
-        onIngredientPressed?(ingredient)
-    }
-
+    /// Picking an ingredient is what this screen exists for, and neither route out of it was
+    /// tracked — so the one action worth measuring here was never measured. Both routes log the
+    /// same event and name the route in `method`, so the total stays one number.
     func navToIngredientAmountView(food: FoodModel, delegate: IngredientListBuilderDelegate) {
+        interactor.trackEvent(event: Event.ingredientSelected(food: food, method: "amount"))
         if let recipeCallback = delegate.onRecipeIngredientConfirmed {
             router.showRecipeIngredientAmountView(delegate: RecipeIngredientAmountDelegate(
                 food: food,
@@ -76,6 +76,7 @@ class IngredientListBuilderPresenter {
     }
 
     func quickAdd(food: FoodModel, delegate: IngredientListBuilderDelegate) {
+        interactor.trackEvent(event: Event.ingredientSelected(food: food, method: "quickAdd"))
         if let recipeCallback = delegate.onRecipeIngredientConfirmed {
             let unit: IngredientAmountUnit = food.measurementMethod == .volume ? .milliliters : .grams
             let defaultAmount = food.portionGramsCalculated ?? food.portionMillilitersCalculated ?? 100
@@ -107,17 +108,23 @@ class IngredientListBuilderPresenter {
         case onAppear
         case onDisappear
         case onAddIngredientPressed
+        case ingredientSelected(food: FoodModel, method: String)
 
         var eventName: String {
             switch self {
             case .onAppear:                 return "IngredientsView_Appear"
             case .onDisappear:              return "IngredientsView_Disappear"
             case .onAddIngredientPressed:   return "IngredientsView_AddIngredientPressed"
+            case .ingredientSelected:       return "IngredientsView_Ingredient_Selected"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
+            // Id and name rather than the model's full `eventParameters`: this fires on every tap,
+            // and the rest of the record is recoverable from the id.
+            case .ingredientSelected(food: let food, method: let method):
+                return ["ingredient_id": food.id, "ingredient_name": food.name, "method": method]
             default:
                 return nil
             }
