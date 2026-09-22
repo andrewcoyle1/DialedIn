@@ -123,6 +123,49 @@ struct ABTestManagerTests {
         #expect(manager.activeTests.notificationsTest)
     }
 
+    /// The reason `override` must not re-run `configure()`. Against a service whose save and fetch
+    /// can disagree — which is every real one, since Remote Config never accepts a client save —
+    /// a re-fetch assigns the server's values over the override that was just applied. The stub
+    /// holds `fetched` apart from `activeTests` to reproduce exactly that.
+    @Test("Test An Override Is Not Rolled Back By A Later Fetch")
+    func testOverrideIsNotRolledBackByALaterFetch() async throws {
+        let service = StubService(activeTests: ActiveABTests(notificationsTest: false, paywallTest: .custom))
+        service.fetched = ActiveABTests(notificationsTest: false, paywallTest: .custom)
+        let manager = ABTestManager(service: service)
+        // Let the fetch `init` started land, so it cannot be the one counted below.
+        _ = await TestManagers.eventually { service.fetchCount == 1 }
+
+        try manager.override(updatedTests: ActiveABTests(notificationsTest: true, paywallTest: .storeKit))
+
+        // Nothing may re-fetch on this path, and the override has to still be there afterwards.
+        let refetched = await TestManagers.eventually(timeout: .seconds(1)) { service.fetchCount > 1 }
+        #expect(refetched == false)
+        #expect(manager.activeTests.paywallTest == .storeKit)
+        #expect(manager.activeTests.notificationsTest)
+    }
+
+    /// Two overrides in a row, applied without waiting for the fetch `init` started. The last
+    /// override has to win and stay won: the in-flight launch fetch returns the server's values,
+    /// and landing after the overrides it would otherwise reset them.
+    ///
+    /// This is the same rollback as the test above, reached through `init` rather than through
+    /// `override`, which is why the manager tracks that an override happened at all.
+    @Test("Test Consecutive Overrides Keep The Last One")
+    func testConsecutiveOverridesKeepTheLastOne() async throws {
+        let service = StubService(activeTests: ActiveABTests(notificationsTest: false, paywallTest: .custom))
+        service.fetched = ActiveABTests(notificationsTest: false, paywallTest: .custom)
+        let manager = ABTestManager(service: service)
+
+        try manager.override(updatedTests: ActiveABTests(notificationsTest: true, paywallTest: .storeKit))
+        try manager.override(updatedTests: ActiveABTests(notificationsTest: false, paywallTest: .revenueCat))
+
+        #expect(manager.activeTests.paywallTest == .revenueCat)
+        let movedAgain = await TestManagers.eventually(timeout: .seconds(1)) {
+            manager.activeTests.paywallTest != .revenueCat
+        }
+        #expect(movedAgain == false)
+    }
+
     @Test("Test A Rejected Override Throws And Changes Nothing")
     func testRejectedOverrideThrowsAndChangesNothing() {
         let service = StubService(activeTests: ActiveABTests(notificationsTest: false, paywallTest: .custom))
