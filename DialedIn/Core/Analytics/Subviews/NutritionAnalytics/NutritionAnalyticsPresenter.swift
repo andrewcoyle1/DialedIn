@@ -119,7 +119,12 @@ class NutritionAnalyticsPresenter {
     // MARK: - Breakdown helpers (for cards without targets)
     
     func formatBreakdown(_ value: Double?, unit: String) -> String {
-        guard let value, value > 0 else { return "--" }
+        // `isFinite` as well as `> 0`: this runs from the view body and an amount of 100 or more
+        // is printed through `Int(_:)`, which traps on an infinity. A NaN was already caught, but
+        // only by accident — `.nan > 0` is false, as every comparison against NaN is. Nothing can
+        // log a non-finite nutrient any more, but meals written before that was true can still be
+        // read back, and the breakdown reads whatever the document holds.
+        guard let value, value.isFinite, value > 0 else { return "--" }
         if value >= 100 || value == floor(value) {
             return Int(value).formatted()
         }
