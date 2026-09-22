@@ -138,8 +138,16 @@ runtime and the first available iPhone on it, and fails if that runtime is below
 replace this with a fixed device name — the lineup differs between runner images, and older
 runtimes that cannot run an iOS 26 deployment target are usually installed alongside the new one.
 
-SwiftPM checkouts are cached under `SourcePackages` (via `-clonedSourcePackagesDirPath`), keyed on
-`Package.resolved`. `concurrency` cancels superseded runs per ref; `timeout-minutes: 60`.
+SwiftPM checkouts are cached, keyed on `Package.resolved`, at `~/spm-source-packages` via
+`-clonedSourcePackagesDirPath`. That path is **outside the repository on purpose**: the app's
+`Run Script` build phase runs bare `swiftlint` from the project root on every build, and
+`.swiftlint.yml` excludes only `.git`, `.claude/worktrees`, `Pods` and `Carthage`. Checking
+dependencies out inside the working directory makes that phase lint RevenueCat, promises and the
+rest, failing the build on their `force_cast`, `large_tuple` and `identifier_name` violations.
+Locally the equivalent sources sit in DerivedData, well away from the linted tree. Do not move this
+back in-tree without also excluding it in `.swiftlint.yml`.
+
+`concurrency` cancels superseded runs per ref; `timeout-minutes: 60`.
 
 **SwiftLint is pinned to a single `SWIFTLINT_VERSION` env var at the top of the workflow**
 (currently `0.59.1`). CI downloads the official `portable_swiftlint.zip` for that exact version,

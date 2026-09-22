@@ -103,17 +103,25 @@ jobs:
       - name: Cache Swift Package Manager checkouts
         uses: actions/cache@v4
         with:
-          path: SourcePackages
+          path: ~/spm-source-packages
           key: ${{ runner.os }}-spm-${{ hashFiles('DialedIn.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
 
+      # The clone directory is kept OUTSIDE the repository on purpose. The app
+      # has a Run Script build phase that runs bare `swiftlint` from the
+      # project root on every build, and .swiftlint.yml excludes only .git,
+      # .claude/worktrees, Pods and Carthage. Checking dependencies out inside
+      # the working directory makes that phase lint RevenueCat, promises and
+      # the rest, which fails the build on their force_cast, large_tuple and
+      # identifier_name violations. Locally these live in DerivedData, well
+      # away from the linted tree; this keeps CI to the same arrangement.
       - name: Resolve Swift package dependencies
         run: |
           xcodebuild -resolvePackageDependencies \
             -project DialedIn.xcodeproj \
             -scheme "$SCHEME" \
-            -clonedSourcePackagesDirPath SourcePackages
+            -clonedSourcePackagesDirPath "$HOME/spm-source-packages"
 
       # The device lineup differs between runner images, so the destination is
       # discovered rather than hardcoded. Picking the *newest* iOS runtime
@@ -171,7 +179,7 @@ jobs:
             -scheme "$SCHEME" \
             -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }},OS=${{ steps.sim.outputs.os }}" \
             -skip-testing:DialedInUITests \
-            -clonedSourcePackagesDirPath SourcePackages \
+            -clonedSourcePackagesDirPath "$HOME/spm-source-packages" \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO
 
