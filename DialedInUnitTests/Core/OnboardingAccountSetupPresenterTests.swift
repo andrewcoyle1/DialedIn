@@ -444,6 +444,26 @@ struct OnboardingDateOfBirthPresenterTests {
         #expect(years == 18)
     }
 
+    /// Nobody was born tomorrow. An unbounded picker let them be, and a negative age feeds straight
+    /// into the expenditure estimate four steps later.
+    @Test("The selectable dates stop at today")
+    func testTheDateRangeExcludesTheFuture() {
+        let sut = makeScreen().presenter
+
+        #expect(sut.dateRange.upperBound <= Date())
+        #expect(!sut.dateRange.contains(Date().addingTimeInterval(60 * 60 * 24)))
+    }
+
+    /// The other end has to stay far enough back that a genuinely old user is not pushed forward
+    /// into a birth date that is not theirs.
+    @Test("A hundred-year-old can still pick their own birth date")
+    func testTheDateRangeReachesBackACentury() {
+        let sut = makeScreen().presenter
+        let aCenturyAgo = Calendar.current.date(byAdding: .year, value: -100, to: Date()) ?? Date()
+
+        #expect(sut.dateRange.contains(aCenturyAgo))
+    }
+
     /// Gender arrived on the delegate and the date is chosen here; both have to leave together or
     /// the expenditure screen computes for the wrong person.
     @Test("The date and the gender before it both move on")
@@ -468,6 +488,17 @@ struct OnboardingDateOfBirthPresenterTests {
         screen.presenter.onContinuePressed(delegate: DateOfBirthDelegate(gender: .female))
 
         #expect(screen.router.heightDelegates.map(\.dateOfBirth) == [longAgo])
+    }
+
+    /// This step logged `GenderView_Navigate`, so in the analytics it was indistinguishable from the
+    /// step before it and the drop-off between the two could not be seen.
+    @Test("Continuing logs this step rather than the one before it")
+    func testContinuingLogsItsOwnNavigationEvent() {
+        let screen = makeScreen()
+
+        screen.presenter.onContinuePressed(delegate: DateOfBirthDelegate(gender: .male))
+
+        #expect(screen.interactor.trackedEventNames == ["DateOfBirthView_Navigate"])
     }
 }
 

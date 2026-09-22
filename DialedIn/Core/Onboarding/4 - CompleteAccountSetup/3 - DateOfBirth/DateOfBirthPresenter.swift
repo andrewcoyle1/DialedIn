@@ -14,6 +14,16 @@ class DateOfBirthPresenter {
     private let router: DateOfBirthRouter
 
     var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
+
+    /// The dates the picker offers. Nobody was born tomorrow, and an unbounded picker let them be:
+    /// a future birth date gives a negative age, which the expenditure step then feeds straight
+    /// into the Mifflin-St Jeor equation. The far end reaches back a century so that a genuinely
+    /// old user is not pushed forward onto a birth date that is not theirs.
+    var dateRange: ClosedRange<Date> {
+        let now = Date()
+        let earliest = Calendar.current.date(byAdding: .year, value: -120, to: now) ?? now
+        return earliest...now
+    }
     
     init(
         interactor: DateOfBirthInteractor,
@@ -41,7 +51,7 @@ func onDevSettingsPressed() {
 
         var eventName: String {
             switch self {
-            case .navigate: return "GenderView_Navigate"
+            case .navigate: return "DateOfBirthView_Navigate"
             }
         }
 
