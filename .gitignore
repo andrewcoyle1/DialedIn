@@ -58,3 +58,9 @@ DialedIn/Utilities/Keys.swift
 
 # Agent worktrees created by Claude Code — scratch checkouts, never part of a commit
 .claude/worktrees/
+
+# CI build artefacts. CI resolves packages outside the repo, but keep these
+# ignored so a local `-clonedSourcePackagesDirPath SourcePackages` or a local
+# `-resultBundlePath` never gets committed.
+SourcePackages/
+TestResults.xcresult/

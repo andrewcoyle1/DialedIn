@@ -14,5 +14,9 @@ excluded:
   # reported every violation a second time and attributed another branch's work
   # to this one.
   - .claude/worktrees
+  # Resolved SwiftPM dependencies, if anyone points
+  # -clonedSourcePackagesDirPath inside the repo (CI keeps them outside it).
+  # Xcode's own checkouts live in DerivedData and are never seen from here.
+  - SourcePackages
   - Pods
   - Carthage

@@ -118,6 +118,58 @@ swiftlint
 
 SwiftLint config (`.swiftlint.yml`): line limit 300, type body 500 lines, file length 750 lines, `trailing_whitespace` disabled.
 
+### CI
+
+`.github/workflows/ci.yml` runs on every pull request and on pushes to `main`, as one job on the
+`macos-26` runner with Xcode pinned to `/Applications/Xcode_26.6.app`. In order, it:
+
+1. Recreates the four gitignored config files from their checked-in examples — `Keys.swift`,
+   `Info.plist`, and both `GoogleService-Info-{Dev,Prod}.plist` (all copied from
+   `GoogleService-Info-Example.plist`). The examples are enough because only the Crashlytics
+   run-script phase reads the plists and it exits early on simulator builds. The `Keys.swift`
+   example defines all 30 constants the app references, so it compiles unchanged.
+2. Runs `swiftlint --strict`, before the build so a style failure fails fast. `main` is at zero
+   violations, so any warning fails the job. SwiftLint is **pinned** — see below.
+3. Runs `xcodebuild test` for `DialedIn - Development` with `-skip-testing:DialedInUITests`,
+   writing `TestResults.xcresult`, which is uploaded as an artifact only when the job fails.
+
+The simulator destination is **discovered, not hardcoded**: a step picks the newest installed iOS
+runtime and the first available iPhone on it, and fails if that runtime is below iOS 26. Do not
+replace this with a fixed device name — the lineup differs between runner images, and older
+runtimes that cannot run an iOS 26 deployment target are usually installed alongside the new one.
+
+SwiftPM checkouts are cached, keyed on `Package.resolved`, at `~/SourcePackages` via
+`-clonedSourcePackagesDirPath`. That path is **outside the repository on purpose**: the app's
+`Run Script` build phase runs bare `swiftlint` from the project root on every build. Checking
+dependencies out inside the working directory made that phase lint RevenueCat, promises,
+mixpanel-swift and the rest, failing the build on their `force_cast`, `large_tuple` and
+`identifier_name` violations. Locally the equivalent sources sit in DerivedData, well away from the
+linted tree, which is why this only ever appeared on CI.
+
+Belt and braces, `SourcePackages` is also in the `excluded:` list in `.swiftlint.yml` and in
+`.gitignore` (along with `TestResults.xcresult/`), so resolving into the repo locally is safe too.
+Keep both: the exclusion alone would still leave the checkouts inside the tree for every other tool.
+
+Code signing is left **enabled** in the test step. A simulator build needs no provisioning profile
+and signs ad-hoc, as it does locally. `CODE_SIGNING_ALLOWED=NO` looks like a harmless CI tidy-up but
+skips entitlement processing, which costs the test host its keychain access and fails the eight
+`StravaManagerTests` that read and write Strava tokens (`.notConnected`, and a
+`KeychainHelper.read` returning nil).
+
+`concurrency` cancels superseded runs per ref; `timeout-minutes: 60`.
+
+**SwiftLint is pinned to a single `SWIFTLINT_VERSION` env var at the top of the workflow**
+(currently `0.59.1`). CI downloads the official `portable_swiftlint.zip` for that exact version,
+caches it keyed on the version, and fails the job if `swiftlint version` does not match before
+linting. It does **not** use `brew install swiftlint`.
+
+This pin exists because Homebrew tracks latest: the first CI run installed a newer SwiftLint whose
+`legacy_swiftui_aspect_ratio` rule reported 12 violations under `--strict` that do not exist
+locally. The pin must stay **in step with the version developers install locally** — if you upgrade
+your local SwiftLint, bump `SWIFTLINT_VERSION` too, and the reverse holds: bumping the pin means
+fixing whatever the new rules report, as its own change rather than folded into an unrelated PR. If
+CI reports violations you cannot reproduce, compare `swiftlint version` first.
+
 ## First-Time Setup
 
 Copy example files and fill in credentials. All three destinations are gitignored, and the app
