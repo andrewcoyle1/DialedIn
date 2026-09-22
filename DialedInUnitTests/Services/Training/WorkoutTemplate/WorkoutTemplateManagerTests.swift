@@ -97,8 +97,13 @@ struct WorkoutTemplateManagerTests {
 
         #expect(manager.getWorkoutTemplate(id: "w1")?.name == "Push")
         // The synchronous read only sees the synced library — a seeded template is not in it.
-        #expect(manager.getWorkoutTemplate(id: "s1") == nil)
-        #expect(manager.getWorkoutTemplate(id: "nope") == nil)
+        // Pinned to the sync, optional-returning overload: an unannotated `== nil` comparison
+        // gives the type checker nothing to disambiguate on, and it prefers the `async throws`
+        // overload of the same name, which has a different contract (throws rather than nil).
+        let seededLookup: WorkoutTemplateModel? = manager.getWorkoutTemplate(id: "s1")
+        #expect(seededLookup == nil)
+        let missingLookup: WorkoutTemplateModel? = manager.getWorkoutTemplate(id: "nope")
+        #expect(missingLookup == nil)
     }
 
     @Test("Test Deleting A Template Removes It From The User's Library")
