@@ -42,12 +42,26 @@ struct FoodItemSearchPresenterTests {
         let delegate = FoodItemSearchDelegate()
     }
 
+    /// The debounce is driven short here so the tests wait on the search landing rather than on
+    /// the clock. At the shipped 700ms every one of these was a race against the machine's load.
+    private static let debounce: Duration = .milliseconds(10)
+
     private func makeScreen() -> Screen {
         let interactor = Interactor()
         return Screen(
-            presenter: FoodItemSearchPresenter(interactor: interactor, router: Router()),
+            presenter: FoodItemSearchPresenter(
+                interactor: interactor,
+                router: Router(),
+                searchDebounce: Self.debounce
+            ),
             interactor: interactor
         )
+    }
+
+    /// Waits out the debounce and then some, for the tests that have to show a search *never*
+    /// fires. There is no state to poll for something that does not happen.
+    private func waitPastTheDebounce() async {
+        try? await Task.sleep(for: Self.debounce * 20)
     }
 
     private func food(_ name: String, brand: String? = nil) -> FoodModel {
@@ -118,14 +132,17 @@ struct FoodItemSearchPresenterTests {
         screen.presenter.onSearchTextChanged("")
 
         #expect(screen.presenter.openFoodFactsFoods.isEmpty)
+        // Past the debounce, or an empty query that *was* searched for would still be waiting.
+        await waitPastTheDebounce()
         #expect(screen.interactor.queries == ["oat"])
     }
 
     @Test("Test A Whitespace Only Query Is Not Searched")
-    func testAWhitespaceOnlyQueryIsNotSearched() {
+    func testAWhitespaceOnlyQueryIsNotSearched() async {
         let screen = makeScreen()
 
         screen.presenter.onSearchTextChanged("   ")
+        await waitPastTheDebounce()
 
         #expect(screen.interactor.queries.isEmpty)
     }
@@ -138,6 +155,7 @@ struct FoodItemSearchPresenterTests {
         screen.interactor.foodLogSettings.showOpenFoodFactsFoods = false
 
         screen.presenter.onSearchTextChanged("oat")
+        await waitPastTheDebounce()
 
         #expect(screen.interactor.queries.isEmpty)
         #expect(screen.presenter.openFoodFactsFoods.isEmpty)
@@ -185,7 +203,7 @@ struct FoodItemSearchPresenterTests {
 
         screen.presenter.onSearchTextChanged("oat")
         screen.presenter.onViewDisappear(delegate: screen.delegate)
-        try? await Task.sleep(nanoseconds: 900_000_000)
+        await waitPastTheDebounce()
 
         #expect(screen.interactor.queries.isEmpty)
         #expect(screen.presenter.openFoodFactsFoods.isEmpty)

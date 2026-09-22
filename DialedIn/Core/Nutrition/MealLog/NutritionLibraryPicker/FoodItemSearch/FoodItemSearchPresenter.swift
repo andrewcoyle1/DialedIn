@@ -15,9 +15,19 @@ class FoodItemSearchPresenter {
 
     private var searchTask: Task<Void, Never>?
 
-    init(interactor: FoodItemSearchInteractor, router: FoodItemSearchRouter) {
+    /// How long typing has to stop before the query is sent. Long enough that a word typed at
+    /// speed is one request, and injectable so a test can drive the debounce rather than wait it
+    /// out — a real wait makes every search test a race against the machine's load.
+    private let searchDebounce: Duration
+
+    init(
+        interactor: FoodItemSearchInteractor,
+        router: FoodItemSearchRouter,
+        searchDebounce: Duration = .milliseconds(700)
+    ) {
         self.interactor = interactor
         self.router = router
+        self.searchDebounce = searchDebounce
     }
 
     func onViewAppear(delegate: FoodItemSearchDelegate) {
@@ -42,7 +52,7 @@ class FoodItemSearchPresenter {
             return
         }
         searchTask = Task {
-            try? await Task.sleep(nanoseconds: 700_000_000)
+            try? await Task.sleep(for: searchDebounce)
             guard !Task.isCancelled else { return }
             isSearching = true
             defer { isSearching = false }
