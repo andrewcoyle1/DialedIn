@@ -10,5 +10,9 @@ disabled_rules:
 
 excluded:
   - .git
+  # Agent worktrees are full checkouts of this repo, so linting from the root
+  # reported every violation a second time and attributed another branch's work
+  # to this one.
+  - .claude/worktrees
   - Pods
   - Carthage
