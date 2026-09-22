@@ -311,6 +311,39 @@ struct OnboardingDietPlanMathTests {
         }
     }
 
+    /// The same sweep over figures that are not numbers at all.
+    ///
+    /// Weight and height come back off a Firestore document as plain `Double`s, so a corrupt or
+    /// half-written profile can carry a NaN or an infinity. Neither is filtered by a one-sided
+    /// `max(value, floor)`: `max` is `y >= x ? y : x`, and every comparison against NaN is false,
+    /// so the NaN is returned rather than the floor. From there it multiplies straight through the
+    /// protein and macro arithmetic into `Int(_:)` in the view body, which traps.
+    ///
+    /// Kept apart from the sweep above so the two failure shapes are told apart by name.
+    @Test("Test A Body Figure That Is Not A Number Cannot Reach The Plan")
+    func testABodyFigureThatIsNotANumberCannotReachThePlan() {
+        let profiles: [UserModel] = [
+            dietPlanUser(weightKilograms: .nan),
+            dietPlanUser(weightKilograms: .infinity),
+            dietPlanUser(weightKilograms: -.infinity),
+            dietPlanUser(heightCentimeters: .nan),
+            dietPlanUser(heightCentimeters: .infinity),
+            dietPlanUser(weightKilograms: .nan, heightCentimeters: .nan)
+        ]
+
+        for user in profiles {
+            for diet in PreferredDiet.allCases {
+                let plan = manager().computeDietPlan(
+                    user: user,
+                    delegate: dietPlanDelegate(preferredDiet: diet, proteinIntake: .veryHigh)
+                )
+
+                #expect(plan.tdeeEstimate.isFinite)
+                #expect(plan.days.allSatisfy(isFiniteAndSane))
+            }
+        }
+    }
+
     /// Finite is the floor of the requirement; a plan of zero calories and zero protein would
     /// pass that and still be useless, so the bounds go in the same check.
     private func isFiniteAndSane(_ day: DailyMacroTarget) -> Bool {
