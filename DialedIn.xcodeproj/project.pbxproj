@@ -1624,7 +1624,7 @@
 			repositoryURL = "https://github.com/andrewcoyle1/QuickCharts";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.6.0;
+				minimumVersion = 0.6.1;
 			};
 		};
 		D0D44BA92F54D5BE00D5BD92 /* XCRemoteSwiftPackageReference "SwiftfulGamification" */ = {
