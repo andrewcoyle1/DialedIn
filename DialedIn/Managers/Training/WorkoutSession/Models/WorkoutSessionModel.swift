@@ -79,6 +79,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         previousWorkoutSession: WorkoutSessionModel? = nil,
         gymProfile: GymProfileModel? = nil,
         unitPreferences: [String: ExerciseUnitPreference]? = nil,
+        prefill: SessionPrefill = .previousValues,
         dateCreated: Date = .now
     ) {
         self.id = id
@@ -112,57 +113,17 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                 perSide: WorkoutSessionModel.isPerSide(exerciseModel.exercise)
             )
             
-            // Populate working sets with exactly what was logged last time. No progression is
-            // applied — this is `InitialLogFillOption.previousValues`, not `.smartProgression`,
-            // whatever the setting says; there is no progression engine yet.
-            if let prevSets = previousSets {
-                // Match working sets with previous workout sets by index (skip warmup sets)
-                let previousWorkingSets = prevSets.filter { !$0.isWarmup }
-                
-                for index in workingSets.indices where index < previousWorkingSets.count {
-                    let prevSet = previousWorkingSets[index]
-                    var weightKg = prevSet.weightKg ?? workingSets[index].weightKg
-                    
-                    // Round weight to equipment increments if available, using preferred unit
-                    if let weight = weightKg {
-                        let unitPref = unitPreferences?[exerciseModel.exercise.id]
-                        let preferredUnit = unitPref?.weightUnit
-                        
-                        // Try equipment rounding first (only applies to pin-loaded/cable machines)
-                        let roundedByEquipment = WorkoutSessionModel.roundWeightToEquipmentIncrement(
-                            weightKg: weight,
-                            exercise: exerciseModel.exercise,
-                            gymProfile: gymProfile,
-                            preferredWeightUnit: preferredUnit
-                        )
-                        
-                        // If equipment rounding didn't change the weight (free weights), apply unit rounding
-                        if roundedByEquipment == weight, let preferredUnit = preferredUnit {
-                            weightKg = WorkoutSessionModel.roundWeightToPreferredUnit(
-                                weightKg: roundedByEquipment,
-                                preferredUnit: preferredUnit
-                            )
-                        } else {
-                            weightKg = roundedByEquipment
-                        }
-                    }
-                    
-                    workingSets[index] = WorkoutSetModel(
-                        id: workingSets[index].id,
-                        authorId: authorId,
-                        index: workingSets[index].index,
-                        reps: prevSet.reps ?? workingSets[index].reps,
-                        weightKg: weightKg,
-                        durationSec: prevSet.durationSec ?? workingSets[index].durationSec,
-                        distanceMeters: prevSet.distanceMeters ?? workingSets[index].distanceMeters,
-                        rpe: workingSets[index].rpe,
-                        side: workingSets[index].side,
-                        isWarmup: false,
-                        completedAt: nil,
-                        dateCreated: .now
-                    )
-                }
-            }
+            // Fill the working sets the way the Initial Log Fill setting asks for: the
+            // progression engine's suggestion where there is one, otherwise exactly what was
+            // logged last time, and nothing at all for `.empty`.
+            WorkingSetPrefill(
+                prefill: prefill,
+                previousSets: previousSets,
+                authorId: authorId,
+                exercise: exerciseModel.exercise,
+                gymProfile: gymProfile,
+                unitPreferences: unitPreferences
+            ).apply(to: &workingSets)
             
             // Use the first working set's weight/reps for warmup calculation, or fall back to estimated values
             let firstWorkingSet = workingSets.first
