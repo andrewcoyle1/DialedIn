@@ -198,48 +198,66 @@ class WorkoutSessionDetailPresenter {
     
     // MARK: - Set Management
     
+    /// Adds one more set — which is two rows for an exercise worked a side at a time, so editing a
+    /// past session can never leave a left with no right to follow it.
     func addSet(session: Binding<WorkoutSessionModel>, to exerciseId: String) {
-        
         guard let exerciseIndex = session.wrappedValue.exercises.firstIndex(where: { $0.id == exerciseId }),
-        let userId = interactor.currentUser?.userId else { return }
+              let userId = interactor.currentUser?.userId else { return }
+
         var updatedExercises = session.wrappedValue.exercises
-        let exercise = updatedExercises[exerciseIndex]
+        let existingSets = updatedExercises[exerciseIndex].sets
         // One past the highest index, not one past the count: deleting a set leaves a gap in the
         // numbering, and counting instead of looking handed the new set an index another set
         // already held. Duplicate indices are what last session's figures are matched on.
-        let newIndex = (exercise.sets.map(\.index).max() ?? 0) + 1
-        
-        // Create new set based on the last set's values or default
-        let lastSet = exercise.sets.last
-        let newSet = WorkoutSetModel(
-            id: UUID().uuidString,
-            authorId: userId,
-            index: newIndex,
-            reps: lastSet?.reps,
-            weightKg: lastSet?.weightKg,
-            durationSec: lastSet?.durationSec,
-            distanceMeters: lastSet?.distanceMeters,
-            rpe: lastSet?.rpe,
-            isWarmup: false,
-            completedAt: Date(),
-            dateCreated: Date()
-        )
-        
-        updatedExercises[exerciseIndex].sets.append(newSet)
+        var nextIndex = (existingSets.map(\.index).max() ?? 0) + 1
+        let sides: [SetSide?] = updatedExercises[exerciseIndex].isPerSide ? SetSide.ordered.map { $0 } : [nil]
+
+        for side in sides {
+            // Carry forward the last set on the same side, so a left set copies the left limb's
+            // weight rather than the right one's.
+            let lastSet = existingSets.last(where: { side == nil || $0.side == side }) ?? existingSets.last
+            updatedExercises[exerciseIndex].sets.append(
+                WorkoutSetModel(
+                    id: UUID().uuidString,
+                    authorId: userId,
+                    index: nextIndex,
+                    reps: lastSet?.reps,
+                    weightKg: lastSet?.weightKg,
+                    durationSec: lastSet?.durationSec,
+                    distanceMeters: lastSet?.distanceMeters,
+                    rpe: lastSet?.rpe,
+                    side: side,
+                    isWarmup: false,
+                    // A set added to a finished workout is one the user did and forgot to log.
+                    completedAt: Date(),
+                    dateCreated: Date()
+                )
+            )
+            // Both halves of a pair keep their own index — they are told apart by `side`, never by
+            // sharing a number.
+            nextIndex += 1
+        }
+
         session.wrappedValue.updateExercises(updatedExercises)
     }
-    
+
+    /// Deleting half of a left/right pair would leave the other half standing alone, numbering and
+    /// counting as a set in its own right, so the pair goes together.
     func deleteSet(session: Binding<WorkoutSessionModel>, _ setId: String, from exerciseId: String) {
         guard let exerciseIndex = session.wrappedValue.exercises.firstIndex(where: { $0.id == exerciseId }) else { return }
-        
+
         var updatedExercises = session.wrappedValue.exercises
-        updatedExercises[exerciseIndex].sets.removeAll { $0.id == setId }
-        
-        // Reindex remaining sets
+        let removing = Set(updatedExercises[exerciseIndex].sets.pairedSetIds(for: setId))
+        guard !removing.isEmpty else { return }
+
+        updatedExercises[exerciseIndex].sets.removeAll { removing.contains($0.id) }
+
+        // Close the gap, or the numbers on screen skip and the next set added collides with one
+        // already there. Position gives every remaining row its own index, pairs included.
         for index in updatedExercises[exerciseIndex].sets.indices {
             updatedExercises[exerciseIndex].sets[index].index = index + 1
         }
-        
+
         session.wrappedValue.updateExercises(updatedExercises)
     }
     
