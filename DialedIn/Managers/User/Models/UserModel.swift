@@ -54,6 +54,14 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     let acceptedHealthPrivacyPolicyVersion: String?
     let acceptedHealthPrivacyPolicyDate: Date?
 
+    /// The health notices the app currently presents, and the versions an acceptance is recorded
+    /// against. `HealthDisclaimerPresenter` stamps these onto the profile when the user confirms.
+    ///
+    /// Note that `inferredOnboardingStep` only checks that *some* version was accepted, so bumping
+    /// either string does not currently send existing users back through the disclaimer.
+    static let currentHealthDisclaimerVersion = "2025.10.05"
+    static let currentHealthPrivacyPolicyVersion = "2025.10.05"
+
     init(
         userId: String,
         email: String? = nil,
