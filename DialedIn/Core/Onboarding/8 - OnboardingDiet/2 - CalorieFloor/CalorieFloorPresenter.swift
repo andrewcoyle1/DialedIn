@@ -50,22 +50,18 @@ func onDevSettingsPressed() {
 #endif
 
     enum Event: LoggableEvent {
-        case trainingContextLoaded(daysPerWeek: Int?)
         case calorieFloorPrefilled(floor: CalorieFloor, reason: String)
         case navigate(skipReason: String? = nil)
 
         var eventName: String {
             switch self {
-            case .trainingContextLoaded: return "Onboarding_CalFloor_TrainingContextLoaded"
             case .calorieFloorPrefilled: return "Onboarding_CalFloor_Prefilled"
             case .navigate: return "Onboarding_CalFloor_Navigate"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
-            case .trainingContextLoaded(daysPerWeek: let days):
-                return ["daysPerWeek": days as Any]
             case .calorieFloorPrefilled(floor: let floor, reason: let reason):
                 return ["floor": floor.rawValue, "reason": reason]
             case .navigate(skipReason: let skipReason):
@@ -76,10 +72,10 @@ func onDevSettingsPressed() {
                 return params
             }
         }
-        
+
         var type: LogType {
             switch self {
-            case .navigate, .trainingContextLoaded, .calorieFloorPrefilled:
+            case .navigate, .calorieFloorPrefilled:
                 return .info
             }
         }

@@ -92,40 +92,27 @@ extension WorkoutHistoryPresenter {
         case onDisappear
         case syncSessionsStart
         case syncSessionsSuccess
-        case syncSessionsFail(error: Error)
-        case loadInitialSessionsStart
-        case loadInitialSessionsSuccess
-        case loadInitialSessionsFail(error: Error)
-        
+
         var eventName: String {
             switch self {
-            case .onAppear:                     return "WorkoutHistoryView_Appear"
-            case .onDisappear:                  return "WorkoutHistoryView_Disappear"
-            case .syncSessionsStart:            return "WorkoutHistoryView_SyncSessions_Start"
-            case .syncSessionsSuccess:          return "WorkoutHistoryView_SyncSessions_Success"
-            case .syncSessionsFail:             return "WorkoutHistoryView_SyncSessions_Fail"
-            case .loadInitialSessionsStart:     return "WorkoutHistoryView_LoadInitialSessions_Start"
-            case .loadInitialSessionsSuccess:   return "WorkoutHistoryView_LoadInitialSessions_Success"
-            case .loadInitialSessionsFail:      return "WorkoutHistoryView_LoadInitialSessions_Fail"
+            case .onAppear:             return "WorkoutHistoryView_Appear"
+            case .onDisappear:          return "WorkoutHistoryView_Disappear"
+            case .syncSessionsStart:    return "WorkoutHistoryView_SyncSessions_Start"
+            case .syncSessionsSuccess:  return "WorkoutHistoryView_SyncSessions_Success"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
-            case .syncSessionsFail(error: let error), .loadInitialSessionsFail(error: let error):
-                return error.eventParameters
             default:
                 return nil
             }
         }
-        
+
         var type: LogType {
             switch self {
-            case .syncSessionsFail, .loadInitialSessionsFail:
-                return .severe
             default:
                 return .analytic
-                
             }
         }
     }

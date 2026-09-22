@@ -39,28 +39,24 @@ func onDevSettingsPressed() {
 #endif
 
     enum Event: LoggableEvent {
-        case proteinIntakePrefilled(intake: ProteinIntake, reason: String)
         case navigate
 
         var eventName: String {
             switch self {
-            case .proteinIntakePrefilled: return "Onboarding_ProteinIntake_Prefilled"
             case .navigate: return "Onboarding_ProteinIntake_Navigate"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
-            case .proteinIntakePrefilled(intake: let intake, reason: let reason):
-                return ["intake": intake.rawValue, "reason": reason]
             case .navigate:
                 return nil
             }
         }
-        
+
         var type: LogType {
             switch self {
-            case .navigate, .proteinIntakePrefilled:
+            case .navigate:
                 return .info
             }
         }

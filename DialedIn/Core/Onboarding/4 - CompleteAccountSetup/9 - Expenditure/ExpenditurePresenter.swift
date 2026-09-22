@@ -281,17 +281,15 @@ func onDevSettingsPressed() {
         case profileSaveStart
         case profileSaveSuccess
         case profileSaveFail(error: Error)
-        case navigate
-        
+
         var eventName: String {
             switch self {
             case .profileSaveStart: return "Expenditure_SaveProfile_Start"
             case .profileSaveSuccess: return "Expenditure_SaveProfile_Success"
             case .profileSaveFail: return "Expenditureo_SaveProfile_Fail"
-            case .navigate: return "Expenditure_Navigate"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
             case .profileSaveFail(error: let error):
@@ -300,13 +298,11 @@ func onDevSettingsPressed() {
                 return nil
             }
         }
-        
+
         var type: LogType {
             switch self {
             case .profileSaveFail:
                 return .severe
-            case .navigate:
-                return .info
             default:
                 return .analytic
             }

@@ -534,7 +534,6 @@ class AnalyticsPresenter {
     enum Event: LoggableEvent {
         case onAppear(delegate: AnalyticsDelegate)
         case onDisappear(delegate: AnalyticsDelegate)
-        case onNotificationsPressed
         case onDevSettings
         case onDevSettingsFail
 
@@ -542,7 +541,6 @@ class AnalyticsPresenter {
             switch self {
             case .onAppear:                 return "AnalyticsView_Appear"
             case .onDisappear:              return "AnalyticsView_Disappear"
-            case .onNotificationsPressed:   return "AnalyticsView_NotificationsPressed"
             case .onDevSettings:            return "AnalyticsView_DevSettings"
             case .onDevSettingsFail:        return "AnalyticsView_DevSettings_Fail"
 
