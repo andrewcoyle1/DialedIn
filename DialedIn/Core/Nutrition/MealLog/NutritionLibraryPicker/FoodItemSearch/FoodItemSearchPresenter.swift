@@ -38,10 +38,14 @@ class FoodItemSearchPresenter {
     func onViewDisappear(delegate: FoodItemSearchDelegate) {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
         searchTask?.cancel()
+        isSearching = false
     }
 
     func onSearchTextChanged(_ text: String) {
         searchTask?.cancel()
+        // The cancelled task returns whenever its request does, so it can no longer be trusted to
+        // put the spinner away.
+        isSearching = false
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else {
             openFoodFactsFoods = []
@@ -55,16 +59,20 @@ class FoodItemSearchPresenter {
             try? await Task.sleep(for: searchDebounce)
             guard !Task.isCancelled else { return }
             isSearching = true
-            defer { isSearching = false }
             do {
-                openFoodFactsFoods = try await interactor.searchOpenFoodFacts(query: trimmed)
-                if !interactor.foodLogSettings.showBrandedFoods {
-                    openFoodFactsFoods = openFoodFactsFoods.filter { $0.brandName == nil }
-                }
+                let found = try await interactor.searchOpenFoodFacts(query: trimmed)
+                // Cancelling cannot recall a request already in flight, so a superseded search
+                // still answers. Dropping it here is what keeps it off the newer query's results.
+                guard !Task.isCancelled else { return }
+                openFoodFactsFoods = interactor.foodLogSettings.showBrandedFoods
+                    ? found
+                    : found.filter { $0.brandName == nil }
             } catch {
+                guard !Task.isCancelled else { return }
                 interactor.trackEvent(event: Event.searchError(error: error))
                 openFoodFactsFoods = []
             }
+            isSearching = false
         }
     }
 }

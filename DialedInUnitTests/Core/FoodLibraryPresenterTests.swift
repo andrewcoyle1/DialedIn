@@ -22,13 +22,30 @@ struct FoodItemSearchPresenterTests {
         var recentFoods: [FoodModel] = []
         var foodLogSettings: FoodLogSettings = FoodLogSettings(authorId: "user-1")
         var results: [FoodModel] = []
+        var resultsByQuery: [String: [FoodModel]] = [:]
         var error: Error?
         private(set) var queries: [String] = []
 
+        private var held: Set<String> = []
+        private var gates: [String: CheckedContinuation<Void, Never>] = [:]
+
+        /// Leaves the next search for `query` suspended, standing in for a request still in
+        /// flight at the remote, until `release(_:)` answers it.
+        func hold(_ query: String) {
+            held.insert(query)
+        }
+
+        func release(_ query: String) {
+            gates.removeValue(forKey: query)?.resume()
+        }
+
         func searchOpenFoodFacts(query: String) async throws -> [FoodModel] {
             queries.append(query)
+            if held.remove(query) != nil {
+                await withCheckedContinuation { gates[query] = $0 }
+            }
             if let error { throw error }
-            return results
+            return resultsByQuery[query] ?? results
         }
     }
 
@@ -118,6 +135,28 @@ struct FoodItemSearchPresenterTests {
         await TestManagers.eventually { !screen.presenter.openFoodFactsFoods.isEmpty }
 
         #expect(screen.interactor.queries == ["oat"])
+    }
+
+    /// Cancelling a search cannot recall a request already in flight at the remote, so the
+    /// superseded answer still arrives. It has to be dropped on arrival — otherwise the results
+    /// for "oat" land on top of the ones the user is looking at for "oats".
+    @Test("Test A Superseded Search Does Not Overwrite The Newer One")
+    func testASupersededSearchDoesNotOverwriteTheNewerOne() async {
+        let screen = makeScreen()
+        screen.interactor.resultsByQuery = ["oat": [food("Oat Milk")], "oats": [food("Oats")]]
+        screen.interactor.hold("oat")
+
+        screen.presenter.onSearchTextChanged("oat")
+        await TestManagers.eventually { screen.interactor.queries == ["oat"] }
+
+        screen.presenter.onSearchTextChanged("oats")
+        await TestManagers.eventually { screen.presenter.openFoodFactsFoods.map(\.name) == ["Oats"] }
+
+        screen.interactor.release("oat")
+        await waitPastTheDebounce()
+
+        #expect(screen.presenter.openFoodFactsFoods.map(\.name) == ["Oats"])
+        #expect(!screen.presenter.isSearching)
     }
 
     /// Clearing the field drops the results immediately rather than waiting on a search, and asks
