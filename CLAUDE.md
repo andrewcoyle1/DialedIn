@@ -42,8 +42,11 @@ xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
 
 **Run the full suite only when pushing.** Not between steps, and not to confirm something a
 narrower run has already shown. Measured on this machine: the whole suite is about fifteen minutes
-of test time on top of the build, one suite through `-only-testing` is about forty-five seconds,
-and the package's own `swift test` is under two. Pick the narrowest run that could actually fail:
+with the UI bundle and **2.7 minutes without it** (2,717 unit tests), one suite through
+`-only-testing` is about forty-five seconds, and the package's own `swift test` is under two.
+Nearly all of the fifteen minutes is the UI runner and its simulator clones, so
+`-skip-testing:DialedInUITests` is the single biggest saving available. Pick the narrowest run
+that could actually fail:
 
 | Change | Run |
 |---|---|
