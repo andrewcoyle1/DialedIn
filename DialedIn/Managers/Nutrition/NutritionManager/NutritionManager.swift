@@ -106,8 +106,17 @@ class NutritionManager {
             exerciseFrequency: user?.submittedExerciseFrequency
         )
 
+        // The id has to be the user id, not a fresh UUID. `DietPlan.id` is `planId`, and
+        // `FirebaseRemoteDocumentService.saveDocument` writes to `document(model.id)`, while
+        // `CoreInteractor.logIn` listens on `diet_plans/<uid>`. A UUID here meant every plan was
+        // written to a document nothing was listening to, so `currentDietPlan` stayed nil and the
+        // nutrition targets never appeared. There is one plan per user, so the uid is also the
+        // right identity for it.
+        //
+        // Falling back to a UUID keeps a plan computed before sign-in addressable; it still will
+        // not be listened to, which is what the onboarding order already assumes.
         return DietPlan(
-            planId: UUID().uuidString,
+            planId: userId ?? UUID().uuidString,
             userId: userId,
             createdAt: now,
             tdeeEstimate: round(tdee),

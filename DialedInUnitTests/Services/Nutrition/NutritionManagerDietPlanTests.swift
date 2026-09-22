@@ -309,20 +309,36 @@ struct NutritionManagerDietPlanTests {
         #expect(abs(plan.tdeeEstimate - round(nutritionManager.estimateTDEE(user: user))) < 0.01)
     }
 
-    /// Every computed plan carries a fresh identifier rather than the user's, which matters
-    /// because the document the manager listens to is keyed separately — see
-    /// `CoreInteractor.logIn`, which signs the manager in under the account's uid.
-    @Test("Test Each Computed Plan Carries A Fresh Identifier")
-    func testEachComputedPlanCarriesAFreshIdentifier() {
+    /// The plan is identified by the user id, and `DietPlan.id` is `planId`. That is what makes a
+    /// save land on the document the manager listens to: `saveDocument` writes to
+    /// `document(model.id)`, and `CoreInteractor.logIn` signs the manager in under the account's
+    /// uid. A fresh UUID here — as it used to be — wrote every plan to a document nothing was
+    /// listening to, leaving `currentDietPlan` nil and the nutrition targets permanently blank.
+    @Test("Test A Computed Plan Is Identified By The User")
+    func testAComputedPlanIsIdentifiedByTheUser() throws {
         let nutritionManager = manager()
         let user = profile()
 
         let first = nutritionManager.computeDietPlan(user: user, delegate: delegate())
         let second = nutritionManager.computeDietPlan(user: user, delegate: delegate())
 
-        #expect(first.planId != second.planId)
-        #expect(first.planId != user.userId)
-        #expect(first.id == first.planId)
+        let userId = try #require(user.userId)
+        #expect(first.planId == userId)
+        #expect(first.id == userId)
+        // Recomputing replaces the plan rather than adding a second one beside it.
+        #expect(second.planId == first.planId)
+    }
+
+    /// Onboarding can compute a plan before an account exists. There is no uid to key it by, so it
+    /// falls back to a generated id — still addressable, still not listened to, which is why
+    /// onboarding saves the plan after signing in.
+    @Test("Test A Plan Computed Without A User Still Has An Identifier")
+    func testAPlanComputedWithoutAUserStillHasAnIdentifier() {
+        let plan = manager().computeDietPlan(user: nil, delegate: delegate())
+
+        #expect(plan.planId.isEmpty == false)
+        #expect(plan.id == plan.planId)
+        #expect(plan.userId == nil)
     }
 
     /// The same answers and the same profile have to produce the same week. Two reads of a plan
