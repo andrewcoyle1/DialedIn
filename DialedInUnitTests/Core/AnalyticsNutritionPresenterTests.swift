@@ -488,7 +488,7 @@ struct AnalyticsNutritionMetricDetailTests {
 @MainActor
 struct AnalyticsNutritionTargetChartTests {
 
-    private final class Interactor: NutritionTargetChartInteractor {
+    private final class Interactor: SpyGlobalInteractor, NutritionTargetChartInteractor {
         var currentDietPlan: DietPlan?
         var totalsByDay: [String: DailyMacroTarget] = [:]
         private(set) var requestedDayKeys: [String] = []
@@ -499,15 +499,30 @@ struct AnalyticsNutritionTargetChartTests {
         }
     }
 
+    private final class Router: NutritionTargetChartRouter {
+        let router: AnyRouter = TestRouting.anyRouter
+        private(set) var preferredDietViewsFromSettings: [Bool] = []
+
+        func showPreferredDietView(isFromSettings: Bool) {
+            preferredDietViewsFromSettings.append(isFromSettings)
+        }
+    }
+
     private struct Screen {
         let presenter: NutritionTargetChartPresenter
         let interactor: Interactor
+        let router: Router
     }
 
     private func makeScreen(plan: DietPlan? = nil) -> Screen {
         let interactor = Interactor()
         interactor.currentDietPlan = plan
-        return Screen(presenter: NutritionTargetChartPresenter(interactor: interactor), interactor: interactor)
+        let router = Router()
+        return Screen(
+            presenter: NutritionTargetChartPresenter(interactor: interactor, router: router),
+            interactor: interactor,
+            router: router
+        )
     }
 
     private func plan(days: [DailyMacroTarget]) -> DietPlan {
@@ -570,26 +585,26 @@ struct AnalyticsNutritionTargetChartTests {
     /// Each column is read for its own day of the current week, so a meal logged on Tuesday lands
     /// in Tuesday's cell.
     @Test("Test Each Column Reads Its Own Day")
-    func testEachColumnReadsItsOwnDay() async {
+    func testEachColumnReadsItsOwnDay() async throws {
         let screen = makeScreen()
         let wednesday = Calendar.current.date(byAdding: .day, value: 2, to: screen.presenter.mondayStartOfCurrentWeek) ?? Date()
         screen.interactor.totalsByDay = [wednesday.dayKey: DailyMacroTarget(calories: 2100, proteinGrams: 150, carbGrams: 200, fatGrams: 70)]
 
         await screen.presenter.loadCurrentWeekLoggedTotals()
 
-        #expect(screen.presenter.loggedDays.count == 7)
-        #expect(screen.presenter.loggedDays[2].calories == 2100)
-        #expect(screen.presenter.loggedDays[0].calories == 0)
+        let loggedDays = try #require(screen.presenter.loggedDays)
+        #expect(loggedDays.count == 7)
+        #expect(loggedDays[2].calories == 2100)
+        #expect(loggedDays[0].calories == 0)
     }
 
-    /// Before anything is loaded the grid reads as an empty week rather than as seven days of
-    /// missing cells.
-    @Test("Test An Unloaded Week Reads As Zeroes")
-    func testAnUnloadedWeekReadsAsZeroes() {
+    /// Nothing is claimed about the week before it has been read. Seven zeroed days would say the
+    /// user ate nothing all week, which is a different statement from not having looked yet.
+    @Test("Test An Unloaded Week Claims Nothing")
+    func testAnUnloadedWeekClaimsNothing() {
         let screen = makeScreen()
 
-        #expect(screen.presenter.loggedDays.count == 7)
-        #expect(screen.presenter.loggedDays.allSatisfy { $0.calories == 0 })
+        #expect(screen.presenter.loggedDays == nil)
     }
 
     /// The plan's own seven days are the targets when there is a plan.
@@ -598,18 +613,42 @@ struct AnalyticsNutritionTargetChartTests {
         let days = (0..<7).map { DailyMacroTarget(calories: Double(2000 + $0), proteinGrams: 150, carbGrams: 200, fatGrams: 70) }
         let screen = makeScreen(plan: plan(days: days))
 
-        #expect(screen.presenter.planDays.map(\.calories) == days.map(\.calories))
+        #expect(screen.presenter.planDays?.map(\.calories) == days.map(\.calories))
     }
 
-    /// A plan that is not seven days long cannot be laid over a seven-column week, so it is not
-    /// used for one.
-    @Test("Test A Plan Of The Wrong Length Is Not Used")
-    func testAPlanOfTheWrongLengthIsNotUsed() {
+    /// The grid used to fill a missing plan with `DailyMacroTarget.mock`, drawing seven invented
+    /// targets that read exactly like the user's own. People eat to these numbers, so there is
+    /// nothing to draw until there is a plan.
+    @Test("Test No Plan Invents No Targets")
+    func testNoPlanInventsNoTargets() {
+        let screen = makeScreen(plan: nil)
+
+        #expect(screen.presenter.planDays == nil)
+    }
+
+    /// A plan that is not seven days long cannot be laid over a seven-column Monday-start week
+    /// without printing one day's target under another, so it is treated as no plan rather than
+    /// mis-assigned. No path that builds a plan produces one, so this is a malformed stored
+    /// document.
+    @Test("Test A Plan Of The Wrong Length Is Not Laid Over The Week")
+    func testAPlanOfTheWrongLengthIsNotLaidOverTheWeek() {
         let days = (0..<3).map { _ in DailyMacroTarget(calories: 1234, proteinGrams: 150, carbGrams: 200, fatGrams: 70) }
         let screen = makeScreen(plan: plan(days: days))
 
-        #expect(screen.presenter.planDays.count == 7)
-        #expect(screen.presenter.planDays.allSatisfy { $0.calories != 1234 })
+        #expect(screen.presenter.planDays == nil)
+    }
+
+    /// The empty state is the only place in the app outside Settings that offers to build a plan,
+    /// and it enters the questionnaire the way Settings does so it dismisses back here at the end
+    /// instead of carrying on into onboarding.
+    @Test("Test Creating A Plan Opens The Diet Questionnaire")
+    func testCreatingAPlanOpensTheDietQuestionnaire() {
+        let screen = makeScreen(plan: nil)
+
+        screen.presenter.onCreatePlanPressed()
+
+        #expect(screen.router.preferredDietViewsFromSettings == [true])
+        #expect(screen.interactor.trackedEventNames.contains("NutritionTargetChart_CreatePlan_Pressed"))
     }
 
     // MARK: - Reading a cell
