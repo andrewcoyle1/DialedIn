@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol TimelineActionsRouter: GlobalRouter {
-    
-}
+protocol TimelineActionsRouter: GlobalRouter { }
 
 extension CoreRouter: TimelineActionsRouter { }

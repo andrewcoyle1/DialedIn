@@ -15,7 +15,7 @@ class WeightTrendPresenter {
     private let router: WeightTrendRouter
 
     private(set) var cachedTrendEntries: [WeightTrendEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -55,15 +55,15 @@ class WeightTrendPresenter {
             WeightTrendEntry(id: entry.id, date: pair.date, trendValue: pair.value)
         }
 
-        var series: [TimeSeriesData.TimeSeries] = [
-            TimeSeriesData.TimeSeries(name: "Scale Weight", data: scaleData)
+        var series: [TimeSeries] = [
+            TimeSeries(name: "Scale Weight", data: scaleData)
         ]
 
         if trendPairs.count >= 2 {
             let trendData = trendPairs.map { pair in
                 TimeSeriesDatapoint(id: "trend-\(pair.date.timeIntervalSince1970)", date: pair.date, value: pair.value)
             }
-            series.append(TimeSeriesData.TimeSeries(name: "Trend Weight", data: trendData))
+            series.append(TimeSeries(name: "Trend Weight", data: trendData))
         }
 
         cachedTimeSeries = series
@@ -77,36 +77,56 @@ extension WeightTrendPresenter: @MainActor MetricDetailPresenter {
         cachedTrendEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
+    }
+
+    /// Weight is stored in kilograms. The smoothing runs in kilograms and converts afterwards —
+    /// the conversion is linear, so it is the same curve.
+    private var weightUnit: WeightUnitPreference {
+        interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
+    }
+
+    func displayValue(for entry: WeightTrendEntry) -> String {
+        UnitConversion.formatWeight(entry.trendValue, unit: weightUnit)
     }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: "Weight Trend",
             analyticsName: "WeightTrendView",
-            yAxisSuffix: " kg",
+            yAxisSuffix: " \(weightUnit.abbreviation)",
             seriesNames: ["Scale Weight", "Trend Weight"],
             showsAddButton: true,
             sectionHeader: "Trend History",
             emptyStateMessage: "No weight entries",
-            pageSize: 20,
             chartColor: nil
         )
     }
 
+    /// Was a no-op. `rebuildCaches()` runs in `init`, so the screen had data — but it never picked
+    /// up a weight logged through its own "Add" button, which routes to LogWeight and comes back.
     func onAppear() async {
-        // No-op
+        rebuildCaches()
     }
 
     func onAddPressed() {
         onAddWeightPressed()
     }
 
+    var supportsDeletion: Bool { true }
+
     func onDeleteEntry(_ entry: WeightTrendEntry) async {
         guard let bodyEntry = interactor.bodyMeasurements.first(where: { $0.id == entry.id }) else { return }
         let updatedEntry = bodyEntry.withCleared(.weightKg)
-        try? await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        do {
+            try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        } catch {
+            // Was `try?`. The refresh below re-reads unchanged data, so a failed delete put the row
+            // straight back with nothing said about why.
+            router.showSimpleAlert(title: "Unable to Delete Entry", subtitle: "Please try again.")
+            return
+        }
         rebuildCaches()
     }
 }

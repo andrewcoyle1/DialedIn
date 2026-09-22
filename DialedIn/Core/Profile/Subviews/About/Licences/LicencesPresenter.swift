@@ -12,6 +12,8 @@ class LicencesPresenter {
         self.router = router
     }
     
+    let groups = Licence.groupedByLicence
+
     func onViewAppear() {
         interactor.trackScreenEvent(event: Event.onAppear)
     }
@@ -32,8 +34,8 @@ extension LicencesPresenter {
 
         var eventName: String {
             switch self {
-            case .onAppear:             return "AppView_Appear"
-            case .onDisappear:          return "AppView_Disappear"
+            case .onAppear:             return "LicencesView_Appear"
+            case .onDisappear:          return "LicencesView_Disappear"
             }
         }
         

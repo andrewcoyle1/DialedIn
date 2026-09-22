@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Laterality: String, DataSyncModelProtocol, PickableItem {
+enum Laterality: String, CaseIterable, DataSyncModelProtocol, PickableItem {
     
     var id: String { self.rawValue }
     

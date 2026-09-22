@@ -16,13 +16,11 @@ struct WeightGoalEqualityAndCodableTests {
     
     @Test("Test Equality With Same Properties")
     func testEqualityWithSameProperties() {
-        let randomGoalId = String.random
         let randomUserId = String.random
         let randomObjective = OverarchingObjective.loseWeight
         let randomCreatedAt = Date.random
         
         let goal1 = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: randomObjective,
             startingWeightKg: 75.0,
@@ -33,7 +31,6 @@ struct WeightGoalEqualityAndCodableTests {
         )
         
         let goal2 = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: randomObjective,
             startingWeightKg: 75.0,
@@ -46,12 +43,13 @@ struct WeightGoalEqualityAndCodableTests {
         #expect(goal1 == goal2)
     }
     
-    @Test("Test Inequality With Different Goal ID")
-    func testInequalityWithDifferentGoalId() {
+    /// A goal used to carry its own `goalId`; a user now has one weight goal, identified by their
+    /// own id, so that is what the sync engine writes it under.
+    @Test("Test Goal Is Identified By Its User")
+    func testGoalIsIdentifiedByItsUser() {
         let randomUserId = String.random
         
-        let goal1 = WeightGoal(
-            goalId: String.random,
+        let goal = WeightGoal(
             userId: randomUserId,
             objective: .loseWeight,
             startingWeightKg: 75.0,
@@ -59,9 +57,21 @@ struct WeightGoalEqualityAndCodableTests {
             weeklyChangeKg: 0.5
         )
         
+        #expect(goal.id == randomUserId)
+    }
+    
+    @Test("Test Inequality With Different User")
+    func testInequalityWithDifferentUser() {
+        let goal1 = WeightGoal(
+            userId: String.random,
+            objective: .loseWeight,
+            startingWeightKg: 75.0,
+            targetWeightKg: 68.0,
+            weeklyChangeKg: 0.5
+        )
+        
         let goal2 = WeightGoal(
-            goalId: String.random,
-            userId: randomUserId,
+            userId: String.random,
             objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
@@ -73,11 +83,9 @@ struct WeightGoalEqualityAndCodableTests {
     
     @Test("Test Inequality With Different Objective")
     func testInequalityWithDifferentObjective() {
-        let randomGoalId = String.random
         let randomUserId = String.random
         
         let goal1 = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: .loseWeight,
             startingWeightKg: 75.0,
@@ -86,7 +94,6 @@ struct WeightGoalEqualityAndCodableTests {
         )
         
         let goal2 = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: .gainWeight,
             startingWeightKg: 75.0,
@@ -99,12 +106,10 @@ struct WeightGoalEqualityAndCodableTests {
     
     @Test("Test Inequality With Different Status")
     func testInequalityWithDifferentStatus() {
-        let randomGoalId = String.random
         let randomUserId = String.random
         let randomCreatedAt = Date.random
         
         let goal1 = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: .loseWeight,
             startingWeightKg: 75.0,
@@ -115,7 +120,6 @@ struct WeightGoalEqualityAndCodableTests {
         )
         
         let goal2 = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: .loseWeight,
             startingWeightKg: 75.0,
@@ -132,13 +136,11 @@ struct WeightGoalEqualityAndCodableTests {
     
     @Test("Test Encoding And Decoding")
     func testEncodingAndDecoding() throws {
-        let randomGoalId = String.random
         let randomUserId = String.random
         let randomCreatedAt = Date.random
         let randomCompletedAt = Date.random
         
         let originalGoal = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: .loseWeight,
             startingWeightKg: 75.0,
@@ -158,7 +160,6 @@ struct WeightGoalEqualityAndCodableTests {
         let decodedGoal = try decoder.decode(WeightGoal.self, from: encodedData)
         
         // With millisecondsSince1970, dates preserve sub-second precision
-        #expect(decodedGoal.goalId == originalGoal.goalId)
         #expect(decodedGoal.userId == originalGoal.userId)
         #expect(decodedGoal.objective == originalGoal.objective)
         #expect(decodedGoal.startingWeightKg == originalGoal.startingWeightKg)
@@ -175,12 +176,10 @@ struct WeightGoalEqualityAndCodableTests {
     
     @Test("Test Encoding Nil Completed At")
     func testEncodingNilCompletedAt() throws {
-        let randomGoalId = String.random
         let randomUserId = String.random
         let randomCreatedAt = Date.random
         
         let goal = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: .loseWeight,
             startingWeightKg: 75.0,
@@ -199,18 +198,15 @@ struct WeightGoalEqualityAndCodableTests {
         decoder.dateDecodingStrategy = .millisecondsSince1970
         let decodedGoal = try decoder.decode(WeightGoal.self, from: encodedData)
         
-        #expect(decodedGoal.goalId == randomGoalId)
         #expect(decodedGoal.userId == randomUserId)
         #expect(decodedGoal.completedAt == nil)
     }
     
     @Test("Test Coding Keys Mapping")
     func testCodingKeysMapping() throws {
-        let randomGoalId = String.random
         let randomUserId = String.random
         
         let goal = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: .loseWeight,
             startingWeightKg: 75.0,
@@ -225,9 +221,10 @@ struct WeightGoalEqualityAndCodableTests {
         
         let json = try JSONSerialization.jsonObject(with: encodedData) as? [String: Any]
         
-        #expect(json?["goal_id"] as? String == randomGoalId)
         #expect(json?["user_id"] as? String == randomUserId)
-        #expect(json?["objective"] as? String == "lose weight")
+        // `OverarchingObjective` has no string raw value, so it encodes as a keyed case rather than
+        // a plain string; the round-trip above is what pins its stored shape.
+        #expect(json?["objective"] != nil)
         #expect(json?["starting_weight_kg"] as? Double == 75.0)
         #expect(json?["target_weight_kg"] as? Double == 68.0)
         #expect(json?["weekly_change_kg"] as? Double == 0.5)

@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol WelcomeRouter: GlobalRouter {
+protocol WelcomeRouter: OnboardingStepRouter {
 #if DEV || MOCK
 func showDevSettingsView()
 #endif
@@ -14,15 +14,6 @@ func showDevSettingsView()
     func showIntroView()
     func showAuthView()
     func showSubscriptionView()
-    func showCompleteAccountSetupView()
-    func showNotificationsPermissionsView()
-    func showOnboardingHealthDataView()
-    func showHealthDisclaimerView()
-    func showGoalSettingView()
-    func showCreateGymProfileView(delegate: CreateGymProfileDelegate)
-    func showOnboardingTrainingProgramView(delegate: CreateProgramDelegate)
-    func showCustomisingDietProgramView()
-    func showOnboardingCompletedView()
     func switchToCoreModule()
 }
 

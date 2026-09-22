@@ -27,23 +27,40 @@ struct TabBarView<TrainingTabAccessory: View, MealTabAccessory: View, Search: Vi
     @ViewBuilder var mealAccessoryView: (MealAccessoryDelegate) -> MealTabAccessory
     
     @ViewBuilder var searchView: () -> Search
-        
+
+    /// The search tab is SwiftUI's own, so it has no `TabBarScreen` to take a title from.
+    /// Computed rather than `static let`: `TabBarView` is generic, and generic types cannot hold
+    /// static stored properties.
+    private var searchTabTitle: String { "Add" }
+
     var body: some View {
-        TabView {
+        TabView(selection: $presenter.selectedTabTitle) {
             ForEach(tabs) { tab in
-                Tab {
+                Tab(value: tab.title) {
                     tab.screen()
                 } label: {
                     Label(tab.title, systemImage: tab.systemImage)
                 }
             }
 
-            Tab(role: .search) {
+            Tab(value: searchTabTitle, role: .search) {
                 searchView()
             } label: {
-                Image(systemName: "plus")
+                Label("Add", systemImage: "plus")
             }
-
+        }
+        // `compound://tab/nutrition` and the equivalent push payload land here. This is the only
+        // place in the app that can switch tabs, so it is the only place that can usefully receive
+        // them — the old handler hung off AnalyticsView and navigated nowhere.
+        .onOpenURL { url in
+            presenter.onOpenURL(url)
+        }
+        .onNotificationReceived(name: .pushNotification) { notification in
+            presenter.onPushNotificationReceived(notification)
+        }
+        // A screen inside a tab asking for a different tab — see `DeepLink.post()`.
+        .onNotificationReceived(name: Constants.selectTab) { notification in
+            presenter.onSelectTabNotificationReceived(notification)
         }
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
@@ -89,8 +106,27 @@ struct WidthPreferenceKey: PreferenceKey {
 extension CoreBuilder {
     
     func tabBarView(router: AnyRouter) -> some View {
+        TabBarView(
+            presenter: TabBarPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            tabs: tabBarScreens,
+            trainingAccessoryView: { delegate in
+                self.trainingAccessoryView(router: router, delegate: delegate)
+            },
+            mealAccessoryView: { delegate in
+                self.mealAccessoryView(router: router, delegate: delegate)
+            },
+            searchView: {
+                RouterView { router in
+                    self.searchView(router: router)
+                }
+            }
+        )
+    }
 
-        let tabs: [TabBarScreen] = [
+    /// The four root tabs. Extracted from `tabBarView` so that function stays inside the
+    /// body-length limit.
+    private var tabBarScreens: [TabBarScreen] {
+        [
             TabBarScreen(
                 title: "Dashboard",
                 systemImage: "house",
@@ -132,23 +168,8 @@ extension CoreBuilder {
                 }
             )
         ]
-
-        return TabBarView(
-            presenter: TabBarPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            tabs: tabs,
-            trainingAccessoryView: { delegate in
-                self.trainingAccessoryView(router: router, delegate: delegate)
-            },
-            mealAccessoryView: { delegate in
-                self.mealAccessoryView(router: router, delegate: delegate)
-            },
-            searchView: {
-                RouterView { router in
-                    self.searchView(router: router)
-                }
-            }
-        )
     }
+
 }
 
 #Preview("Has No Active Session") {

@@ -25,7 +25,10 @@ class MealItemAmountViewPresenter {
         }
     }
 
-    var amountValue: Double { Double(amountText) ?? 0 }
+    /// How much is being added or corrected. Sanitised for the reason given on
+    /// `IngredientAmountPresenter.amountValue` — this one is the worse of the pair, because the
+    /// amount and the nutrients scaled from it are written straight onto the meal item.
+    var amountValue: Double { .enteredAmount(amountText) }
 
     private var scale: Double {
         isAddFoodMode ? amountValue / 100 : amountValue

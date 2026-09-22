@@ -23,38 +23,93 @@ class NutritionPresenter {
         (try? interactor.getMeals(for: selectedDate.dayKey)) ?? []
     }
 
-    func meals(inHour hour: Date) -> [MealLogModel] {
-        let cal = Calendar.current
-        return mealsForSelectedDate.filter { cal.isDate($0.date, equalTo: hour, toGranularity: .hour) }
-    }
-    
     var dailyTotals: DailyMacroTarget? {
         try? interactor.getDailyTotals(dayKey: dayKey)
     }
 
     var dailyTarget: DailyMacroTarget? {
+        dailyTarget(for: selectedDate)
+    }
+
+    /// The plan stores one target per weekday, Monday first.
+    private func dailyTarget(for date: Date) -> DailyMacroTarget? {
         guard let plan = interactor.currentDietPlan else { return nil }
-        let weekday = Calendar.current.component(.weekday, from: selectedDate)
+        let weekday = Calendar.current.component(.weekday, from: date)
         let dayIndex = (weekday + 5) % 7
         guard dayIndex < plan.days.count else { return nil }
         return plan.days[dayIndex]
     }
 
-    var workingHours: [Date] {
-        let calendar = Calendar.current
-        let start = calendar.date(bySettingHour: startHour, minute: 0, second: 0, of: selectedDate)!
-        let end = calendar.date(bySettingHour: endHour, minute: 0, second: 0, of: selectedDate)!
-        
-        var dates: [Date] = []
-        var current = start
-        
-        // Step through hour by hour until reaching the end
-        while current <= end {
-            dates.append(current)
-            current = calendar.date(byAdding: .hour, value: 1, to: current)!
-        }
-        return dates
+    /// One hour of the timeline: the hour itself, and the meals logged inside it.
+    struct TimelineHour: Identifiable {
+        let id: Date
+        var meals: [MealLogModel]
+
+        var hour: Date { id }
     }
+
+    /// The whole timeline for the selected day, built in one pass.
+    ///
+    /// This replaces a `workingHours` array plus a `meals(inHour:)` lookup the view called per
+    /// section. Each of those filtered the full day, and `workingHours` called it once per hour
+    /// just to drop the empty ones, so a single body pass scanned the day's meals about thirty
+    /// times. Same fix as `CalendarHeaderPresenter.markersByDay` — group once, hand the view the
+    /// finished shape.
+    var timelineHours: [TimelineHour] {
+        let calendar = Calendar.current
+        let mealsByHour = Dictionary(grouping: mealsForSelectedDate) { meal in
+            calendar.dateInterval(of: .hour, for: meal.date)?.start ?? meal.date
+        }
+
+        // An hour holding food is always shown, in or out of the configured window. The window
+        // decides how much empty timeline to draw around the day, never whether something logged
+        // is reachable: a 2am snack under a 7-23 window used to count toward the day's totals and
+        // mark the calendar while appearing nowhere, so it could not be edited or deleted.
+        var shownHours = Set(mealsByHour.keys)
+
+        if !hideEmptyHours,
+           let start = calendar.date(bySettingHour: startHour, minute: 0, second: 0, of: selectedDate),
+           let end = calendar.date(bySettingHour: endHour, minute: 0, second: 0, of: selectedDate) {
+            var current = start
+            // Step through hour by hour until reaching the end.
+            while current <= end {
+                shownHours.insert(current)
+                guard let next = calendar.date(byAdding: .hour, value: 1, to: current) else { break }
+                current = next
+            }
+        }
+
+        return shownHours.sorted().map { hour in
+            TimelineHour(id: hour, meals: mealsByHour[hour] ?? [])
+        }
+    }
+
+    /// How every row in the timeline is drawn, resolved from `FoodLogSettings` in one place
+    /// instead of five parameters at the call site.
+    var mealItemRowStyle: MealItemRowStyle {
+        MealItemRowStyle(
+            showsTimestampColumn: showsFoodTimestamps,
+            timestampSide: timestampSide,
+            showsImage: showFoodImageInTimeline,
+            showsCalories: showCaloriesInTimeline,
+            showsMacros: showMacrosInTimeline
+        )
+    }
+
+    /// The gutter time for a row. Only a meal's first item carries one, so several items logged
+    /// together read as a single block rather than repeating the same time down the page.
+    ///
+    /// Compares ids, not whole items: two helpings of the same food at the same amount are equal
+    /// by value, and the second would then have printed the time as well.
+    func timestamp(for item: MealItemModel, in meal: MealLogModel) -> Date? {
+        item.id == meal.items.first?.id ? meal.date : nil
+    }
+
+    var hideEmptyHours: Bool { interactor.foodLogSettings.hideEmptyHours }
+
+    /// When on, timeline rows collapse to the food name alone, whatever the individual
+    /// image/calorie/macro toggles say.
+    var hideFoodDetails: Bool { interactor.foodLogSettings.hideFoodDetails }
     
     var caloriePercentage: Double {
         guard let target = dailyTarget?.calories, target > 0 else { return 0 }
@@ -85,9 +140,10 @@ class NutritionPresenter {
     var showProteinRing: Bool { interactor.foodLogSettings.showProteinRing }
     var showFatRing: Bool { interactor.foodLogSettings.showFatRing }
     var showCarbsRing: Bool { interactor.foodLogSettings.showCarbsRing }
-    var showFoodImageInTimeline: Bool { interactor.foodLogSettings.showFoodImageInTimeline }
-    var showCaloriesInTimeline: Bool { interactor.foodLogSettings.showCaloriesInTimeline }
-    var showMacrosInTimeline: Bool { interactor.foodLogSettings.showMacrosInTimeline }
+    var showOverages: Bool { interactor.foodLogSettings.showOverages }
+    var showFoodImageInTimeline: Bool { !hideFoodDetails && interactor.foodLogSettings.showFoodImageInTimeline }
+    var showCaloriesInTimeline: Bool { !hideFoodDetails && interactor.foodLogSettings.showCaloriesInTimeline }
+    var showMacrosInTimeline: Bool { !hideFoodDetails && interactor.foodLogSettings.showMacrosInTimeline }
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -131,8 +187,8 @@ class NutritionPresenter {
         }
     }
     
-    func onProfilePressed() {
-        router.showProfileView()
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
 
     #if DEV || MOCK
@@ -200,8 +256,12 @@ class NutritionPresenter {
         )
     }
     
+    func onViewMealPressed(_ meal: MealLogModel) {
+        router.showMealDetailView(delegate: MealDetailDelegate(meal: meal))
+    }
+
     func onTimelineActionsPressed() {
-        router.showTimelineActionsView(delegate: TimelineActionsDelegate())
+        router.showTimelineActionsView(delegate: TimelineActionsDelegate(date: selectedDate))
     }
     
     func onCustomiseFoodLogPressed() {
@@ -212,8 +272,30 @@ class NutritionPresenter {
         router.showNutritionOverviewView(delegate: NutritionOverviewDelegate(dayKey: dayKey))
     }
 
-    func getMealCountForDate(date: Date) -> Int {
-        (try? interactor.getMeals(for: date.dayKey).count) ?? 0
+    /// Going over the day's calorie goal by a little is not worth flagging, so the ring only
+    /// reads as over once this allowance on top of the goal is used up too.
+    static let calorieGrace: Double = 100
+
+    /// Calories logged per day against that day's goal, in one pass. Per-day lookups went
+    /// through `Date.dayKey`, which builds a `DateFormatter` on every call, once per visible
+    /// calendar cell.
+    ///
+    /// A day with no goal in the plan falls back to a plain "something was logged" mark, since
+    /// a ring with nothing to fill toward would read as 0%.
+    func calorieMarkersByDay() -> [Date: CalendarDayMarker] {
+        let calendar = Calendar.current
+        let caloriesByDay = interactor.userMeals.reduce(into: [Date: Double]()) { calories, meal in
+            calories[calendar.startOfDay(for: meal.date), default: 0] += meal.totalCalories
+        }
+
+        return caloriesByDay.reduce(into: [Date: CalendarDayMarker]()) { markers, entry in
+            let (day, calories) = entry
+            guard let goal = dailyTarget(for: day)?.calories, goal > 0 else {
+                markers[day] = .count(1)
+                return
+            }
+            markers[day] = .goalProgress(value: calories, goal: goal, grace: Self.calorieGrace)
+        }
     }
 }
 

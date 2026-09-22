@@ -14,8 +14,6 @@ class NotificationsPresenter {
     private let interactor: NotificationsInteractor
     private let router: NotificationsRouter
 
-    private(set) var notifications: [UNNotification] = []
-
     var activityNotifications: [ActivityNotificationModel] {
         interactor.activityNotifications
     }
@@ -50,14 +48,6 @@ class NotificationsPresenter {
         isLoading = false
     }
     
-    func deleteNotifications(at offsets: IndexSet) {
-        for index in offsets {
-            let notification = notifications[index]
-            interactor.removeDeliveredNotifications(ids: [notification.request.identifier])
-        }
-        notifications.remove(atOffsets: offsets)
-    }
-    
     func checkPermissions() async {
         do {
             _ = try await interactor.checkPushNotificationAuthorisation()
@@ -72,7 +62,10 @@ class NotificationsPresenter {
                 _ = try await interactor.requestPushAuthorisation()
                 await loadNotifications()
             } catch {
-                // Handle error silently or show alert
+                // Was an empty catch under a comment reading "Handle error silently or show alert".
+                // A permission request the user asked for either works or says why — `checkPermissions`
+                // above already surfaces its failures the same way.
+                router.showAlert(error: error)
             }
         }
     }

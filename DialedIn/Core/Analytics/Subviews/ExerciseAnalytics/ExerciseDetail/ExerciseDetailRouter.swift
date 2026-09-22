@@ -8,6 +8,8 @@
 import SwiftUI
 
 @MainActor
-protocol ExerciseDetailRouter: GlobalRouter { }
+protocol ExerciseDetailRouter: GlobalRouter {
+    func showWorkoutsView(delegate: WorkoutsDelegate)
+}
 
 extension CoreRouter: ExerciseDetailRouter { }

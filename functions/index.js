@@ -12,6 +12,20 @@ const PROJECT_ID = "dialed-c3cb5";
 const REGION = "us-central1";
 const FCM_URL = `https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send`;
 
+// Every callable requires a valid App Check token, so only genuine app instances
+// (attested via App Attest, or an allowlisted debug token) can invoke them. These
+// functions spend Vertex AI quota and write with Admin SDK privileges, which bypass
+// Firestore rules, so they cannot be left open to arbitrary HTTPS callers.
+const CALLABLE_OPTIONS = { region: REGION, enforceAppCheck: true };
+
+// Callers must also be signed in, so AI spend and writes are attributable to a uid.
+function requireAuth(request) {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Sign in required to call this function.");
+    }
+    return request.auth.uid;
+}
+
 // ---------------------------------------------------------------------------
 // Genkit / Firebase AI Logic setup
 // ---------------------------------------------------------------------------
@@ -103,7 +117,8 @@ const FOOD_LABEL_SCHEMA = `{
 // AI: Analyse food from a photo
 // ---------------------------------------------------------------------------
 
-export const foodAnalyze = onCall({ region: REGION }, async (request) => {
+export const foodAnalyze = onCall(CALLABLE_OPTIONS, async (request) => {
+    const uid = requireAuth(request);
     const { imageBase64 } = request.data;
     if (!imageBase64 || typeof imageBase64 !== "string") {
         throw new HttpsError("invalid-argument", "imageBase64 is required");
@@ -131,8 +146,7 @@ calculate macronutrients per portion. All numeric fields must be numbers, not st
 
     const parsed = JSON.parse(cleanJson(text));
 
-    if (request.auth && Array.isArray(parsed.items)) {
-        const uid = request.auth.uid;
+    if (Array.isArray(parsed.items)) {
         const resolvedItems = await Promise.all(
             parsed.items.map(async (item) => ({
                 ...item,
@@ -149,7 +163,8 @@ calculate macronutrients per portion. All numeric fields must be numbers, not st
 // AI: Describe a meal in plain text → structured food items
 // ---------------------------------------------------------------------------
 
-export const mealDescribe = onCall({ region: REGION }, async (request) => {
+export const mealDescribe = onCall(CALLABLE_OPTIONS, async (request) => {
+    const uid = requireAuth(request);
     const { description } = request.data;
     if (!description || typeof description !== "string" || description.trim().length === 0) {
         throw new HttpsError("invalid-argument", "description is required");
@@ -172,8 +187,7 @@ All numeric fields must be numbers, not strings.`;
 
     const parsed = JSON.parse(cleanJson(text));
 
-    if (request.auth && Array.isArray(parsed.items)) {
-        const uid = request.auth.uid;
+    if (Array.isArray(parsed.items)) {
         const resolvedItems = await Promise.all(
             parsed.items.map(async (item) => ({
                 ...item,
@@ -190,7 +204,8 @@ All numeric fields must be numbers, not strings.`;
 // AI: Extract structured data from a nutrition label
 // ---------------------------------------------------------------------------
 
-export const nutritionLabelAnalyze = onCall({ region: REGION }, async (request) => {
+export const nutritionLabelAnalyze = onCall(CALLABLE_OPTIONS, async (request) => {
+    requireAuth(request);
     const { labelText } = request.data;
     if (!labelText || typeof labelText !== "string" || labelText.trim().length === 0) {
         throw new HttpsError("invalid-argument", "labelText is required");
@@ -220,7 +235,8 @@ ${labelText.trim()}`;
 // AI: General chat (Gemini)
 // ---------------------------------------------------------------------------
 
-export const chatGenerate = onCall({ region: REGION }, async (request) => {
+export const chatGenerate = onCall(CALLABLE_OPTIONS, async (request) => {
+    requireAuth(request);
     const { messages, temperature = 0.7, maxOutputTokens = 512 } = request.data;
     if (!Array.isArray(messages) || messages.length === 0) {
         throw new HttpsError("invalid-argument", "messages array is required");
@@ -247,7 +263,8 @@ export const chatGenerate = onCall({ region: REGION }, async (request) => {
 // AI: Image generation (Imagen 3 via Vertex AI)
 // ---------------------------------------------------------------------------
 
-export const imageGenerate = onCall({ region: REGION }, async (request) => {
+export const imageGenerate = onCall(CALLABLE_OPTIONS, async (request) => {
+    requireAuth(request);
     const { prompt } = request.data;
     if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
         throw new HttpsError("invalid-argument", "prompt is required");
@@ -275,7 +292,8 @@ export const imageGenerate = onCall({ region: REGION }, async (request) => {
 
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export const foodSearch = onCall({ region: REGION }, async (request) => {
+export const foodSearch = onCall(CALLABLE_OPTIONS, async (request) => {
+    requireAuth(request);
     const query = request.data.query;
     if (!query || typeof query !== "string" || query.trim().length === 0) {
         throw new HttpsError("invalid-argument", "query is required");

@@ -14,10 +14,18 @@ class DashboardPresenter {
         interactor.activityNotifications
     }
     
+    /// What the feed shows: finished workouts, newest first, each one attributable to a person.
+    ///
+    /// The same rule has to apply to both halves. Only the user's own sessions used to be filtered,
+    /// so a followed athlete's workout appeared the moment they started it, and the rest days a
+    /// program pre-creates for the days ahead were posted to the feed as if they had already
+    /// happened. A session with no resolvable author is dropped here rather than in the view, so an
+    /// empty feed is recognised as empty instead of drawing a header over nothing.
     var feedSessions: [WorkoutSessionModel] {
-        let ownCompleted = interactor.workoutSessions.filter { $0.endedAt != nil && !$0.isRestDay }
-        let combined = ownCompleted + interactor.followingWorkoutSessions
-        return combined.sorted { $0.dateCreated > $1.dateCreated }
+        let combined = interactor.workoutSessions + interactor.followingWorkoutSessions
+        return combined
+            .filter { $0.endedAt != nil && !$0.isRestDay && author(for: $0) != nil }
+            .sorted { $0.dateCreated > $1.dateCreated }
     }
 
     var userImageUrl: String? {
@@ -203,8 +211,19 @@ class DashboardPresenter {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
     
-    func onProfilePressed() {
-        router.showProfileView()
+    /// The empty feed's call to action. People search lives on the Add tab, and only the tab bar can
+    /// select a tab, so this asks it to — see `DeepLink.post()`.
+    func onFindPeoplePressed() {
+        interactor.trackEvent(
+            eventName: "DashboardView_FindPeople_Press",
+            parameters: nil,
+            type: .analytic
+        )
+        DeepLink.tab(.add).post()
+    }
+
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
 
     func onPushNotificationsPressed() {

@@ -12,6 +12,10 @@ import Foundation
 class GoalManager {
     
     private let userGoalSyncEngine: DocumentSyncEngine<WeightGoal>
+
+    /// Held so `deleteGoal` can put the listener back. The engine keeps its own document id but
+    /// gives no way to restart from it.
+    private var listeningUserId: String?
     
     var currentGoal: WeightGoal? {
         userGoalSyncEngine.currentDocument
@@ -25,18 +29,27 @@ class GoalManager {
     
     func signIn(userId id: String) async throws {
         try await userGoalSyncEngine.startListening(documentId: id)
+        listeningUserId = id
     }
     
     func signOut() {
         userGoalSyncEngine.stopListening()
+        listeningUserId = nil
     }
     
     func saveGoal(_ goal: WeightGoal) async throws {
         try await userGoalSyncEngine.saveDocument(goal)
     }
     
+    /// `DocumentSyncEngine.deleteDocument` stops its listener and does not start it again, so
+    /// without this a goal saved after a delete never reaches `currentGoal` — the write lands
+    /// remotely with nothing listening for it, until the next sign-in.
     func deleteGoal() async throws {
         try await userGoalSyncEngine.deleteDocument()
+
+        if let listeningUserId {
+            try await userGoalSyncEngine.startListening(documentId: listeningUserId)
+        }
     }
     
     /// Mark a goal as completed

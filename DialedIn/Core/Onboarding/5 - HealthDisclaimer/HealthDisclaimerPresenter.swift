@@ -48,8 +48,9 @@ class HealthDisclaimerPresenter {
         router.dismissModal()
         router.showLoadingModal()
 
-        let disclaimerVersion = "2025.10.05"
-        let privacyVersion = "2025.10.05"
+        // Recorded against the versions `inferredOnboardingStep` checks, so the two cannot drift.
+        let disclaimerVersion = UserModel.currentHealthDisclaimerVersion
+        let privacyVersion = UserModel.currentHealthPrivacyPolicyVersion
         let now = Date()
         interactor.trackEvent(event: Event.consentHealthConfirmStart(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion))
         Task {

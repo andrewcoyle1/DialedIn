@@ -53,21 +53,6 @@ struct CoreBuilder: Builder {
 }
 
 extension CoreBuilder {
-    func workoutStartModal(delegate: WorkoutStartDelegate) -> some View {
-        CustomModalView(
-            title: delegate.template.name,
-            subtitle: nil,
-            primaryButtonTitle: "Start",
-            primaryButtonAction: {
-                delegate.onStartWorkoutPressed?()
-            },
-            secondaryButtonTitle: "Dismiss",
-            secondaryButtonAction: { delegate.onCancelPressed?() },
-            middleContent: AnyView(
-                WorkoutStartMiddleContent(template: delegate.template)
-            )
-        )
-    }
 
     func ratingsModal(onYesPressed: @escaping () -> Void, onNoPressed: @escaping () -> Void) -> some View {
         CustomModalView(

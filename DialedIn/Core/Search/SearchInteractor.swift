@@ -7,6 +7,8 @@
 
 @MainActor
 protocol SearchInteractor: GlobalInteractor {
+    /// Which quick actions the Add tab shows — see `ShortcutsView`.
+    var shortcutSettings: ShortcutSettings { get }
     var userImageUrl: String? { get }
     var currentUser: UserModel? { get }
     var draftMeal: MealLogModel? { get }

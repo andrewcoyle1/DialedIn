@@ -56,6 +56,7 @@ class AuthPresenter {
                 // Proceed immediately to signing in the user on success
                 handleOnAuthSuccess(user: userAuthInfo, isNewUser: isNewUser)
             } catch {
+                interactor.trackEvent(event: Event.appleAuthFail(error: error))
                 router.showAlert(
                     title: "Error Signing in with Apple",
                     subtitle: "Please check your internet connection and try again",
@@ -96,6 +97,7 @@ class AuthPresenter {
                 // Proceed immediately to signing in the user on success
                 handleOnAuthSuccess(user: userAuthInfo, isNewUser: isNewUser)
             } catch {
+                interactor.trackEvent(event: Event.googleAuthFail(error: error))
                 router.showAlert(
                     title: "Error Signing in with Google",
                     subtitle: "Please check your internet connection and try again",
@@ -136,14 +138,25 @@ class AuthPresenter {
                 try await interactor.logIn(user: user, isNewUser: isNewUser)
                 interactor.trackEvent(event: Event.userLoginSuccess)
                 
-                guard let user = currentUser else { return }
-                if !isNewUser && user.didCompleteOnboarding {
-                    // Returning user with a full account — go straight to core
-                    router.switchToCoreModule()
-                } else if interactor.isPremium == false {
-                    // No subscription — show the subscription info screen
+                // The profile lands when the sync engine's listener next emits, not when `logIn`
+                // returns, so this can lose the race. Returning silently left the user on the auth
+                // screen after a *successful* login, with a Success event and no destination — the
+                // one shape analytics could not tell from a user who simply stopped here.
+                guard let user = currentUser else {
+                    interactor.trackEvent(event: Event.userLoginNoCurrentUser)
+                    return
+                }
+                // The subscription gate comes first, ahead of every other destination. This is a
+                // premium app: a user without a subscription is shown the subscription page no
+                // matter how far through onboarding they are. It used to sit after the returning
+                // user branch below, which meant anyone who had finished onboarding and then
+                // lapsed went straight into the app for free on every sign-in.
+                if interactor.isPremium == false {
                     interactor.trackEvent(event: Event.paywallShownAfterLogin)
                     router.showSubscriptionView()
+                } else if !isNewUser && user.didCompleteOnboarding {
+                    // Returning subscriber with a full account — go straight to core
+                    router.switchToCoreModule()
                 } else if user.inferredOnboardingStep != .complete {
                     // Premium but onboarding not finished — resume from inferred step
                     handleNavigation()
@@ -152,6 +165,7 @@ class AuthPresenter {
                     router.switchToCoreModule()
                 }
             } catch {
+                interactor.trackEvent(event: Event.userLoginFail(error: error))
                 router.showAlert(
                     title: "Error Logging In",
                     subtitle: "Please check your internet connection and try again.",
@@ -185,44 +199,7 @@ class AuthPresenter {
     }
 
     private func route(to step: OnboardingStep) {
-        switch step {
-        case .auth, .subscription:
-            // For anything at/before subscription, move them into complete-account setup
-            router.showCompleteAccountSetupView()
-
-        case .completeAccountSetup:
-            router.showCompleteAccountSetupView()
-
-        case .notifications:
-            router.showNotificationsPermissionsView()
-
-        case .healthData:
-            router.showOnboardingHealthDataView()
-
-        case .healthDisclaimer:
-            router.showHealthDisclaimerView()
-
-        case .goalSetting:
-            router.showGoalSettingView()
-            
-        case .gymProfileSetup:
-            router.showCreateGymProfileView(delegate: CreateGymProfileDelegate(onComplete: self.handleNavigation))
-
-        case .trainingProgramSetup:
-            router.showCreateGymProfileView(
-                    delegate: CreateGymProfileDelegate(onComplete: { [weak self] in
-                        guard let self else { return }
-                        Task { @MainActor in
-                            self.handleNavigation()
-                        }
-                    })
-                )
-        case .customiseProgram:
-            router.showCustomisingDietProgramView()
-
-        case .complete:
-            router.showOnboardingCompletedView()
-        }
+        router.routeToOnboardingStep(step, onComplete: handleNavigation)
     }
             
     // MARK: Cleanup Tasks
@@ -252,10 +229,9 @@ func onDevSettingsPressed() {
         case userLoginStart
         case userLoginSuccess
         case userLoginFail(error: Error)
+        case userLoginNoCurrentUser
 
         case navigate
-        case signInPressed
-        case signUpPressed
         case paywallShownAfterLogin
 
         var eventName: String {
@@ -269,9 +245,8 @@ func onDevSettingsPressed() {
             case .userLoginStart:    return "Auth_UserLogin_Start"
             case .userLoginSuccess:  return "Auth_UserLogin_Success"
             case .userLoginFail:     return "Auth_UserLogin_Fail"
+            case .userLoginNoCurrentUser: return "Auth_UserLogin_NoCurrentUser"
             case .navigate:          return "Auth_Navigate"
-            case .signInPressed:     return "Auth_SignIn_Pressed"
-            case .signUpPressed:     return "Auth_SignUp_Pressed"
             case .paywallShownAfterLogin: return "Auth_PaywallShownAfterLogin"
             }
         }
@@ -287,9 +262,9 @@ func onDevSettingsPressed() {
 
         var type: LogType {
             switch self {
-            case .appleAuthFail, .googleAuthFail, .userLoginFail:
+            case .appleAuthFail, .googleAuthFail, .userLoginFail, .userLoginNoCurrentUser:
                 return LogType.severe
-            case .signInPressed, .signUpPressed, .navigate, .paywallShownAfterLogin:
+            case .navigate, .paywallShownAfterLogin:
                 return LogType.info
             default:
                 return LogType.analytic

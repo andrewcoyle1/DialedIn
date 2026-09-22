@@ -138,6 +138,22 @@ class UserManager {
         )
     }
     
+    /// Unit preferences on their own. The height and weight updates above each write a measurement
+    /// alongside its unit, which the settings screen has no business changing.
+    func updateUnitPreferences(
+        length: LengthUnitPreference,
+        weight: WeightUnitPreference,
+        distance: DistanceUnitPreference
+    ) async throws {
+        try await userSyncEngine.updateDocument(
+            data: [
+                UserModel.CodingKeys.submittedLengthUnitPreference.rawValue: length.rawValue,
+                UserModel.CodingKeys.submittedWeightUnitPreference.rawValue: weight.rawValue,
+                UserModel.CodingKeys.submittedDistanceUnitPreference.rawValue: distance.rawValue
+            ]
+        )
+    }
+
     func updateUserExerciseFrequency(exerciseFrequency: ExerciseFrequency) async throws {
         try await userSyncEngine.updateDocument(data: [
             UserModel.CodingKeys.submittedExerciseFrequency.rawValue: exerciseFrequency.rawValue
@@ -299,75 +315,6 @@ class UserManager {
     }
 }
 
-extension UserManager {
-    enum Event: LoggableEvent {
-        case logInStart(user: UserModel?)
-        case logInSuccess(user: UserModel?)
-        case remoteListenerStart
-        case remoteListenerSuccess(user: UserModel?)
-        case remoteListenerFail(error: Error)
-        case saveLocalStart(user: UserModel?)
-        case saveLocalSuccess(user: UserModel?)
-        case saveLocalFail(error: Error)
-        case signOut
-        case deleteAccountStart
-        case deleteAccountSuccess
-        case clearAllLocalData
-        case updateDidCompleteOnboarding
-        case migrateAnonUser(fromId: String, toId: String)
-        case deleteAnonDocument(userId: String)
-
-        var eventName: String {
-            switch self {
-            case .logInStart:               return "UserMan_LogIn_Start"
-            case .logInSuccess:             return "UserMan_LogIn_Success"
-            case .remoteListenerStart:      return "UserMan_RemoteListener_Start"
-            case .remoteListenerSuccess:    return "UserMan_RemoteListener_Success"
-            case .remoteListenerFail:       return "UserMan_RemoteListener_Fail"
-            case .saveLocalStart:           return "UserMan_SaveLocal_Start"
-            case .saveLocalSuccess:         return "UserMan_SaveLocal_Success"
-            case .saveLocalFail:            return "UserMan_SaveLocal_Fail"
-            case .signOut:                  return "UserMan_SignOut"
-            case .deleteAccountStart:       return "UserMan_DeleteAccount_Start"
-            case .deleteAccountSuccess:     return "UserMan_DeleteAccount_Success"
-            case .clearAllLocalData:            return "UserMan_ClearAllLocalData"
-            case .updateDidCompleteOnboarding:  return "UserMan_UpdateDidCompleteOnboarding"
-            case .migrateAnonUser:              return "UserMan_MigrateAnonUser"
-            case .deleteAnonDocument:           return "UserMan_DeleteAnonDocument"
-            }
-        }
-        
-        var parameters: [String: Any]? {
-            switch self {
-            case .logInStart(user: let user), .logInSuccess(user: let user),
-                    .remoteListenerSuccess(user: let user), .saveLocalStart(user: let user),
-                    .saveLocalSuccess(user: let user):
-                return user?.eventParameters
-            case .remoteListenerFail(error: let error), .saveLocalFail(error: let error):
-                return error.eventParameters
-            case .updateDidCompleteOnboarding:
-                return nil
-            case .migrateAnonUser(fromId: let fromId, toId: let toId):
-                return ["from_user_id": fromId, "to_user_id": toId]
-            case .deleteAnonDocument(userId: let userId):
-                return ["anon_user_id": userId]
-            default:
-                return nil
-            }
-        }
-        
-        var type: LogType {
-            switch self {
-            case .remoteListenerFail, .saveLocalFail:
-                return .severe
-            default:
-                return .analytic
-                
-            }
-        }
-    }
-}
-
 extension CoreInteractor {
     // MARK: UserManager
     
@@ -405,6 +352,14 @@ extension CoreInteractor {
     
     func updateWeight(userId: String, weight: Double, weightUnitPreference: WeightUnitPreference) async throws {
         try await userManager.updateUserWeight(weightInKilograms: weight, weightUnitPreference: weightUnitPreference)
+    }
+
+    func updateUnitPreferences(
+        length: LengthUnitPreference,
+        weight: WeightUnitPreference,
+        distance: DistanceUnitPreference
+    ) async throws {
+        try await userManager.updateUnitPreferences(length: length, weight: weight, distance: distance)
     }
     
     func saveUserCompleteAccountSetup(input: [String: any DMCodableSendable]) async throws {
@@ -465,6 +420,10 @@ extension CoreInteractor {
 
     var followingUsers: [UserModel] {
         userManager.followingUsers
+    }
+
+    func getUser(userId: String) async throws -> UserModel {
+        try await userManager.getUser(userId: userId)
     }
 
     func followUser(userId: String) async throws {

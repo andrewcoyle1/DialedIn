@@ -8,17 +8,23 @@ class ScaleWeightPresenter {
     private let router: ScaleWeightRouter
 
     private(set) var cachedEntries: [BodyMeasurementEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
     
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    
+
+    /// Weight is stored in kilograms. The card that opens this screen converts to the user's unit;
+    /// this screen hardcoded " kg", so the two disagreed for anyone set to pounds.
+    private var weightUnit: WeightUnitPreference {
+        interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
+    }
+
     var weightHistory: [BodyMeasurementEntry] {
         interactor.bodyMeasurements
     }
     
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
     }
     
@@ -40,11 +46,15 @@ class ScaleWeightPresenter {
         let entries = interactor.bodyMeasurements.filter { $0.deletedAt == nil && $0.weightKg != nil }
         cachedEntries = entries
         cachedTimeSeries = [
-            TimeSeriesData.TimeSeries(
+            TimeSeries(
                 name: "Weight",
                 data: entries.compactMap { entry in
                     guard let weightKg = entry.weightKg else { return nil }
-                    return TimeSeriesDatapoint(id: entry.id, date: entry.date, value: weightKg)
+                    return TimeSeriesDatapoint(
+                        id: entry.id,
+                        date: entry.date,
+                        value: UnitConversion.convertWeight(weightKg, to: weightUnit)
+                    )
                 }
             )
         ]
@@ -59,18 +69,22 @@ extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
     }
 
     /// Scale weight uses the history chart (time series), not the contribution chart.
-    var contributionChartData: [Double]? { nil }
+    var contributionSeries: TimeSeries? { nil }
+
+    func displayValue(for entry: BodyMeasurementEntry) -> String {
+        guard let weightKg = entry.weightKg else { return "--" }
+        return UnitConversion.formatWeight(weightKg, unit: weightUnit)
+    }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: "Scale Weight",
             analyticsName: "ScaleWeightView",
-            yAxisSuffix: " kg",
+            yAxisSuffix: " \(weightUnit.abbreviation)",
             seriesNames: ["Weight"],
             showsAddButton: true,
             sectionHeader: "Weight Entries",
             emptyStateMessage: "No weight entries",
-            pageSize: 20,
             chartColor: .green
         )
     }
@@ -83,47 +97,45 @@ extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
         onAddWeightPressed()
     }
 
+    var supportsDeletion: Bool { true }
+
     func onDeleteEntry(_ entry: BodyMeasurementEntry) async {
         let updatedEntry = entry.withCleared(.weightKg)
-        try? await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        do {
+            try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        } catch {
+            // Was `try?`. The refresh below re-reads unchanged data, so a failed delete put the row
+            // straight back with nothing said about why. The alert told the user; nothing told us,
+            // so a backend outage here looked like nobody deleting anything.
+            interactor.trackEvent(event: Event.deleteEntryFail(error: error))
+            router.showSimpleAlert(title: "Unable to Delete Entry", subtitle: "Please try again.")
+            return
+        }
         rebuildCaches()
     }
 }
 
 extension ScaleWeightPresenter {
     enum Event: LoggableEvent {
-        case loadRemoteEntriesStart
-        case loadRemoteEntriesSuccess
-        case loadRemoteEntriesFail(error: Error)
-        case dedupeWeightEntriesFail(error: Error)
+        case deleteEntryFail(error: Error)
 
         var eventName: String {
             switch self {
-            case .loadRemoteEntriesStart:   return "ScaleWeightView_LoadRemoteEntries_Start"
-            case .loadRemoteEntriesSuccess: return "ScaleWeightView_LoadRemoteEntries_Success"
-            case .loadRemoteEntriesFail:    return "ScaleWeightView_LoadRemoteEntries_Fail"
-            case .dedupeWeightEntriesFail:  return "ScaleWeightView_DedupeWeightEntries_Fail"
+            case .deleteEntryFail: return "ScaleWeightView_DeleteEntry_Fail"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
-            case .loadRemoteEntriesFail(error: let error),
-                 .dedupeWeightEntriesFail(error: let error):
+            case .deleteEntryFail(error: let error):
                 return error.eventParameters
-            default:
-                return nil
             }
         }
-        
+
         var type: LogType {
             switch self {
-            case .loadRemoteEntriesFail,
-                 .dedupeWeightEntriesFail:
+            case .deleteEntryFail:
                 return .severe
-            default:
-                return .analytic
-                
             }
         }
     }

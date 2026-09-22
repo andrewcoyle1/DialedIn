@@ -28,71 +28,63 @@ enum BodyMetricType: Hashable {
 extension BodyMetricType {
 
     func value(from entry: BodyMeasurementEntry) -> Double? {
-        entry[keyPath: Self.valueKeyPaths[self]!]
+        switch self {
+        case .scaleWeight: return entry.weightKg
+        case .visualBodyFat: return entry.bodyFatPercentage
+        default: return measurementKind.map { entry[keyPath: $0.entryValue] } ?? nil
+        }
     }
 
     var displayTitle: String {
-        Self.displayTitles[self]!
+        switch self {
+        case .scaleWeight: return "Scale Weight"
+        case .visualBodyFat: return "Visual Body Fat"
+        default: return measurementKind?.displayName ?? ""
+        }
     }
 
-    var unit: String {
-        Self.units[self]!
+    /// What the stored number means, so display code knows which conversion to apply. Storage is
+    /// kilograms for weight and centimetres for every circumference.
+    enum Measure {
+        case weightKilograms
+        case lengthCentimeters
+        case percentage
     }
 
-    private static let valueKeyPaths: [BodyMetricType: KeyPath<BodyMeasurementEntry, Double?>] = [
-        .scaleWeight: \BodyMeasurementEntry.weightKg,
-        .visualBodyFat: \BodyMeasurementEntry.bodyFatPercentage,
-        .neck: \BodyMeasurementEntry.neckCircumference,
-        .shoulders: \BodyMeasurementEntry.shoulderCircumference,
-        .bust: \BodyMeasurementEntry.bustCircumference,
-        .chest: \BodyMeasurementEntry.chestCircumference,
-        .waist: \BodyMeasurementEntry.waistCircumference,
-        .hips: \BodyMeasurementEntry.hipCircumference,
-        .leftBicep: \BodyMeasurementEntry.leftBicepCircumference,
-        .rightBicep: \BodyMeasurementEntry.rightBicepCircumference,
-        .leftForearm: \BodyMeasurementEntry.leftForearmCircumference,
-        .rightForearm: \BodyMeasurementEntry.rightForearmCircumference,
-        .leftWrist: \BodyMeasurementEntry.leftWristCircumference,
-        .rightWrist: \BodyMeasurementEntry.rightWristCircumference,
-        .leftThigh: \BodyMeasurementEntry.leftThighCircumference,
-        .rightThigh: \BodyMeasurementEntry.rightThighCircumference,
-        .leftCalf: \BodyMeasurementEntry.leftCalfCircumference,
-        .rightCalf: \BodyMeasurementEntry.rightCalfCircumference,
-        .leftAnkle: \BodyMeasurementEntry.leftAnkleCircumference,
-        .rightAnkle: \BodyMeasurementEntry.rightAnkleCircumference
-    ]
+    var measure: Measure {
+        switch self {
+        case .scaleWeight:   return .weightKilograms
+        case .visualBodyFat: return .percentage
+        default:             return .lengthCentimeters
+        }
+    }
 
-    private static let displayTitles: [BodyMetricType: String] = [
-        .scaleWeight: "Scale Weight",
-        .visualBodyFat: "Visual Body Fat",
-        .neck: "Neck",
-        .shoulders: "Shoulders",
-        .bust: "Bust",
-        .chest: "Chest",
-        .waist: "Waist",
-        .hips: "Hips",
-        .leftBicep: "Left Bicep",
-        .rightBicep: "Right Bicep",
-        .leftForearm: "Left Forearm",
-        .rightForearm: "Right Forearm",
-        .leftWrist: "Left Wrist",
-        .rightWrist: "Right Wrist",
-        .leftThigh: "Left Thigh",
-        .rightThigh: "Right Thigh",
-        .leftCalf: "Left Calf",
-        .rightCalf: "Right Calf",
-        .leftAnkle: "Left Ankle",
-        .rightAnkle: "Right Ankle"
-    ]
+    /// The circumference this metric is, when it is one. `scaleWeight` and `visualBodyFat` are
+    /// not circumferences and have no kind.
+    var measurementKind: BodyMeasurementKind? {
+        switch self {
+        case .scaleWeight, .visualBodyFat: return nil
+        case .neck: return .neck
+        case .shoulders: return .shoulders
+        case .bust: return .bust
+        case .chest: return .chest
+        case .waist: return .waist
+        case .hips: return .hips
+        case .leftBicep: return .leftBicep
+        case .rightBicep: return .rightBicep
+        case .leftForearm: return .leftForearm
+        case .rightForearm: return .rightForearm
+        case .leftWrist: return .leftWrist
+        case .rightWrist: return .rightWrist
+        case .leftThigh: return .leftThigh
+        case .rightThigh: return .rightThigh
+        case .leftCalf: return .leftCalf
+        case .rightCalf: return .rightCalf
+        case .leftAnkle: return .leftAnkle
+        case .rightAnkle: return .rightAnkle
+        }
+    }
 
-    private static let units: [BodyMetricType: String] = [
-        .scaleWeight: "kg",
-        .visualBodyFat: "%",
-        .neck: "in", .shoulders: "in", .bust: "in", .chest: "in", .waist: "in", .hips: "in",
-        .leftBicep: "in", .rightBicep: "in", .leftForearm: "in", .rightForearm: "in",
-        .leftWrist: "in", .rightWrist: "in", .leftThigh: "in", .rightThigh: "in",
-        .leftCalf: "in", .rightCalf: "in", .leftAnkle: "in", .rightAnkle: "in"
-    ]
 }
 
 struct BodyMetricCardModel: Identifiable {
@@ -101,6 +93,16 @@ struct BodyMetricCardModel: Identifiable {
     let subtitle: String
     let latestValueText: String
     let unitText: String
+    let sparklineData: [(date: Date, value: Double)]
+}
+
+/// A derived ratio card. Separate from `BodyMetricCardModel` because a ratio has no unit to print
+/// and is keyed by `BodyRatioKind` rather than `BodyMetricType`.
+struct BodyRatioCardModel: Identifiable {
+    let id: BodyRatioKind
+    let title: String
+    let subtitle: String
+    let latestValueText: String
     let sparklineData: [(date: Date, value: Double)]
 }
 

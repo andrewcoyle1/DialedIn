@@ -5,12 +5,23 @@ protocol MetricDetailPresenter {
     associatedtype Entry: MetricEntry
 
     var entries: [Entry] { get }
-    var timeSeries: [TimeSeriesData.TimeSeries] { get }
+    var timeSeries: [TimeSeries] { get }
     var configuration: MetricConfiguration { get }
-    /// When non-nil, this view is used instead of the default NewHistoryChart (e.g. for Energy Balance's line+bar chart).
+    /// When non-nil, this view is used instead of the default `MetricChart` (e.g. for Energy Balance's line+bar chart).
     var customChartView: AnyView? { get }
-    /// When non-nil, a contribution-style chart is shown instead of the default chart.
-    var contributionChartData: [Double]? { get }
+    /// When non-nil, a contribution grid is shown instead of the default chart. Give it every day
+    /// there is, not a fixed window: the grid scrolls back through whatever it's handed.
+    var contributionSeries: TimeSeries? { get }
+    /// Whether the entry rows offer a Delete swipe. Defaults to false: most of these screens show
+    /// values derived from meals, workouts or the user profile, and their `onDeleteEntry` is a
+    /// documented no-op — the swipe action was offered on every one of them regardless, so
+    /// "Delete" appeared to work and silently did nothing.
+    var supportsDeletion: Bool { get }
+    /// The value shown in an entry row, for screens whose stored unit differs from the displayed
+    /// one. Weight is stored in kilograms and body circumferences in centimetres, so a screen whose
+    /// `Entry` is the stored model has to convert somewhere. Defaults to the entry's own
+    /// `displayValue`.
+    func displayValue(for entry: Entry) -> String
 
     func onAppear() async
     func onAddPressed()
@@ -20,7 +31,12 @@ protocol MetricDetailPresenter {
 
 extension MetricDetailPresenter {
     var customChartView: AnyView? { nil }
-    var contributionChartData: [Double]? { nil }
+    var contributionSeries: TimeSeries? { nil }
+    var supportsDeletion: Bool { false }
+
+    func displayValue(for entry: Entry) -> String {
+        entry.displayValue
+    }
 
     func onDeleteEntry(_ entry: Entry) async {
         // Default no-op for presenters that don't support deletion
@@ -29,26 +45,8 @@ extension MetricDetailPresenter {
 
 struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
 
-    struct VisibleMetrics {
-        var startDate: Date?
-        var endDate: Date?
-        var averageValues: [Double?]
-        var delta: [Double?]
-        
-        static var empty: VisibleMetrics {
-            VisibleMetrics(
-                startDate: nil,
-                endDate: nil,
-                averageValues: [],
-                delta: []
-            )
-        }
-    }
-
     @State var presenter: Presenter
     var themeColor: Color?
-    @State private var page: Int = 1
-    @State private var visibleMetrics: VisibleMetrics = .empty
 
     init(presenter: Presenter, themeColor: Color? = nil) {
         _presenter = State(initialValue: presenter)
@@ -59,75 +57,68 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         let configuration = presenter.configuration
         let timeSeries = presenter.timeSeries
         let entries = presenter.entries
-        let pageSize = configuration.pageSize
+        let readings = MetricChartReadings(series: timeSeries, configuration: configuration, color: themeColor)
 
-        let sortedEntries = entries.sorted { $0.date > $1.date }
-        let pagedEntries = MetricDetailView.paged(entries: sortedEntries, page: page, pageSize: pageSize)
-        let hasMore = pagedEntries.count < entries.count
-        
-        // Filter time series to last year for chart performance
-        let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: Date()) ?? Date()
-        let filteredTimeSeries = timeSeries.map { series in
-            TimeSeriesData.TimeSeries(
-                name: series.name,
-                data: series.data.filter { $0.date >= oneYearAgo }
-            )
-        }
-
-        List {
-            chartSection(configuration: configuration, series: filteredTimeSeries)
-            listSection(configuration: configuration, entries: entries, pagedEntries: pagedEntries, hasMore: hasMore)
+        // A Health-style screen: the chart edge to edge at the top, its background carried up behind
+        // the navigation bar, and the entries in inset sections below. `ChartScreen` sets the title.
+        Group {
+            // Only QuickCharts' own charts can mark a row's readings, so the contribution grid and
+            // the custom charts go without rows.
+            if usesMetricChart, !readings.days.isEmpty {
+                ChartScreen(title: configuration.title) {
+                    chart(configuration: configuration, series: timeSeries)
+                } accessories: {
+                    MetricChartRows(readings: readings)
+                } moreRows: {
+                    MetricChartRows(readings: readings, showsAll: true)
+                } sections: {
+                    listSection(configuration: configuration, entries: entries)
+                }
+            } else {
+                ChartScreen(title: configuration.title) {
+                    chart(configuration: configuration, series: timeSeries)
+                } sections: {
+                    listSection(configuration: configuration, entries: entries)
+                }
+            }
         }
         .scrollIndicators(.hidden)
-        .navigationTitle(configuration.title)
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }
         .onFirstTask {
             await presenter.onAppear()
         }
-        .onChange(of: entries.count) { _, _ in
-            page = 1
-        }
     }
     
+    /// Whether the chart is `MetricChart`, rather than the contribution grid or a custom chart.
+    private var usesMetricChart: Bool {
+        presenter.contributionSeries == nil && presenter.customChartView == nil
+    }
+
     @ViewBuilder
-    private func chartSection(configuration: MetricConfiguration, series: [TimeSeriesData.TimeSeries]) -> some View {
-        Section {
-            VStack(alignment: .leading) {
-                if let contributionData = presenter.contributionChartData {
-                    ContributionChartView(
-                        data: contributionData,
-                        rows: 3,
-                        columns: 10,
-                        targetValue: 1.0,
-                        blockColor: themeColor ?? configuration.chartColor ?? .green,
-                        blockBackgroundColor: .background,
-                        rectangleWidth: .infinity,
-                        endDate: .now,
-                        showsCaptioning: false
-                    )
-                    .frame(height: 300)
-                } else if let customChart = presenter.customChartView {
-                    customChart
-                        .frame(height: 300)
-                } else {
-                    NewHistoryChart(
-                        series: series,
-                        yAxisSuffix: configuration.isMacrosChart ? (configuration.macrosYAxisSuffix ?? " g") : configuration.yAxisSuffix,
-                        chartType: configuration.chartType ?? .line,
-                        chartColor: themeColor ?? configuration.chartColor
-                    )
-                    .frame(height: 300)
-                }
-            }
-            .listRowInsets(.horizontal, 0)
-            .removeListRowFormatting()
-            .listRowSeparator(.hidden)
+    private func chart(configuration: MetricConfiguration, series: [TimeSeries]) -> some View {
+        if let contributionSeries = presenter.contributionSeries {
+            // A week per column, seven weekdays down the rows, scrolling back through every week
+            // there is data for. No frame: the chart's height follows from its square size.
+            ContributionChart(
+                data: [contributionSeries],
+                configuration: ChartConfiguration(
+                    aggregation: .sum,
+                    unit: configuration.contributionUnit,
+                    seriesColors: [themeColor ?? configuration.chartColor ?? .green],
+                    goal: 1,
+                    accessibilityTitle: configuration.title
+                )
+            )
+            .padding(.vertical)
+        } else if let customChart = presenter.customChartView {
+            customChart
+                .frame(height: 300)
+                .padding(.vertical)
+        } else {
+            MetricChart(series: series, configuration: configuration, color: themeColor)
         }
-        .listSectionMargins(.horizontal, 0)
-        .listSectionMargins(.top, 0)
     }
 
     @ToolbarContentBuilder
@@ -145,97 +136,60 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
                 Button {
                     presenter.onAddPressed()
                 } label: {
-                    Image(systemName: "plus")
+                    Image(systemName: presenter.configuration.addActionSystemImage)
                 }
+                .accessibilityLabel(presenter.configuration.addActionTitle)
             }
         }
     }
     
+    /// The entries themselves live one push away, on All Recorded Data, as in Health: listing them
+    /// all here buried everything below the chart under months of rows.
     @ViewBuilder
-    private func listSection(configuration: MetricConfiguration, entries: [Presenter.Entry], pagedEntries: ArraySlice<Presenter.Entry>, hasMore: Bool) -> some View {
+    private func listSection(configuration: MetricConfiguration, entries: [Presenter.Entry]) -> some View {
         if entries.isEmpty {
-            Section {
-                ContentUnavailableView(
-                    configuration.emptyStateMessage,
-                    systemImage: "info.circle"
-                )
-            } header: {
-                Text(configuration.sectionHeader)
-            }
+            emptySection(configuration: configuration)
         } else {
-            let grouped = groupedByMonth(Array(pagedEntries))
-            ForEach(grouped.sorted(by: { $0.key > $1.key }), id: \.key) { group in
-                Section {
-                    ForEach(group.entries) { entry in
-                        Label(
-                            configuration.isMacrosChart
-                                ? "\(entry.displayLabel) \(entry.displayValue)"
-                                : "\(entry.displayLabel) \(entry.displayValue) \(configuration.yAxisSuffix)",
-                            systemImage: entry.systemImageName
-                        )
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    Task { await presenter.onDeleteEntry(entry) }
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                    }
-                } header: {
-                    Text(group.title)
-                }
-            }
-
-            if hasMore {
-                Section {
+            Section {
+                // Pushed with the sheet's own router rather than through each of the thirty-odd
+                // presenters that share this view, which would each need the same route.
+                RouterReader { router in
                     Button {
-                        page += 1
+                        router.showScreen(.push) { _ in
+                            MetricAllDataView(presenter: presenter)
+                        }
                     } label: {
                         HStack {
-                            Text("Load more")
+                            Text("Show All Data")
                             Spacer()
-                            Text("\(pagedEntries.count) of \(entries.count)")
-                                .foregroundStyle(.secondary)
-                                .font(.caption)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary)
                         }
+                        .contentShape(.rect)
                     }
+                    .foregroundStyle(.primary)
                 }
             }
         }
     }
 
-    private func groupedByMonth(_ entries: [Presenter.Entry]) -> [MonthGroup<Presenter.Entry>] {
-        let calendar = Calendar.current
-        var groups: [DateComponents: [Presenter.Entry]] = [:]
-        var order: [DateComponents] = []
-
-        for entry in entries {
-            let components = calendar.dateComponents([.year, .month], from: entry.date)
-            if groups[components] == nil {
-                order.append(components)
+    /// An empty metric screen offers the same Add action as the toolbar, so it is not a dead end.
+    private func emptySection(configuration: MetricConfiguration) -> some View {
+        Section {
+            ContentUnavailableView {
+                Label(configuration.title, systemImage: "chart.xyaxis.line")
+            } description: {
+                Text(configuration.emptyStateMessage)
+            } actions: {
+                if configuration.showsAddButton {
+                    Button(configuration.addActionTitle) {
+                        presenter.onAddPressed()
+                    }
+                }
             }
-            groups[components, default: []].append(entry)
-        }
-
-        return order.compactMap { components in
-            guard let entries = groups[components],
-                  let date = calendar.date(from: components) else { return nil }
-            let title = date.formatted(.dateTime.month(.wide).year())
-            let key = String(format: "%04d-%02d", components.year ?? 0, components.month ?? 0)
-            return MonthGroup(key: key, title: title, entries: entries)
+        } header: {
+            Text(configuration.sectionHeader)
         }
     }
-
-    private static func paged(entries: [Presenter.Entry], page: Int, pageSize: Int?) -> ArraySlice<Presenter.Entry> {
-        guard let pageSize, pageSize > 0 else { return entries[entries.startIndex..<entries.endIndex] }
-        let safePage = max(1, page)
-        let limit = min(entries.count, safePage * pageSize)
-        return entries.prefix(limit)
-    }
-}
-
-private struct MonthGroup<Entry: MetricEntry> {
-    let key: String
-    let title: String
-    let entries: [Entry]
 }

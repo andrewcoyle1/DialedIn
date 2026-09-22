@@ -12,30 +12,9 @@ struct LegalView: View {
     var body: some View {
         List {
             Section {
-                Button {
-                
-                } label: {
-                    Text("Terms of Service")
+                ForEach(LegalDocument.allCases) { document in
+                    legalRow(document)
                 }
-
-                Button {
-                
-                } label: {
-                    Text("Privacy Policy")
-                }
-
-                Button {
-                
-                } label: {
-                    Text("Health Disclaimer")
-                }
-
-                Button {
-                
-                } label: {
-                    Text("Consumer Health Privacy")
-                }
-
             } header: {
                 Text("Agreements")
             }
@@ -47,6 +26,30 @@ struct LegalView: View {
         }
         .onDisappear {
             presenter.onViewDisappear()
+        }
+    }
+
+    /// Opens the document in the browser. A row whose URL will not parse is shown disabled rather
+    /// than as a live link that goes nowhere — which is what all four were before.
+    @ViewBuilder
+    private func legalRow(_ document: LegalDocument) -> some View {
+        if let url = document.url {
+            Link(destination: url) {
+                HStack {
+                    Text(document.title)
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .foregroundStyle(.primary)
+            .simultaneousGesture(TapGesture().onEnded {
+                presenter.onDocumentPressed(document)
+            })
+        } else {
+            Text(document.title)
+                .foregroundStyle(.secondary)
         }
     }
 }

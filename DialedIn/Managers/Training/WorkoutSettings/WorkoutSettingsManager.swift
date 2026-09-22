@@ -17,12 +17,12 @@ class WorkoutSettingsManager {
 
     // MARK: - Public Methods
 
-    func signIn(userId: String) async throws {
+    func signIn(userId: String, isNewUser: Bool) async throws {
         self.userId = userId
-        try await workoutSettingsSyncEngine.startListening(documentId: "workout_settings")
-        if workoutSettingsSyncEngine.currentDocument == nil {
+        if isNewUser {
             try await workoutSettingsSyncEngine.saveDocument(WorkoutSettings(authorId: userId))
         }
+        try await workoutSettingsSyncEngine.startListening(documentId: "workout_settings")
     }
 
     func signOut() {

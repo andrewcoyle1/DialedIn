@@ -53,6 +53,11 @@ func onDevSettingsPressed() {
 
         guard canContinue else { return }
 
+        // The screen already refuses to treat whitespace as a name, so it must not store the
+        // whitespace around one either — an untrimmed " Ada " is what every later greeting reads.
+        let trimmedFirstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+
         router.showLoadingModal()
         interactor.trackEvent(event: Event.namePhotoSaveStart)
 
@@ -66,12 +71,12 @@ func onDevSettingsPressed() {
                 if let uiImage = selectedImageData.flatMap({ UIImage(data: $0) }) {
                     try await interactor.updateProfileImageUrl(image: uiImage)
                 }
-                try await interactor.updateUserName(firstName: firstName, lastName: lastName)
+                try await interactor.updateUserName(firstName: trimmedFirstName, lastName: trimmedLastName)
 #elseif canImport(AppKit)
                 if let nsImage = selectedImageData.flatMap({ NSImage(data: $0) }) {
                     try await interactor.updateProfileImageUrl(image: nsImage)
                 }
-                try await interactor.updateUserName(firstName: firstName, lastName: lastName)
+                try await interactor.updateUserName(firstName: trimmedFirstName, lastName: trimmedLastName)
 #endif
                 
                 interactor.trackEvent(event: Event.namePhotoSaveSuccess)
@@ -87,8 +92,11 @@ func onDevSettingsPressed() {
     }
     
     func handlePhotoSelection() async {
-        guard let photoItem = selectedPhotoItem else { 
-            return 
+        guard let photoItem = selectedPhotoItem else {
+            // The picker handing back nothing is the one outcome of this flow that logged nothing,
+            // so the photo funnel counted fewer attempts than the screen actually made.
+            interactor.trackEvent(event: Event.profilePhotoNotSelected)
+            return
         }
         interactor.trackEvent(event: Event.profilePhotoSelected)
         interactor.trackEvent(event: Event.profilePhotoLoadStart)
@@ -115,8 +123,6 @@ func onDevSettingsPressed() {
         case namePhotoSaveStart
         case namePhotoSaveSuccess
         case namePhotoSaveFail(error: Error)
-        case navigate
-        case noUserId
 
         var eventName: String {
             switch self {
@@ -129,37 +135,28 @@ func onDevSettingsPressed() {
             case .namePhotoSaveStart:       return "NamePhoto_Save_Start"
             case .namePhotoSaveSuccess:     return "NamePhoto_Save_Success"
             case .namePhotoSaveFail:        return "NamePhoto_Save_Fail"
-            case .navigate:                 return "NamePhoto_Navigate"
-            case .noUserId:                 return "NamePhoto_NoUserID"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate:
-                return nil
             case .profilePhotoLoadFail(error: let error), .namePhotoSaveFail(error: let error):
                 return error.eventParameters
-            case .noUserId:
-                return [
-                    "error": "Missing current user ID"
-                ]
-            default: 
+            default:
                 return nil
             }
         }
 
         var type: LogType {
             switch self {
-            case .profilePhotoSelected, 
-                 .profilePhotoNotSelected, 
-                 .profilePhotoLoadStart, 
-                 .profilePhotoLoadSuccess, 
-                 .profilePhotoLoadEmpty, 
-                 .profilePhotoLoadFail, 
-                 .navigate: 
+            case .profilePhotoSelected,
+                 .profilePhotoNotSelected,
+                 .profilePhotoLoadStart,
+                 .profilePhotoLoadSuccess,
+                 .profilePhotoLoadEmpty,
+                 .profilePhotoLoadFail:
                 return .info
-            case .noUserId, .namePhotoSaveFail:
+            case .namePhotoSaveFail:
                 return .severe
             default:
                 return .analytic

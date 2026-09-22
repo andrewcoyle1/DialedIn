@@ -13,8 +13,8 @@ protocol WorkoutTemplateDetailRouter: GlobalRouter {
     func showDevSettingsView()
     #endif
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
-    func showWorkoutStartModal(delegate: WorkoutStartDelegate)
     func showWorkoutTrackerView()
+    func showExerciseModelDetailView(delegate: ExerciseModelDetailDelegate)
 }
 
 extension CoreRouter: WorkoutTemplateDetailRouter { }

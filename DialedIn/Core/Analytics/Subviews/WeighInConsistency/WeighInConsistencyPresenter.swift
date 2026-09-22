@@ -42,44 +42,45 @@ class WeighInConsistencyPresenter {
 extension WeighInConsistencyPresenter: @MainActor MetricDetailPresenter {
     typealias Entry = BodyMeasurementEntry
 
+    /// Weight is stored in kilograms; the card that opens this screen converts, and this screen
+    /// hardcoded " kg".
+    private var weightUnit: WeightUnitPreference {
+        interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
+    }
+
+    func displayValue(for entry: BodyMeasurementEntry) -> String {
+        guard let weightKg = entry.weightKg else { return "--" }
+        return UnitConversion.formatWeight(weightKg, unit: weightUnit)
+    }
+
     var entries: [BodyMeasurementEntry] {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         []
     }
 
-    var contributionChartData: [Double]? {
-        let endDate = calendar.startOfDay(for: Date())
-        let totalDays = 3 * 10
-        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
-        let weighInDates = Set(cachedEntries.map { calendar.startOfDay(for: $0.date) })
-        var data = Array(repeating: 0.0, count: 30)
-        for column in 0..<10 {
-            for row in 0..<3 {
-                let dayOffset = column * 3 + row
-                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
-                      dayOffset < 30 else { continue }
-                if weighInDates.contains(calendar.startOfDay(for: cellDate)) {
-                    data[dayOffset] = 1.0
-                }
-            }
-        }
-        return data
+    /// One point per weigh-in, over every entry there is.
+    var contributionSeries: TimeSeries? {
+        guard !cachedEntries.isEmpty else { return nil }
+        return TimeSeries(
+            name: "Weigh-Ins",
+            data: cachedEntries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: 1) }
+        )
     }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: "Weigh In",
             analyticsName: "WeighInConsistencyView",
-            yAxisSuffix: " kg",
+            yAxisSuffix: " \(weightUnit.abbreviation)",
             seriesNames: ["Weight"],
             showsAddButton: true,
             sectionHeader: "Weight Entries",
             emptyStateMessage: "No weigh-ins logged",
-            pageSize: 20,
-            chartColor: .green
+            chartColor: .green,
+            contributionUnit: "weigh-ins"
         )
     }
 
@@ -91,9 +92,18 @@ extension WeighInConsistencyPresenter: @MainActor MetricDetailPresenter {
         onAddWeightPressed()
     }
 
+    var supportsDeletion: Bool { true }
+
     func onDeleteEntry(_ entry: BodyMeasurementEntry) async {
         let updatedEntry = entry.withCleared(.weightKg)
-        try? await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        do {
+            try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        } catch {
+            // Was `try?`. The refresh below re-reads unchanged data, so a failed delete put the row
+            // straight back with nothing said about why.
+            router.showSimpleAlert(title: "Unable to Delete Entry", subtitle: "Please try again.")
+            return
+        }
         rebuildCaches()
     }
 }

@@ -12,24 +12,18 @@ struct ExerciseAssessmentView: View {
     let delegate: ExerciseAssessmentDelegate
     
     var body: some View {
-        Text("Hello, World!")
-            .onAppear {
-                presenter.onViewAppear(delegate: delegate)
-            }
-            .onDisappear {
-                presenter.onViewDisappear(delegate: delegate)
-            }
-    }
-}
-
-#Preview {
-    let container = DevPreview.shared.container()
-    let interactor = CoreInteractor(container: container)
-    let builder = CoreBuilder(interactor: interactor)
-    let delegate = ExerciseAssessmentDelegate()
-    
-    return RouterView { router in
-        builder.exerciseAssessmentView(router: router, delegate: delegate)
+        // Was `Text("Hello, World!")`. What the assessment actually is has not been decided.
+        FeatureUnavailableView(
+            title: "Exercise Assessment",
+            systemImage: "figure.strengthtraining.traditional",
+            summary: "Guided strength assessments are not available yet. The plan is to estimate your working weights from a short set of test lifts, so a new programme starts at the right load."
+        )
+        .onAppear {
+            presenter.onViewAppear(delegate: delegate)
+        }
+        .onDisappear {
+            presenter.onViewDisappear(delegate: delegate)
+        }
     }
 }
 

@@ -25,6 +25,9 @@ struct CoreInteractor: GlobalInteractor {
     let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
     let workoutSettingsManager: WorkoutSettingsManager
     let foodLogSettingsManager: FoodLogSettingsManager
+    let nutritionStrategySettingsManager: NutritionStrategySettingsManager
+    let analyticsSettingsManager: AnalyticsSettingsManager
+    let shortcutSettingsManager: ShortcutSettingsManager
     let exerciseSettingsManager: ExerciseSettingsManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
@@ -53,6 +56,7 @@ struct CoreInteractor: GlobalInteractor {
     let stravaManager: StravaManager
     let openFoodFactsService: any OpenFoodFactsService
     let appState: AppState
+    let premiumEntitlementResolution: PremiumEntitlementResolution
     let hapticManager: HapticManager
     let soundEffectManager: SoundEffectManager
 
@@ -65,6 +69,9 @@ struct CoreInteractor: GlobalInteractor {
         self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
         self.workoutSettingsManager = container.resolve(WorkoutSettingsManager.self)!
         self.foodLogSettingsManager = container.resolve(FoodLogSettingsManager.self)!
+        self.nutritionStrategySettingsManager = container.resolve(NutritionStrategySettingsManager.self)!
+        self.analyticsSettingsManager = container.resolve(AnalyticsSettingsManager.self)!
+        self.shortcutSettingsManager = container.resolve(ShortcutSettingsManager.self)!
         self.exerciseSettingsManager = container.resolve(ExerciseSettingsManager.self)!
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
@@ -93,6 +100,7 @@ struct CoreInteractor: GlobalInteractor {
         self.stravaManager = container.resolve(StravaManager.self)!
         self.openFoodFactsService = container.resolve(OpenFoodFactsServiceContainer.self)!.service
         self.appState = container.resolve(AppState.self)!
+        self.premiumEntitlementResolution = container.resolve(PremiumEntitlementResolution.self)!
 
         self.hapticManager = container.resolve(HapticManager.self)!
         self.soundEffectManager = container.resolve(SoundEffectManager.self)!
@@ -100,10 +108,21 @@ struct CoreInteractor: GlobalInteractor {
 
     // MARK: Shared
     
+    // One concurrent fan-out over every manager's sign-in. `async let` bindings have to be awaited
+    // in the scope that declares them, so splitting this in two would mean either serialising the
+    // sign-ins or threading twenty task handles through a carrier type — the same trade-off that
+    // exempts `Dependencies.init`. Adding a manager adds two lines here, which is the cost of the
+    // concurrency.
+    // swiftlint:disable:next function_body_length
     func logIn(user: UserAuthInfo, isNewUser: Bool) async throws {
         try await userManager.signIn(auth: user, isNewUser: isNewUser)
-        async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: user.uid)
-        async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: user.uid)
+        async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
+        async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
+        async let nutritionStrategySignIn: () = nutritionStrategySettingsManager.signIn(
+            userId: user.uid, isNewUser: isNewUser
+        )
+        async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
+        async let shortcutSettingsSignIn: () = shortcutSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
         async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: user.uid)
         async let stepsSignIn: () = stepsManager.signIn()
         async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
@@ -123,6 +142,9 @@ struct CoreInteractor: GlobalInteractor {
 
         try await workoutSettingsSignIn
         try await foodLogSettingsSignIn
+        try await nutritionStrategySignIn
+        try await analyticsSettingsSignIn
+        try await shortcutSettingsSignIn
         await exerciseSettingsSignIn
         await trainingProgramSignIn
         try await nutritionSignIn
@@ -153,6 +175,11 @@ struct CoreInteractor: GlobalInteractor {
                 firebaseAppInstanceId: Constants.firebaseAnalyticsAppInstanceID
             )
         )
+        // The one moment the store has definitively answered. Until this lands, `isPremium` cannot
+        // tell "no subscription" from "no answer yet" and stays optimistic; if the store throws
+        // (offline, most often) this line is skipped, `logIn` rethrows, and the caller retries — so
+        // the question gets asked again rather than answered wrongly.
+        premiumEntitlementResolution.markResolved()
         logManager.addUserProperties(dict: Utilities.eventParameters, isHighPriority: false)
 
         activityNotificationManager.startListening(userId: user.uid)
@@ -161,6 +188,7 @@ struct CoreInteractor: GlobalInteractor {
     func signOut() async throws {
         try authManager.signOut()
         try await purchaseManager.logOut()
+        premiumEntitlementResolution.reset()
         userManager.signOut()
         stepsManager.signOut()
         workoutTemplateManager.signOut()
@@ -170,6 +198,9 @@ struct CoreInteractor: GlobalInteractor {
         exerciseModelManager.signOut()
         workoutSettingsManager.signOut()
         foodLogSettingsManager.signOut()
+        nutritionStrategySettingsManager.signOut()
+        analyticsSettingsManager.signOut()
+        shortcutSettingsManager.signOut()
         exerciseSettingsManager.signOut()
         recipeTemplateManager.signOut()
         foodManager.signOut()

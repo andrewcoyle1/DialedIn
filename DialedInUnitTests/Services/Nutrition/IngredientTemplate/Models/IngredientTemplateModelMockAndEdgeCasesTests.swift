@@ -29,10 +29,16 @@ struct FoodMockTests {
     @Test("Test Mocks Property")
     func testMocksProperty() {
         let mocks = FoodModel.mocks
+        let names = mocks.map(\.name)
+        let allNamed = mocks.allSatisfy { !$0.name.isEmpty }
+        let idsAreUnique = Set(mocks.map(\.ingredientId)).count == mocks.count
         
-        #expect(mocks.count == 2)
-        #expect(mocks[0].name == "Rolled Oats")
-        #expect(mocks[1].name == "Whole Milk")
+        // Pinned loosely: the mock pantry has grown from two foods to six, and will grow again.
+        #expect(mocks.count >= 2)
+        #expect(names.contains("Rolled Oats"))
+        #expect(names.contains("Whole Milk"))
+        #expect(allNamed)
+        #expect(idsAreUnique)
     }
     
     @Test("Test Mocks Have Different Measurement Methods")
@@ -65,10 +71,7 @@ struct FoodMockTests {
             authorId: randomAuthorId,
             name: randomName,
             measurementMethod: .weight,
-            calories: 250.0,
-            protein: 15.0,
-            carbs: 30.0,
-            fatTotal: 8.0,
+            nutrients: [.calories: 250.0, .protein: 15.0, .carbs: 30.0, .fatTotal: 8.0],
             dateCreated: randomDate,
             dateModified: randomDate,
             clickCount: 10,
@@ -99,10 +102,7 @@ struct FoodMockTests {
             authorId: nil,
             name: randomName,
             description: nil,
-            calories: 100.0,
-            protein: 10.0,
-            carbs: 50.0,
-            fatTotal: 5.0,
+            nutrients: [.calories: 100.0, .protein: 10.0, .carbs: 50.0, .fatTotal: 5.0],
             dateCreated: randomDate,
             dateModified: randomDate
         )
@@ -125,10 +125,7 @@ struct FoodMockTests {
         let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
-            calories: 0.0,
-            protein: 0.0,
-            carbs: 0.0,
-            fatTotal: 0.0,
+            nutrients: [.calories: 0.0, .protein: 0.0, .carbs: 0.0, .fatTotal: 0.0],
             dateCreated: randomDate,
             dateModified: randomDate
         )
@@ -148,10 +145,7 @@ struct FoodMockTests {
         let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
-            calories: 9999.99,
-            protein: 999.99,
-            carbs: 999.99,
-            fatTotal: 999.99,
+            nutrients: [.calories: 9999.99, .protein: 999.99, .carbs: 999.99, .fatTotal: 999.99],
             dateCreated: randomDate,
             dateModified: randomDate
         )
@@ -170,10 +164,7 @@ struct FoodMockTests {
         let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: "",
-            calories: 100.0,
-            protein: 10.0,
-            carbs: 50.0,
-            fatTotal: 5.0,
+            nutrients: [.calories: 100.0, .protein: 10.0, .carbs: 50.0, .fatTotal: 5.0],
             dateCreated: randomDate,
             dateModified: randomDate
         )
@@ -190,10 +181,7 @@ struct FoodMockTests {
         let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: longName,
-            calories: 100.0,
-            protein: 10.0,
-            carbs: 50.0,
-            fatTotal: 5.0,
+            nutrients: [.calories: 100.0, .protein: 10.0, .carbs: 50.0, .fatTotal: 5.0],
             dateCreated: randomDate,
             dateModified: randomDate
         )

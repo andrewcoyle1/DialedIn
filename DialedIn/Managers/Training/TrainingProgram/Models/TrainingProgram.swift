@@ -81,7 +81,14 @@ struct TrainingProgram: DataSyncModelProtocol {
     }
     
     static var mocks: [TrainingProgram] {
-        [
+        // Slices of the seeded templates rather than all thirteen, so a mock program reads as a
+        // three-to-four day microcycle instead of a fortnight of unique sessions.
+        let templates = WorkoutTemplateModel.mocks
+        func days(_ range: Range<Int>) -> [WorkoutTemplateModel] {
+            Array(templates.dropFirst(range.lowerBound).prefix(range.count))
+        }
+
+        return [
             TrainingProgram(
                 id: "training-program-1",
                 authorId: "mock_user_123",
@@ -91,7 +98,7 @@ struct TrainingProgram: DataSyncModelProtocol {
                 numMicrocycles: 8,
                 deload: .none,
                 periodisation: false,
-                workoutTemplates: WorkoutTemplateModel.mocks
+                workoutTemplates: days(0..<3)
             ),
             TrainingProgram(
                 id: "training-program-2",
@@ -102,7 +109,7 @@ struct TrainingProgram: DataSyncModelProtocol {
                 numMicrocycles: 8,
                 deload: .end,
                 periodisation: false,
-                workoutTemplates: WorkoutTemplateModel.mocks
+                workoutTemplates: days(3..<7)
             ),
             TrainingProgram(
                 id: "training-program-3",
@@ -113,7 +120,7 @@ struct TrainingProgram: DataSyncModelProtocol {
                 numMicrocycles: 8,
                 deload: .none,
                 periodisation: false,
-                workoutTemplates: WorkoutTemplateModel.mocks
+                workoutTemplates: days(7..<10)
             )
         ]
     }

@@ -155,10 +155,17 @@ class WorkoutSessionManager {
         try await likeService.unlikeSession(sessionId: sessionId, authorId: authorId, userId: userId)
     }
 
-    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
+    /// `inTrainingProgramId` narrows the search to one program's sessions; `nil` searches them
+    /// all, which is what every caller wanted before `previousWorkoutReference` was honoured.
+    func getLastCompletedSessionForTemplate(
+        templateId: String,
+        authorId: String,
+        inTrainingProgramId: String? = nil
+    ) async throws -> WorkoutSessionModel? {
         // Check the already-loaded collection first (current user's sessions)
         let cached = userWorkoutSessionSyncEngine.currentCollection
             .filter { $0.workoutTemplateId == templateId && $0.endedAt != nil }
+            .filter { inTrainingProgramId == nil || $0.trainingProgramId == inTrainingProgramId }
             .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
 
         if let mostRecent = cached.first {
@@ -266,8 +273,16 @@ extension CoreInteractor {
         try await workoutSessionManager.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
     }
 
-    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
-        try await workoutSessionManager.getLastCompletedSessionForTemplate(templateId: templateId, authorId: authorId)
+    func getLastCompletedSessionForTemplate(
+        templateId: String,
+        authorId: String,
+        inTrainingProgramId: String? = nil
+    ) async throws -> WorkoutSessionModel? {
+        try await workoutSessionManager.getLastCompletedSessionForTemplate(
+            templateId: templateId,
+            authorId: authorId,
+            inTrainingProgramId: inTrainingProgramId
+        )
     }
 
     func likeSession(sessionId: String, authorId: String, userId: String) async throws {

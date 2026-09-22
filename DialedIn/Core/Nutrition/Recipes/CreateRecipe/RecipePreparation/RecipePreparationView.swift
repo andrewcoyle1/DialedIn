@@ -150,9 +150,14 @@ struct RecipePreparationView: View {
     }
 
     private var photoSection: some View {
-        Section("Photo") {
+        // `PhotosPicker`'s label is a `@Sendable` closure in the iOS 26 SDK, so it cannot
+        // reach back into the main-actor presenter. Read the image here and let the
+        // closure capture the value instead.
+        let image = presenter.image
+
+        return Section("Photo") {
             PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                if let image = presenter.image {
+                if let image {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()

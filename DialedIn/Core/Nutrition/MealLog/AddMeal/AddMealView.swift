@@ -22,16 +22,16 @@ struct AddMealView: View {
             yourPlateSection
             nutritionSection
             if presenter.showAllNutrients {
-                carbBreakdownSection
-                fatBreakdownSection
-                proteinBreakdownSection
-                vitaminBreakdownSection
-                mineralBreakdownSection
-                otherBreakdownSection
+                ForEach(Macros.allCases, id: \.self) { category in
+                    breakdownSection(for: category)
+                }
             }
             CustomToggleView(symbolName: "carrot", title: "Show all nutrients", subtitle: nil, bool: $presenter.showAllNutrients)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $presenter.isEditingMealTime) {
+            mealTimeSheet
+        }
         .onAppear {
             presenter.onViewAppear()
         }
@@ -56,6 +56,32 @@ struct AddMealView: View {
             }
             .padding(.horizontal)
         }
+    }
+
+    private var mealTimeSheet: some View {
+        NavigationStack {
+            VStack {
+                DatePicker(
+                    "Logged at",
+                    selection: Binding(
+                        get: { presenter.mealLog.date },
+                        set: { presenter.updateMealTime($0) }
+                    ),
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+                .datePickerStyle(.graphical)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal)
+            .navigationTitle("Meal Time")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { presenter.isEditingMealTime = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 
     private var yourPlateSection: some View {
@@ -182,231 +208,30 @@ struct AddMealView: View {
         }
     }
         
-    private var carbBreakdownSection: some View {
+    /// One section per nutrient category, driven by `Macros.details`.
+    ///
+    /// This replaces six hand-written sections that were byte-for-byte identical: every one of them
+    /// showed the same four hardcoded cards ("791 kcal in plate", a half-filled bar), so "Carb
+    /// Breakdown" did not show carbs and none of the numbers came from the plate.
+    ///
+    /// Values only, no progress bars. The diet plan sets targets for the four macros and nothing
+    /// else, so a bar for saturated fat or selenium would have to invent the target it fills — which
+    /// is the problem these sections already had.
+    @ViewBuilder
+    private func breakdownSection(for category: Macros) -> some View {
         Section {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
-                AnalyticsCard(
-                    title: "Calories",
-                    subtitle: "791 kcal in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .blue)
-                    }
-                AnalyticsCard(
-                    title: "Protein",
-                    subtitle: "65.1 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .proteinColor)
-                    }
-                AnalyticsCard(
-                    title: "Fat",
-                    subtitle: "38.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .fatColor)
-                    }
-                AnalyticsCard(
-                    title: "Carbs",
-                    subtitle: "23.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .carbsColor)
-                    }
+            let nutrients = presenter.breakdown(for: category)
+            if nutrients.isEmpty {
+                Text("None of the foods on this plate record \(category.name.lowercased()) data.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(nutrients) { nutrient in
+                    MetricRow(label: nutrient.name, value: presenter.formatted(nutrient))
+                }
             }
-            .removeListRowFormatting()
         } header: {
-            Text("Carb Breakdown")
-        }
-    }
-    
-    private var fatBreakdownSection: some View {
-        Section {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
-                AnalyticsCard(
-                    title: "Calories",
-                    subtitle: "791 kcal in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .blue)
-                    }
-                AnalyticsCard(
-                    title: "Protein",
-                    subtitle: "65.1 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .proteinColor)
-                    }
-                AnalyticsCard(
-                    title: "Fat",
-                    subtitle: "38.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .fatColor)
-                    }
-                AnalyticsCard(
-                    title: "Carbs",
-                    subtitle: "23.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .carbsColor)
-                    }
-            }
-            .removeListRowFormatting()
-        } header: {
-            Text("Fat Breakdown")
-        }
-    }
-
-    private var proteinBreakdownSection: some View {
-        Section {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
-                AnalyticsCard(
-                    title: "Calories",
-                    subtitle: "791 kcal in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .blue)
-                    }
-                AnalyticsCard(
-                    title: "Protein",
-                    subtitle: "65.1 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .proteinColor)
-                    }
-                AnalyticsCard(
-                    title: "Fat",
-                    subtitle: "38.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .fatColor)
-                    }
-                AnalyticsCard(
-                    title: "Carbs",
-                    subtitle: "23.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .carbsColor)
-                    }
-            }
-            .removeListRowFormatting()
-        } header: {
-            Text("Protein Breakdown")
-        }
-    }
-
-    private var vitaminBreakdownSection: some View {
-        Section {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
-                AnalyticsCard(
-                    title: "Calories",
-                    subtitle: "791 kcal in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .blue)
-                    }
-                AnalyticsCard(
-                    title: "Protein",
-                    subtitle: "65.1 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .proteinColor)
-                    }
-                AnalyticsCard(
-                    title: "Fat",
-                    subtitle: "38.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .fatColor)
-                    }
-                AnalyticsCard(
-                    title: "Carbs",
-                    subtitle: "23.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .carbsColor)
-                    }
-            }
-            .removeListRowFormatting()
-        } header: {
-            Text("Vitamin Breakdown")
-        }
-    }
-
-    private var mineralBreakdownSection: some View {
-        Section {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
-                AnalyticsCard(
-                    title: "Calories",
-                    subtitle: "791 kcal in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .blue)
-                    }
-                AnalyticsCard(
-                    title: "Protein",
-                    subtitle: "65.1 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .proteinColor)
-                    }
-                AnalyticsCard(
-                    title: "Fat",
-                    subtitle: "38.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .fatColor)
-                    }
-                AnalyticsCard(
-                    title: "Carbs",
-                    subtitle: "23.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .carbsColor)
-                    }
-            }
-            .removeListRowFormatting()
-        } header: {
-            Text("Mineral Breakdown")
-        }
-    }
-
-    private var otherBreakdownSection: some View {
-        Section {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
-                AnalyticsCard(
-                    title: "Calories",
-                    subtitle: "791 kcal in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .blue)
-                    }
-                AnalyticsCard(
-                    title: "Protein",
-                    subtitle: "65.1 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .proteinColor)
-                    }
-                AnalyticsCard(
-                    title: "Fat",
-                    subtitle: "38.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .fatColor)
-                    }
-                AnalyticsCard(
-                    title: "Carbs",
-                    subtitle: "23.4 g in plate",
-                    subsubtitle: "",
-                    subsubsubtitle: "") {
-                        MacroProgressChart(current: 0.5, maxValue: 1, color: .carbsColor)
-                    }
-            }
-            .removeListRowFormatting()
-        } header: {
-            Text("Other Nutrients")
+            Text(category.name)
         }
     }
 
@@ -423,26 +248,25 @@ struct AddMealView: View {
         ToolbarSpacer(.flexible, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                
+                presenter.isEditingMealTime = true
             } label: {
                 VStack {
-                    Text(delegate.mealLog.date.formatted(date: .omitted, time: .shortened))
+                    Text(presenter.mealLog.date.formatted(date: .omitted, time: .shortened))
                         .font(.subheadline)
-                    Text(delegate.mealLog.date.formatted(date: .numeric, time: .omitted))
+                    Text(presenter.mealLog.date.formatted(date: .numeric, time: .omitted))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
+            .accessibilityLabel("Change meal time")
         }
         ToolbarSpacer(.flexible, placement: .topBarLeading)
 
+        // A readout, not an action — it was previously a Button that did nothing when tapped.
         ToolbarItem(placement: .topBarLeading) {
-            Button {
-
-            } label: {
-                Text(presenter.calorieLabel)
-                    .font(.subheadline)
-            }
+            Text(presenter.calorieLabel)
+                .font(.subheadline)
+                .accessibilityLabel("\(presenter.calorieLabel) calories \(presenter.scopeLabel)")
         }
         ToolbarItem(placement: .topBarTrailing) {
             HStack {

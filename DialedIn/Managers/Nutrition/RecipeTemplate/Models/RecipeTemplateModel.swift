@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RecipeTemplateModel: DataSyncModelProtocol {
+struct RecipeTemplateModel: DataSyncModelProtocol, SearchListItem {
     var id: String {
         recipeId
     }

@@ -86,8 +86,8 @@ class WeightRatePresenter {
 
     func weeklyWeightChangeText(delegate: WeightRateDelegate) -> String {
         let weeklyChangeInKg = weightChangeRate
-        let weeklyChangeInPounds = weightUnit == .pounds ? weeklyChangeInKg * 2.20462 : weeklyChangeInKg
-        let unitText = weightUnit == .pounds ? "lbs" : "kg"
+        let weeklyChangeInPounds = UnitConversion.convertWeight(weeklyChangeInKg, to: weightUnit)
+        let unitText = weightUnit.abbreviation
         let sign = delegate.overarchingObjective == .loseWeight ? "-" : "+"
         let percentBW = (weeklyChangeInKg / currentWeight) * 100
         
@@ -96,8 +96,8 @@ class WeightRatePresenter {
     
     func monthlyWeightChangeText(delegate: WeightRateDelegate) -> String {
         let monthlyChangeInKg = weightChangeRate * 4 // Approximate monthly rate
-        let monthlyChangeInPounds = weightUnit == .pounds ? monthlyChangeInKg * 2.20462 : monthlyChangeInKg
-        let unitText = weightUnit == .pounds ? "lbs" : "kg"
+        let monthlyChangeInPounds = UnitConversion.convertWeight(monthlyChangeInKg, to: weightUnit)
+        let unitText = weightUnit.abbreviation
         let sign = delegate.overarchingObjective == .loseWeight ? "-" : "+"
         let percentBW = (monthlyChangeInKg / currentWeight) * 100
         
@@ -106,8 +106,11 @@ class WeightRatePresenter {
     
     func estimatedCalorieTargetText(delegate: WeightRateDelegate) -> String {
         let weeklyChangeInKg = weightChangeRate
-        let weeklyChangeInPounds = weightUnit == .pounds ? weeklyChangeInKg * 2.20462 : weeklyChangeInKg
-        
+        // The 3500 kcal rule is per POUND, so this conversion is arithmetic, not presentation — it
+        // was gated on `weightUnit == .pounds`, which meant a user set to kilograms had their
+        // kilogram figure multiplied by 3500 directly and got a calorie target 2.2x too small.
+        let weeklyChangeInPounds = UnitConversion.kgToLbs(weeklyChangeInKg)
+
         // Rough estimate: 1 lb = ~3500 calories, so weekly deficit/surplus
         let weeklyCalorieChange = weeklyChangeInPounds * 3500
         let dailyCalorieChange = weeklyCalorieChange / 7
@@ -125,7 +128,14 @@ class WeightRatePresenter {
         let totalWeightChange = abs(target - currentWeight)
         let weeklyChangeInKg = weightChangeRate
         let weeksToGoal = totalWeightChange / weeklyChangeInKg
-        
+
+        // `Int` traps on a Double that is not finite, and this runs while the screen is drawing.
+        // A rate of zero makes the division infinite — or NaN, when the target is already the
+        // current weight — which is exactly what took the goal summary down before it was
+        // guarded. Only losing and gaining reach this screen today, so the rate is never zero
+        // through the router; a maintain goal arriving here would crash on the first draw.
+        guard weeksToGoal.isFinite else { return "No approximate end date at this rate" }
+
         let endDate = Calendar.current.date(byAdding: .weekOfYear, value: Int(weeksToGoal), to: Date()) ?? Date()
         let formatter = DateFormatter()
         formatter.dateStyle = .medium

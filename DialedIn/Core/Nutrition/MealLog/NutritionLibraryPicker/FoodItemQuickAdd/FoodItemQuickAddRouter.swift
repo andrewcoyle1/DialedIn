@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol FoodItemQuickAddRouter: GlobalRouter {
-    
-}
+protocol FoodItemQuickAddRouter: GlobalRouter { }
 
 extension CoreRouter: FoodItemQuickAddRouter { }

@@ -9,8 +9,6 @@
 protocol ExercisesRouter: GlobalRouter {
     func showCreateExerciseView()
     func showExerciseModelDetailView(delegate: ExerciseModelDetailDelegate)
-    
-    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: ExercisesRouter { }

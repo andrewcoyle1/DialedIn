@@ -73,63 +73,47 @@ class CreateFoodPresenter {
     }
     
     func onNextPressed(delegate: CreateFoodDelegate) {
+        // `PlatformImage` already resolves to UIImage or NSImage, so this no longer needs a
+        // `#if canImport` pair duplicating each navigation call.
+        let image = selectedImageData.flatMap { PlatformImage(data: $0) }
+
         if contributeToPublicDatabase {
-            #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
             router.showFoodPackagingView(
                 delegate: FoodPackagingDelegate(
                     mealItems: delegate.mealItems,
-                    name: self.name,
-                    brandName: self.brandName,
-                    barcode: self.barcode,
-                    image: uiImage
+                    name: name,
+                    brandName: brandName,
+                    barcode: barcode,
+                    image: image
                 )
             )
-            #elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            router.showFoodPackagingView(
-                delegate: FoodPackagingDelegate(
-                    mealItems: delegate.mealItems,
-                    name: self.name,
-                    brandName: self.brandName,
-                    barcode: self.barcode,
-                    image: nsImage
-                )
-            )
-            #endif
         } else {
-            #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
             router.showPortionDefinitionView(
                 delegate: PortionDefinitionDelegate(
                     mealItems: delegate.mealItems,
-                    name: self.name,
-                    brandName: self.brandName,
-                    barcode: self.barcode,
-                    image: uiImage,
+                    name: name,
+                    brandName: brandName,
+                    barcode: barcode,
+                    image: image,
                     productFront: nil,
                     nutritionPhoto: nil
                 )
             )
-            #elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            router.showPortionDefinitionView(
-                delegate: PortionDefinitionDelegate(
-                    mealItems: delegate.mealItems,
-                    name: self.name,
-                    brandName: self.brandName,
-                    barcode: self.barcode,
-                    image: nsImage,
-                    productFront: nil,
-                    nutritionPhoto: nil
-                )
-            )
-            #endif
         }
     }
     
+    /// Explains the "Submit Foods to the Public Database?" toggle it sits beside. Shown inline rather
+    /// than linked out: the app knows what the toggle does, and there is no hosted help to point at.
     func onLearnMorePressed() {
-        
+        interactor.trackEvent(event: Event.learnMorePressed)
+        router.showSimpleAlert(
+            title: "Contributing Foods",
+            subtitle: """
+            With this on, foods you create are shared to the public database so other people can find \
+            and log them. Your name is not attached, and the food stays in your own library either way. \
+            With it off, the food is yours alone.
+            """
+        )
     }
     
     func onBarcodeScannerPressed() {
@@ -152,31 +136,27 @@ func onDevSettingsPressed() {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
-        case createFoodStart
-        case createFoodSuccess
-        case createFoodFail(error: Error)
         case imageSelectorStart
         case imageSelectorSuccess
         case imageSelectorCancel
         case imageSelectorFail(error: Error)
+        case learnMorePressed
 
         var eventName: String {
             switch self {
             case .onAppear:                         return "CreateFoodView_Appear"
             case .onDisappear:                      return "CreateFoodView_Disappear"
-            case .createFoodStart:            return "CreateFood_Start"
-            case .createFoodSuccess:          return "CreateFood_Success"
-            case .createFoodFail:             return "CreateFood_Fail"
             case .imageSelectorStart:               return "IngredientImageSelector_Start"
             case .imageSelectorSuccess:             return "IngredientImageSelector_Success"
             case .imageSelectorCancel:              return "IngredientImageSelector_Cancel"
+            case .learnMorePressed:     return "CreateFoodView_LearnMore_Press"
             case .imageSelectorFail:                return "IngredientImageSelector_Fail"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
-            case .createFoodFail(error: let error), .imageSelectorFail(error: let error):
+            case .imageSelectorFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -185,7 +165,7 @@ func onDevSettingsPressed() {
 
         var type: LogType {
             switch self {
-            case .createFoodFail, .imageSelectorFail:
+            case .imageSelectorFail:
                 return .severe
             default:
                 return .analytic

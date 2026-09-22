@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 23/01/2026.
 //
 
-enum ExerciseType: String, Equatable, DataSyncModelProtocol, PickableItem {
+enum ExerciseType: String, Equatable, CaseIterable, DataSyncModelProtocol, PickableItem {
     
     var id: String { self.rawValue }
     

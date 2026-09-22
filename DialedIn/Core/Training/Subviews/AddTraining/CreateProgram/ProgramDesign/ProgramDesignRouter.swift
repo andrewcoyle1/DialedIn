@@ -1,17 +1,9 @@
 import SwiftUI
 
 @MainActor
-protocol ProgramDesignRouter: GlobalRouter {
+protocol ProgramDesignRouter: OnboardingStepRouter {
     func showRenameWorkoutTemplateModelView(delegate: RenameWorkoutTemplateModelDelegate)
     func showProgramSettingsView(program: Binding<TrainingProgram>)
-    func showCompleteAccountSetupView()
-    func showNotificationsPermissionsView()
-    func showOnboardingHealthDataView()
-    func showHealthDisclaimerView()
-    func showGoalSettingView()
-    func showCreateGymProfileView(delegate: CreateGymProfileDelegate)
-    func showOnboardingTrainingProgramView(delegate: CreateProgramDelegate)
-    func showCustomisingDietProgramView()
     func showOnboardingCompletedView()
 }
 

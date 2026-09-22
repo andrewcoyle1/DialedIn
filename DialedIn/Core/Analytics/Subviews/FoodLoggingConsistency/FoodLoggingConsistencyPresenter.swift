@@ -42,25 +42,15 @@ final class FoodLoggingConsistencyPresenter: @MainActor MetricDetailPresenter {
         entries = newEntries.sorted { $0.date < $1.date }
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] { [] }
+    var timeSeries: [TimeSeries] { [] }
 
-    var contributionChartData: [Double]? {
-        let foodLoggedDates = Set(entries.map { calendar.startOfDay(for: $0.date) })
-        let endDate = calendar.startOfDay(for: Date())
-        let totalDays = 3 * 10
-        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
-        var data = Array(repeating: 0.0, count: 30)
-        for column in 0..<10 {
-            for row in 0..<3 {
-                let dayOffset = column * 3 + row
-                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
-                      dayOffset < 30 else { continue }
-                if foodLoggedDates.contains(calendar.startOfDay(for: cellDate)) {
-                    data[dayOffset] = 1.0
-                }
-            }
-        }
-        return data
+    /// One point per day with food logged, over every entry there is.
+    var contributionSeries: TimeSeries? {
+        guard !entries.isEmpty else { return nil }
+        return TimeSeries(
+            name: "Days Logged",
+            data: entries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: 1) }
+        )
     }
 
     var configuration: MetricConfiguration {
@@ -69,21 +59,38 @@ final class FoodLoggingConsistencyPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "FoodLoggingConsistencyView",
             yAxisSuffix: " kcal",
             seriesNames: ["Food Logged"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Days Logged",
             emptyStateMessage: "No food logged. Log meals to see your consistency.",
-            pageSize: 20,
-            chartColor: .orange
+            chartColor: .orange,
+            addActionTitle: "Log Meal",
+            addActionSystemImage: "plus"
         )
     }
 
-    func onAddPressed() {}
+    /// These values are derived from logged meals, so the action is to log one. Mirrors
+    /// `SearchPresenter.onLogMealPressed`: an existing draft is offered rather than silently
+    /// replaced.
+    func onAddPressed() {
+        guard let userId = interactor.userId else { return }
+        if let draft = interactor.draftMeal {
+            router.showAddMealView(delegate: AddMealDelegate(mealLog: draft))
+            return
+        }
+        router.showAddMealView(
+            delegate: AddMealDelegate(
+                mealLog: MealLogModel(
+                    authorId: userId,
+                    dayKey: Date().dayKey,
+                    date: Date(),
+                    items: []
+                )
+            )
+        )
+    }
 
     func onDismissPressed() {
         router.dismissScreen()
     }
 
-    func onDeleteEntry(_ entry: NutritionMetricEntry) async {
-        // Entries are derived from meals; deletion not supported at this level
-    }
 }

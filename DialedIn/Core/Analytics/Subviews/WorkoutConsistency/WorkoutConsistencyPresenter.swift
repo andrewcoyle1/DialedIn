@@ -35,7 +35,10 @@ class WorkoutConsistencyPresenter {
 
     private func rebuildCaches() {
         let completed = workoutSessions
-            .filter { $0.endedAt != nil }
+            // A rest day is written ahead of time by the training program, already ended and dated
+            // into the future. Counted as a workout it put tomorrow at the top of the history as a
+            // zero-set session and shaded grid squares for days that had not happened.
+            .filter { $0.endedAt != nil && !$0.isRestDay }
             .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
         
         cachedEntries = completed.map { session in
@@ -66,27 +69,18 @@ extension WorkoutConsistencyPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         []
     }
 
-    var contributionChartData: [Double]? {
-        let endDate = calendar.startOfDay(for: Date())
-        let totalDays = 3 * 10
-        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
-        let workoutDates = Set(cachedEntries.map { calendar.startOfDay(for: $0.date) })
-        var data = Array(repeating: 0.0, count: 30)
-        for column in 0..<10 {
-            for row in 0..<3 {
-                let dayOffset = column * 3 + row
-                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
-                      dayOffset < 30 else { continue }
-                if workoutDates.contains(calendar.startOfDay(for: cellDate)) {
-                    data[dayOffset] = 1.0
-                }
-            }
-        }
-        return data
+    /// One point per completed workout, so a day's squares shade by how many were done and the
+    /// callout can say "2 workouts". Every session there is: the grid scrolls back through them.
+    var contributionSeries: TimeSeries? {
+        guard !cachedEntries.isEmpty else { return nil }
+        return TimeSeries(
+            name: "Workouts",
+            data: cachedEntries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: 1) }
+        )
     }
 
     var configuration: MetricConfiguration {
@@ -95,11 +89,13 @@ extension WorkoutConsistencyPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "WorkoutConsistencyView",
             yAxisSuffix: "",
             seriesNames: ["Sets"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Workout History",
             emptyStateMessage: "No completed workouts",
-            pageSize: 20,
-            chartColor: .orange
+            chartColor: .orange,
+            addActionTitle: "Start Workout",
+            addActionSystemImage: "figure.run",
+            contributionUnit: "workouts"
         )
     }
 
@@ -108,10 +104,7 @@ extension WorkoutConsistencyPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        // No-op: user starts workouts from Training tab
+        router.showWorkoutsView(delegate: WorkoutsDelegate())
     }
 
-    func onDeleteEntry(_ entry: WorkoutEntry) async {
-        // Workout deletion would go through WorkoutSessionDetail; no-op here
-    }
 }

@@ -33,6 +33,23 @@ class RecipeDetailPresenter {
         self.router = router
     }
         
+    func onViewAppear(delegate: RecipeDetailDelegate) {
+        isFavourited = interactor.isFavouriteRecipe(id: delegate.recipeTemplate.id)
+    }
+
+    /// Favourites live on the food log settings, which is what the library's Favourites tab reads.
+    func onFavouritePressed(delegate: RecipeDetailDelegate) {
+        let newValue = !isFavourited
+        isFavourited = newValue
+        Task {
+            do {
+                try await interactor.setFavouriteRecipe(id: delegate.recipeTemplate.id, isFavourite: newValue)
+            } catch {
+                isFavourited = !newValue
+            }
+        }
+    }
+
     func displayUnit(_ unit: IngredientAmountUnit) -> String {
         switch unit {
         case .grams: return "g"

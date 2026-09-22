@@ -32,9 +32,6 @@ class TrainingPresenter {
     let router: TrainingRouter
     
     let calendar = Calendar.current
-    var selectedDate: Date = Date().startOfDay
-    var selectedTime: Date = Date()
-    var today: Date = Date().startOfDay
     
     var currentUser: UserModel? {
         interactor.currentUser
@@ -91,12 +88,20 @@ class TrainingPresenter {
         router.showAddTrainingView(delegate: delegate, onDismiss: nil)
     }
     
-    func onProfilePressed() {
-        router.showProfileView()
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
     
-    func getLoggedWorkoutCountForDate(_ date: Date, calendar: Calendar) -> Int {
-        sessionsForDate(date).count
+    /// Logged sessions grouped by day in one pass. The calendar header used to ask for a count
+    /// per visible day, and each answer filtered every session with `isDate(_:inSameDayAs:)`.
+    func loggedWorkoutMarkersByDay() -> [Date: CalendarDayMarker] {
+        let now = Date()
+        let counts = workoutSessions.reduce(into: [Date: Int]()) { counts, session in
+            guard session.endedAt != nil else { return }
+            if session.isRestDay && session.dateCreated > now { return }
+            counts[calendar.startOfDay(for: session.dateCreated), default: 0] += 1
+        }
+        return counts.mapValues { .count($0) }
     }
         
     func onStartEmptyWorkoutPressed() {
@@ -136,7 +141,6 @@ class TrainingPresenter {
     }
     
     func onDatePressed(date: Date) {
-        self.selectedDate = date.startOfDay
         let sessions = sessionsForDate(date)
         switch sessions.count {
         case 0:
@@ -164,7 +168,13 @@ class TrainingPresenter {
     
     private func openCompletedSession(sessionId: String) {
         interactor.trackEvent(event: Event.openCompletedSessionStart)
-        guard let session = workoutSessions.first(where: { $0.id == sessionId }) else { return }
+        guard let session = workoutSessions.first(where: { $0.id == sessionId }) else {
+            // The id came from a session this screen was holding a moment ago, so losing it means
+            // the sync engine dropped it mid-tap. Returning silently left a Start with no terminal
+            // event: the tap looked like a screen nobody opened.
+            interactor.trackEvent(event: Event.openCompletedSessionFail(error: TrainingError.sessionNotFound))
+            return
+        }
         router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
         interactor.trackEvent(event: Event.openCompletedSessionSuccess)
     }
@@ -214,6 +224,17 @@ class TrainingPresenter {
     #endif
 }
 
+enum TrainingError: LocalizedError {
+    case sessionNotFound
+
+    var errorDescription: String? {
+        switch self {
+        case .sessionNotFound:
+            return "The workout session is no longer available"
+        }
+    }
+}
+
 extension TrainingPresenter {
     enum Event: LoggableEvent {
         case onAppear(delegate: TrainingDelegate)
@@ -221,10 +242,6 @@ extension TrainingPresenter {
         case openCompletedSessionStart
         case openCompletedSessionSuccess
         case openCompletedSessionFail(error: Error)
-        case loadDataStart
-        case loadDataSuccess
-        case loadDataFail(error: Error)
-        case getWeeklyProgress
 
         var eventName: String {
             switch self {
@@ -233,10 +250,6 @@ extension TrainingPresenter {
             case .openCompletedSessionStart:     return "TrainingView_OpenCompletedSession_Start"
             case .openCompletedSessionSuccess:   return "TrainingView_OpenCompletedSession_Success"
             case .openCompletedSessionFail:      return "TrainingView_OpenCompletedSession_Fail"
-            case .loadDataStart:                 return "TrainingView_LoadData_Start"
-            case .loadDataSuccess:               return "TrainingView_LoadData_Success"
-            case .loadDataFail:                  return "TrainingView_LoadData_Fail"
-            case .getWeeklyProgress:             return "TrainingView_GetWeeklyProgress"
             }
         }
 
@@ -244,7 +257,7 @@ extension TrainingPresenter {
             switch self {
             case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
                 return delegate.eventParameters
-            case .loadDataFail(error: let error), .openCompletedSessionFail(error: let error):
+            case .openCompletedSessionFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -253,7 +266,7 @@ extension TrainingPresenter {
 
         var type: LogType {
             switch self {
-            case .loadDataFail, .openCompletedSessionFail:
+            case .openCompletedSessionFail:
                 return .severe
             default:
                 return .analytic

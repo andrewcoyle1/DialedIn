@@ -37,9 +37,11 @@ enum MuscleGroupSetsAggregator {
                     guard let template = templates[exercise.templateId] else { continue }
                     guard let targetType = template.muscleGroups[muscle] else { continue }
 
+                    // Weekly sets per muscle is a count of sets, so a left/right pair counts once
+                    // — otherwise every unilateral exercise doubles a muscle's weekly volume.
                     let completedSets = exercise.sets
                         .filter { !$0.isWarmup && $0.completedAt != nil }
-                        .count
+                        .pairedSetCount
 
                     if completedSets > 0 {
                         let factor: Double = targetType == .secondary ? 0.5 : 1.0

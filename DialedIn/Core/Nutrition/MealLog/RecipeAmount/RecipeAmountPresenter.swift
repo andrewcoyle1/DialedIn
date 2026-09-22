@@ -15,7 +15,13 @@ class RecipeAmountPresenter {
 
     var servingsText: String = "1"
 
-    var servings: Double { max(Double(servingsText) ?? 0, 0) }
+    /// How many servings were eaten.
+    ///
+    /// `servingsText` is a text field, so `"nan"` and `"inf"` are three and three letters away.
+    /// The `max(parsed, 0)` this used to be filtered neither — see `Double.enteredAmount` — and
+    /// from here the figure multiplies into every nutrient logged for the meal, which the meal-log
+    /// rows print through `Int(_:)` and which is written to the meal document besides.
+    var servings: Double { .enteredAmount(servingsText) }
 
     init(
         interactor: RecipeAmountInteractor,
@@ -25,24 +31,35 @@ class RecipeAmountPresenter {
         self.router = router
     }
 
+    /// Grams of an ingredient as used in the recipe. Millilitres are taken one-for-one with grams,
+    /// and a counted unit as 100g, which is the same assumption the recipe builder makes.
+    private func grams(of recipeIngredient: RecipeIngredientModel) -> Double {
+        switch recipeIngredient.unit {
+        case .grams:
+            return recipeIngredient.amount
+        case .milliliters:
+            return recipeIngredient.amount // approximation
+        case .units:
+            return recipeIngredient.amount * 100 // rough fallback
+        }
+    }
+
+    /// How much of the recipe one serving is. Floors at one so a recipe saved claiming no servings
+    /// reads as a single serving rather than dividing by zero.
+    private func servingDivisor(_ recipe: RecipeTemplateModel) -> Double {
+        max(recipe.servingQuantity, 1)
+    }
+
+    /// One serving's worth of a nutrient — the recipe's total divided across its servings.
     private func aggregate(_ keyPath: (FoodModel) -> Double?, recipe: RecipeTemplateModel) -> Double? {
         var total: Double = 0
         var hasValue = false
         for recipeIngredient in recipe.ingredients {
             guard let per100 = keyPath(recipeIngredient.ingredient) else { continue }
             hasValue = true
-            let grams: Double
-            switch recipeIngredient.unit {
-            case .grams:
-                grams = recipeIngredient.amount
-            case .milliliters:
-                grams = recipeIngredient.amount // approximation
-            case .units:
-                grams = recipeIngredient.amount * 100 // rough fallback
-            }
-            total += per100 * (grams / 100.0)
+            total += per100 * (grams(of: recipeIngredient) / 100.0)
         }
-        return hasValue ? total : nil
+        return hasValue ? total / servingDivisor(recipe) : nil
     }
 
     func baseCalories(recipe: RecipeTemplateModel) -> Double? {
@@ -62,20 +79,18 @@ class RecipeAmountPresenter {
     }
 
     func add(recipe: RecipeTemplateModel, onConfirm: @escaping (MealItemModel) -> Void) {
-        var baseNutrients = NutrientMap()
+        var recipeNutrients = NutrientMap()
         for recipeIngredient in recipe.ingredients {
-            let grams: Double
-            switch recipeIngredient.unit {
-            case .grams: grams = recipeIngredient.amount
-            case .milliliters: grams = recipeIngredient.amount
-            case .units: grams = recipeIngredient.amount * 100
-            }
-            let scale = grams / 100.0
+            let scale = grams(of: recipeIngredient) / 100.0
             for (key, value) in recipeIngredient.ingredient.nutrients {
-                baseNutrients[key, default: 0] += value * scale
+                recipeNutrients[key, default: 0] += value * scale
             }
         }
-        let scaledNutrients = baseNutrients.mapValues { $0 * servings }
+        // Per serving first, then by how many servings were eaten. Scaling the whole recipe by the
+        // servings instead logged the entire pot for every serving — a four-serving dish went in
+        // at four times what was eaten.
+        let perServing = recipeNutrients.mapValues { $0 / servingDivisor(recipe) }
+        let scaledNutrients = perServing.mapValues { $0 * servings }
         let item = MealItemModel(
             itemId: UUID().uuidString,
             sourceType: .recipe,

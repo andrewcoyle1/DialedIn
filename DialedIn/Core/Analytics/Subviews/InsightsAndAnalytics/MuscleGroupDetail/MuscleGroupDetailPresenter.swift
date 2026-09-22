@@ -17,7 +17,7 @@ class MuscleGroupDetailPresenter {
     private let calendar = Calendar.current
 
     private(set) var cachedEntries: [MuscleGroupDetailEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
 
     var allExercises: [ExerciseModel] {
         interactor.allExercises
@@ -54,7 +54,7 @@ class MuscleGroupDetailPresenter {
             )
         }
         cachedTimeSeries = [
-            TimeSeriesData.TimeSeries(
+            TimeSeries(
                 name: "Sets",
                 data: sortedDays.map { day in
                     TimeSeriesDatapoint(
@@ -103,7 +103,7 @@ extension MuscleGroupDetailPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
     }
 
@@ -113,12 +113,13 @@ extension MuscleGroupDetailPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "MuscleGroupDetailView",
             yAxisSuffix: " sets",
             seriesNames: ["Sets"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Daily Sets",
             emptyStateMessage: "No sets for \(muscle.name) in recent workouts",
-            pageSize: 20,
             chartColor: .blue,
-            chartType: .bar
+            chartType: .bar,
+            addActionTitle: "Start Workout",
+            addActionSystemImage: "figure.run"
         )
     }
 
@@ -127,6 +128,7 @@ extension MuscleGroupDetailPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        // No-op: sets come from workouts
+        // Sets do come from workouts — so this starts one rather than doing nothing.
+        router.showWorkoutsView(delegate: WorkoutsDelegate())
     }
 }

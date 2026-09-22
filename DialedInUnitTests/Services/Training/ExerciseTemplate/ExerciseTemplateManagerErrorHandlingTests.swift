@@ -1,108 +1,40 @@
 //
-//  ExerciseModelManagerErrorTests.swift
+//  ExerciseTemplateManagerErrorHandlingTests.swift
 //  DialedInUnitTests
+//
+//  Created by Andrew Coyle on 28/10/2025.
 //
 
 import Testing
 import Foundation
 @testable import DialedIn
 
+/// What the manager does when a write cannot be made. It used to wrap a services struct that could
+/// be told to fail any call; it now writes through a sync engine, which fails only where the remote
+/// genuinely can — on a document that is not there.
 @MainActor
 struct ExerciseModelManagerErrorTests {
 
-    @Test("Test Get All Local Exercise Templates Throws Error When Service Fails")
-    func testGetAllLocalExerciseModelsThrowsErrorWhenServiceFails() {
-        let services = MockExerciseModelServices(showError: true)
-        let manager = ExerciseModelManager(services: services)
+    @Test("Test Deleting An Exercise That Does Not Exist Throws")
+    func testDeletingAnExerciseThatDoesNotExistThrows() async {
+        let manager = TestManagers.exerciseModelManager()
+        await manager.signIn(userId: "author-1")
 
-        #expect(throws: URLError.self) {
-            try manager.getAllLocalExerciseModels()
+        await #expect(throws: (any Error).self) {
+            try await manager.deleteExerciseModel(exerciseId: "non-existent-id")
         }
     }
 
-    @Test("Test Get Local Exercise Template Throws Error When Service Fails")
-    func testGetLocalExerciseModelThrowsErrorWhenServiceFails() {
-        let services = MockExerciseModelServices(showError: true)
-        let manager = ExerciseModelManager(services: services)
+    /// The user's library is untouched by a failed delete, rather than losing the exercise locally
+    /// and keeping it remotely.
+    @Test("Test A Failed Delete Leaves The Library Alone")
+    func testAFailedDeleteLeavesTheLibraryAlone() async {
+        let manager = TestManagers.exerciseModelManager(user: ExerciseModel.userMocks)
+        await manager.signIn(userId: "mock_user_123")
+        let before = manager.userExercises.count
 
-        #expect(throws: URLError.self) {
-            try manager.getLocalExerciseModel(id: "test-id")
-        }
-    }
+        try? await manager.deleteExerciseModel(exerciseId: "non-existent-id")
 
-    @Test("Test Create Exercise Template Throws Error When Service Fails")
-    func testCreateExerciseModelThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseModelServices(showError: true)
-        let manager = ExerciseModelManager(services: services)
-
-        let exercise = ExerciseModel(
-            authorId: "test_user",
-            name: "Test Exercise",
-            trackableMetrics: [.weight, .reps],
-            type: .compoundUpper,
-            laterality: .bilateral,
-            muscleGroups: [:],
-            isBodyweight: false,
-            resistanceEquipment: [],
-            supportEquipment: [],
-            rangeOfMotion: 4,
-            stability: 5,
-            bodyWeightContribution: 75,
-            alternateNames: []
-        )
-
-        await #expect(throws: URLError.self) {
-            try await manager.createExerciseModel(exercise: exercise, image: nil)
-        }
-    }
-
-    @Test("Test Get Exercise Template Throws Error When Service Fails")
-    func testGetExerciseModelThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseModelServices(showError: true)
-        let manager = ExerciseModelManager(services: services)
-
-        await #expect(throws: URLError.self) {
-            try await manager.getExerciseModel(id: "test-id")
-        }
-    }
-
-    @Test("Test Get Exercise Templates By Name Throws Error When Service Fails")
-    func testGetExerciseModelsByNameThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseModelServices(showError: true)
-        let manager = ExerciseModelManager(services: services)
-
-        await #expect(throws: URLError.self) {
-            try await manager.getExerciseModelsByName(name: "Test")
-        }
-    }
-
-    @Test("Test Increment Interaction Throws Error When Service Fails")
-    func testIncrementInteractionThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseModelServices(showError: true)
-        let manager = ExerciseModelManager(services: services)
-
-        await #expect(throws: URLError.self) {
-            try await manager.incrementExerciseModelInteraction(id: "test-id")
-        }
-    }
-
-    @Test("Test Bookmark Exercise Template Throws Error When Service Fails")
-    func testBookmarkExerciseModelThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseModelServices(showError: true)
-        let manager = ExerciseModelManager(services: services)
-
-        await #expect(throws: URLError.self) {
-            try await manager.bookmarkExerciseModel(id: "test-id", isBookmarked: true)
-        }
-    }
-
-    @Test("Test Favourite Exercise Template Throws Error When Service Fails")
-    func testFavouriteExerciseModelThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseModelServices(showError: true)
-        let manager = ExerciseModelManager(services: services)
-
-        await #expect(throws: URLError.self) {
-            try await manager.favouriteExerciseModel(id: "test-id", isFavourited: true)
-        }
+        #expect(manager.userExercises.count == before)
     }
 }

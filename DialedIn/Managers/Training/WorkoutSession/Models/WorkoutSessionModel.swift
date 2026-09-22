@@ -13,7 +13,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     var name: String
     let workoutTemplateId: String?
     let trainingProgramId: String?
-    let dateCreated: Date
+    private(set) var dateCreated: Date
     private(set) var dateModified: Date
     private(set) var endedAt: Date?
     var notes: String?
@@ -78,15 +78,16 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         trainingProgramId: String? = nil,
         previousWorkoutSession: WorkoutSessionModel? = nil,
         gymProfile: GymProfileModel? = nil,
-        unitPreferences: [String: ExerciseUnitPreference]? = nil
+        unitPreferences: [String: ExerciseUnitPreference]? = nil,
+        dateCreated: Date = .now
     ) {
         self.id = id
         self.authorId = authorId
         self.name = template.name
         self.workoutTemplateId = template.id
         self.trainingProgramId = trainingProgramId
-        self.dateCreated = .now
-        self.dateModified = .now
+        self.dateCreated = dateCreated
+        self.dateModified = dateCreated
         self.endedAt = nil
         self.notes = notes
         self.deletedAt = nil
@@ -107,10 +108,13 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
             var workingSets = WorkoutSessionModel.defaultSets(
                 trackingMode: mode,
                 authorId: authorId,
-                targetCount: max(targetCount, 1)
+                targetCount: max(targetCount, 1),
+                perSide: WorkoutSessionModel.isPerSide(exerciseModel.exercise)
             )
             
-            // Populate working sets with values from previous workout (smart progression)
+            // Populate working sets with exactly what was logged last time. No progression is
+            // applied — this is `InitialLogFillOption.previousValues`, not `.smartProgression`,
+            // whatever the setting says; there is no progression engine yet.
             if let prevSets = previousSets {
                 // Match working sets with previous workout sets by index (skip warmup sets)
                 let previousWorkingSets = prevSets.filter { !$0.isWarmup }
@@ -152,6 +156,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                         durationSec: prevSet.durationSec ?? workingSets[index].durationSec,
                         distanceMeters: prevSet.distanceMeters ?? workingSets[index].distanceMeters,
                         rpe: workingSets[index].rpe,
+                        side: workingSets[index].side,
                         isWarmup: false,
                         completedAt: nil,
                         dateCreated: .now
@@ -190,6 +195,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                     durationSec: set.durationSec,
                     distanceMeters: set.distanceMeters,
                     rpe: set.rpe,
+                    side: set.side,
                     isWarmup: set.isWarmup,
                     completedAt: set.completedAt,
                     dateCreated: set.dateCreated
@@ -237,6 +243,26 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         return .repsOnly
     }
 
+    /// Whether this exercise is worked one limb at a time, so each set is logged twice — once per
+    /// side — and the two rows are the one set.
+    ///
+    /// Read off the metrics the exercise is tracked by, because that is the only field every
+    /// exercise has. `laterality` would look like the obvious answer and is not: it is optional,
+    /// user-created exercises almost always leave it empty, and only three of the seeded thirty-two
+    /// set it, so it would silently classify nearly everything as two-sided.
+    ///
+    /// Only three of the five `*PerSide` metrics mean one side at a time. The weight ones do not:
+    /// "per side" there means the plates on each end of a barbell, or one weight held in both
+    /// hands, neither of which splits a set in two.
+    static func isPerSide(_ exercise: ExerciseModel) -> Bool {
+        let perSideMetrics: Set<TrackableExerciseMetric> = [
+            .repsPerSide,
+            .durationPerSide,
+            .distanceShortPerSide
+        ]
+        return !Set(exercise.trackableMetrics).isDisjoint(with: perSideMetrics)
+    }
+
     // Mutating methods for workout tracker
     mutating func updateExercises(_ exercises: [WorkoutExerciseModel]) {
         self.exercises = exercises
@@ -256,6 +282,25 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     mutating func endSession(at date: Date) {
         self.endedAt = date
         self.dateModified = date
+    }
+
+    /// Moves a completed session to a different start time, keeping however long it took. Editing
+    /// when a workout happened should not silently change how long it lasted.
+    mutating func updateStart(_ date: Date) {
+        let duration = endedAt?.timeIntervalSince(dateCreated)
+        dateCreated = date
+        if let duration {
+            endedAt = date.addingTimeInterval(duration)
+        }
+        dateModified = Date()
+    }
+
+    /// Sets how long the session lasted, measured from its start. A non-positive duration would
+    /// put the end before the beginning, so it is refused.
+    mutating func updateDuration(_ seconds: TimeInterval) {
+        guard seconds > 0 else { return }
+        endedAt = dateCreated.addingTimeInterval(seconds)
+        dateModified = Date()
     }
     
     /// Estimates working weight and reps from previous workout sets
@@ -416,38 +461,56 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         return UnitConversion.convertWeightToKg(roundedWeight, from: preferredUnit)
     }
     
+    /// The empty sets an exercise starts a session with.
+    ///
+    /// `targetCount` is how many sets the user is being asked to do. For an exercise worked one
+    /// limb at a time that is twice as many rows, left then right, because each side is filled in
+    /// separately — but it is still that many sets, and everything that counts them says so.
     static func defaultSets(
         trackingMode: TrackingMode,
         authorId: String,
-        targetCount: Int = 3
+        targetCount: Int = 3,
+        perSide: Bool = false
     ) -> [WorkoutSetModel] {
         let count = max(targetCount, 1)
-        switch trackingMode {
-        case .weightReps:
-            return (0..<count).map { index in
-                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
-                                weightKg: nil, durationSec: nil, distanceMeters: nil, rpe: nil,
-                                isWarmup: false, completedAt: nil, dateCreated: .now)
-            }
-        case .repsOnly:
-            return (0..<count).map { index in
-                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
-                                weightKg: nil, durationSec: nil, distanceMeters: nil, rpe: nil,
-                                isWarmup: false, completedAt: nil, dateCreated: .now)
-            }
-        case .timeOnly:
-            return (0..<count).map { index in
-                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
-                                    weightKg: nil, durationSec: 60, distanceMeters: nil, rpe: nil,
-                                    isWarmup: false, completedAt: nil, dateCreated: .now)
-            }
-        case .distanceTime:
-            return (0..<count).map { index in
-                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
-                                    weightKg: nil, durationSec: 120, distanceMeters: 400, rpe: nil,
-                                    isWarmup: false, completedAt: nil, dateCreated: .now)
+        let sides: [SetSide?] = perSide ? SetSide.ordered.map { $0 } : [nil]
+        var sets: [WorkoutSetModel] = []
+
+        for _ in 0..<count {
+            for side in sides {
+                sets.append(
+                    WorkoutSetModel(
+                        id: UUID().uuidString,
+                        authorId: authorId,
+                        index: sets.count + 1,
+                        reps: nil,
+                        weightKg: nil,
+                        durationSec: defaultDurationSec(for: trackingMode),
+                        distanceMeters: defaultDistanceMeters(for: trackingMode),
+                        rpe: nil,
+                        side: side,
+                        isWarmup: false,
+                        completedAt: nil,
+                        dateCreated: .now
+                    )
+                )
             }
         }
+
+        return sets
+    }
+
+    /// Timed and distance work starts from a figure worth showing; weight and reps start empty.
+    private static func defaultDurationSec(for trackingMode: TrackingMode) -> Int? {
+        switch trackingMode {
+        case .weightReps, .repsOnly: return nil
+        case .timeOnly:              return 60
+        case .distanceTime:          return 120
+        }
+    }
+
+    private static func defaultDistanceMeters(for trackingMode: TrackingMode) -> Double? {
+        trackingMode == .distanceTime ? 400 : nil
     }
     
     @MainActor
@@ -459,12 +522,74 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     static var mocks: [WorkoutSessionModel] {
         // Ensure mock sessions belong to the preview/mock user and are completed so they appear in history
         let uid = "mock_user_123"
-        var session1 = WorkoutSessionModel(id: "session-1", authorId: uid, template: WorkoutTemplateModel.mocks[0])
-        session1.endSession(at: session1.dateCreated.addingTimeInterval(45 * 60))
-        var session2 = WorkoutSessionModel(id: "session-2", authorId: uid, template: WorkoutTemplateModel.mocks[1])
-        session2.endSession(at: session2.dateCreated.addingTimeInterval(30 * 60))
-        var session3 = WorkoutSessionModel(id: "session-3", authorId: uid, template: WorkoutTemplateModel.mocks[2])
-        session3.endSession(at: session3.dateCreated.addingTimeInterval(60 * 60))
-        return [session1, session2, session3]
+
+        // Ten weeks of roughly four sessions a week, rotating through the available
+        // templates, with sets filled in and progressively heavier over time. Three
+        // sessions all dated "now" left the contribution chart, streaks and history
+        // lists looking empty.
+        let templates = WorkoutTemplateModel.mocks
+        guard !templates.isEmpty else { return [] }
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        let weekdayOffsets = [0, 2, 4, 5] // Mon/Wed/Fri/Sat-ish cadence
+        var sessions: [WorkoutSessionModel] = []
+        var counter = 0
+
+        for weeksAgo in (0...9).reversed() {
+            for (dayIndex, offset) in weekdayOffsets.enumerated() {
+                // Skip the odd session so the history has realistic gaps.
+                if (weeksAgo + dayIndex) % 7 == 3 { continue }
+
+                let daysAgo = weeksAgo * 7 + (6 - offset)
+                guard
+                    let startOfDay = calendar.date(byAdding: .day, value: -daysAgo, to: today),
+                    let startedAt = calendar.date(byAdding: .hour, value: 7 + (dayIndex % 4) * 3, to: startOfDay),
+                    startedAt <= .now
+                else { continue }
+
+                let template = templates[counter % templates.count]
+                // Later sessions are heavier: ~1.5% per week of progression.
+                let progression = 1.0 + (Double(9 - weeksAgo) * 0.015)
+                let durationMinutes = 38 + (counter % 5) * 6
+
+                var session = WorkoutSessionModel(
+                    id: "session-\(counter + 1)",
+                    authorId: uid,
+                    template: template,
+                    trainingProgramId: nil,
+                    dateCreated: startedAt
+                )
+                session.fillMockSets(progression: progression, completedAt: startedAt)
+                session.endSession(at: startedAt.addingTimeInterval(TimeInterval(durationMinutes * 60)))
+                session.likedByUserIds = Array(["user1", "user3", "user5"].prefix(counter % 4))
+                sessions.append(session)
+                counter += 1
+            }
+        }
+
+        return sessions.reversed()
+    }
+
+    /// Fills every working set with a plausible completed result. Without this the mock
+    /// sessions carried empty sets, so volume, 1RM and set-count analytics all read zero.
+    @MainActor
+    private mutating func fillMockSets(progression: Double, completedAt: Date) {
+        for exerciseIndex in exercises.indices {
+            let baseWeight = 30.0 + Double((exerciseIndex % 4) * 15)
+            for setIndex in exercises[exerciseIndex].sets.indices {
+                var set = exercises[exerciseIndex].sets[setIndex]
+                if set.isWarmup {
+                    set.reps = 10
+                    set.weightKg = ((baseWeight * 0.5 * progression) / 2.5).rounded() * 2.5
+                } else {
+                    set.reps = 10 - setIndex
+                    set.weightKg = ((baseWeight * progression) / 2.5).rounded() * 2.5
+                    set.rpe = min(10, 7 + Double(setIndex))
+                }
+                set.completedAt = completedAt.addingTimeInterval(TimeInterval(180 * (setIndex + 1)))
+                exercises[exerciseIndex].sets[setIndex] = set
+            }
+        }
     }
 }

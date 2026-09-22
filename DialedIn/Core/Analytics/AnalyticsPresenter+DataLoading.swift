@@ -109,12 +109,16 @@ extension AnalyticsPresenter {
         
         let allCards = allExercises.map { (exercise: ExerciseModel) -> ExerciseCardItem in
             let data = aggregated[exercise.id]
-            let sparkline: [(date: Date, value: Double)] = (data?.last7Workouts ?? []).map { (date: $0.date, value: $0.value) }
+            let unit = interactor.getPreference(templateId: exercise.id).weightUnit
+            let sparkline: [(date: Date, value: Double)] = (data?.last7Workouts ?? []).map {
+                (date: $0.date, value: UnitConversion.convertWeight($0.value, to: unit))
+            }
             return ExerciseCardItem(
                 templateId: exercise.id,
                 name: exercise.name,
                 sparklineData: sparkline,
-                latest1RM: data?.latest1RM ?? 0
+                latest1RM: UnitConversion.convertWeight(data?.latest1RM ?? 0, to: unit),
+                unitText: unit.abbreviation
             )
         }
         exerciseCards = Array(allCards.sorted { $0.latest1RM > $1.latest1RM }.prefix(2))
@@ -204,13 +208,16 @@ extension AnalyticsPresenter {
         let history = interactor.stepsHistory
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
-        guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday),
+              let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday) else {
             stepsLast7 = []
             return
         }
         let userId = interactor.userId
+        // Bounded by the end of today, not its start: a reading is dated when it was taken, so
+        // `<= startOfToday` kept only a reading timed exactly at midnight and dropped today's.
         let last7 = history
-            .filter { $0.deletedAt == nil && $0.date >= startDate && $0.date <= startOfToday && (userId == nil || $0.authorId == userId) }
+            .filter { $0.deletedAt == nil && $0.date >= startDate && $0.date < endOfToday && (userId == nil || $0.authorId == userId) }
             .sorted { $0.date < $1.date }
         stepsLast7 = Array(Self.consolidateStepsByDay(Array(last7)).suffix(7))
     }

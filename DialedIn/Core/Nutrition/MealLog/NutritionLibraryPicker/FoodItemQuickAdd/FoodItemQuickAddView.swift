@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct FoodItemQuickAddDelegate {
+    /// Hands the composed item back to the picker, the same way every other picker mode does.
+    var onPick: (MealItemModel) -> Void = { _ in }
+
     var eventParameters: [String: Any]? {
         nil
     }
@@ -23,15 +26,17 @@ struct FoodItemQuickAddView: View {
         .safeAreaInset(edge: .bottom) {
             VStack {
                 CallToActionButton {
-                    
+                    presenter.onQuickAddPressed(delegate: delegate)
                 } label: {
                     Text("Quick Add")
                 }
+                .disabled(!presenter.canSubmit)
                 CallToActionButton(isPrimaryAction: false) {
-                    
+                    presenter.onLogFoodPressed()
                 } label: {
                     Text("Log Food")
                 }
+                .disabled(!presenter.canSubmit)
             }
             .padding(.bottom)
         }

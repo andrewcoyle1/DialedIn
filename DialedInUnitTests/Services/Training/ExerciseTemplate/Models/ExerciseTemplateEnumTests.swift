@@ -1,5 +1,5 @@
 //
-//  ExerciseModelEnumTests.swift
+//  ExerciseTemplateEnumTests.swift
 //  DialedInUnitTests
 //
 //  Created by Andrew Coyle on 28/10/2025.
@@ -9,357 +9,149 @@ import Testing
 import Foundation
 @testable import DialedIn
 
+/// The raw values of the enums an exercise is stored with.
+///
+/// These are not cosmetic: every one is written into Firestore and into local persistence as its
+/// raw string, so renaming a case without a migration silently fails to decode every exercise
+/// already saved with the old spelling. Pinning them here makes that a failing test rather than a
+/// user's library coming back empty.
+///
+/// This file used to cover `ExerciseCategory` and `MuscleGroup`, which the exercise redesign
+/// replaced: equipment moved to `EquipmentVariation`, what is measured to `TrackableExerciseMetric`,
+/// the movement pattern to `ExerciseType`, and the seven coarse muscle groups to the 22 specific
+/// `Muscles`.
 @MainActor
-struct ExerciseCategoryTests {
+struct ExerciseEnumRawValueTests {
 
-    // MARK: - ExerciseCategory Raw Value Tests
-    
-    @Test("Test ExerciseCategory Raw Values")
-    func testExerciseCategoryRawValues() {
-        #expect(ExerciseCategory.barbell.rawValue == "barbell")
-        #expect(ExerciseCategory.dumbbell.rawValue == "dumbbell")
-        #expect(ExerciseCategory.kettlebell.rawValue == "kettlebell")
-        #expect(ExerciseCategory.medicineBall.rawValue == "medicineBall")
-        #expect(ExerciseCategory.machine.rawValue == "machine")
-        #expect(ExerciseCategory.cable.rawValue == "cable")
-        #expect(ExerciseCategory.weightedBodyweight.rawValue == "weightedBodyweight")
-        #expect(ExerciseCategory.assistedBodyweight.rawValue == "assistedBodyweight")
-        #expect(ExerciseCategory.repsOnly.rawValue == "repsOnly")
-        #expect(ExerciseCategory.cardio.rawValue == "cardio")
-        #expect(ExerciseCategory.duration.rawValue == "duration")
-        #expect(ExerciseCategory.none.rawValue == "none")
+    // MARK: - Muscles
+
+    @Test("Test Muscles Raw Values")
+    func testMusclesRawValues() {
+        #expect(Muscles.triceps.rawValue == "triceps")
+        #expect(Muscles.upperTraps.rawValue == "upperTraps")
+        #expect(Muscles.obliques.rawValue == "obliques")
+        #expect(Muscles.neck.rawValue == "neck")
+        #expect(Muscles.lats.rawValue == "lats")
+        #expect(Muscles.forearms.rawValue == "forearms")
+        #expect(Muscles.sideDelts.rawValue == "sideDelts")
+        #expect(Muscles.rearDelts.rawValue == "rearDelts")
+        #expect(Muscles.frontDelts.rawValue == "frontDelts")
+        #expect(Muscles.chest.rawValue == "chest")
+        #expect(Muscles.biceps.rawValue == "biceps")
+        #expect(Muscles.upperBack.rawValue == "upperBack")
+        #expect(Muscles.lowerBack.rawValue == "lowerBack")
+        #expect(Muscles.abs.rawValue == "abs")
+        #expect(Muscles.serratus.rawValue == "serratus")
+        #expect(Muscles.quads.rawValue == "quads")
+        #expect(Muscles.hamstrings.rawValue == "hamstrings")
+        #expect(Muscles.glutes.rawValue == "glutes")
+        #expect(Muscles.calves.rawValue == "calves")
+        #expect(Muscles.abductors.rawValue == "abductors")
+        #expect(Muscles.adductors.rawValue == "adductors")
+        #expect(Muscles.tibialis.rawValue == "tibialis")
     }
-    
-    @Test("Test ExerciseCategory Case Iterable")
-    func testExerciseCategoryCaseIterable() {
-        let allCases = ExerciseCategory.allCases
-        #expect(allCases.count == 12)
-        #expect(allCases.contains(.barbell))
-        #expect(allCases.contains(.dumbbell))
-        #expect(allCases.contains(.kettlebell))
-        #expect(allCases.contains(.medicineBall))
-        #expect(allCases.contains(.machine))
-        #expect(allCases.contains(.cable))
-        #expect(allCases.contains(.weightedBodyweight))
-        #expect(allCases.contains(.assistedBodyweight))
-        #expect(allCases.contains(.repsOnly))
-        #expect(allCases.contains(.cardio))
-        #expect(allCases.contains(.duration))
-        #expect(allCases.contains(.none))
+
+    /// A new muscle needs a raw value pinned above and a name below, so the count is what notices
+    /// one being added.
+    @Test("Test Every Muscle Is Accounted For")
+    func testEveryMuscleIsAccountedFor() {
+        #expect(Muscles.allCases.count == 22)
+        #expect(Set(Muscles.allCases.map(\.rawValue)).count == 22)
     }
-    
-    @Test("Test ExerciseCategory Descriptions")
-    func testExerciseCategoryDescriptions() {
-        #expect(ExerciseCategory.barbell.description == "Barbell")
-        #expect(ExerciseCategory.dumbbell.description == "Dumbbell")
-        #expect(ExerciseCategory.kettlebell.description == "Kettlebell")
-        #expect(ExerciseCategory.medicineBall.description == "Medicine Ball")
-        #expect(ExerciseCategory.machine.description == "Machine")
-        #expect(ExerciseCategory.cable.description == "Cable")
-        #expect(ExerciseCategory.weightedBodyweight.description == "Weighted Bodyweight")
-        #expect(ExerciseCategory.assistedBodyweight.description == "Assisted Bodyweight")
-        #expect(ExerciseCategory.repsOnly.description == "Reps Only")
-        #expect(ExerciseCategory.cardio.description == "Cardio")
-        #expect(ExerciseCategory.duration.description == "Duration")
-        #expect(ExerciseCategory.none.description == "None")
-    }
-    
-    @Test("Test ExerciseCategory Codable")
-    func testExerciseCategoryCodable() throws {
-        let categories: [ExerciseCategory] = [.barbell, .dumbbell, .cardio, .none]
-        
-        let encoder = JSONEncoder()
-        let encodedData = try encoder.encode(categories)
-        
-        let decoder = JSONDecoder()
-        let decodedCategories = try decoder.decode([ExerciseCategory].self, from: encodedData)
-        
-        #expect(decodedCategories == categories)
-    }
-    
-    @Test("Test ExerciseCategory Decoding From String")
-    func testExerciseCategoryDecodingFromString() throws {
-        let json = "\"barbell\""
-        let jsonData = json.data(using: .utf8)!
-        
-        let decoder = JSONDecoder()
-        let category = try decoder.decode(ExerciseCategory.self, from: jsonData)
-        
-        #expect(category == .barbell)
-    }
-    
-    @Test("Test ExerciseCategory Encoding To String")
-    func testExerciseCategoryEncodingToString() throws {
-        let category = ExerciseCategory.dumbbell
-        
-        let encoder = JSONEncoder()
-        let encodedData = try encoder.encode(category)
-        let encodedString = String(data: encodedData, encoding: .utf8)
-        
-        #expect(encodedString == "\"dumbbell\"")
-    }
-    
-    @Test("Test All Exercise Categories Have Non-Empty Descriptions")
-    func testAllExerciseCategoriesHaveNonEmptyDescriptions() {
-        for category in ExerciseCategory.allCases {
-            #expect(!category.description.isEmpty)
+
+    @Test("Test Muscles Identify Themselves By Raw Value")
+    func testMusclesIdentifyThemselvesByRawValue() {
+        for muscle in Muscles.allCases {
+            #expect(muscle.id == muscle.rawValue)
         }
     }
-    
-    @Test("Test All Exercise Categories Have Unique Descriptions")
-    func testAllExerciseCategoriesHaveUniqueDescriptions() {
-        let descriptions = ExerciseCategory.allCases.map { $0.description }
-        let uniqueDescriptions = Set(descriptions)
-        #expect(descriptions.count == uniqueDescriptions.count)
-    }
-    
-    @Test("Test Exercise Category Equality")
-    func testExerciseCategoryEquality() {
-        #expect(ExerciseCategory.barbell == ExerciseCategory.barbell)
-        #expect(ExerciseCategory.barbell != ExerciseCategory.dumbbell)
-        #expect(ExerciseCategory.none == ExerciseCategory.none)
-    }
-}
 
-@MainActor
-struct MuscleGroupTests {
+    @Test("Test Every Muscle Has A Name")
+    func testEveryMuscleHasAName() {
+        for muscle in Muscles.allCases {
+            #expect(!muscle.name.isEmpty)
+        }
+        #expect(Muscles.upperTraps.name == "Upper Traps")
+        #expect(Muscles.frontDelts.name == "Front Delts")
+    }
 
-    // MARK: - MuscleGroup Raw Value Tests
-    
-    @Test("Test MuscleGroup Raw Values")
-    func testMuscleGroupRawValues() {
-        #expect(MuscleGroup.chest.rawValue == "chest")
-        #expect(MuscleGroup.shoulders.rawValue == "shoulders")
-        #expect(MuscleGroup.back.rawValue == "back")
-        #expect(MuscleGroup.arms.rawValue == "arms")
-        #expect(MuscleGroup.legs.rawValue == "legs")
-        #expect(MuscleGroup.core.rawValue == "core")
-        #expect(MuscleGroup.none.rawValue == "none")
+    // MARK: - ExerciseType
+
+    @Test("Test ExerciseType Raw Values")
+    func testExerciseTypeRawValues() {
+        #expect(ExerciseType.compoundUpper.rawValue == "compoundUpper")
+        #expect(ExerciseType.compoundLower.rawValue == "compoundLower")
+        #expect(ExerciseType.isolationUpper.rawValue == "isolationUpper")
+        #expect(ExerciseType.isolationLower.rawValue == "isolationLower")
+        #expect(ExerciseType.core.rawValue == "core")
     }
-    
-    @Test("Test MuscleGroup Case Iterable")
-    func testMuscleGroupCaseIterable() {
-        let allCases = MuscleGroup.allCases
-        #expect(allCases.count == 7)
-        #expect(allCases.contains(.chest))
-        #expect(allCases.contains(.shoulders))
-        #expect(allCases.contains(.back))
-        #expect(allCases.contains(.arms))
-        #expect(allCases.contains(.legs))
-        #expect(allCases.contains(.core))
-        #expect(allCases.contains(.none))
+
+    @Test("Test Every ExerciseType Is Accounted For")
+    func testEveryExerciseTypeIsAccountedFor() {
+        #expect(ExerciseType.allCases.count == 5)
     }
-    
-    @Test("Test MuscleGroup Descriptions")
-    func testMuscleGroupDescriptions() {
-        #expect(MuscleGroup.chest.description == "Chest")
-        #expect(MuscleGroup.shoulders.description == "Shoulders")
-        #expect(MuscleGroup.back.description == "Back")
-        #expect(MuscleGroup.arms.description == "Arms")
-        #expect(MuscleGroup.legs.description == "Legs")
-        #expect(MuscleGroup.core.description == "Core")
-        #expect(MuscleGroup.none.description == "None")
+
+    @Test("Test ExerciseType Names")
+    func testExerciseTypeNames() {
+        #expect(ExerciseType.compoundUpper.name == "Upper Compound")
+        #expect(ExerciseType.compoundLower.name == "Lower Compound")
+        #expect(ExerciseType.isolationUpper.name == "Upper Isolation")
+        #expect(ExerciseType.isolationLower.name == "Lower Isolation")
+        #expect(ExerciseType.core.name == "Core")
     }
-    
-    @Test("Test MuscleGroup Codable")
-    func testMuscleGroupCodable() throws {
-        let muscleGroups: [MuscleGroup] = [.chest, .back, .legs, .core]
-        
-        let encoder = JSONEncoder()
-        let encodedData = try encoder.encode(muscleGroups)
-        
-        let decoder = JSONDecoder()
-        let decodedMuscleGroups = try decoder.decode([MuscleGroup].self, from: encodedData)
-        
-        #expect(decodedMuscleGroups == muscleGroups)
+
+    // MARK: - Laterality
+
+    @Test("Test Laterality Raw Values")
+    func testLateralityRawValues() {
+        #expect(Laterality.bilateral.rawValue == "bilateral")
+        #expect(Laterality.unilateral.rawValue == "unilateral")
+        // Spelled with the doubled s it was stored with; correcting it would orphan saved exercises.
+        #expect(Laterality.assymetrical.rawValue == "assymetrical")
+        #expect(Laterality.unilateralBilateral.rawValue == "unilateralBilateral")
     }
-    
-    @Test("Test MuscleGroup Decoding From String")
-    func testMuscleGroupDecodingFromString() throws {
-        let json = "\"chest\""
-        let jsonData = json.data(using: .utf8)!
-        
-        let decoder = JSONDecoder()
-        let muscleGroup = try decoder.decode(MuscleGroup.self, from: jsonData)
-        
-        #expect(muscleGroup == .chest)
+
+    @Test("Test Every Laterality Is Accounted For")
+    func testEveryLateralityIsAccountedFor() {
+        #expect(Laterality.allCases.count == 4)
     }
-    
-    @Test("Test MuscleGroup Encoding To String")
-    func testMuscleGroupEncodingToString() throws {
-        let muscleGroup = MuscleGroup.arms
-        
-        let encoder = JSONEncoder()
-        let encodedData = try encoder.encode(muscleGroup)
-        let encodedString = String(data: encodedData, encoding: .utf8)
-        
-        #expect(encodedString == "\"arms\"")
-    }
-    
-    @Test("Test All Muscle Groups Have Non-Empty Descriptions")
-    func testAllMuscleGroupsHaveNonEmptyDescriptions() {
-        for muscleGroup in MuscleGroup.allCases {
-            #expect(!muscleGroup.description.isEmpty)
+
+    @Test("Test Every Laterality Explains Itself")
+    func testEveryLateralityExplainsItself() {
+        for laterality in Laterality.allCases {
+            #expect(!laterality.name.isEmpty)
+            #expect(laterality.description?.isEmpty == false)
         }
     }
-    
-    @Test("Test All Muscle Groups Have Unique Descriptions")
-    func testAllMuscleGroupsHaveUniqueDescriptions() {
-        let descriptions = MuscleGroup.allCases.map { $0.description }
-        let uniqueDescriptions = Set(descriptions)
-        #expect(descriptions.count == uniqueDescriptions.count)
-    }
-    
-    @Test("Test Muscle Group Equality")
-    func testMuscleGroupEquality() {
-        #expect(MuscleGroup.chest == MuscleGroup.chest)
-        #expect(MuscleGroup.chest != MuscleGroup.back)
-        #expect(MuscleGroup.none == MuscleGroup.none)
-    }
-    
-    @Test("Test Muscle Groups In Array")
-    func testMuscleGroupsInArray() {
-        let muscleGroups: [MuscleGroup] = [.chest, .shoulders, .arms]
-        
-        #expect(muscleGroups.contains(.chest))
-        #expect(muscleGroups.contains(.shoulders))
-        #expect(muscleGroups.contains(.arms))
-        #expect(!muscleGroups.contains(.back))
-    }
-    
-    @Test("Test Muscle Groups In Set")
-    func testMuscleGroupsInSet() {
-        let muscleGroupSet: Set<MuscleGroup> = [.chest, .chest, .arms, .arms]
-        
-        // Set should only have unique values
-        #expect(muscleGroupSet.count == 2)
-        #expect(muscleGroupSet.contains(.chest))
-        #expect(muscleGroupSet.contains(.arms))
-    }
-}
 
-@MainActor
-struct ExerciseModelEnumIntegrationTests {
+    // MARK: - TrackableExerciseMetric
 
-    // MARK: - Integration Tests
-    
-    @Test("Test ExerciseModelModel With All Exercise Categories")
-    func testExerciseModelModelWithAllExerciseCategories() {
-        for category in ExerciseCategory.allCases {
-            let exercise = ExerciseModelModel(
-                exerciseId: String.random,
-                name: "Test \(category.description)",
-                type: category,
-                dateCreated: Date.random,
-                dateModified: Date.random
-            )
-            
-            #expect(exercise.type == category)
-        }
+    @Test("Test TrackableExerciseMetric Raw Values")
+    func testTrackableExerciseMetricRawValues() {
+        #expect(TrackableExerciseMetric.reps.rawValue == "reps")
+        #expect(TrackableExerciseMetric.repsPerSide.rawValue == "repsPerSide")
+        #expect(TrackableExerciseMetric.weight.rawValue == "weight")
+        #expect(TrackableExerciseMetric.weightPerSide.rawValue == "weightPerSide")
+        #expect(TrackableExerciseMetric.weightPerSidePersistent.rawValue == "weightPerSidePersistent")
+        #expect(TrackableExerciseMetric.weightPerSideAssistance.rawValue == "weightPerSideAssistance")
+        #expect(TrackableExerciseMetric.duration.rawValue == "duration")
+        #expect(TrackableExerciseMetric.durationPerSide.rawValue == "durationPerSide")
+        #expect(TrackableExerciseMetric.distanceShort.rawValue == "distanceShort")
+        #expect(TrackableExerciseMetric.distanceShortPerSide.rawValue == "distanceShortPerSide")
+        #expect(TrackableExerciseMetric.distanceLong.rawValue == "distanceLong")
     }
-    
-    @Test("Test ExerciseModelModel With All Muscle Groups")
-    func testExerciseModelModelWithAllMuscleGroups() {
-        for muscleGroup in MuscleGroup.allCases {
-            let exercise = ExerciseModelModel(
-                exerciseId: String.random,
-                name: "Test \(muscleGroup.description)",
-                muscleGroups: [muscleGroup],
-                dateCreated: Date.random,
-                dateModified: Date.random
-            )
-            
-            #expect(exercise.muscleGroups.contains(muscleGroup))
-        }
+
+    @Test("Test TrackableExerciseMetric Names")
+    func testTrackableExerciseMetricNames() {
+        #expect(TrackableExerciseMetric.reps.name == "Reps")
+        #expect(TrackableExerciseMetric.weightPerSidePersistent.name == "Weight Per Side (Persistent)")
     }
-    
-    @Test("Test ExerciseModelModel With Multiple Muscle Groups")
-    func testExerciseModelModelWithMultipleMuscleGroups() {
-        let allMainMuscleGroups: [MuscleGroup] = [.chest, .shoulders, .back, .arms, .legs, .core]
-        
-        let exercise = ExerciseModelModel(
-            exerciseId: String.random,
-            name: "Full Body Exercise",
-            muscleGroups: allMainMuscleGroups,
-            dateCreated: Date.random,
-            dateModified: Date.random
-        )
-        
-        #expect(exercise.muscleGroups.count == 6)
-        for muscleGroup in allMainMuscleGroups {
-            #expect(exercise.muscleGroups.contains(muscleGroup))
-        }
-    }
-    
-    @Test("Test Exercise Category And Muscle Group Encoding Together")
-    func testExerciseCategoryAndMuscleGroupEncodingTogether() throws {
-        let exercise = ExerciseModelModel(
-            exerciseId: String.random,
-            name: "Bench Press",
-            type: .barbell,
-            muscleGroups: [.chest, .arms],
-            dateCreated: Date.random,
-            dateModified: Date.random
-        )
-        
-        let encoder = JSONEncoder()
-        let encodedData = try encoder.encode(exercise)
-        
-        let decoder = JSONDecoder()
-        let decodedExercise = try decoder.decode(ExerciseModelModel.self, from: encodedData)
-        
-        #expect(decodedExercise.type == .barbell)
-        #expect(decodedExercise.muscleGroups == [.chest, .arms])
-    }
-    
-    @Test("Test Common Exercise Category And Muscle Group Combinations")
-    func testCommonExerciseCategoryAndMuscleGroupCombinations() {
-        // Bench Press - Barbell, Chest & Arms
-        let benchPress = ExerciseModelModel(
-            exerciseId: String.random,
-            name: "Bench Press",
-            type: .barbell,
-            muscleGroups: [.chest, .arms],
-            dateCreated: Date.random,
-            dateModified: Date.random
-        )
-        #expect(benchPress.type == .barbell)
-        #expect(benchPress.muscleGroups == [.chest, .arms])
-        
-        // Squat - Barbell, Legs & Core
-        let squat = ExerciseModelModel(
-            exerciseId: String.random,
-            name: "Squat",
-            type: .barbell,
-            muscleGroups: [.legs, .core],
-            dateCreated: Date.random,
-            dateModified: Date.random
-        )
-        #expect(squat.type == .barbell)
-        #expect(squat.muscleGroups == [.legs, .core])
-        
-        // Running - Cardio, Legs
-        let running = ExerciseModelModel(
-            exerciseId: String.random,
-            name: "Running",
-            type: .cardio,
-            muscleGroups: [.legs],
-            dateCreated: Date.random,
-            dateModified: Date.random
-        )
-        #expect(running.type == .cardio)
-        #expect(running.muscleGroups == [.legs])
-        
-        // Plank - Bodyweight, Core
-        let plank = ExerciseModelModel(
-            exerciseId: String.random,
-            name: "Plank",
-            type: .weightedBodyweight,
-            muscleGroups: [.core],
-            dateCreated: Date.random,
-            dateModified: Date.random
-        )
-        #expect(plank.type == .weightedBodyweight)
-        #expect(plank.muscleGroups == [.core])
+
+    // MARK: - MuscleTargetType
+
+    @Test("Test MuscleTargetType Raw Values")
+    func testMuscleTargetTypeRawValues() {
+        #expect(MuscleTargetType.primary.rawValue == "primary")
+        #expect(MuscleTargetType.secondary.rawValue == "secondary")
     }
 }

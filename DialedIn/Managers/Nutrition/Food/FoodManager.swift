@@ -67,8 +67,4 @@ extension CoreInteractor {
     func saveFood(_ ingredient: FoodModel, image: PlatformImage?) async throws {
         try await foodManager.saveFood(ingredient, image: image)
     }
-    
-    func deleteIngredientTempalte(ingredientId id: String) async throws {
-        try await foodManager.deleteFood(ingredientId: id)
     }
-}

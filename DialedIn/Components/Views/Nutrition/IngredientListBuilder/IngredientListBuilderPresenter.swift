@@ -55,11 +55,11 @@ class IngredientListBuilderPresenter {
         router.showCreateFoodView(delegate: CreateFoodDelegate(mealItems: delegate.mealItems))
     }
 
-    func onIngredientPressed(ingredient: FoodModel, onIngredientPressed: ((FoodModel) -> Void)?) {
-        onIngredientPressed?(ingredient)
-    }
-
+    /// Picking an ingredient is what this screen exists for, and neither route out of it was
+    /// tracked — so the one action worth measuring here was never measured. Both routes log the
+    /// same event and name the route in `method`, so the total stays one number.
     func navToIngredientAmountView(food: FoodModel, delegate: IngredientListBuilderDelegate) {
+        interactor.trackEvent(event: Event.ingredientSelected(food: food, method: "amount"))
         if let recipeCallback = delegate.onRecipeIngredientConfirmed {
             router.showRecipeIngredientAmountView(delegate: RecipeIngredientAmountDelegate(
                 food: food,
@@ -76,6 +76,7 @@ class IngredientListBuilderPresenter {
     }
 
     func quickAdd(food: FoodModel, delegate: IngredientListBuilderDelegate) {
+        interactor.trackEvent(event: Event.ingredientSelected(food: food, method: "quickAdd"))
         if let recipeCallback = delegate.onRecipeIngredientConfirmed {
             let unit: IngredientAmountUnit = food.measurementMethod == .volume ? .milliliters : .grams
             let defaultAmount = food.portionGramsCalculated ?? food.portionMillilitersCalculated ?? 100
@@ -106,92 +107,24 @@ class IngredientListBuilderPresenter {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
-        case performIngredientSearchStart
-        case performIngredientSearchSuccess(query: String, resultCount: Int)
-        case performIngredientSearchFail(error: Error)
-        case performIngredientSearchEmptyResults(query: String)
-        case searchCleared
-        case loadMyIngredientsStart
-        case loadMyIngredientsSuccess(count: Int)
-        case loadMyIngredientsFail(error: Error)
-        case loadTopIngredientsStart
-        case loadTopIngredientsSuccess(count: Int)
-        case loadTopIngredientsFail(error: Error)
-        case incrementIngredientStart
-        case incrementIngredientSuccess
-        case incrementIngredientFail(error: Error)
-        case syncIngredientsFromCurrentUserStart
-        case syncIngredientsFromCurrentUserNoUid
-        case syncIngredientsFromCurrentUserSuccess(favouriteCount: Int, bookmarkedCount: Int)
-        case syncIngredientsFromCurrentUserFail(error: Error)
         case onAddIngredientPressed
-        case favouritesSectionViewed(count: Int)
-        case bookmarkedSectionViewed(count: Int)
-        case trendingSectionViewed(count: Int)
-        case myTemplatesSectionViewed(count: Int)
-        case emptyStateShown
-        case onIngredientPressedFromFavourites
-        case onIngredientPressedFromBookmarked
-        case onIngredientPressedFromTrending
-        case onIngredientPressedFromMyTemplates
+        case ingredientSelected(food: FoodModel, method: String)
 
         var eventName: String {
             switch self {
-            case .onAppear:                                 return "IngredientsView_Appear"
-            case .onDisappear:                              return "IngredientsView_Disappear"
-            case .performIngredientSearchStart:             return "IngredientsView_Search_Start"
-            case .performIngredientSearchSuccess:           return "IngredientsView_Search_Success"
-            case .performIngredientSearchFail:              return "IngredientsView_Search_Fail"
-            case .performIngredientSearchEmptyResults:      return "IngredientsView_Search_EmptyResults"
-            case .searchCleared:                            return "IngredientsView_Search_Cleared"
-            case .loadMyIngredientsStart:                   return "IngredientsView_LoadMyIngredients_Start"
-            case .loadMyIngredientsSuccess:                 return "IngredientsView_LoadMyIngredients_Success"
-            case .loadMyIngredientsFail:                    return "IngredientsView_LoadMyIngredients_Fail"
-            case .loadTopIngredientsStart:                  return "IngredientsView_LoadTopIngredients_Start"
-            case .loadTopIngredientsSuccess:                return "IngredientsView_LoadTopIngredients_Success"
-            case .loadTopIngredientsFail:                   return "IngredientsView_LoadTopIngredients_Fail"
-            case .incrementIngredientStart:                 return "IngredientsView_IncrementIngredient_Start"
-            case .incrementIngredientSuccess:               return "IngredientsView_IncrementIngredient_Success"
-            case .incrementIngredientFail:                  return "IngredientsView_IncrementIngredient_Fail"
-            case .syncIngredientsFromCurrentUserStart:      return "IngredientsView_UserSync_Start"
-            case .syncIngredientsFromCurrentUserNoUid:      return "IngredientsView_UserSync_NoUID"
-            case .syncIngredientsFromCurrentUserSuccess:    return "IngredientsView_UserSync_Success"
-            case .syncIngredientsFromCurrentUserFail:       return "IngredientsView_UserSync_Fail"
-            case .onAddIngredientPressed:                   return "IngredientsView_AddIngredientPressed"
-            case .favouritesSectionViewed:                  return "IngredientsView_Favourites_SectionViewed"
-            case .bookmarkedSectionViewed:                  return "IngredientsView_Bookmarked_SectionViewed"
-            case .trendingSectionViewed:                    return "IngredientsView_Trending_SectionViewed"
-            case .myTemplatesSectionViewed:                 return "IngredientsView_MyTemplates_SectionViewed"
-            case .emptyStateShown:                          return "IngredientsView_EmptyState_Shown"
-            case .onIngredientPressedFromFavourites:        return "IngredientsView_IngredientPressed_Favourites"
-            case .onIngredientPressedFromBookmarked:        return "IngredientsView_IngredientPressed_Bookmarked"
-            case .onIngredientPressedFromTrending:          return "IngredientsView_IngredientPressed_Trending"
-            case .onIngredientPressedFromMyTemplates:       return "IngredientsView_IngredientPressed_MyTemplates"
+            case .onAppear:                 return "IngredientsView_Appear"
+            case .onDisappear:              return "IngredientsView_Disappear"
+            case .onAddIngredientPressed:   return "IngredientsView_AddIngredientPressed"
+            case .ingredientSelected:       return "IngredientsView_Ingredient_Selected"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
-            case .performIngredientSearchSuccess(query: let query, resultCount: let count):
-                return ["query": query, "resultCount": count]
-            case .performIngredientSearchEmptyResults(query: let query):
-                return ["query": query]
-            case .loadMyIngredientsSuccess(count: let count):
-                return ["count": count]
-            case .loadTopIngredientsSuccess(count: let count):
-                return ["count": count]
-            case .syncIngredientsFromCurrentUserSuccess(favouriteCount: let favCount, bookmarkedCount: let bookCount):
-                return ["favouriteCount": favCount, "bookmarkedCount": bookCount]
-            case .favouritesSectionViewed(count: let count):
-                return ["count": count]
-            case .bookmarkedSectionViewed(count: let count):
-                return ["count": count]
-            case .trendingSectionViewed(count: let count):
-                return ["count": count]
-            case .myTemplatesSectionViewed(count: let count):
-                return ["count": count]
-            case .loadMyIngredientsFail(error: let error), .loadTopIngredientsFail(error: let error), .performIngredientSearchFail(error: let error), .incrementIngredientFail(error: let error), .syncIngredientsFromCurrentUserFail(error: let error):
-                return error.eventParameters
+            // Id and name rather than the model's full `eventParameters`: this fires on every tap,
+            // and the rest of the record is recoverable from the id.
+            case .ingredientSelected(food: let food, method: let method):
+                return ["ingredient_id": food.id, "ingredient_name": food.name, "method": method]
             default:
                 return nil
             }
@@ -199,10 +132,6 @@ class IngredientListBuilderPresenter {
 
         var type: LogType {
             switch self {
-            case .loadMyIngredientsFail, .loadTopIngredientsFail, .performIngredientSearchFail, .incrementIngredientFail, .syncIngredientsFromCurrentUserFail:
-                return .severe
-            case .syncIngredientsFromCurrentUserNoUid:
-                return .warning
             default:
                 return .analytic
             }

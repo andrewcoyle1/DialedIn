@@ -74,11 +74,16 @@ class ExpenditurePresenter {
         
     private func ageYears(dateOfBirth: Date) -> Int {
         let years = Calendar.current.dateComponents([.year], from: dateOfBirth, to: Date()).year ?? 30
-        return max(14, years)
+        return min(120, max(14, years))
     }
-    
-    private func weightKg(weight: Double) -> Double { max(weight, 30) }
-    private func heightCm(height: Double) -> Double { max(height, 120) }
+
+    // `bmrInt`, `tdeeInt` and `breakdownItems` are all read from the view body, so their `Int(_:)`
+    // conversions run while drawing — and `Int(_:)` traps on a value that is not finite or that
+    // overflows. A one-sided `max(_:_:)` is not enough to prevent that; `Double.clamped(to:
+    // whenNotFinite:)` says why. Anything unusable falls back to the bottom of the range, which is
+    // where a missing figure already sat.
+    private func weightKg(weight: Double) -> Double { weight.clamped(to: 30...500, whenNotFinite: 30) }
+    private func heightCm(height: Double) -> Double { height.clamped(to: 120...260, whenNotFinite: 120) }
     private func mifflinGenderCoefficient(gender: Gender) -> Double { (gender == .male) ? 5 : -161 }
     
     private func bmr(weight: Double, height: Double, dateOfBirth: Date, gender: Gender) -> Double { (10 * weightKg(weight: weight)) + (6.25 * heightCm(height: height)) - (5 * Double(ageYears(dateOfBirth: dateOfBirth))) + mifflinGenderCoefficient(gender: gender) }
@@ -206,10 +211,11 @@ class ExpenditurePresenter {
 
     func onContinuePressed(delegate: ExpenditureDelegate) {
 
-        router.showLoadingModal()
-        // Cancel any existing save to prevent race conditions
-
+        // The guard comes first: returning after the modal was shown would leave a spinner on
+        // screen with nothing left running to dismiss it.
         guard canContinue == true else { return }
+        router.showLoadingModal()
+
         Task {
             defer {
                 router.dismissModal()
@@ -275,17 +281,15 @@ func onDevSettingsPressed() {
         case profileSaveStart
         case profileSaveSuccess
         case profileSaveFail(error: Error)
-        case navigate
-        
+
         var eventName: String {
             switch self {
             case .profileSaveStart: return "Expenditure_SaveProfile_Start"
             case .profileSaveSuccess: return "Expenditure_SaveProfile_Success"
-            case .profileSaveFail: return "Expenditureo_SaveProfile_Fail"
-            case .navigate: return "Expenditure_Navigate"
+            case .profileSaveFail: return "Expenditure_SaveProfile_Fail"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
             case .profileSaveFail(error: let error):
@@ -294,13 +298,11 @@ func onDevSettingsPressed() {
                 return nil
             }
         }
-        
+
         var type: LogType {
             switch self {
             case .profileSaveFail:
                 return .severe
-            case .navigate:
-                return .info
             default:
                 return .analytic
             }

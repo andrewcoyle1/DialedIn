@@ -72,17 +72,29 @@ struct StepsModel: DataSyncModelProtocol {
         mocks[0]
     }
     
-    static let mocks: [StepsModel] =
-    [
-        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -7)),
-        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -6)),
-        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -5)),
-        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -4)),
-        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -3)),
-        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -2)),
-        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -1)),
-        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now)
-    ]
+    /// Four months of daily steps with a weekday/weekend rhythm and the odd rest day,
+    /// so the steps chart and streaks have a real shape. Was eight identical 3,000-step
+    /// days, which rendered as a flat line.
+    static let mocks: [StepsModel] = (0..<120).map { daysAgo in
+        let date = Date.now.addingTimeInterval(days: -daysAgo)
+        let weekday = Calendar.current.component(.weekday, from: date)
+        let isWeekend = weekday == 1 || weekday == 7
+
+        let base = isWeekend ? 5_200 : 9_400
+        // Deterministic wobble so the series looks organic but never changes between runs.
+        let wobble = Int(2_600 * sin(Double(daysAgo) * 1.7))
+        let slowBuild = (120 - daysAgo) * 8 // gradually more active over time
+        let isRestDay = daysAgo % 23 == 0
+
+        let number = isRestDay ? 1_800 : max(1_200, base + wobble + slowBuild)
+
+        return StepsModel(
+            authorId: UserModel.mock.userId,
+            number: number,
+            date: date
+        )
+    }
+
 }
 
 enum StepsSource: String, Codable {

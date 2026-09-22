@@ -16,7 +16,6 @@ struct AccountView: View {
         List {
             imageSection
             profileSection
-            dataManagementSection
             securitySection
         }
         .ignoresSafeArea(edges: .top)
@@ -86,20 +85,10 @@ struct AccountView: View {
 
     private var profileSection: some View {
         Section("Profile") {
-            CustomLabelButtonView(
-                symbolName: "person.fill",
-                title: "Name",
-                subtitle: "\(presenter.firstName) \(presenter.lastName)",
-                content: {
-                    Text("Edit")
-                        .padding(.horizontal, 8)
-                        .padding(8)
-                        .background(Color.secondary.opacity(0.2), in: .capsule)
-                        .anyButton(.press) {
-                            presenter.onEditNamePressed()
-                        }
-                }
-            )
+            TextField("First name", text: $presenter.firstName)
+                .textContentType(.givenName)
+            TextField("Last name", text: $presenter.lastName)
+                .textContentType(.familyName)
 
             DatePicker("Date of birth", selection: $presenter.dateOfBirth, displayedComponents: .date)
             Picker(selection: $presenter.selectedGender) {
@@ -110,38 +99,71 @@ struct AccountView: View {
                 Text("Gender")
                     .fontWeight(.semibold)
             }
-            if let height = presenter.currentUser?.submittedHeightCentimeters {
-                rowItem(title: "Height", subtitle: "\(height)", action: {
-                    presenter.onEditHeightPressed()
-                })
+
+            // Centimetres, matching `UserModel.submittedHeightCentimeters`. The Units screen governs
+            // how height is *displayed* elsewhere; converting here as well would need that
+            // preference threading through, and would make the stored unit ambiguous on save.
+            HStack {
+                Text("Height")
+                    .fontWeight(.semibold)
+                Spacer()
+                TextField("0", text: $presenter.heightText)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 80)
+                Text("cm")
+                    .foregroundStyle(.secondary)
             }
 
-            if let cardioExperience = presenter.currentUser?.submittedCardioFitnessLevel {
-                rowItem(title: "Cardio Experience", subtitle: "\(cardioExperience)", action: {
-                    presenter.onEditCardioFitnessPressed()
-                })
+            Picker(selection: $presenter.selectedCardioFitnessLevel) {
+                Text("Not specified").tag(nil as CardioFitnessLevel?)
+                ForEach(CardioFitnessLevel.allCases, id: \.self) { level in
+                    Text(level.description).tag(level as CardioFitnessLevel?)
+                }
+            } label: {
+                Text("Cardio Experience")
+                    .fontWeight(.semibold)
             }
 
-            if let liftingExperience = presenter.currentUser?.submittedExerciseFrequency {
-                rowItem(title: "Lifting Experience", subtitle: "\(liftingExperience)", action: {
-                    presenter.onEditLiftingExperiencePressed()
-                })
+            Picker(selection: $presenter.selectedExerciseFrequency) {
+                Text("Not specified").tag(nil as ExerciseFrequency?)
+                ForEach(ExerciseFrequency.allCases, id: \.self) { frequency in
+                    Text(frequency.description).tag(frequency as ExerciseFrequency?)
+                }
+            } label: {
+                Text("Lifting Experience")
+                    .fontWeight(.semibold)
             }
         }
     }
 
     private var securitySection: some View {
         Section {
-            rowItem(title: "Email", subtitle: presenter.currentUser?.email, action: {
-                presenter.onEditEmailPressed()
-            })
-            rowItem(title: "Password", subtitle: "********", action: {
-                presenter.onEditPasswordPressed()
-            })
-            Text("Log Out")
-                .anyButton {
-                    presenter.onSignOutPressed()
-                }
+            // Read-only, not an editor. Sign-in is Apple, Google or anonymous, so the address is the
+            // identity provider's and cannot be changed from here. A "Password ********" row used to
+            // sit below this one — removed, because there is no password to change: `SignInOption`
+            // has no email case anywhere in the app.
+            HStack {
+                Text("Email")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(presenter.currentUser?.email ?? "Not provided")
+                    .foregroundStyle(.secondary)
+            }
+
+            // Signing an anonymous account out locks it away for good, so that account is offered
+            // the upgrade in place of Log Out rather than alongside it.
+            if presenter.isAnonymousUser {
+                Text("Save & back-up account")
+                    .anyButton {
+                        presenter.onSaveAccountPressed()
+                    }
+            } else {
+                Text("Log Out")
+                    .anyButton {
+                        presenter.onSignOutPressed()
+                    }
+            }
             Button(role: .destructive) {
                 presenter.onDeleteAccountPressed()
             } label: {
@@ -152,40 +174,11 @@ struct AccountView: View {
         }
     }
 
-    private var dataManagementSection: some View {
-        Section {
-            Label("Data Export", systemImage: "square.and.arrow.up")
-                .anyButton(.highlight) {
-                    
-                }
-            Label("Data Visibility", systemImage: "eye")
-                .anyButton(.highlight) {
-                    presenter.onDataVisibilityPressed()
-                }
-        } header: {
-            Text("Data Management")
-        }
-    }
-
-    private func rowItem(title: String, subtitle: String? = nil, action: @escaping () -> Void) -> some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(title)
-                    .fontWeight(.semibold)
-                if let subtitle {
-                    Text(subtitle)
-                }
-            }
-            Spacer()
-            Text("Edit")
-                .padding(4)
-                .padding(.horizontal, 4)
-                .background(.secondary.opacity(0.2), in: .capsule)
-                .anyButton(.highlight) {
-                    action()
-                }
-        }
-    }
+    // A "Data Management" section sat here with two rows. Data Export was an empty closure and stays
+    // unbuilt: it needs an export format and a Cloud Function, and `functions/` has no export
+    // callable. Data Visibility routed to a screen that is still a template stub, and wants a privacy
+    // model plus matching Firestore rules — a visibility toggle that does not restrict reads is worse
+    // than no toggle. Both are recorded in the plan's deferred table.
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {

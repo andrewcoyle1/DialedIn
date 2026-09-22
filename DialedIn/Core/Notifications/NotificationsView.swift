@@ -133,7 +133,7 @@ struct NotificationsView: View {
                 Text("Enable Notifications")
                     .padding(8)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glass)
         }
         .padding(.vertical)
         .background(in: .containerRelative)
@@ -157,7 +157,7 @@ struct NotificationsView: View {
                 Text("Open Settings")
                     .padding(8)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glass)
         }
         .padding(.vertical)
         .background(in: .containerRelative)

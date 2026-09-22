@@ -10,6 +10,7 @@ protocol ProfileInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     var currentGoal: WeightGoal? { get }
     var currentDietPlan: DietPlan? { get }
+    var isPremium: Bool { get }
 }
 
 extension CoreInteractor: ProfileInteractor { }

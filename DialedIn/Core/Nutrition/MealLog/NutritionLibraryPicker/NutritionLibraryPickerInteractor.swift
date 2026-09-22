@@ -7,7 +7,7 @@
 
 @MainActor
 protocol NutritionLibraryPickerInteractor: GlobalInteractor {
-    var foods: [FoodModel] { get }
+    var foodLogSettings: FoodLogSettings { get }
     func saveExternalFood(_ food: FoodModel) async
 }
 

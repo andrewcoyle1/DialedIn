@@ -15,6 +15,17 @@ typealias AlertStyle = SwiftfulRouting.AlertStyle
 typealias ResizableSheetConfig = SwiftfulRouting.ResizableSheetConfig
 typealias PresentationDetentTransformable = SwiftfulRouting.PresentationDetentTransformable
 
+/// Hands `content` the enclosing `RouterView`'s router, for shared views that navigate without a
+/// router of their own. Here so those views needn't import SwiftfulRouting to read it.
+struct RouterReader<Content: View>: View {
+    @Environment(\.router) private var router
+    @ViewBuilder let content: (AnyRouter) -> Content
+
+    var body: some View {
+        content(router)
+    }
+}
+
 extension RoutingLogType {
 
     var type: LogType {

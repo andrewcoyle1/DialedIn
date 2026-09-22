@@ -41,6 +41,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     let submittedCardioFitnessLevel: CardioFitnessLevel?
     let submittedLengthUnitPreference: LengthUnitPreference?
     let submittedWeightUnitPreference: WeightUnitPreference?
+    let submittedDistanceUnitPreference: DistanceUnitPreference?
     let submittedCurrentGoalId: String?
     let submittedFavouriteGymProfileId: String?
     let submittedActiveTrainingProgramId: String?
@@ -52,6 +53,15 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     let acceptedHealthDisclaimerDate: Date?
     let acceptedHealthPrivacyPolicyVersion: String?
     let acceptedHealthPrivacyPolicyDate: Date?
+
+    /// The health notices the app currently presents, and the versions an acceptance is recorded
+    /// against. `HealthDisclaimerPresenter` stamps these onto the profile when the user confirms.
+    ///
+    /// Bumping either string sends every user who accepted an earlier one back through the
+    /// disclaimer on their next launch, which is the point: `inferredOnboardingStep` compares
+    /// against these rather than checking that some version was accepted.
+    static let currentHealthDisclaimerVersion = "2025.10.05"
+    static let currentHealthPrivacyPolicyVersion = "2025.10.05"
 
     init(
         userId: String,
@@ -79,6 +89,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         submittedCardioFitnessLevel: CardioFitnessLevel? = nil,
         submittedLengthUnitPreference: LengthUnitPreference? = nil,
         submittedWeightUnitPreference: WeightUnitPreference? = nil,
+        submittedDistanceUnitPreference: DistanceUnitPreference? = nil,
         submittedCurrentGoalId: String? = nil,
         submittedActiveTrainingProgramId: String? = nil,
         submittedFavouriteGymProfileId: String? = nil,
@@ -116,6 +127,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         self.submittedCardioFitnessLevel = submittedCardioFitnessLevel
         self.submittedLengthUnitPreference = submittedLengthUnitPreference
         self.submittedWeightUnitPreference = submittedWeightUnitPreference
+        self.submittedDistanceUnitPreference = submittedDistanceUnitPreference
         self.submittedCurrentGoalId = submittedCurrentGoalId
         self.submittedActiveTrainingProgramId = submittedActiveTrainingProgramId
         self.submittedFavouriteGymProfileId = submittedFavouriteGymProfileId
@@ -172,6 +184,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         case submittedCardioFitnessLevel = "submitted_cardio_fitness_level"
         case submittedLengthUnitPreference = "submitted_length_unit_preference"
         case submittedWeightUnitPreference = "submitted_weight_unit_preference"
+        case submittedDistanceUnitPreference = "submitted_distance_unit_preference"
         case submittedCurrentGoalId = "submitted_current_goal_id"
         case submittedActiveTrainingProgramId = "submitted_active_training_program_id"
         case submittedFavouriteGymProfileId = "submitted_favourite_gym_profile_id"
@@ -214,6 +227,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
             "user_\(CodingKeys.submittedCardioFitnessLevel.rawValue)": submittedCardioFitnessLevel?.rawValue,
             "user_\(CodingKeys.submittedLengthUnitPreference.rawValue)": submittedLengthUnitPreference?.rawValue,
             "user_\(CodingKeys.submittedWeightUnitPreference.rawValue)": submittedWeightUnitPreference?.rawValue,
+            "user_\(CodingKeys.submittedDistanceUnitPreference.rawValue)": submittedDistanceUnitPreference?.rawValue,
             "user_\(CodingKeys.submittedCurrentGoalId.rawValue)": submittedCurrentGoalId,
             "user_\(CodingKeys.submittedActiveTrainingProgramId.rawValue)": submittedActiveTrainingProgramId,
             "user_\(CodingKeys.submittedFavouriteGymProfileId.rawValue)": submittedFavouriteGymProfileId,
@@ -313,7 +327,15 @@ struct UserModel: DataSyncModelProtocol, Equatable {
               submittedCardioFitnessLevel != nil else {
             return .completeAccountSetup
         }
-        guard acceptedHealthDisclaimerVersion != nil else { return .healthDisclaimer }
+        // Compared against the current version, not merely checked for presence. A health notice
+        // is only consent to the wording the user actually read, so a reissued disclaimer has to
+        // be accepted again — accepting the 2025 text cannot stand in for agreeing to a later one.
+        //
+        // Only the disclaimer version is compared, because the one screen that records consent
+        // stamps both it and the privacy policy together, so they cannot drift apart in practice.
+        guard acceptedHealthDisclaimerVersion == Self.currentHealthDisclaimerVersion else {
+            return .healthDisclaimer
+        }
         guard submittedCurrentGoalId != nil else { return .goalSetting }
         guard submittedFavouriteGymProfileId != nil else { return .gymProfileSetup }
         guard submittedActiveTrainingProgramId != nil else { return .trainingProgramSetup }
@@ -324,196 +346,6 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     mutating func markDidCompleteOnboarding() {
         didCompleteOnboarding = true
     }
-}
-
-extension UserModel {
-    
-    static var mock: Self {
-        mocks[0]
-    }
-
-    /// A complete, fully-onboarded user whose userId matches `UserAuthInfo.mock().uid`.
-    /// Use this in mock scenarios where an existing authenticated user is required.
-    static var mockExisting: Self {
-        UserModel(
-            userId: "mock_user_123",
-            email: "alice@example.com",
-            isAnonymous: false,
-            firstName: "Alice",
-            lastName: "Cooper",
-            creationDate: Date().addingTimeInterval(-30 * 86400),
-            creationVersion: "1.0.0",
-            lastSignInDate: Date(),
-            submittedProfileImage: "https://picsum.photos/200",
-            submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
-            submittedGender: .male,
-            submittedHeightCentimeters: 175.0,
-            submittedWeightKilograms: 70.0,
-            submittedExerciseFrequency: .daily,
-            submittedDailyActivityLevel: .active,
-            submittedCardioFitnessLevel: .intermediate,
-            submittedCurrentGoalId: "goal1",
-            submittedActiveTrainingProgramId: TrainingProgram.mock.id,
-            submittedFavouriteGymProfileId: GymProfileModel.mock.id,
-            didCompleteOnboarding: true,
-            acceptedHealthDisclaimerVersion: "2025.10.05"
-        )
-    }
-
-    static func mockWithStep(_ step: OnboardingStep) -> Self {
-        let now = Date()
-        let hasProfile = step.orderIndex >= OnboardingStep.completeAccountSetup.orderIndex
-        let hasDisclaimer = step.orderIndex >= OnboardingStep.healthDisclaimer.orderIndex
-        let hasGoal = step.orderIndex >= OnboardingStep.goalSetting.orderIndex
-        return UserModel(
-            userId: "mockUser",
-            email: "mock@example.com",
-            isAnonymous: false,
-            firstName: "Mock",
-            lastName: "User",
-            creationDate: now,
-            creationVersion: "1.0.0",
-            lastSignInDate: now,
-            submittedDateOfBirth: hasProfile ? Calendar.current.date(from: DateComponents(year: 1990, month: 1, day: 1)) : nil,
-            submittedGender: hasProfile ? .male : nil,
-            submittedHeightCentimeters: hasProfile ? 175.0 : nil,
-            submittedWeightKilograms: hasProfile ? 70.0 : nil,
-            submittedExerciseFrequency: hasProfile ? .fiveToSix : nil,
-            submittedDailyActivityLevel: hasProfile ? .active : nil,
-            submittedCardioFitnessLevel: hasProfile ? .intermediate : nil,
-            submittedCurrentGoalId: hasGoal ? "mock_goal_id" : nil,
-            didCompleteOnboarding: step == .complete,
-            acceptedHealthDisclaimerVersion: hasDisclaimer ? "2025.10.05" : nil
-        )
-    }
-
-    static var mocks: [Self] {
-        let now = Date()
-        return [
-            UserModel(
-                userId: "mock_user_123",
-                email: "anonymous@example.com",
-                isAnonymous: false,
-                firstName: "Andrew",
-                lastName: "Coyle",
-                creationDate: now,
-                creationVersion: "1.0.0",
-                lastSignInDate: now,
-                submittedProfileImage: Constants.randomImage,
-                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
-                submittedGender: .male,
-                submittedHeightCentimeters: 175,
-                submittedWeightKilograms: 82.0,
-                submittedExerciseFrequency: .daily,
-                submittedDailyActivityLevel: .active,
-                submittedCardioFitnessLevel: .intermediate,
-                submittedLengthUnitPreference: .centimeters,
-                submittedWeightUnitPreference: .kilograms,
-                submittedCurrentGoalId: WeightGoal.mocks.first!.id,
-                submittedActiveTrainingProgramId: TrainingProgram.mock.id,
-                submittedFavouriteGymProfileId: GymProfileModel.mock.id,
-                followingIds: ["user_1"],
-                didCompleteOnboarding: true,
-                acceptedHealthDisclaimerVersion: "2025.10.05",
-                acceptedHealthDisclaimerDate: now,
-                acceptedHealthPrivacyPolicyVersion: "2025.10.05",
-                acceptedHealthPrivacyPolicyDate: now
-            ),
-            UserModel(
-                userId: "user_1",
-                email: "user1@example.com",
-                isAnonymous: false,
-                firstName: "Alice",
-                lastName: "Cooper",
-                creationDate: now,
-                creationVersion: "1.0.0",
-                lastSignInDate: now,
-                submittedProfileImage: "https://picsum.photos/200",
-                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
-                submittedGender: .male,
-                submittedHeightCentimeters: 175.0,
-                submittedWeightKilograms: 70.0,
-                submittedExerciseFrequency: .daily,
-                submittedDailyActivityLevel: .active,
-                submittedCardioFitnessLevel: .intermediate,
-                submittedCurrentGoalId: "goal1",
-                blockedUserIds: ["user2", "user3"],
-                didCompleteOnboarding: true,
-                acceptedHealthDisclaimerVersion: "2025.10.05"
-            ),
-            UserModel(
-                userId: "user2",
-                email: "user2@example.com",
-                isAnonymous: false,
-                firstName: "Bob",
-                creationDate: now.addingTimeInterval(-86400),
-                creationVersion: "1.0.0",
-                lastSignInDate: now.addingTimeInterval(-3600),
-                blockedUserIds: ["mock_user_123", "user3"],
-                didCompleteOnboarding: false
-            ),
-            UserModel(
-                userId: "user3",
-                email: "user3@example.com",
-                isAnonymous: false,
-                firstName: "Charlie",
-                creationDate: now.addingTimeInterval(-3 * 86400 - 2 * 3600),
-                creationVersion: "1.0.0",
-                lastSignInDate: now.addingTimeInterval(-2 * 3600),
-                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 1985, month: 6, day: 15)),
-                submittedGender: .female,
-                submittedHeightCentimeters: 165.0,
-                submittedWeightKilograms: 60.0,
-                submittedExerciseFrequency: .threeToFour,
-                submittedDailyActivityLevel: .moderate,
-                submittedCardioFitnessLevel: .novice,
-                submittedCurrentGoalId: "goal3",
-                blockedUserIds: ["mock_user_123", "user2"],
-                didCompleteOnboarding: true,
-                acceptedHealthDisclaimerVersion: "2025.10.05"
-            ),
-            UserModel(
-                userId: "user5",
-                email: "user5@example.com",
-                isAnonymous: true,
-                firstName: "Andrew",
-                creationDate: now.addingTimeInterval(-5 * 86400 - 4 * 3600),
-                creationVersion: "1.0.0",
-                lastSignInDate: now.addingTimeInterval(-4 * 3600),
-                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 1995, month: 3, day: 22)),
-                submittedGender: .male,
-                submittedHeightCentimeters: 180.0,
-                submittedWeightKilograms: 80.0,
-                submittedExerciseFrequency: .fiveToSix,
-                submittedDailyActivityLevel: .active,
-                submittedCardioFitnessLevel: .intermediate,
-                blockedUserIds: ["mock_user_123", "user2"],
-                didCompleteOnboarding: false,
-                acceptedHealthDisclaimerVersion: "2025.10.05"
-            ),
-            UserModel(
-                userId: "user6",
-                email: "user6@example.com",
-                isAnonymous: true,
-                firstName: "David",
-                creationDate: now.addingTimeInterval(-5 * 86400 - 4 * 3600),
-                creationVersion: "1.0.0",
-                lastSignInDate: now.addingTimeInterval(-4 * 3600),
-                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 1992, month: 9, day: 8)),
-                submittedGender: .male,
-                submittedHeightCentimeters: 178.0,
-                submittedWeightKilograms: 75.0,
-                submittedExerciseFrequency: .threeToFour,
-                submittedDailyActivityLevel: .light,
-                submittedCardioFitnessLevel: .beginner,
-                submittedCurrentGoalId: "goal6",
-                blockedUserIds: ["user1", "user2"],
-                didCompleteOnboarding: false,
-                acceptedHealthDisclaimerVersion: "2025.10.05"
-            )
-        ]
-    }
-
 }
 
 enum Gender: String, Codable, Sendable {
@@ -527,41 +359,52 @@ enum Gender: String, Codable, Sendable {
     }
 }
 
-enum LengthUnitPreference: String, Codable, Sendable {
+/// Governs height and every body measurement. The abbreviation and display name describe those
+/// uses, not distance — see `DistanceUnitPreference` for how far you have travelled.
+enum LengthUnitPreference: String, Codable, Sendable, CaseIterable {
     case centimeters
     case inches
-    
-    var abbreviation: String {
-        switch self {
-        case .centimeters: return "m"
-        case .inches: return "m"
-        }
-    }
-    
-    var displayName: String {
-        switch self {
-        case .centimeters: return "Kilometers & Metres"
-        case .inches: return "Miles & Yards"
-        }
-    }
 
-}
-
-enum HeightUnitPreference: String, Codable, Sendable {
-    case centimeters
-    case inches
-    
     var abbreviation: String {
         switch self {
         case .centimeters: return "cm"
         case .inches: return "\""
         }
     }
-    
+
+    /// `abbreviation` gives `"` for inches, which reads as a stray quote mark in a card caption
+    /// under a number. Body measurements use this instead.
+    var measurementAbbreviation: String {
+        switch self {
+        case .centimeters: return "cm"
+        case .inches: return "in"
+        }
+    }
+
     var displayName: String {
         switch self {
         case .centimeters: return "Centimeters"
         case .inches: return "Feet & Inches"
+        }
+    }
+
+}
+
+enum DistanceUnitPreference: String, Codable, Sendable, CaseIterable {
+    case kilometers
+    case miles
+
+    var abbreviation: String {
+        switch self {
+        case .kilometers: return "km"
+        case .miles: return "mi"
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .kilometers: return "Kilometers & Metres"
+        case .miles: return "Miles & Yards"
         }
     }
 
@@ -587,6 +430,10 @@ enum WeightUnitPreference: String, Codable, Sendable {
 
 }
 
+/// Not yet wired to anything. The Units screen used to offer a 12/24-hour picker that persisted
+/// nowhere and changed nothing; honouring it means routing every `.shortened` time format in the
+/// app through a shared formatter, which is its own piece of work. Kept so that work has a type
+/// to start from.
 enum ClockUnitPreference: String, Codable, Sendable {
     case twelveHour
     case twentyFourHour

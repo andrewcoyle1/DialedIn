@@ -94,47 +94,7 @@ class PaywallPresenter {
     }
 
     private func route(to step: OnboardingStep) {
-        switch step {
-        case .auth, .subscription:
-            // For anything at/before subscription, move them into complete-account setup
-            router.showCompleteAccountSetupView()
-
-        case .completeAccountSetup:
-            router.showCompleteAccountSetupView()
-
-        case .notifications:
-            router.showNotificationsPermissionsView()
-
-        case .healthData:
-            router.showOnboardingHealthDataView()
-
-        case .healthDisclaimer:
-            router.showHealthDisclaimerView()
-
-        case .goalSetting:
-            router.showGoalSettingView()
-
-        case .gymProfileSetup:
-            let delegate = CreateGymProfileDelegate(onComplete: self.handleNavigation)
-            router.showCreateGymProfileView(delegate: delegate)
-
-        case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(
-                delegate: CreateProgramDelegate(
-                    onComplete: { [weak self] in
-                        guard let self else { return }
-                        Task { @MainActor in
-                            self.handleNavigation()
-                        }
-                    }
-                )
-            )
-        case .customiseProgram:
-            router.showCustomisingDietProgramView()
-
-        case .complete:
-            router.showOnboardingCompletedView()
-        }
+        router.routeToOnboardingStep(step, onComplete: handleNavigation)
     }
 
     func onRestorePurchasePressed() {
@@ -146,6 +106,17 @@ class PaywallPresenter {
                 
                 if entitlements.hasActiveEntitlement {
                     onPurchaseSuccess()
+                } else {
+                    // A restore that finds nothing does not throw, so this branch raised nothing
+                    // at all and the button read as dead. It is the commonest restore outcome —
+                    // wrong Apple Account, or a subscription that has lapsed — and it happens on
+                    // the one screen a paying customer has to get past.
+                    interactor.trackEvent(event: Event.restorePurchaseEmpty)
+                    router.showAlert(
+                        title: "Nothing to Restore",
+                        subtitle: "We couldn't find an active subscription on this Apple Account. Check that you are signed in with the account you subscribed with.",
+                        buttons: nil
+                    )
                 }
             } catch {
                 router.showAlert(error: error)
@@ -210,6 +181,7 @@ class PaywallPresenter {
         case loadProductsSuccess(count: Int, variant: PaywallTestOption)
         case loadProductsFail(error: Error, variant: PaywallTestOption)
         case restorePurchaseStart
+        case restorePurchaseEmpty
         case backButtonPressed
 
         var eventName: String {
@@ -226,6 +198,7 @@ class PaywallPresenter {
             case .loadProductsSuccess:  return "PaywallView_Load_Success"
             case .loadProductsFail:     return "PaywallView_Load_Fail"
             case .restorePurchaseStart: return "PaywallView_Restore_Start"
+            case .restorePurchaseEmpty: return "PaywallView_Restore_Empty"
             case .backButtonPressed:    return "PaywallView_BackButton_Pressed"
             }
         }
@@ -261,6 +234,8 @@ class PaywallPresenter {
                 return .severe
             case .loadProductsFail:
                 return .severe
+            case .restorePurchaseEmpty:
+                return .info
             default:
                 return .analytic
             }

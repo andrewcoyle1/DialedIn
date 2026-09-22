@@ -16,6 +16,17 @@ class FoodLogSettingsPresenter {
         set { settings.showOverages = newValue; save() }
     }
 
+    /// What the Show Overages row says beneath itself.
+    ///
+    /// Lives here rather than inline in the view because the two halves had been written the
+    /// wrong way round — on, the row claimed overages would be hidden — and a subtitle a test can
+    /// read is a subtitle that cannot silently invert again.
+    var showOveragesSubtitle: String {
+        showOverages
+            ? "Negative numbers will be used in nutrient remaining views if you exceed your target."
+            : "No negative numbers will be used if you exceed a nutrient target."
+    }
+
     var showsFoodTimestamps: Bool {
         get { settings.showsFoodTimestamps }
         set { settings.showsFoodTimestamps = newValue; save() }
@@ -94,6 +105,13 @@ class FoodLogSettingsPresenter {
     }
 
     func onViewAppear() {
+        // Six of this screen's rows push a sub-screen that edits the *same* settings document and
+        // saves it. Coming back, the snapshot taken when this screen was first pushed is out of
+        // date, so the next toggle here would save it and undo whatever was changed in there.
+        // Re-reading on every appear — including the pop back from a sub-screen — keeps the two in
+        // step. The same is true of the favourite food and recipe ids, which are written from the
+        // nutrition tab and live in this document too.
+        settings = interactor.foodLogSettings
         interactor.trackScreenEvent(event: Event.onAppear)
     }
 

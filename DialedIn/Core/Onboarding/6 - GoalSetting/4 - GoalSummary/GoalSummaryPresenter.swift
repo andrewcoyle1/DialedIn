@@ -29,49 +29,65 @@ class GoalSummaryPresenter {
         self.isStandaloneMode = isStandaloneMode
     }
     
+    /// Standalone mode, where this screen is the whole flow rather than a step of onboarding.
+    ///
+    /// The goal is saved first and the flow closed only once it is, so a user whose save fails
+    /// sees the alert on the screen they were on rather than back where they started.
     func onCompletePressed(delegate: GoalSummaryDelegate) {
-        onContinuePressed(delegate: delegate)
-        onDismiss?()
+        Task {
+            await saveGoal(delegate: delegate, onSuccess: { [weak self] in self?.onDismiss?() })
+        }
     }
-    
+
     func onContinuePressed(delegate: GoalSummaryDelegate) {
+        Task {
+            await saveGoal(delegate: delegate, onSuccess: { [weak self] in self?.handleNavigation() })
+        }
+    }
+
+    /// Writes the goal, then does whatever the screen it was pressed from does next.
+    ///
+    /// `isLoading` gates both buttons, so it has to be set before the write and cleared on every
+    /// way out of it — including the two that alert. It used to be cleared by a `defer` in the
+    /// synchronous caller, which ran before the write had even started.
+    private func saveGoal(delegate: GoalSummaryDelegate, onSuccess: @MainActor () -> Void) async {
         interactor.trackEvent(event: Event.goalSaveStart)
+        isLoading = true
         defer { isLoading = false }
 
-        Task {
-            guard let user = interactor.currentUser,
-                  let startingWeight = user.submittedWeightKilograms else {
-                router.showSimpleAlert(
-                    title: "Unable to save your Goal",
-                    subtitle: "Current weight not available."
-                )
-                return
-            }
+        guard let user = interactor.currentUser,
+              let startingWeight = user.submittedWeightKilograms else {
+            router.showSimpleAlert(
+                title: "Unable to save your Goal",
+                subtitle: "Current weight not available."
+            )
+            return
+        }
 
-            do {
-                // Create goal in subcollection with frozen starting weight
-                let goal = WeightGoal(
-                    userId: user.userId,
-                    objective: delegate.overarchingObjective,
-                    startingWeightKg: startingWeight,
-                    targetWeightKg: delegate.targetWeight,
-                    weeklyChangeKg: delegate.weightChangeRate,
-                )
-                try await interactor.saveGoal(goal)
+        do {
+            // Create goal in subcollection with frozen starting weight
+            let goal = WeightGoal(
+                userId: user.userId,
+                objective: delegate.overarchingObjective,
+                startingWeightKg: startingWeight,
+                targetWeightKg: delegate.targetWeight,
+                weeklyChangeKg: delegate.weightChangeRate,
+            )
+            try await interactor.saveGoal(goal)
 
-                // Update user's currentGoalId reference
-                try await interactor.updateCurrentGoalId(goalId: goal.id)
+            // Update user's currentGoalId reference
+            try await interactor.updateCurrentGoalId(goalId: goal.id)
 
-                interactor.trackEvent(event: Event.goalSaveSuccess)
+            goalCreated = true
+            interactor.trackEvent(event: Event.goalSaveSuccess)
 
-                handleNavigation()
-            } catch {
-                interactor.trackEvent(event: Event.goalSaveFail(error: error))
-                router.showSimpleAlert(
-                    title: "Unable to save your Goal",
-                    subtitle: "Please check your internet connection and try again."
-                )
-            }
+            onSuccess()
+        } catch {
+            interactor.trackEvent(event: Event.goalSaveFail(error: error))
+            router.showSimpleAlert(
+                title: "Unable to save your Goal",
+                subtitle: "Please check your internet connection and try again."
+            )
         }
     }
     
@@ -86,47 +102,7 @@ class GoalSummaryPresenter {
     }
 
     private func route(to step: OnboardingStep) {
-        switch step {
-        case .auth, .subscription:
-            // For anything at/before subscription, move them into complete-account setup
-            router.showCompleteAccountSetupView()
-
-        case .completeAccountSetup:
-            router.showCompleteAccountSetupView()
-
-        case .notifications:
-            router.showNotificationsPermissionsView()
-
-        case .healthData:
-            router.showOnboardingHealthDataView()
-
-        case .healthDisclaimer:
-            router.showHealthDisclaimerView()
-
-        case .goalSetting:
-            router.showGoalSettingView()
-
-        case .gymProfileSetup:
-            let delegate = CreateGymProfileDelegate(onComplete: self.handleNavigation)
-            router.showCreateGymProfileView(delegate: delegate)
-
-        case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(
-                delegate: CreateProgramDelegate(
-                    onComplete: { [weak self] in
-                        guard let self else { return }
-                        Task { @MainActor in
-                            self.handleNavigation()
-                        }
-                    }
-                )
-            )
-        case .customiseProgram:
-            router.showCustomisingDietProgramView()
-
-        case .complete:
-            router.showOnboardingCompletedView()
-        }
+        router.routeToOnboardingStep(step, onComplete: handleNavigation)
     }
 
     // MARK: - Computed Properties
@@ -145,8 +121,16 @@ class GoalSummaryPresenter {
         return target - current
     }
     
+    /// Zero when there is no journey to estimate.
+    ///
+    /// "Maintain" reaches this screen with the current weight as its own target and a weekly rate
+    /// of zero, so the division is 0 / 0 — NaN, which traps when converted to an `Int` and took the
+    /// screen down as it drew. A rate of zero towards a different target is infinite for the same
+    /// reason. The view already reads zero as "maintaining current weight", so that is the answer.
     func estimatedWeeks(delegate: GoalSummaryDelegate) -> Int {
-        return Int(ceil(abs(weightDifference(targetWeight: delegate.targetWeight)) / delegate.weightChangeRate))
+        let weeks = ceil(abs(weightDifference(targetWeight: delegate.targetWeight)) / delegate.weightChangeRate)
+        guard weeks.isFinite, weeks > 0 else { return 0 }
+        return Int(weeks)
     }
     
     func estimatedMonths(delegate: GoalSummaryDelegate) -> Int {
@@ -158,8 +142,7 @@ class GoalSummaryPresenter {
         case .kilograms:
             return String(format: "%.1f kg", weight)
         case .pounds:
-            let pounds = weight * 2.20462
-            return String(format: "%.1f lbs", pounds)
+            return String(format: "%.1f lbs", UnitConversion.kgToLbs(weight))
         }
     }
     

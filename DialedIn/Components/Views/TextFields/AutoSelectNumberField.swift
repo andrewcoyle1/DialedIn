@@ -35,7 +35,12 @@ struct AutoSelectNumberField: View {
             .focused($isFocused)
             .multilineTextAlignment(textAlignment)
             .onChange(of: text) { _, newValue in
-                value = Double(newValue)
+                // A decimal pad carries no letters, but a hardware keyboard, a paste or dictation
+                // can still put "nan" or "inf" into the field, and `Double`'s string initialiser
+                // parses both literally. Everything downstream of this field multiplies the value
+                // into arithmetic that is printed through `Int(_:)`, which traps on a value that
+                // is not finite — so a number that is not a number never leaves the field.
+                value = Double(newValue).flatMap { $0.isFinite ? $0 : nil }
             }
             .onChange(of: isFocused) { _, focused in
                 if focused {

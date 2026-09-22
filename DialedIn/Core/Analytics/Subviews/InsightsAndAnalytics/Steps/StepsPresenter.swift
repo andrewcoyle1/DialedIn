@@ -16,7 +16,7 @@ class StepsPresenter {
     private let calendar = Calendar.current
 
     private(set) var cachedEntries: [StepsEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
 
     init(interactor: StepsInteractor, router: StepsRouter) {
         self.interactor = interactor
@@ -36,6 +36,10 @@ class StepsPresenter {
         let history = interactor.stepsHistory
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
+        // Up to the end of today, not its start. A steps sample keeps the time it was recorded at,
+        // so `<= startOfToday` compared every reading against midnight and dropped today's
+        // altogether — the screen was always a day behind.
+        let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday) ?? now
         guard let startDate = calendar.date(byAdding: .day, value: -89, to: startOfToday) else {
             cachedEntries = []
             cachedTimeSeries = []
@@ -43,7 +47,7 @@ class StepsPresenter {
         }
         let userId = interactor.userId
         let last90 = history
-            .filter { $0.deletedAt == nil && $0.date >= startDate && $0.date <= startOfToday && (userId == nil || $0.authorId == userId) }
+            .filter { $0.deletedAt == nil && $0.date >= startDate && $0.date < endOfToday && (userId == nil || $0.authorId == userId) }
             .sorted { $0.date < $1.date }
         let consolidated = Self.consolidateStepsByDay(Array(last90))
         cachedEntries = consolidated
@@ -53,7 +57,7 @@ class StepsPresenter {
             TimeSeriesDatapoint(id: step.id, date: step.date, value: Double(step.number))
         }
         cachedTimeSeries = [
-            TimeSeriesData.TimeSeries(name: "Steps", data: seriesData)
+            TimeSeries(name: "Steps", data: seriesData)
         ]
     }
 
@@ -76,7 +80,7 @@ extension StepsPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
     }
 
@@ -86,11 +90,12 @@ extension StepsPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "StepsView",
             yAxisSuffix: "",
             seriesNames: ["Steps"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Daily Steps",
             emptyStateMessage: "No step data",
-            pageSize: 20,
-            chartType: .bar
+            chartType: .bar,
+            addActionTitle: "Sync from Health",
+            addActionSystemImage: "arrow.clockwise"
         )
     }
 
@@ -98,6 +103,25 @@ extension StepsPresenter: @MainActor MetricDetailPresenter {
         await loadData()
     }
 
-    func onAddPressed() { }
+    /// Steps cannot be typed in, but they can be fetched again — `backfillStepsFromHealthKit` and
+    /// the authorisation request were already on the interactor with no caller on this screen, so
+    /// an empty step history had nothing the user could do about it.
+    func onAddPressed() {
+        Task {
+            if interactor.canRequestHealthDataAuthorisation() {
+                do {
+                    try await interactor.requestHealthKitAuthorisation()
+                } catch {
+                    router.showSimpleAlert(
+                        title: "Unable to Access Health",
+                        subtitle: "Allow step access in the Health app to sync your steps."
+                    )
+                    return
+                }
+            }
+            await interactor.backfillStepsFromHealthKit()
+            await loadData()
+        }
+    }
 
 }

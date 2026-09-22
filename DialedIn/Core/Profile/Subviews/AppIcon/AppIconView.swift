@@ -10,16 +10,12 @@ struct AppIconView: View {
     let delegate: AppIconDelegate
     
     var body: some View {
-        List {
-            Group {
-                CustomListCellView()
-                CustomListCellView()
-                CustomListCellView()
-            }
-            .removeListRowFormatting()
-        }
-        .navigationTitle("App Icon")
-        .navigationBarTitleDisplayMode(.inline)
+        // Was three `CustomListCellView()` with no arguments — empty rows implying a choice of icons.
+        FeatureUnavailableView(
+            title: "App Icon",
+            systemImage: "app.grid",
+            summary: "Alternate app icons are not available yet. There is only one icon set in the asset catalogue, so there is nothing to switch between."
+        )
         .onAppear {
             presenter.onViewAppear()
         }

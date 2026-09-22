@@ -14,15 +14,6 @@ class NutritionLibraryPickerPresenter {
     private let router: NutritionLibraryPickerRouter
 
     private(set) var mode: NutritionPickerMode = .search
-    var searchText: String = ""
-    private(set) var recipes: [RecipeTemplateModel] = []
-
-    var foods: [FoodModel] {
-        interactor.foods
-            .filter {
-                $0.name == searchText
-            }
-    }
     
     init(
         interactor: NutritionLibraryPickerInteractor,
@@ -40,35 +31,17 @@ class NutritionLibraryPickerPresenter {
         if ingredient.authorId == nil {
             Task { await interactor.saveExternalFood(ingredient) }
         }
+        // Quick Add promises exactly this: the food's default portion, without the amount screen.
+        // The picker stays open, so the next food is one tap away too.
+        if interactor.foodLogSettings.quickAddEnabled {
+            onPick(ingredient.mealItem(amount: ingredient.defaultPortionAmount))
+            return
+        }
         router.showIngredientAmountView(delegate: IngredientAmountDelegate(ingredient: ingredient, onPick: onPick))
     }
 
     func navToRecipeAmount(_ recipe: RecipeTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
         router.showRecipeAmountView(delegate: RecipeAmountDelegate(recipe: recipe, onPick: onPick))
-    }
-
-    enum Event: LoggableEvent {
-        case navigate
-
-        var eventName: String {
-            switch self {
-            case .navigate: return "NutritionLibrary_Navigate"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            case .navigate:
-                return .info
-            }
-        }
     }
 
     func dismissScreen() {

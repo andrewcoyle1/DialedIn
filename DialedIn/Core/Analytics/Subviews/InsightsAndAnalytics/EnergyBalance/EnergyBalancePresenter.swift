@@ -16,8 +16,8 @@ class EnergyBalancePresenter {
     private let calendar = Calendar.current
 
     private(set) var cachedEntries: [EnergyBalanceEntry] = []
-    private(set) var cachedExpenditure: TimeSeriesData.TimeSeries = TimeSeriesData.TimeSeries(name: "Expenditure", data: [])
-    private(set) var cachedIntake: TimeSeriesData.TimeSeries = TimeSeriesData.TimeSeries(name: "Intake", data: [])
+    private(set) var cachedExpenditure: TimeSeries = TimeSeries(name: "Expenditure", data: [])
+    private(set) var cachedIntake: TimeSeries = TimeSeries(name: "Intake", data: [])
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -105,23 +105,27 @@ class EnergyBalancePresenter {
         let dateKeys = Date.dayKeys(from: startDate, to: startOfToday)
         for (index, dayKey) in dateKeys.enumerated() {
             guard let date = Date(dayKey: dayKey) else { continue }
-            let totals = totalsData.first { $0.dayKey == dayKey }?.totals ?? DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0)
 
-            let entry = EnergyBalanceEntry(
-                id: dayKey,
-                date: date,
-                expenditure: tdee,
-                intake: totals.calories
-            )
-            entries.append(entry)
-
+            // Expenditure is known for every day: it is the user's TDEE, so the line runs unbroken
+            // across the whole range.
             expenditureData.append(TimeSeriesDatapoint(id: "exp-\(index)", date: date, value: tdee))
-            intakeData.append(TimeSeriesDatapoint(id: "intake-\(index)", date: date, value: totals.calories))
+
+            // `getDailyTotals` answers for every day in the range, totalling zero where nothing was
+            // logged, so a day only counts as eaten on if it has calories against it. Without this
+            // every unlogged day was an intake of 0 kcal: a bar at the floor of the chart, a row in
+            // All Recorded Data reading "3,180 deficit", and a daily average near zero.
+            let totals = totalsData.first { $0.dayKey == dayKey }?.totals
+            guard let intake = totals?.calories, intake > 0 else { continue }
+
+            entries.append(
+                EnergyBalanceEntry(id: dayKey, date: date, expenditure: tdee, intake: intake)
+            )
+            intakeData.append(TimeSeriesDatapoint(id: "intake-\(index)", date: date, value: intake))
         }
 
         cachedEntries = entries.reversed()
-        cachedExpenditure = TimeSeriesData.TimeSeries(name: "Expenditure", data: expenditureData)
-        cachedIntake = TimeSeriesData.TimeSeries(name: "Intake", data: intakeData)
+        cachedExpenditure = TimeSeries(name: "Expenditure", data: expenditureData)
+        cachedIntake = TimeSeries(name: "Intake", data: intakeData)
     }
 }
 
@@ -132,31 +136,25 @@ extension EnergyBalancePresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
-        [cachedExpenditure, cachedIntake]
-    }
-
-    var customChartView: AnyView? {
-        AnyView(
-            EnergyBalanceChart(
-                expenditure: cachedExpenditure,
-                energyIntake: cachedIntake,
-                maxVisibleDays: nil
-            )
-        )
+    /// Intake first: it is the series the chart's bars and its Latest row describe, and the combo
+    /// chart draws the bar series before the line.
+    var timeSeries: [TimeSeries] {
+        [cachedIntake, cachedExpenditure]
     }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: "Energy Balance",
             analyticsName: "EnergyBalanceView",
-            yAxisSuffix: "",
-            seriesNames: ["Expenditure", "Intake"],
+            yAxisSuffix: " kcal",
+            seriesNames: ["Intake", "Expenditure"],
             showsAddButton: true,
             sectionHeader: "Daily Balance",
             emptyStateMessage: "No data for the last 90 days",
-            pageSize: 20,
-            chartColor: nil
+            chartColor: EnergyBalanceChart.intakeColor,
+            chartType: .combo,
+            lineSeriesNames: ["Expenditure"],
+            lineSeriesColor: EnergyBalanceChart.expenditureColor
         )
     }
 
@@ -168,8 +166,4 @@ extension EnergyBalancePresenter: @MainActor MetricDetailPresenter {
         onAddMealPressed()
     }
 
-    func onDeleteEntry(_ entry: EnergyBalanceEntry) async {
-        // Energy balance entries are derived from meals; deletion would clear meals for that day
-        // For now, no-op. User can manage meals from Nutrition.
-    }
 }

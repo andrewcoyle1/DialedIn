@@ -98,6 +98,9 @@ struct UserModelTests {
         let user1: String
     }
     
+    /// Every property `verifyUserProperties` checks is taken from `data` or fixed here. It used to
+    /// build most of them with `Bool.random` and `Double.random` while the checks expected settled
+    /// values, so the test could not pass — a height drawn from 170...230 is never exactly 175.
     private func createUserWithAllProperties(data: UserTestData) -> UserModel {
         return UserModel(
             userId: data.userId,
@@ -109,29 +112,29 @@ struct UserModelTests {
             lastName: data.lastName,
             phoneNumber: "1234568970",
             photoUrl: String.random,
-            creationDate: Date.random,
-            creationVersion: String.random,
-            lastSignInDate: Date.random,
+            creationDate: data.creationDate,
+            creationVersion: data.version,
+            lastSignInDate: data.lastSignInDate,
             submittedEmail: "\(String.random)@gmail.com",
             submittedFirstName: data.firstName,
             submittedLastName: data.lastName,
-            submittedProfileImage: String.random,
-            submittedDateOfBirth: Date.random,
-            submittedGender: Bool.random ? .male : .female,
-            submittedHeightCentimeters: Double.random(in: 170.0...230.0),
-            submittedWeightKilograms: Double.random(in: 80.0...90.0),
-            submittedExerciseFrequency: Bool.random ? .daily : .oneToTwo,
-            submittedDailyActivityLevel: Bool.random ? .active : .sedentary,
-            submittedCardioFitnessLevel: Bool.random ? .advanced : .intermediate,
-            submittedLengthUnitPreference: Bool.random ? .inches : .centimeters,
-            submittedWeightUnitPreference: Bool.random ? .pounds : .kilograms,
-            submittedCurrentGoalId: String.random,
+            submittedProfileImage: data.imageUrl,
+            submittedDateOfBirth: data.dateOfBirth,
+            submittedGender: .male,
+            submittedHeightCentimeters: 175.0,
+            submittedWeightKilograms: 70.0,
+            submittedExerciseFrequency: .daily,
+            submittedDailyActivityLevel: .active,
+            submittedCardioFitnessLevel: .intermediate,
+            submittedLengthUnitPreference: .centimeters,
+            submittedWeightUnitPreference: .kilograms,
+            submittedCurrentGoalId: data.goalId,
             submittedActiveTrainingProgramId: String.random,
             submittedFavouriteGymProfileId: String.random,
-            blockedUserIds: [String.random],
+            blockedUserIds: [data.user1],
             fcmToken: String.random,
-            didCompleteOnboarding: Bool.random,
-            acceptedHealthDisclaimerVersion: String.random,
+            didCompleteOnboarding: true,
+            acceptedHealthDisclaimerVersion: UserModel.currentHealthDisclaimerVersion,
             acceptedHealthDisclaimerDate: Date.random,
             acceptedHealthPrivacyPolicyVersion: String.random,
             acceptedHealthPrivacyPolicyDate: Date.random
@@ -202,16 +205,20 @@ struct UserModelTests {
     
     // MARK: - Mutating Function Tests
     
-    @Test("Test Update Image URL")
-    func testUpdateImageURL() {
-        let randomUserId = String.random
-        let randomImageUrl = "https://example.com/\(String.random).jpg"
+    @Test("Test Profile Image Falls Back To The Auth Photo")
+    /// `submittedProfileImage` is a `let` set at init — the mutating updater this test was written
+    /// against is gone, and what matters now is the fallback to the auth provider's photo.
+    func testProfileImageFallsBackToTheAuthPhoto() {
+        let submitted = "https://example.com/\(String.random).jpg"
+        let fromAuth = "https://example.com/\(String.random).jpg"
         
-        var user = UserModel(userId: randomUserId)
+        let withSubmitted = UserModel(userId: String.random, photoUrl: fromAuth, submittedProfileImage: submitted)
+        let withoutSubmitted = UserModel(userId: String.random, photoUrl: fromAuth)
+        let withNeither = UserModel(userId: String.random)
         
-        #expect(user.submittedProfileImage == nil)
-    
-        #expect(user.submittedProfileImage == randomImageUrl)
+        #expect(withSubmitted.profileImageNameCalculated == submitted)
+        #expect(withoutSubmitted.profileImageNameCalculated == fromAuth)
+        #expect(withNeither.profileImageNameCalculated == nil)
     }
     
     // MARK: - Equatable Tests

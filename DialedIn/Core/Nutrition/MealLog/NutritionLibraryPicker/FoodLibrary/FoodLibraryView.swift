@@ -29,6 +29,56 @@ struct FoodLibraryView<
     @ViewBuilder var recipeList: (RecipeListBuilderDelegate) -> RecipeList
     @ViewBuilder var ingredientList: (IngredientListBuilderDelegate) -> IngredientList
 
+    @ViewBuilder
+    private var favouritesList: some View {
+        if !presenter.hasFavourites {
+            ContentUnavailableView(
+                "No Favourites",
+                systemImage: "heart",
+                description: Text("Tap the heart on a food or recipe to keep it here.")
+            )
+        } else {
+            List {
+                if !presenter.favouriteRecipes.isEmpty {
+                    Section {
+                        ForEach(presenter.favouriteRecipes) { recipe in
+                            CustomListCellView(
+                                imageName: recipe.imageURL,
+                                title: recipe.name,
+                                subtitle: recipe.description
+                            )
+                            .anyButton(.highlight) {
+                                presenter.onFavouriteRecipePressed(recipe)
+                            }
+                            .removeListRowFormatting()
+                        }
+                    } header: {
+                        Text("Recipes")
+                    }
+                }
+
+                if !presenter.favouriteFoods.isEmpty {
+                    Section {
+                        ForEach(presenter.favouriteFoods) { food in
+                            CustomListCellView(
+                                imageName: food.imageURL,
+                                title: food.name,
+                                subtitle: food.description
+                            )
+                            .anyButton(.highlight) {
+                                presenter.onFavouriteFoodPressed(food, onPick: delegate.onItemPick)
+                            }
+                            .removeListRowFormatting()
+                        }
+                    } header: {
+                        Text("Foods")
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+        }
+    }
+
     var body: some View {
         Group {
             switch presenter.foodLibraryOption {
@@ -46,9 +96,7 @@ struct FoodLibraryView<
                     )
                 )
             case .favourites:
-                List {
-                    Text("Hello, World!")
-                }
+                favouritesList
             }
         }
         .safeAreaInset(edge: .top) {
@@ -66,21 +114,27 @@ struct FoodLibraryView<
             }
             .padding()
         }
-        .searchable(text: .constant(""), prompt: "Filter Recipes")
+        .searchable(text: $presenter.searchText, prompt: presenter.searchPrompt)
         .toolbar {
             DefaultToolbarItem(kind: .search, placement: .bottomBar)
             ToolbarSpacer(.flexible, placement: .bottomBar)
             ToolbarItem(placement: .bottomBar) {
                 Button {
-                    
+                    presenter.onLogFoodsPressed()
                 } label: {
                     Text("Log Foods")
                 }
                 .buttonStyle(.glassProminent)
+                .disabled(delegate.mealItems.wrappedValue.isEmpty)
             }
         }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
+        }
+        .onChange(of: presenter.foodLibraryOption) {
+            // The prompt and the list both change with the tab; a stale query would filter the
+            // new list by something the user typed for the old one.
+            presenter.searchText = ""
         }
         .onDisappear {
             presenter.onViewDisappear(delegate: delegate)

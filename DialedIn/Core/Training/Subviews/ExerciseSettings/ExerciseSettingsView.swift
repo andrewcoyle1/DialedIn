@@ -50,14 +50,17 @@ struct ExerciseSettingsView: View {
                     }
                     .buttonStyle(.bordered)
                 }
-                if delegate.exercise.laterality == .unilateral {
+                // Shown for exercises worked one limb at a time, which is read off the metrics
+                // the exercise is tracked by. It used to be gated on `laterality`, which nearly
+                // every exercise leaves empty, so the row almost never appeared.
+                if presenter.isPerSide {
                     CustomLabelButtonView(
                         symbolName: "arrow.trianglehead.branch",
                         title: "Rest Between Left/Right Sets",
-                        subtitle: presenter.restSubtitle
+                        subtitle: presenter.sideSetRestSubtitle
                     ) {
                         Button {
-                            presenter.onRestTimerPressed()
+                            presenter.onSideSetRestPressed()
                         } label: {
                             Text("Edit")
                         }
@@ -76,24 +79,11 @@ struct ExerciseSettingsView: View {
                     }
                     .buttonStyle(.bordered)
                 }
-                CustomToggleView(
-                    symbolName: "nosign",
-                    title: "Do Not Recommend",
-                    subtitle: "Exclude from automatic program suggestions",
-                    bool: .constant(false)
-                )
-                .disabled(true)
-                CustomLabelButtonView(
-                    symbolName: "book.pages",
-                    title: "Edit Duplicate",
-                    subtitle: "To edit all available exercise properties, create a duplicate."
-                ) {
-                    Button {
-
-                    } label: {
-                        Image(systemName: "chevron.right")
-                    }
-                }
+                // Two rows removed rather than left inert:
+                // - "Do Not Recommend" was a disabled toggle bound to .constant(false), and there
+                //   is no program-suggestion engine for it to exclude an exercise from.
+                // - "Edit Duplicate" needs CreateExercise to accept a prefill; showCreateExerciseView
+                //   takes no delegate today, so routing there would open an empty form, not a copy.
             } header: {
                 Text(delegate.exercise.name)
             }

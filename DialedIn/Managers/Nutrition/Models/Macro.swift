@@ -93,9 +93,29 @@ enum NutrientKey: String, CaseIterable, Codable, Hashable, MacroNutrient {
     case fatSaturated         = "fat_saturated"
     case fatMonounsaturated   = "fat_monounsaturated"
     case fatPolyunsaturated   = "fat_polyunsaturated"
+    case fatTrans             = "fat_trans"
+    case omega3               = "omega_3"
+    case omega3Ala            = "omega_3_ala"
+    case omega3Dha            = "omega_3_dha"
+    case omega3Epa            = "omega_3_epa"
+    case omega6               = "omega_6"
     // Carb breakdown
     case fiber
     case sugar
+    case addedSugars          = "added_sugars"
+    case starch
+    // Amino acids
+    case cysteine
+    case histidine
+    case isoleucine
+    case leucine
+    case lysine
+    case methionine
+    case phenylalanine
+    case threonine
+    case tryptophan
+    case tyrosine
+    case valine
     // Minerals
     case sodiumMg             = "sodium_mg"
     case potassiumMg          = "potassium_mg"
@@ -128,6 +148,8 @@ enum NutrientKey: String, CaseIterable, Codable, Hashable, MacroNutrient {
     // Other
     case caffeineMg           = "caffeine_mg"
     case cholesterolMg        = "cholesterol_mg"
+    case alcohol
+    case water
 
     var name: String {
         switch self {
@@ -138,8 +160,27 @@ enum NutrientKey: String, CaseIterable, Codable, Hashable, MacroNutrient {
         case .fatSaturated:       return "Saturated Fat"
         case .fatMonounsaturated: return "Monounsaturated Fat"
         case .fatPolyunsaturated: return "Polyunsaturated Fat"
+        case .fatTrans:           return "Trans Fat"
+        case .omega3:             return "Omega-3"
+        case .omega3Ala:          return "Omega-3 ALA"
+        case .omega3Dha:          return "Omega-3 DHA"
+        case .omega3Epa:          return "Omega-3 EPA"
+        case .omega6:             return "Omega-6"
         case .fiber:              return "Fiber"
         case .sugar:              return "Sugar"
+        case .addedSugars:        return "Added Sugars"
+        case .starch:             return "Starch"
+        case .cysteine:           return "Cysteine"
+        case .histidine:          return "Histidine"
+        case .isoleucine:         return "Isoleucine"
+        case .leucine:            return "Leucine"
+        case .lysine:             return "Lysine"
+        case .methionine:         return "Methionine"
+        case .phenylalanine:      return "Phenylalanine"
+        case .threonine:          return "Threonine"
+        case .tryptophan:         return "Tryptophan"
+        case .tyrosine:           return "Tyrosine"
+        case .valine:             return "Valine"
         case .sodiumMg:           return "Sodium"
         case .potassiumMg:        return "Potassium"
         case .calciumMg:          return "Calcium"
@@ -169,6 +210,8 @@ enum NutrientKey: String, CaseIterable, Codable, Hashable, MacroNutrient {
         case .pantothenicAcidMg:  return "Pantothenic Acid"
         case .caffeineMg:         return "Caffeine"
         case .cholesterolMg:      return "Cholesterol"
+        case .alcohol:            return "Alcohol"
+        case .water:              return "Water"
         }
     }
 
@@ -177,7 +220,11 @@ enum NutrientKey: String, CaseIterable, Codable, Hashable, MacroNutrient {
         case .calories:
             return "kcal"
         case .protein, .carbs, .fatTotal, .fatSaturated, .fatMonounsaturated,
-             .fatPolyunsaturated, .fiber, .sugar:
+             .fatPolyunsaturated, .fatTrans, .omega3, .omega3Ala, .omega3Dha, .omega3Epa, .omega6,
+             .fiber, .sugar, .addedSugars, .starch,
+             .cysteine, .histidine, .isoleucine, .leucine, .lysine, .methionine, .phenylalanine,
+             .threonine, .tryptophan, .tyrosine, .valine,
+             .alcohol, .water:
             return "g"
         case .sodiumMg, .potassiumMg, .calciumMg, .ironMg, .magnesiumMg, .zincMg, .copperMg,
              .manganeseMg, .phosphorusMg, .chlorideMg, .vitaminB6Mg, .vitaminCMg, .vitaminEMg,
@@ -193,11 +240,13 @@ enum NutrientKey: String, CaseIterable, Codable, Hashable, MacroNutrient {
         switch self {
         case .calories:
             return nil
-        case .protein:
+        case .protein, .cysteine, .histidine, .isoleucine, .leucine, .lysine, .methionine,
+             .phenylalanine, .threonine, .tryptophan, .tyrosine, .valine:
             return .protein
-        case .carbs, .fiber, .sugar:
+        case .carbs, .fiber, .sugar, .addedSugars, .starch:
             return .carbs
-        case .fatTotal, .fatSaturated, .fatMonounsaturated, .fatPolyunsaturated:
+        case .fatTotal, .fatSaturated, .fatMonounsaturated, .fatPolyunsaturated, .fatTrans,
+             .omega3, .omega3Ala, .omega3Dha, .omega3Epa, .omega6:
             return .fat
         case .sodiumMg, .potassiumMg, .calciumMg, .ironMg, .magnesiumMg, .zincMg, .copperMg,
              .manganeseMg, .phosphorusMg, .seleniumMcg, .chlorideMg, .chromiumMcg, .molybdenumMcg:
@@ -206,7 +255,7 @@ enum NutrientKey: String, CaseIterable, Codable, Hashable, MacroNutrient {
              .vitaminKMcg, .biotinMcg, .folateMcg, .iodineMcg, .niacinMg, .thiaminMg, .riboflavinMg,
              .pantothenicAcidMg:
             return .vitamins
-        case .caffeineMg, .cholesterolMg:
+        case .caffeineMg, .cholesterolMg, .alcohol, .water:
             return .other
         }
     }

@@ -17,16 +17,12 @@ class GoalProgressPresenter {
     }
     
     private(set) var cachedEntries: [GoalProgressEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
     private(set) var currentWeightKg: Double?
 
     init(interactor: GoalProgressInteractor, router: GoalProgressRouter) {
         self.interactor = interactor
         self.router = router
-    }
-
-    func loadData() {
-        rebuildCaches()
     }
 
     func onDismissPressed() {
@@ -67,15 +63,18 @@ class GoalProgressPresenter {
             TimeSeriesDatapoint(id: $0.id, date: $0.date, value: $0.progressPercent)
         }
         cachedTimeSeries = [
-            TimeSeriesData.TimeSeries(name: "Progress", data: progressData)
+            TimeSeries(name: "Progress", data: progressData)
         ]
     }
 }
 
 extension GoalProgressPresenter: @MainActor MetricDetailPresenter {
     
+    /// `MetricDetailView` calls this, and it was empty. `rebuildCaches()` had one caller, a
+    /// `loadData()` with no call sites of its own, so nothing ever populated `cachedEntries` and the
+    /// screen came up empty however much weight history existed. `loadData()` is gone with the gap.
     func onAppear() async {
-        
+        rebuildCaches()
     }
     
     typealias Entry = GoalProgressEntry
@@ -84,7 +83,7 @@ extension GoalProgressPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
     }
 
@@ -168,7 +167,6 @@ extension GoalProgressPresenter: @MainActor MetricDetailPresenter {
             emptyStateMessage: activeGoal == nil
                 ? "Set a weight goal in Profile to track your progress."
                 : "Log your weight to track progress toward your target.",
-            pageSize: 20,
             chartColor: .green
         )
     }
@@ -177,8 +175,4 @@ extension GoalProgressPresenter: @MainActor MetricDetailPresenter {
         onAddWeightPressed()
     }
 
-    func onDeleteEntry(_ entry: GoalProgressEntry) async {
-        // Goal progress entries are derived from weight entries; deletion not supported here
-        // User manages weight entries from Scale Weight view
-    }
 }

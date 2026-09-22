@@ -23,25 +23,27 @@ struct NutritionView<
     
     @State var presenter: NutritionPresenter
     let delegate: NutritionDelegate
-    @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
+    let profileTransitionId: String = "profile_button_transition"
+    
+    @ViewBuilder var calendarHeader: (CalendarHeaderDelegate, Binding<Bool>) -> CalendarHeaderView
     @ViewBuilder var mealHourHeader: (MealHourHeaderDelegate) -> MealHeader
     @Namespace private var namespace
-        
+
+    @State private var isCalendarExpanded = false
+
     var body: some View {
         List {
-            ringsSection
             mealLogSection
             moreSection
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear { presenter.onViewAppear(delegate: delegate) }
         .onDisappear { presenter.onViewDisappear(delegate: delegate) }
         .toolbar {
             toolbarContent
         }
-        .toolbarRole(.browser)
         .safeAreaInset(edge: .top) {
             topSafeAreaSection
         }
@@ -49,71 +51,76 @@ struct NutritionView<
     
     @ViewBuilder
     private var topSafeAreaSection: some View {
-        if presenter.showCalendarWeekBanner {
-            calendarHeader(
-                CalendarHeaderDelegate(
-                    onDatePressed: { date in
-                        presenter.selectedDate = date.startOfDay
-                    },
-                    getForDate: { date in
-                        presenter.getMealCountForDate(
-                            date: date
-                        )
-                    }
+        VStack(spacing: 0) {
+            if presenter.showCalendarWeekBanner {
+                calendarHeader(
+                    CalendarHeaderDelegate(
+                        onDatePressed: { date in
+                            presenter.selectedDate = date.startOfDay
+                        },
+                        markersByDay: {
+                            presenter.calorieMarkersByDay()
+                        }
+                    ),
+                    $isCalendarExpanded
                 )
-            )
-        }
-    }
-    
-    @ViewBuilder
-    private var ringsSection: some View {
-        if let dailyTotals = presenter.dailyTotals,
-        let dailyTarget = presenter.dailyTarget {
-            Section {
+            }
+            if let dailyTotals = presenter.dailyTotals,
+            let dailyTarget = presenter.dailyTarget {
                 MacroHeader(
                     dailyTotals: dailyTotals,
                     dailyTarget: dailyTarget,
                     showCaloriesRing: presenter.showCaloriesRing,
                     showProteinRing: presenter.showProteinRing,
                     showFatRing: presenter.showFatRing,
-                    showCarbsRing: presenter.showCarbsRing
+                    showCarbsRing: presenter.showCarbsRing,
+                    showOverages: presenter.showOverages
                 )
-                .listRowInsets(.horizontal, 0)
             }
-            .listSectionMargins(.top, 0)
         }
+        .background(.bar)
     }
     
+    // MARK: - Timeline
+
+    /// The day's meals, an hour at a time. `presenter.timelineHours` has already dropped the empty
+    /// hours if the setting asks for it, so there is nothing to filter here.
     private var mealLogSection: some View {
-        ForEach(presenter.workingHours, id: \.self) { hour in
-            let hourssMeals = presenter.meals(inHour: hour)
-            Section {
-                mealHourHeader(MealHourHeaderDelegate(hour: hour, meals: hourssMeals))
-            }
-            .listSectionMargins(.horizontal, 0)
-            .padding(.horizontal)
-            ForEach(hourssMeals) { meal in
-                Section {
-                    ForEach(meal.items) { item in
-                        mealItemRow(item, meal: meal)
-                    }
-                }
-            }
+        ForEach(presenter.timelineHours) { timelineHour in
+            hourHeaderSection(timelineHour)
+            mealSections(timelineHour)
         }
         .listRowSeparator(.hidden)
         .listSectionMargins(.vertical, 0)
         .listSectionSpacing(0)
     }
 
+    private func hourHeaderSection(_ timelineHour: NutritionPresenter.TimelineHour) -> some View {
+        Section {
+            mealHourHeader(
+                MealHourHeaderDelegate(hour: timelineHour.hour, meals: timelineHour.meals)
+            )
+        }
+        .listSectionMargins(.horizontal, 0)
+        .padding(.horizontal)
+    }
+
+    /// A section per meal, so the items logged together stay grouped under one time.
+    private func mealSections(_ timelineHour: NutritionPresenter.TimelineHour) -> some View {
+        ForEach(timelineHour.meals) { meal in
+            Section {
+                ForEach(meal.items) { item in
+                    mealItemRow(item, meal: meal)
+                }
+            }
+        }
+    }
+
     private func mealItemRow(_ item: MealItemModel, meal: MealLogModel) -> some View {
         MealItemRowView(
-            mealLogModel: meal,
             item: item,
-            showTimestamp: presenter.showsFoodTimestamps,
-            timestampSide: presenter.timestampSide,
-            showImage: presenter.showFoodImageInTimeline,
-            showCalories: presenter.showCaloriesInTimeline,
-            showMacros: presenter.showMacrosInTimeline,
+            timestamp: presenter.timestamp(for: item, in: meal),
+            style: presenter.mealItemRowStyle,
             onEditPressed: { mealItem in
                 presenter.onEditMealItem(mealItem)
             }
@@ -121,10 +128,21 @@ struct NutritionView<
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(role: .destructive) {
                 presenter.deleteMealItem(item, from: meal)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            Button {
+                presenter.onViewMealPressed(meal)
+            } label: {
+                Label("Meal", systemImage: "list.bullet.rectangle")
             }
         }
     }
-    
+
+    // MARK: - More
+
     private var moreSection: some View {
         Section {
             Group {
@@ -163,30 +181,29 @@ struct NutritionView<
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
+                isCalendarExpanded = true
+            } label: {
+                Image(systemName: "calendar")
+            }
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
                 presenter.onTimelineActionsPressed()
             } label: {
                 Image(systemName: "line.3.horizontal")
             }
         }
-        
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
         ToolbarItem(placement: .topBarTrailing) {
-            let avatarSize: CGFloat = 44
-            
-            Button {
-                presenter.onProfilePressed()
-            } label: {
-                ZStack {
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 24))
-                    if let urlString = presenter.userImageUrl {
-                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                            .frame(width: avatarSize, height: avatarSize)
-                            .contentShape(Circle())
-                    }
-                }
-            }
+            ProfileButton(
+                action: {
+                    presenter.onProfilePressed(transitionId: profileTransitionId, namespace: namespace)
+                },
+                imageUrl: presenter.userImageUrl
+            )
+            .matchedTransitionSource(id: profileTransitionId, in: namespace)
         }
-        .sharedBackgroundVisibility(.hidden)
     }
 }
 
@@ -206,8 +223,12 @@ extension CoreBuilder {
                 router: CoreRouter(router: router, builder: self)
             ),
             delegate: delegate,
-            calendarHeader: { delegate in
-                self.calendarHeaderView(router: router, delegate: delegate)
+            calendarHeader: { delegate, isCalendarExpanded in
+                self.calendarHeaderView(
+                    router: router,
+                    delegate: delegate,
+                    isCalendarExpanded: isCalendarExpanded
+                )
             },
             mealHourHeader: { delegate in
                 self.mealHourHeader(router: router, delegate: delegate)

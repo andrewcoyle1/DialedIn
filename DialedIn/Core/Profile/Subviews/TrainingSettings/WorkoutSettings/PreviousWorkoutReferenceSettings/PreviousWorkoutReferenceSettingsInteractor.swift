@@ -1,6 +1,9 @@
 import SwiftUI
 
 @MainActor
-protocol PreviousWorkoutReferenceSettingsInteractor: GlobalInteractor { }
+protocol PrevWORefSettingsInteractor: GlobalInteractor {
+    var workoutSettings: WorkoutSettings { get }
+    func saveWorkoutSettings(_ workoutSettings: WorkoutSettings) async throws
+}
 
-extension CoreInteractor: PreviousWorkoutReferenceSettingsInteractor { }
+extension CoreInteractor: PrevWORefSettingsInteractor { }

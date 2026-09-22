@@ -67,17 +67,16 @@ struct ExerciseSaveView: View {
             presenter.onViewDisappear(delegate: delegate)
         }
         .safeAreaInset(edge: .bottom) {
-            VStack {
-                CallToActionButton {
-                    presenter.onCreateAndAddPressed(delegate: delegate)
-                } label: {
-                    Text("Create & Add")
-                }
-                CallToActionButton(isPrimaryAction: false) {
-                    presenter.onCreatePressed(delegate: delegate)
-                } label: {
-                    Text("Create")
-                }
+            // A "Create & Add" button sat above this one with an empty action. "Add" means adding the
+            // new exercise to whatever the user was building, but `showCreateExerciseView()` takes no
+            // delegate in any of its five router protocols, so four of its five entry points have
+            // nothing to add to. Wiring it means threading a callback from ExerciseListBuilder through
+            // CreateExercise to here — the same prefill plumbing ExerciseSettings' "Edit Duplicate"
+            // needs, noted there too.
+            CallToActionButton {
+                presenter.onCreatePressed(delegate: delegate)
+            } label: {
+                Text("Create")
             }
             .padding(.bottom)
         }

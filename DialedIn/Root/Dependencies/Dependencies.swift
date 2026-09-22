@@ -5,6 +5,14 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
+// `Dependencies` is the app's single DI root: one `init(config:)` whose three switch arms wire
+// every manager for the chosen build configuration, followed by a flat registration list. The
+// arms each bind ~32 locals that the registration block consumes, so splitting them into
+// functions would mean threading all 32 through a carrier type — scattering the wiring without
+// making it simpler. The init is already exempt from `function_body_length` for the same
+// reason; these two rules are scoped here on the same grounds.
+// swiftlint:disable type_body_length file_length
+
 @MainActor
 struct Dependencies {
     let container: DependencyContainer
@@ -26,6 +34,9 @@ struct Dependencies {
         let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
         let workoutSettingsManager: WorkoutSettingsManager
         let foodLogSettingsManager: FoodLogSettingsManager
+        let nutritionStrategySettingsManager: NutritionStrategySettingsManager
+        let analyticsSettingsManager: AnalyticsSettingsManager
+        let shortcutSettingsManager: ShortcutSettingsManager
         let exerciseSettingsManager: ExerciseSettingsManager
         let workoutTemplateManager: WorkoutTemplateManager
         let workoutSessionManager: WorkoutSessionManager
@@ -112,7 +123,7 @@ struct Dependencies {
             purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
             abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
             let userExerciseSyncEngine = CollectionSyncEngine<ExerciseModel>(
-                remote: MockRemoteCollectionService(collection: ExerciseModel.mocks),
+                remote: MockRemoteCollectionService(collection: ExerciseModel.userMocks),
                 managerKey: Keys.userExerciseManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -141,8 +152,29 @@ struct Dependencies {
                 logger: logManager
             )
             foodLogSettingsManager = FoodLogSettingsManager(foodLogSettingsSyncEngine: foodLogSettingsSyncEngine)
+            let nutritionStrategySyncEngine = DocumentSyncEngine<NutritionStrategySettings>(
+                remote: MockRemoteDocumentService(document: NutritionStrategySettings.mock),
+                managerKey: Keys.nutritionStrategySettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            nutritionStrategySettingsManager = NutritionStrategySettingsManager(settingsSyncEngine: nutritionStrategySyncEngine)
+            let analyticsSettingsSyncEngine = DocumentSyncEngine<AnalyticsSettings>(
+                remote: MockRemoteDocumentService(document: AnalyticsSettings.mock),
+                managerKey: Keys.analyticsSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            analyticsSettingsManager = AnalyticsSettingsManager(settingsSyncEngine: analyticsSettingsSyncEngine)
+            let shortcutSettingsSyncEngine = DocumentSyncEngine<ShortcutSettings>(
+                remote: MockRemoteDocumentService(document: ShortcutSettings.mock),
+                managerKey: Keys.shortcutSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            shortcutSettingsManager = ShortcutSettingsManager(settingsSyncEngine: shortcutSettingsSyncEngine)
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
-                remote: MockRemoteCollectionService(collection: WorkoutTemplateModel.mocks),
+                remote: MockRemoteCollectionService(collection: WorkoutTemplateModel.userMocks),
                 managerKey: Keys.workoutTemplateManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
@@ -330,6 +362,42 @@ struct Dependencies {
                 logger: logManager
             )
             foodLogSettingsManager = FoodLogSettingsManager(foodLogSettingsSyncEngine: foodLogSettingsSyncEngineDev)
+            let nutritionStrategySyncEngineDev = DocumentSyncEngine<NutritionStrategySettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/nutrition_strategy_settings"
+                    }
+                ),
+                managerKey: Keys.nutritionStrategySettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            nutritionStrategySettingsManager = NutritionStrategySettingsManager(settingsSyncEngine: nutritionStrategySyncEngineDev)
+            let analyticsSettingsSyncEngineDev = DocumentSyncEngine<AnalyticsSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/analytics_settings"
+                    }
+                ),
+                managerKey: Keys.analyticsSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            analyticsSettingsManager = AnalyticsSettingsManager(settingsSyncEngine: analyticsSettingsSyncEngineDev)
+            let shortcutSettingsSyncEngineDev = DocumentSyncEngine<ShortcutSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/shortcut_settings"
+                    }
+                ),
+                managerKey: Keys.shortcutSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            shortcutSettingsManager = ShortcutSettingsManager(settingsSyncEngine: shortcutSettingsSyncEngineDev)
 
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
                 remote: FirebaseRemoteCollectionService(
@@ -566,6 +634,42 @@ struct Dependencies {
                 logger: logManager
             )
             foodLogSettingsManager = FoodLogSettingsManager(foodLogSettingsSyncEngine: foodLogSettingsSyncEngineProd)
+            let nutritionStrategySyncEngineProd = DocumentSyncEngine<NutritionStrategySettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/nutrition_strategy_settings"
+                    }
+                ),
+                managerKey: Keys.nutritionStrategySettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            nutritionStrategySettingsManager = NutritionStrategySettingsManager(settingsSyncEngine: nutritionStrategySyncEngineProd)
+            let analyticsSettingsSyncEngineProd = DocumentSyncEngine<AnalyticsSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/analytics_settings"
+                    }
+                ),
+                managerKey: Keys.analyticsSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            analyticsSettingsManager = AnalyticsSettingsManager(settingsSyncEngine: analyticsSettingsSyncEngineProd)
+            let shortcutSettingsSyncEngineProd = DocumentSyncEngine<ShortcutSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/shortcut_settings"
+                    }
+                ),
+                managerKey: Keys.shortcutSettingsManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            shortcutSettingsManager = ShortcutSettingsManager(settingsSyncEngine: shortcutSettingsSyncEngineProd)
             let userWorkoutTemplateSyncEngine = CollectionSyncEngine<WorkoutTemplateModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: {[weak authManager] in
@@ -736,6 +840,10 @@ struct Dependencies {
         hapticManager = HapticManager(logger: logManager)
         soundEffectManager = SoundEffectManager(logger: logManager)
 
+        // No configuration-specific setup — it holds only what the app learns at runtime, so
+        // every build configuration starts it the same way: unresolved.
+        let premiumEntitlementResolution = PremiumEntitlementResolution()
+
         let container = DependencyContainer()
         container.register(AuthManager.self, service: authManager)
         container.register(UserManager.self, service: userManager)
@@ -746,6 +854,9 @@ struct Dependencies {
         container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
         container.register(WorkoutSettingsManager.self, service: workoutSettingsManager)
         container.register(FoodLogSettingsManager.self, service: foodLogSettingsManager)
+        container.register(NutritionStrategySettingsManager.self, service: nutritionStrategySettingsManager)
+        container.register(AnalyticsSettingsManager.self, service: analyticsSettingsManager)
+        container.register(ShortcutSettingsManager.self, service: shortcutSettingsManager)
         container.register(ExerciseSettingsManager.self, service: exerciseSettingsManager)
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
@@ -768,6 +879,7 @@ struct Dependencies {
         container.register(LiveActivityManager.self, service: liveActivityManager)
         #endif
         container.register(AppState.self, service: appState)
+        container.register(PremiumEntitlementResolution.self, service: premiumEntitlementResolution)
         container.register(ImageUploadManager.self, service: imageUploadManager)
         container.register(HapticManager.self, service: hapticManager)
         container.register(SoundEffectManager.self, service: soundEffectManager)
@@ -780,3 +892,5 @@ struct Dependencies {
         self.container = container
     }
 }
+
+// swiftlint:enable type_body_length file_length

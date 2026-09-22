@@ -128,7 +128,12 @@ class ActiveTrainingProgramPresenter {
 
     func openCompletedSession(sessionId: String) {
         interactor.trackEvent(event: Event.openCompletedSessionStart)
-        guard let session = workoutSessions.first(where: { $0.id == sessionId }) else { return }
+        guard let session = workoutSessions.first(where: { $0.id == sessionId }) else {
+            // Same blind spot as the Training tab: a silent return left a Start with no terminal
+            // event, so a session vanishing mid-tap was indistinguishable from an unopened screen.
+            interactor.trackEvent(event: Event.openCompletedSessionFail(error: TrainingError.sessionNotFound))
+            return
+        }
         router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
         interactor.trackEvent(event: Event.openCompletedSessionSuccess)
     }

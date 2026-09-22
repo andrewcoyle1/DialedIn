@@ -11,7 +11,21 @@ struct LicencesView: View {
     
     var body: some View {
         List {
-            Text("Hello, World!")
+            Section {
+                Text("Compound is built on the open-source packages below. Thank you to everyone who maintains them.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            ForEach(presenter.groups, id: \.licence) { group in
+                Section {
+                    ForEach(group.packages) { package in
+                        row(for: package)
+                    }
+                } header: {
+                    Text(group.licence)
+                }
+            }
         }
         .navigationTitle("Licences")
         .navigationBarTitleDisplayMode(.inline)
@@ -30,6 +44,28 @@ struct LicencesView: View {
         .onDisappear {
             presenter.onViewDisappear()
         }
+    }
+
+    @ViewBuilder
+    private func row(for package: Licence) -> some View {
+        if let url = package.repositoryURL {
+            Link(destination: url) {
+                rowLabel(for: package)
+            }
+            .foregroundStyle(.primary)
+        } else {
+            rowLabel(for: package)
+        }
+    }
+
+    private func rowLabel(for package: Licence) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(package.name)
+            Text(package.owner)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

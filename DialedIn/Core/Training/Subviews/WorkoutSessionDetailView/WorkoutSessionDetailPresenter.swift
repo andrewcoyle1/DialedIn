@@ -14,6 +14,11 @@ class WorkoutSessionDetailPresenter {
     private let router: WorkoutSessionDetailRouter
 
     private(set) var isEditMode = false
+
+    /// Who logged this workout, once it is known. The header used to be handed `UserModel.mock`,
+    /// so every session — including a stranger's from the feed — was shown as written by a
+    /// fictional user, whose profile it opened on a tap.
+    private(set) var author: UserModel?
     private(set) var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
         
     var isSaving: Bool = false
@@ -23,8 +28,13 @@ class WorkoutSessionDetailPresenter {
     
     var selectedExerciseModels: [WorkoutTemplateExercise] = []
     
+    /// Whether the signed-in user wrote this workout, and so may edit or delete it.
+    ///
+    /// Both sides are optional, and comparing them directly made a signed-out reader the author of
+    /// an unattributed session, since `nil == nil`. Nobody owns a workout with no author.
     func isAuthor(sessionAuthorId: String?) -> Bool {
-        interactor.currentUser?.userId == sessionAuthorId
+        guard let userId = interactor.currentUser?.userId, let sessionAuthorId else { return false }
+        return userId == sessionAuthorId
     }
         
     func hasUnsavedChanges(session: WorkoutSessionModel, editedSession: WorkoutSessionModel) -> Bool {
@@ -39,6 +49,16 @@ class WorkoutSessionDetailPresenter {
         self.router = router
     }
     
+    func loadAuthor(for session: WorkoutSessionModel) async {
+        let authorId = session.authorId
+        if let currentUser = interactor.currentUser, currentUser.userId == authorId {
+            author = currentUser
+            return
+        }
+        // An author who cannot be read stays unknown: no header is better than someone else's name.
+        author = try? await interactor.getUser(userId: authorId)
+    }
+
     func totalSets(session: WorkoutSessionModel) -> Int {
         session
             .exercises
@@ -102,6 +122,54 @@ class WorkoutSessionDetailPresenter {
         router.dismissScreen()
     }
 
+    // MARK: - Timing
+
+    /// Presents the start-time picker.
+    var isEditingStartTime: Bool = false
+    /// Presents the duration picker.
+    var isEditingDuration: Bool = false
+    var durationHours: Int = 1
+    var durationMinutes: Int = 0
+
+    func onEditStartTimePressed() {
+        isEditingStartTime = true
+    }
+
+    func onEditDurationPressed(session: WorkoutSessionModel) {
+        let duration = session.endedAt?.timeIntervalSince(session.dateCreated) ?? 0
+        durationHours = Int(duration) / 3600
+        durationMinutes = (Int(duration) % 3600) / 60
+        isEditingDuration = true
+    }
+
+    /// Both timing edits save straight away rather than joining the exercise-editing flow — the
+    /// user changed one field in a picker and expects it kept.
+    func onStartTimeChanged(_ date: Date, session: Binding<WorkoutSessionModel>) {
+        session.wrappedValue.updateStart(date)
+        persistTimingChange(session.wrappedValue)
+    }
+
+    func onDurationConfirmed(session: Binding<WorkoutSessionModel>) {
+        let seconds = TimeInterval(durationHours * 3600 + durationMinutes * 60)
+        isEditingDuration = false
+        guard seconds > 0 else { return }
+        session.wrappedValue.updateDuration(seconds)
+        persistTimingChange(session.wrappedValue)
+    }
+
+    private func persistTimingChange(_ session: WorkoutSessionModel) {
+        Task {
+            do {
+                try await interactor.saveWorkoutSession(session)
+            } catch {
+                router.showSimpleAlert(
+                    title: "Save Failed",
+                    subtitle: "Unable to save the change. Please try again."
+                )
+            }
+        }
+    }
+
     func saveChanges(initialSession: WorkoutSessionModel, session: Binding<WorkoutSessionModel>) async {
         router.showLoadingModal()
         isSaving = true
@@ -145,45 +213,66 @@ class WorkoutSessionDetailPresenter {
     
     // MARK: - Set Management
     
+    /// Adds one more set — which is two rows for an exercise worked a side at a time, so editing a
+    /// past session can never leave a left with no right to follow it.
     func addSet(session: Binding<WorkoutSessionModel>, to exerciseId: String) {
-        
         guard let exerciseIndex = session.wrappedValue.exercises.firstIndex(where: { $0.id == exerciseId }),
-        let userId = interactor.currentUser?.userId else { return }
+              let userId = interactor.currentUser?.userId else { return }
+
         var updatedExercises = session.wrappedValue.exercises
-        let exercise = updatedExercises[exerciseIndex]
-        let newIndex = exercise.sets.count + 1
-        
-        // Create new set based on the last set's values or default
-        let lastSet = exercise.sets.last
-        let newSet = WorkoutSetModel(
-            id: UUID().uuidString,
-            authorId: userId,
-            index: newIndex,
-            reps: lastSet?.reps,
-            weightKg: lastSet?.weightKg,
-            durationSec: lastSet?.durationSec,
-            distanceMeters: lastSet?.distanceMeters,
-            rpe: lastSet?.rpe,
-            isWarmup: false,
-            completedAt: Date(),
-            dateCreated: Date()
-        )
-        
-        updatedExercises[exerciseIndex].sets.append(newSet)
+        let existingSets = updatedExercises[exerciseIndex].sets
+        // One past the highest index, not one past the count: deleting a set leaves a gap in the
+        // numbering, and counting instead of looking handed the new set an index another set
+        // already held. Duplicate indices are what last session's figures are matched on.
+        var nextIndex = (existingSets.map(\.index).max() ?? 0) + 1
+        let sides: [SetSide?] = updatedExercises[exerciseIndex].isPerSide ? SetSide.ordered.map { $0 } : [nil]
+
+        for side in sides {
+            // Carry forward the last set on the same side, so a left set copies the left limb's
+            // weight rather than the right one's.
+            let lastSet = existingSets.last(where: { side == nil || $0.side == side }) ?? existingSets.last
+            updatedExercises[exerciseIndex].sets.append(
+                WorkoutSetModel(
+                    id: UUID().uuidString,
+                    authorId: userId,
+                    index: nextIndex,
+                    reps: lastSet?.reps,
+                    weightKg: lastSet?.weightKg,
+                    durationSec: lastSet?.durationSec,
+                    distanceMeters: lastSet?.distanceMeters,
+                    rpe: lastSet?.rpe,
+                    side: side,
+                    isWarmup: false,
+                    // A set added to a finished workout is one the user did and forgot to log.
+                    completedAt: Date(),
+                    dateCreated: Date()
+                )
+            )
+            // Both halves of a pair keep their own index — they are told apart by `side`, never by
+            // sharing a number.
+            nextIndex += 1
+        }
+
         session.wrappedValue.updateExercises(updatedExercises)
     }
-    
+
+    /// Deleting half of a left/right pair would leave the other half standing alone, numbering and
+    /// counting as a set in its own right, so the pair goes together.
     func deleteSet(session: Binding<WorkoutSessionModel>, _ setId: String, from exerciseId: String) {
         guard let exerciseIndex = session.wrappedValue.exercises.firstIndex(where: { $0.id == exerciseId }) else { return }
-        
+
         var updatedExercises = session.wrappedValue.exercises
-        updatedExercises[exerciseIndex].sets.removeAll { $0.id == setId }
-        
-        // Reindex remaining sets
+        let removing = Set(updatedExercises[exerciseIndex].sets.pairedSetIds(for: setId))
+        guard !removing.isEmpty else { return }
+
+        updatedExercises[exerciseIndex].sets.removeAll { removing.contains($0.id) }
+
+        // Close the gap, or the numbers on screen skip and the next set added collides with one
+        // already there. Position gives every remaining row its own index, pairs included.
         for index in updatedExercises[exerciseIndex].sets.indices {
             updatedExercises[exerciseIndex].sets[index].index = index + 1
         }
-        
+
         session.wrappedValue.updateExercises(updatedExercises)
     }
     
@@ -215,7 +304,16 @@ class WorkoutSessionDetailPresenter {
             let index = startIndex + offset + 1
             let mode = WorkoutSessionModel.trackingMode(for: template.exercise)
             let targetCount = max(template.setTargets.count, 1)
-            let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId, targetCount: targetCount)
+            // An exercise added to a finished session has no sets to read a side off yet, so the
+            // exercise itself decides — the same call `WorkoutSessionModel` makes when it builds a
+            // session from a template. Without it a single-arm row joins as sideless rows and can
+            // never gain a side afterwards.
+            let defaultSets = WorkoutSessionModel.defaultSets(
+                trackingMode: mode,
+                authorId: userId,
+                targetCount: targetCount,
+                perSide: WorkoutSessionModel.isPerSide(template.exercise)
+            )
             let imageName = Constants.exerciseImageName(for: template.exercise.name)
             
             let newExercise = WorkoutExerciseModel(

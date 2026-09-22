@@ -26,7 +26,43 @@ class BodyMetricsPresenter {
     }
 
     func onMeasurementPressed(_ type: BodyMetricType, themeColor: Color?) {
-        routeToWeightOrUpperBody(type, themeColor: themeColor)
+        switch type {
+        case .scaleWeight:
+            router.showScaleWeightView(delegate: ScaleWeightDelegate(), themeColor: themeColor)
+        case .visualBodyFat:
+            router.showVisualBodyFatView(delegate: VisualBodyFatDelegate(), themeColor: themeColor)
+        default:
+            guard let kind = type.measurementKind else { return }
+            router.showBodyMeasurementDetailView(kind: kind, themeColor: themeColor)
+        }
+    }
+
+    // MARK: - Ratios
+
+    /// The two derived ratios, as cards in the same shape as the measured ones.
+    ///
+    /// These read as real numbers now. They previously showed "---" against a "Last 7 Entries"
+    /// subtitle with no action behind them, which claimed there was a history to look at.
+    var ratioCards: [BodyRatioCardModel] {
+        BodyRatioKind.allCases.map { kind in
+            let entries = BodyRatioPresenter.entries(
+                kind: kind,
+                measurements: bodyMeasurements,
+                heightCentimetres: interactor.currentUser?.submittedHeightCentimeters
+            )
+            let recent = Array(entries.suffix(7))
+            return BodyRatioCardModel(
+                id: kind,
+                title: kind.title,
+                subtitle: recent.isEmpty ? "No Entries" : "Last \(recent.count) Entries",
+                latestValueText: recent.last?.displayValue ?? "--",
+                sparklineData: recent.map { (date: $0.date, value: $0.ratio) }
+            )
+        }
+    }
+
+    func onRatioPressed(_ kind: BodyRatioKind, themeColor: Color?) {
+        router.showBodyRatioView(delegate: BodyRatioDelegate(kind: kind), themeColor: themeColor)
     }
 
     func onDismissPressed() {
@@ -79,16 +115,44 @@ class BodyMetricsPresenter {
         ]
     }
 
+    var weightUnit: WeightUnitPreference {
+        interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
+    }
+
+    var lengthUnit: LengthUnitPreference {
+        interactor.currentUser?.submittedLengthUnitPreference ?? .centimeters
+    }
+
+    /// Converts a stored value into what the user asked to see. Every circumference card used to
+    /// print its centimetres under the label "in" — a 40 cm neck read as 40 in — and the detail
+    /// screen behind the card said "cm" for the same number.
+    private func display(_ value: Double, as measure: BodyMetricType.Measure) -> Double {
+        switch measure {
+        case .weightKilograms:   return UnitConversion.convertWeight(value, to: weightUnit)
+        case .lengthCentimeters: return UnitConversion.convertLength(value, to: lengthUnit)
+        case .percentage:        return value
+        }
+    }
+
+    private func unitText(for measure: BodyMetricType.Measure) -> String {
+        switch measure {
+        case .weightKilograms:   return weightUnit.abbreviation
+        case .lengthCentimeters: return lengthUnit.measurementAbbreviation
+        case .percentage:        return "%"
+        }
+    }
+
     func displayModel(for type: BodyMetricType) -> BodyMetricCardModel {
         let entries = lastEntries(for: type)
+        let measure = type.measure
         let data = entries.compactMap { entry -> (date: Date, value: Double)? in
             guard let value = type.value(from: entry) else { return nil }
-            return (date: entry.date, value: value)
+            return (date: entry.date, value: display(value, as: measure))
         }
         let subtitle = entries.isEmpty ? "No Entries" : "Last 7 Entries"
         let latestValueText: String
         if let last = entries.last, let value = type.value(from: last) {
-            latestValueText = value.formatted(.number.precision(.fractionLength(1)))
+            latestValueText = display(value, as: measure).formatted(.number.precision(.fractionLength(1)))
         } else {
             latestValueText = "--"
         }
@@ -97,7 +161,7 @@ class BodyMetricsPresenter {
             title: type.displayTitle,
             subtitle: subtitle,
             latestValueText: latestValueText,
-            unitText: type.unit,
+            unitText: unitText(for: measure),
             sparklineData: data
         )
     }
@@ -111,68 +175,6 @@ class BodyMetricsPresenter {
         return Array(sorted.suffix(7))
     }
 
-    private func routeToWeightOrUpperBody(_ type: BodyMetricType, themeColor: Color?) {
-        switch type {
-        case .scaleWeight:
-            router.showScaleWeightView(delegate: ScaleWeightDelegate(), themeColor: themeColor)
-        case .visualBodyFat:
-            router.showVisualBodyFatView(delegate: VisualBodyFatDelegate(), themeColor: themeColor)
-        case .neck:
-            router.showNeckMeasurementView(delegate: NeckMeasurementDelegate(), themeColor: themeColor)
-        case .shoulders:
-            router.showShouldersMeasurementView(delegate: ShouldersMeasurementDelegate(), themeColor: themeColor)
-        case .bust:
-            router.showBustMeasurementView(delegate: BustMeasurementDelegate(), themeColor: themeColor)
-        case .chest:
-            router.showChestMeasurementView(delegate: ChestMeasurementDelegate(), themeColor: themeColor)
-        case .waist:
-            router.showWaistMeasurementView(delegate: WaistMeasurementDelegate(), themeColor: themeColor)
-        case .hips:
-            router.showHipsMeasurementView(delegate: HipsMeasurementDelegate(), themeColor: themeColor)
-        case .leftBicep, .rightBicep, .leftForearm, .rightForearm, .leftWrist, .rightWrist:
-            routeToArms(type, themeColor: themeColor)
-        case .leftThigh, .rightThigh, .leftCalf, .rightCalf, .leftAnkle, .rightAnkle:
-            routeToLegs(type, themeColor: themeColor)
-        }
-    }
-
-    private func routeToArms(_ type: BodyMetricType, themeColor: Color?) {
-        switch type {
-        case .leftBicep:
-            router.showLeftBicepMeasurementView(delegate: LeftBicepMeasurementDelegate(), themeColor: themeColor)
-        case .rightBicep:
-            router.showRightBicepMeasurementView(delegate: RightBicepMeasurementDelegate(), themeColor: themeColor)
-        case .leftForearm:
-            router.showLeftForearmMeasurementView(delegate: LeftForearmMeasurementDelegate(), themeColor: themeColor)
-        case .rightForearm:
-            router.showRightForearmMeasurementView(delegate: RightForearmMeasurementDelegate(), themeColor: themeColor)
-        case .leftWrist:
-            router.showLeftWristMeasurementView(delegate: LeftWristMeasurementDelegate(), themeColor: themeColor)
-        case .rightWrist:
-            router.showRightWristMeasurementView(delegate: RightWristMeasurementDelegate(), themeColor: themeColor)
-        default:
-            break
-        }
-    }
-
-    private func routeToLegs(_ type: BodyMetricType, themeColor: Color?) {
-        switch type {
-        case .leftThigh:
-            router.showLeftThighMeasurementView(delegate: LeftThighMeasurementDelegate(), themeColor: themeColor)
-        case .rightThigh:
-            router.showRightThighMeasurementView(delegate: RightThighMeasurementDelegate(), themeColor: themeColor)
-        case .leftCalf:
-            router.showLeftCalfMeasurementView(delegate: LeftCalfMeasurementDelegate(), themeColor: themeColor)
-        case .rightCalf:
-            router.showRightCalfMeasurementView(delegate: RightCalfMeasurementDelegate(), themeColor: themeColor)
-        case .leftAnkle:
-            router.showLeftAnkleMeasurementView(delegate: LeftAnkleMeasurementDelegate(), themeColor: themeColor)
-        case .rightAnkle:
-            router.showRightAnkleMeasurementView(delegate: RightAnkleMeasurementDelegate(), themeColor: themeColor)
-        default:
-            break
-        }
-    }
 }
 
 extension BodyMetricsPresenter {

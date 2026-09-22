@@ -14,6 +14,21 @@ class AccountPresenter {
     var lastName: String = ""
     var dateOfBirth: Date = Date()
     var selectedGender: Gender?
+
+    /// Edited in place in the Profile section, alongside date of birth and gender, and saved by the
+    /// same `saveProfile()`. These had "Edit" buttons wired to empty functions and no editor
+    /// anywhere else in the app outside onboarding.
+    var heightText: String = ""
+    var selectedCardioFitnessLevel: CardioFitnessLevel?
+    var selectedExerciseFrequency: ExerciseFrequency?
+
+    /// Centimetres, as `UserModel` stores height. Nil for an empty or unparseable field, which
+    /// leaves the stored value alone rather than clearing it.
+    var heightCentimeters: Double? {
+        let trimmed = heightText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let value = Double(trimmed), value > 0 else { return nil }
+        return value
+    }
     var selectedPhotoItem: PhotosPickerItem?
     var selectedImageData: Data?
     var isImagePickerPresented: Bool = false
@@ -39,10 +54,6 @@ class AccountPresenter {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
     
-    func onDataVisibilityPressed() {
-        router.showDataVisibilityView(delegate: DataVisibilityDelegate())
-    }
-
     func presentImagePicker() {
         isImagePickerPresented = true
     }
@@ -63,6 +74,11 @@ class AccountPresenter {
             dateOfBirth = dob
         }
         selectedGender = user.submittedGender
+        if let height = user.submittedHeightCentimeters {
+            heightText = height.formatted(.number.precision(.fractionLength(0...1)))
+        }
+        selectedCardioFitnessLevel = user.submittedCardioFitnessLevel
+        selectedExerciseFrequency = user.submittedExerciseFrequency
     }
 
     func saveProfile() async {
@@ -79,8 +95,19 @@ class AccountPresenter {
                 UserModel.CodingKeys.submittedLastName.rawValue: trimmedLast,
                 UserModel.CodingKeys.submittedDateOfBirth.rawValue: dateOfBirth
             ]
+            // Was writing into `submittedFirstName`, so saving a profile with a gender set
+            // overwrote the first name with "male" or "female".
             if let gender = selectedGender {
-                data[UserModel.CodingKeys.submittedFirstName.rawValue] = gender.rawValue
+                data[UserModel.CodingKeys.submittedGender.rawValue] = gender.rawValue
+            }
+            if let heightCentimeters {
+                data[UserModel.CodingKeys.submittedHeightCentimeters.rawValue] = heightCentimeters
+            }
+            if let cardioFitnessLevel = selectedCardioFitnessLevel {
+                data[UserModel.CodingKeys.submittedCardioFitnessLevel.rawValue] = cardioFitnessLevel.rawValue
+            }
+            if let exerciseFrequency = selectedExerciseFrequency {
+                data[UserModel.CodingKeys.submittedExerciseFrequency.rawValue] = exerciseFrequency.rawValue
             }
             #if canImport(UIKit)
             if let uiImage = selectedImageData.flatMap({ UIImage(data: $0) }) {
@@ -106,28 +133,29 @@ class AccountPresenter {
         isSaving = false
     }
     
-    func onEditNamePressed() {
-        
+    /// Name, height, cardio fitness and lifting experience are all edited in place in the Profile
+    /// section now, so the six `onEdit…Pressed` functions that used to live here — every one of them
+    /// empty, behind a live "Edit" button — are gone with the buttons.
+    ///
+    /// Email and password are not editable at all, and no longer pretend to be: sign-in is Apple,
+    /// Google or anonymous (`SignInOption` has no email case), so the address belongs to the identity
+    /// provider and there is no password in the first place.
+
+    /// An anonymous account has no credential behind it, so signing out of one destroys everything
+    /// logged against it with no way back in. Those users are offered the upgrade instead.
+    var isAnonymousUser: Bool {
+        interactor.auth?.isAnonymous == true
     }
-    
-    func onEditHeightPressed() {
-        
-    }
-    
-    func onEditCardioFitnessPressed() {
-        
-    }
-    
-    func onEditLiftingExperiencePressed() {
-        
-    }
-    
-    func onEditEmailPressed() {
-        
-    }
-    
-    func onEditPasswordPressed() {
-        
+
+    /// An anonymous account's only route to keeping its data.
+    ///
+    /// Routes to the existing `AuthView` rather than reimplementing sign-in: `FirebaseAuthService`
+    /// already links an Apple or Google credential to the signed-in anonymous user, and
+    /// `CoreInteractor.logIn` already handles the migration and cleanup around it, so the upgrade
+    /// keeps the account rather than replacing it.
+    func onSaveAccountPressed() {
+        interactor.trackEvent(event: Event.saveAccountPressed)
+        router.showAuthView()
     }
 
     func onSignOutPressed() {
@@ -167,7 +195,11 @@ class AccountPresenter {
         )
     }
 
-    private func onDeleteAccountConfirmed() {
+    /// Only ever called from the Delete button inside the confirmation above. Not private so that
+    /// the half of account deletion that runs after the user says yes can be tested: the alert
+    /// itself goes out through a `GlobalRouter` extension, which dispatches statically and so
+    /// cannot be intercepted.
+    func onDeleteAccountConfirmed() {
         interactor.trackEvent(event: Event.deleteAccountStartConfirm)
 
         Task {
@@ -197,6 +229,7 @@ extension AccountPresenter {
         case deleteAccountStartConfirm
         case deleteAccountSuccess
         case deleteAccountFail(error: Error)
+        case saveAccountPressed
         case onAppear(delegate: AccountDelegate)
         case onDisappear(delegate: AccountDelegate)
 
@@ -209,6 +242,7 @@ extension AccountPresenter {
             case .deleteAccountStartConfirm:    return "Settings_DeleteAccount_StartConfirm"
             case .deleteAccountSuccess:         return "Settings_DeleteAccount_Success"
             case .deleteAccountFail:            return "Settings_DeleteAccount_Fail"
+            case .saveAccountPressed:           return "Settings_SaveAccount_Press"
             case .onAppear:                 return "AccountView_Appear"
             case .onDisappear:              return "AccountView_Disappear"
             }

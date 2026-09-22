@@ -43,6 +43,24 @@ struct TimerDurationView: View {
             }
 
             Section {
+                ForEach(presenter.exerciseOverrides) { override in
+                    CustomLabelButtonView(
+                        title: override.name,
+                        subtitle: presenter.formattedDuration(seconds: override.seconds)) {
+                            Text("Edit")
+                                .padding(.horizontal, 8)
+                                .padding(8)
+                                .background(Color.secondary.opacity(0.2), in: .capsule)
+                                .anyButton(.press) {
+                                    presenter.onEditExerciseOverridePressed(override)
+                                }
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button("Remove", role: .destructive) {
+                                presenter.removeExerciseOverride(override)
+                            }
+                        }
+                }
                 CustomLabelButtonView(
                     title: "Add Exercise Timer",
                     subtitle: "Set timers for specific exercises") {
@@ -51,7 +69,7 @@ struct TimerDurationView: View {
                             .padding(8)
                             .background(Color.secondary.opacity(0.2), in: .capsule)
                             .anyButton(.press) {
-
+                                presenter.onAddExerciseTimerPressed()
                             }
                     }
             } header: {
@@ -64,8 +82,17 @@ struct TimerDurationView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $presenter.isEditingType) {
             if let type = presenter.editingType {
-                durationPicker(for: type)
+                durationPicker(title: type.name, onSave: { presenter.saveEdit() })
             }
+        }
+        .sheet(isPresented: $presenter.isEditingExercise) {
+            durationPicker(
+                title: presenter.editingExerciseName,
+                onSave: { presenter.saveExerciseEdit() }
+            )
+        }
+        .sheet(isPresented: $presenter.isAddingExerciseTimer) {
+            exercisePicker
         }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
@@ -77,8 +104,30 @@ struct TimerDurationView: View {
 
     // MARK: - Duration Picker Sheet
 
+    private var exercisePicker: some View {
+        NavigationStack {
+            List {
+                ForEach(presenter.exercisesWithoutOverride) { exercise in
+                    Text(exercise.name)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .tappableBackground()
+                        .anyButton(.highlight) {
+                            presenter.onExercisePicked(exercise)
+                        }
+                }
+            }
+            .navigationTitle("Choose Exercise")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { presenter.isAddingExerciseTimer = false }
+                }
+            }
+        }
+    }
+
     @ViewBuilder
-    private func durationPicker(for type: ExerciseType) -> some View {
+    private func durationPicker(title: String, onSave: @escaping () -> Void) -> some View {
         NavigationStack {
             VStack(spacing: 0) {
                 HStack {
@@ -98,14 +147,17 @@ struct TimerDurationView: View {
                 }
                 .padding(.horizontal)
             }
-            .navigationTitle(type.name)
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { presenter.isEditingType = false }
+                    Button("Cancel") {
+                        presenter.isEditingType = false
+                        presenter.isEditingExercise = false
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { presenter.saveEdit() }
+                    Button("Save") { onSave() }
                 }
             }
         }

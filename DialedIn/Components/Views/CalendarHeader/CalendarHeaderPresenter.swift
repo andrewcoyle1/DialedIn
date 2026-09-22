@@ -10,18 +10,32 @@ class CalendarHeaderPresenter {
 
     let calendar = Calendar.current
 
-    var selectedDate: Date = Date()
-    var selectedTime: Date = Date()
-    
-    var today: Date = Date()
-    var weekScrollPosition: Date?
-    var hasScrolledToToday = false
-    private var pendingSelectedDateFromLargeCalendar: Date?
+    /// The day the strip is centred on, and the month the expanded calendar opens at. Whether
+    /// it is *shown* as selected is the host's call — see `CalendarHeaderDelegate.showsSelection`.
+    var focusedDate: Date = Date()
 
-    // Date range for infinite scrolling
-    private var startDate: Date
-    private var endDate: Date
+    /// Refreshed on `NSCalendarDayChanged`; as a value captured at init, a session left open
+    /// past midnight kept highlighting yesterday.
+    private(set) var today: Date = Calendar.current.startOfDay(for: .now)
+
+    /// Held between the day being picked in the expanded calendar and that sheet finishing its
+    /// dismissal, when the host screen's action can safely run.
+    private var dateAwaitingHostAction: Date?
+
+    private let startDate: Date
+    private let endDate: Date
     private let daysPerLoad: Int = 100
+
+    /// How many cells are on screen at once. The strip pages one day at a time, so the leading
+    /// cell and the visible window are no longer the same thing.
+    static let visibleDayCount: Int = 7
+
+    /// Every day the strip can reach, flat rather than grouped into weeks: the scroll view pages
+    /// by day, so a day is both the `ForEach` identity and the `scrollPosition(id:)` target.
+    ///
+    /// Cached because the view reads this while scrolling. As a computed property it rebuilt the
+    /// whole range on every body pass, which showed up as stutter in the header.
+    private(set) var days: [Date] = []
 
     init(interactor: CalendarHeaderInteractor, router: CalendarHeaderRouter, delegate: CalendarHeaderDelegate) {
         self.interactor = interactor
@@ -33,115 +47,139 @@ class CalendarHeaderPresenter {
         self.startDate = calendar.date(byAdding: .day, value: -daysPerLoad, to: today) ?? today
         self.endDate = calendar.date(byAdding: .day, value: daysPerLoad, to: today) ?? today
         
-        let now = Date()
-        let weekStart = Calendar.current.dateInterval(of: .weekOfYear, for: now)?.start
-            ?? Calendar.current.startOfDay(for: now)
-        self.weekScrollPosition = weekStart
-    }
-    
-    var days: [Date] {
-        var dates: [Date] = []
-        var currentDate = calendar.startOfDay(for: startDate)
-        let normalizedEndDate = calendar.startOfDay(for: endDate)
-        
-        while currentDate <= normalizedEndDate {
-            dates.append(currentDate)
-            if let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) {
-                currentDate = nextDate
-            } else {
-                break
-            }
-        }
-        
-        return dates
+        self.days = computedDays
     }
 
-    var weeks: [[Date]] {
-        guard
-            let firstWeekStart = calendar.dateInterval(of: .weekOfYear, for: startDate)?.start,
-            let lastWeekStart = calendar.dateInterval(of: .weekOfYear, for: endDate)?.start
-        else {
+    /// The week containing today, for the view's initial scroll position.
+    var currentWeekStart: Date {
+        weekStart(for: .now)
+    }
+
+    /// The page the strip has to scroll to in order to show `date`.
+    func weekStart(for date: Date) -> Date {
+        calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? calendar.startOfDay(for: date)
+    }
+
+    func refreshToday() {
+        today = calendar.startOfDay(for: .now)
+    }
+
+    private var computedDays: [Date] {
+        // Starts on a week boundary so that scrolling to a week start always has that week's
+        // seven days ahead of it, which is what the "today" button relies on.
+        guard let firstDay = calendar.dateInterval(of: .weekOfYear, for: startDate)?.start else {
             return []
         }
 
-        var result: [[Date]] = []
-        var weekStart = calendar.startOfDay(for: firstWeekStart)
-        let finalWeekStart = calendar.startOfDay(for: lastWeekStart)
+        var result: [Date] = []
+        var day = calendar.startOfDay(for: firstDay)
+        let finalDay = calendar.startOfDay(for: endDate)
 
-        while weekStart <= finalWeekStart {
-            var week: [Date] = []
-            for dayOffset in 0..<7 {
-                if let day = calendar.date(byAdding: .day, value: dayOffset, to: weekStart) {
-                    week.append(calendar.startOfDay(for: day))
-                }
-            }
-            result.append(week)
-
-            guard let nextWeek = calendar.date(byAdding: .weekOfYear, value: 1, to: weekStart) else {
-                break
-            }
-            weekStart = calendar.startOfDay(for: nextWeek)
+        while day <= finalDay {
+            result.append(day)
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+            day = calendar.startOfDay(for: nextDay)
         }
 
         return result
     }
 
+    /// Whether `day` is one of the cells on screen, given the leading cell the view reports.
+    /// A nil leading day means the strip has not settled yet, so nothing is treated as off-screen.
+    func isVisible(_ day: Date, fromLeadingDay leadingDay: Date?) -> Bool {
+        guard
+            let leadingDay,
+            let lastVisibleDay = calendar.date(
+                byAdding: .day,
+                value: Self.visibleDayCount - 1,
+                to: calendar.startOfDay(for: leadingDay)
+            )
+        else {
+            return true
+        }
+
+        let target = calendar.startOfDay(for: day)
+        return target >= calendar.startOfDay(for: leadingDay) && target <= calendar.startOfDay(for: lastVisibleDay)
+    }
+
+    func isTodayVisible(fromLeadingDay leadingDay: Date?) -> Bool {
+        isVisible(today, fromLeadingDay: leadingDay)
+    }
+
+    /// Which way today lies from the visible window, so the button can point at it rather than
+    /// guessing a direction.
+    func isTodayAhead(ofLeadingDay leadingDay: Date?) -> Bool {
+        guard let leadingDay else { return false }
+        return today > calendar.startOfDay(for: leadingDay)
+    }
+
+    func onReturnToTodayPressed() {
+        interactor.trackEvent(event: Event.returnedToToday)
+    }
+
+    func isSelected(_ day: Date) -> Bool {
+        delegate.showsSelection && calendar.isDate(day, inSameDayAs: focusedDate)
+    }
+
     func onDatePressed(_ date: Date) {
+        interactor.trackEvent(event: Event.dateSelectionFunctionTriggered)
+        focusedDate = date
         delegate.onDatePressed(date)
     }
 
-    func showLargeCalendar(_ transitionId: String, in namespace: Namespace.ID) {
+    /// `onDismiss` lets the view clear the binding the parent's toolbar button set, so the
+    /// button works again on the next press.
+    func showLargeCalendar(
+        _ transitionId: String,
+        in namespace: Namespace.ID,
+        onDismiss: @escaping () -> Void = { }
+    ) {
         interactor.trackEvent(event: Event.openLargeCalendar)
         router.showCalendarViewZoom(
             delegate: CalendarDelegate(
-                onDateSelected: { date, _ in
-                    self.selectedDate = date
-                    self.pendingSelectedDateFromLargeCalendar = date
-                }
+                selectedDate: focusedDate,
+                showsSelection: delegate.showsSelection,
+                // The strip follows the selection right away, behind the dismissing sheet. The
+                // host action waits for `onDidDismiss` below: Training's opens a session detail
+                // screen through its own router, and the router sweeps away anything presented
+                // before its dismissal clean-up has run.
+                onDateSelected: { [weak self] date, _ in
+                    guard let self else { return }
+                    self.interactor.trackEvent(event: Event.datePickedFromCalendar)
+                    self.focusedDate = date
+                    self.dateAwaitingHostAction = date
+                },
+                markersByDay: delegate.markersByDay
             ),
-            onDismiss: { [weak self] in
-                guard let self, let selectedDate = self.pendingSelectedDateFromLargeCalendar else { return }
-                self.pendingSelectedDateFromLargeCalendar = nil
-                self.onDatePressed(selectedDate)
+            onDismiss: onDismiss,
+            onDidDismiss: { [weak self] in
+                guard let self, let date = self.dateAwaitingHostAction else { return }
+                self.dateAwaitingHostAction = nil
+                self.delegate.onDatePressed(date)
             },
             transitionId: transitionId,
             namespace: namespace
         )
     }
 
-    func getForDate(_ date: Date) -> Int {
-        delegate.getForDate(date)
-    }
-
-    func loadMoreDatesIfNeeded(visibleStartIndex: Int, visibleEndIndex: Int) {
-        let totalDays = days.count
-        let threshold = 20 // Load more when within 20 days of edge
-        
-        // Load more dates before start
-        if visibleStartIndex < threshold {
-            if let newStartDate = calendar.date(byAdding: .day, value: -daysPerLoad, to: startDate) {
-                startDate = calendar.startOfDay(for: newStartDate)
-            }
-        }
-        
-        // Load more dates after end
-        if visibleEndIndex > totalDays - threshold {
-            if let newEndDate = calendar.date(byAdding: .day, value: daysPerLoad, to: endDate) {
-                endDate = calendar.startOfDay(for: newEndDate)
-            }
-        }
+    /// One map for the whole header rather than a lookup per cell. Each `getForDate` call used
+    /// to filter every session or meal, so a single body pass ran seven full scans.
+    func markersByDay() -> [Date: CalendarDayMarker] {
+        delegate.markersByDay()
     }
 
     enum Event: LoggableEvent {
         case openLargeCalendar
         case datePickedFromCalendar
         case dateSelectionFunctionTriggered
+        case returnedToToday
 
         var eventName: String {
             switch self {
             case .openLargeCalendar:                return "CalendarHeader_OpenLargeCalendar"
             case .datePickedFromCalendar:           return "CalendarHeader_DatePickedFromLargeCalendar"
             case .dateSelectionFunctionTriggered:   return "CalendarHeader_DateSelectionFunction_Triggered"
+            case .returnedToToday:                  return "CalendarHeader_ReturnedToToday"
             }
         }
 

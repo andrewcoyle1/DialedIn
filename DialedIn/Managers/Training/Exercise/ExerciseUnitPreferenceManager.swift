@@ -107,8 +107,11 @@ class ExerciseUnitPreferenceManager {
         }
         
         let defaultDistanceUnit: ExerciseDistanceUnit
-        if let userLengthPref = user?.submittedLengthUnitPreference {
-            // Map length preference to distance (centimeters -> meters, inches -> miles)
+        if let userDistancePref = user?.submittedDistanceUnitPreference {
+            defaultDistanceUnit = userDistancePref == .kilometers ? .meters : .miles
+        } else if let userLengthPref = user?.submittedLengthUnitPreference {
+            // Users who onboarded before distance had its own preference only ever set the length
+            // one, so fall back to it rather than resetting them to metric.
             defaultDistanceUnit = userLengthPref == .centimeters ? .meters : .miles
         } else {
             defaultDistanceUnit = .meters

@@ -23,7 +23,7 @@ struct DateOfBirthView: View {
 
     var body: some View {
         List {
-            DatePicker(selection: $presenter.dateOfBirth, displayedComponents: .date) {
+            DatePicker(selection: $presenter.dateOfBirth, in: presenter.dateRange, displayedComponents: .date) {
                 Text("When were you born?")
                     .foregroundStyle(Color.secondary)
             }

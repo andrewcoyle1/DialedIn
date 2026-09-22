@@ -10,36 +10,13 @@ struct SiriView: View {
     let delegate: SiriDelegate
     
     var body: some View {
-        List {
-            Section {
-                Text("What can I ask Siri?")
-            } header: {
-                Text("Learn")
-            }
-
-            Section {
-                Text("Speak Remaining Goals")
-            } header: {
-                Text("Log Water")
-            }
-
-            Section {
-                Text("Always as for")
-                Text("Ask for food name")
-                Text("Energy Input")
-            } header: {
-                Text("Quick Add")
-            }
-
-            Section {
-                Text("Speak Estimated Macros")
-            } header: {
-                Text("Log Beer")
-            }
-
-        }
-        .navigationTitle("Siri")
-        .navigationBarTitleDisplayMode(.inline)
+        // The seven rows that were here ("Speak Remaining Goals", "Log Beer") were plain Text styled as
+    // settings, doing nothing. They described intent, not behaviour.
+        FeatureUnavailableView(
+            title: "Siri",
+            systemImage: "siri",
+            summary: "Asking Siri to log a meal, start a workout or read back your remaining macros is not available yet. It needs an App Intents extension, which the app does not ship."
+        )
         .onAppear {
             presenter.onViewAppear()
         }

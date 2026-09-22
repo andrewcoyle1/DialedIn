@@ -2,238 +2,125 @@
 //  GymProfileSyncTests.swift
 //  DialedInUnitTests
 //
-//  Created by Andrew Coyle on 21/01/2026.
+//  Created by Andrew Coyle on 28/10/2025.
 //
 
 import Testing
 import Foundation
 @testable import DialedIn
 
+/// What the manager does with the gym profiles it holds.
+///
+/// This file used to test reconciliation between a local store and Firestore — last write wins,
+/// tombstones propagating both ways — against a hand-written `LocalGymProfilePersistence` and
+/// `RemoteGymProfileService`. Both are gone: the manager now wraps a `CollectionSyncEngine`, and
+/// the merge rules those tests covered belong to SwiftfulDataManagers, where they are tested. The
+/// SwiftData entity-identity tests that lived alongside them went with `GymProfileEntity`.
 @MainActor
 struct GymProfileSyncTests {
 
-    @Test("Remote-only gym profiles are saved locally")
-    func testRemoteOnlyProfilesAreSavedLocally() async throws {
-        let authorId = "author-1"
-        let remoteProfile = makeProfile(
-            id: "remote-1",
-            authorId: authorId,
-            name: "Remote Profile",
-            modifiedAt: Date(timeIntervalSince1970: 200)
-        )
-
-        let local = MockGymProfilePersistence(profiles: [])
-        let remote = InMemoryGymProfileRemoteService(profiles: [remoteProfile])
-        let manager = GymProfileManager(services: TestGymProfileServices(local: local, remote: remote))
-
-        let synced = try await manager.readAllRemoteGymProfilesForAuthor(userId: authorId)
-
-        #expect(synced.contains(where: { $0.id == remoteProfile.id }))
-        let localProfiles = try local.readAllLocalGymProfiles(includeDeleted: true)
-        #expect(localProfiles.count == 1)
-        #expect(localProfiles[0].name == remoteProfile.name)
+    private func profile(id: String, authorId: String = "author-1", name: String) -> GymProfileModel {
+        GymProfileModel(id: id, authorId: authorId, name: name)
     }
 
-    @Test("Local-only gym profiles are uploaded to remote")
-    func testLocalOnlyProfilesAreUploadedToRemote() async throws {
-        let authorId = "author-1"
-        let localProfile = makeProfile(
-            id: "local-1",
-            authorId: authorId,
-            name: "Local Profile",
-            modifiedAt: Date(timeIntervalSince1970: 100)
-        )
+    @Test("Test Profiles Are Empty Until Signed In")
+    func testProfilesAreEmptyUntilSignedIn() {
+        let manager = TestManagers.gymProfileManager(profiles: [profile(id: "gym-1", name: "Home")])
 
-        let local = MockGymProfilePersistence(profiles: [localProfile])
-        let remote = InMemoryGymProfileRemoteService(profiles: [])
-        let manager = GymProfileManager(services: TestGymProfileServices(local: local, remote: remote))
-
-        _ = try await manager.readAllRemoteGymProfilesForAuthor(userId: authorId)
-
-        let remoteFetched = try await remote.readGymProfile(profileId: localProfile.id)
-        #expect(remoteFetched.name == localProfile.name)
+        #expect(manager.gymProfiles.isEmpty)
     }
 
-    @Test("Remote newer profile updates local")
-    func testRemoteNewerUpdatesLocal() async throws {
-        let authorId = "author-1"
-        let localProfile = makeProfile(
-            id: "sync-1",
-            authorId: authorId,
-            name: "Local Old",
-            modifiedAt: Date(timeIntervalSince1970: 100)
-        )
-        let remoteProfile = makeProfile(
-            id: "sync-1",
-            authorId: authorId,
-            name: "Remote New",
-            modifiedAt: Date(timeIntervalSince1970: 200)
-        )
+    @Test("Test Signing In Loads The Author's Profiles")
+    func testSigningInLoadsTheAuthorsProfiles() async {
+        let manager = TestManagers.gymProfileManager(profiles: [
+            profile(id: "gym-1", name: "Home"),
+            profile(id: "gym-2", name: "Commercial")
+        ])
 
-        let local = MockGymProfilePersistence(profiles: [localProfile])
-        let remote = InMemoryGymProfileRemoteService(profiles: [remoteProfile])
-        let manager = GymProfileManager(services: TestGymProfileServices(local: local, remote: remote))
+        await manager.signIn()
 
-        _ = try await manager.readAllRemoteGymProfilesForAuthor(userId: authorId)
-
-        let updatedLocal = try local.readGymProfile(profileId: localProfile.id)
-        #expect(updatedLocal.name == remoteProfile.name)
+        #expect(manager.gymProfiles.count == 2)
     }
 
-    @Test("Local newer profile updates remote")
-    func testLocalNewerUpdatesRemote() async throws {
-        let authorId = "author-1"
-        let localProfile = makeProfile(
-            id: "sync-2",
-            authorId: authorId,
-            name: "Local New",
-            modifiedAt: Date(timeIntervalSince1970: 300)
-        )
-        let remoteProfile = makeProfile(
-            id: "sync-2",
-            authorId: authorId,
-            name: "Remote Old",
-            modifiedAt: Date(timeIntervalSince1970: 100)
-        )
+    @Test("Test Saving A Profile Adds It")
+    func testSavingAProfileAddsIt() async throws {
+        let manager = TestManagers.gymProfileManager()
+        await manager.signIn()
 
-        let local = MockGymProfilePersistence(profiles: [localProfile])
-        let remote = InMemoryGymProfileRemoteService(profiles: [remoteProfile])
-        let manager = GymProfileManager(services: TestGymProfileServices(local: local, remote: remote))
+        try await manager.saveGymProfile(profile: profile(id: "gym-1", name: "Home"), image: nil)
 
-        _ = try await manager.readAllRemoteGymProfilesForAuthor(userId: authorId)
-
-        let updatedRemote = try await remote.readGymProfile(profileId: localProfile.id)
-        #expect(updatedRemote.name == localProfile.name)
+        let added = await TestManagers.eventually { manager.gymProfiles.map(\.id) == ["gym-1"] }
+        #expect(added)
     }
 
-    @Test("Tie on dateModified prefers remote")
-    func testTiePrefersRemote() async throws {
-        let authorId = "author-1"
-        let timestamp = Date(timeIntervalSince1970: 200)
-        let localProfile = makeProfile(
-            id: "sync-3",
-            authorId: authorId,
-            name: "Local Name",
-            modifiedAt: timestamp
-        )
-        let remoteProfile = makeProfile(
-            id: "sync-3",
-            authorId: authorId,
-            name: "Remote Name",
-            modifiedAt: timestamp
-        )
+    @Test("Test Saving An Existing Profile Replaces It")
+    func testSavingAnExistingProfileReplacesIt() async throws {
+        let manager = TestManagers.gymProfileManager(profiles: [profile(id: "gym-1", name: "Home")])
+        await manager.signIn()
 
-        let local = MockGymProfilePersistence(profiles: [localProfile])
-        let remote = InMemoryGymProfileRemoteService(profiles: [remoteProfile])
-        let manager = GymProfileManager(services: TestGymProfileServices(local: local, remote: remote))
+        try await manager.saveGymProfile(profile: profile(id: "gym-1", name: "Renamed"), image: nil)
 
-        _ = try await manager.readAllRemoteGymProfilesForAuthor(userId: authorId)
-
-        let updatedLocal = try local.readGymProfile(profileId: localProfile.id)
-        #expect(updatedLocal.name == remoteProfile.name)
+        let renamed = await TestManagers.eventually { manager.gymProfiles.first?.name == "Renamed" }
+        #expect(renamed)
+        #expect(manager.gymProfiles.count == 1)
     }
 
-    @Test("Remote deletion propagates to local and hides from active list")
-    func testRemoteDeletionPropagatesLocally() async throws {
-        let authorId = "author-1"
-        let timestamp = Date(timeIntervalSince1970: 200)
-        let localProfile = makeProfile(
-            id: "sync-4",
-            authorId: authorId,
-            name: "Local Active",
-            modifiedAt: Date(timeIntervalSince1970: 100)
-        )
-        let remoteDeleted = makeProfile(
-            id: "sync-4",
-            authorId: authorId,
-            name: "Remote Deleted",
-            modifiedAt: timestamp,
-            deletedAt: timestamp
-        )
+    @Test("Test Reading A Profile By Id")
+    func testReadingAProfileById() async throws {
+        let manager = TestManagers.gymProfileManager(profiles: [profile(id: "gym-1", name: "Home")])
+        await manager.signIn()
 
-        let local = MockGymProfilePersistence(profiles: [localProfile])
-        let remote = InMemoryGymProfileRemoteService(profiles: [remoteDeleted])
-        let manager = GymProfileManager(services: TestGymProfileServices(local: local, remote: remote))
+        let found = try await manager.getGymProfile(gymProfileId: "gym-1")
 
-        let active = try await manager.readAllRemoteGymProfilesForAuthor(userId: authorId)
-
-        #expect(active.isEmpty)
-        let stored = try local.readAllLocalGymProfiles(includeDeleted: true)
-        #expect(stored.first?.deletedAt != nil)
+        #expect(found.name == "Home")
     }
 
-    @Test("Local deletion uploads tombstone to remote")
-    func testLocalDeletionUploadsTombstone() async throws {
-        let authorId = "author-1"
-        let timestamp = Date(timeIntervalSince1970: 200)
-        let localDeleted = makeProfile(
-            id: "sync-5",
-            authorId: authorId,
-            name: "Local Deleted",
-            modifiedAt: timestamp,
-            deletedAt: timestamp
-        )
+    @Test("Test Reading A Profile That Does Not Exist Throws")
+    func testReadingAProfileThatDoesNotExistThrows() async {
+        let manager = TestManagers.gymProfileManager()
+        await manager.signIn()
 
-        let local = MockGymProfilePersistence(profiles: [localDeleted])
-        let remote = InMemoryGymProfileRemoteService(profiles: [])
-        let manager = GymProfileManager(services: TestGymProfileServices(local: local, remote: remote))
-
-        _ = try await manager.readAllRemoteGymProfilesForAuthor(userId: authorId)
-
-        let remoteFetched = try await remote.readGymProfile(profileId: localDeleted.id)
-        #expect(remoteFetched.deletedAt != nil)
-    }
-}
-
-private func makeProfile(
-    id: String,
-    authorId: String,
-    name: String,
-    modifiedAt: Date,
-    deletedAt: Date? = nil
-) -> GymProfileModel {
-    GymProfileModel(
-        id: id,
-        authorId: authorId,
-        name: name,
-        dateCreated: modifiedAt,
-        dateModified: modifiedAt,
-        deletedAt: deletedAt
-    )
-}
-
-private struct TestGymProfileServices: GymProfileServices {
-    let local: LocalGymProfilePersistence
-    let remote: RemoteGymProfileService
-}
-
-private final class InMemoryGymProfileRemoteService: RemoteGymProfileService {
-    private var profiles: [String: GymProfileModel]
-
-    init(profiles: [GymProfileModel]) {
-        self.profiles = Dictionary(uniqueKeysWithValues: profiles.map { ($0.id, $0) })
-    }
-
-    func createGymProfile(profile: GymProfileModel) async throws {
-        profiles[profile.id] = profile
-    }
-
-    func readGymProfile(profileId: String) async throws -> GymProfileModel {
-        guard let profile = profiles[profileId] else {
-            throw URLError(.fileDoesNotExist)
+        await #expect(throws: (any Error).self) {
+            _ = try await manager.getGymProfile(gymProfileId: "missing")
         }
-        return profile
     }
 
-    func readAllGymProfilesForAuthor(userId: String) async throws -> [GymProfileModel] {
-        profiles.values.filter { $0.authorId == userId }
+    @Test("Test Deleting A Profile Removes It")
+    func testDeletingAProfileRemovesIt() async throws {
+        let manager = TestManagers.gymProfileManager(profiles: [
+            profile(id: "gym-1", name: "Home"),
+            profile(id: "gym-2", name: "Commercial")
+        ])
+        await manager.signIn()
+
+        try await manager.deleteGymProfile("gym-1")
+
+        let removed = await TestManagers.eventually { manager.gymProfiles.map(\.id) == ["gym-2"] }
+        #expect(removed)
     }
 
-    func updateGymProfile(profile: GymProfileModel) async throws {
-        profiles[profile.id] = profile
+    @Test("Test Deleting All Profiles Empties The List")
+    func testDeletingAllProfilesEmptiesTheList() async throws {
+        let manager = TestManagers.gymProfileManager(profiles: [
+            profile(id: "gym-1", name: "Home"),
+            profile(id: "gym-2", name: "Commercial")
+        ])
+        await manager.signIn()
+
+        try await manager.deleteAllGymProfiles()
+
+        let emptied = await TestManagers.eventually { manager.gymProfiles.isEmpty }
+        #expect(emptied)
     }
 
-    func deleteGymProfile(profile: GymProfileModel) async throws {
-        profiles[profile.id] = profile
+    @Test("Test The Active Workout Profile Is Held Separately")
+    func testTheActiveWorkoutProfileIsHeldSeparately() async {
+        let manager = TestManagers.gymProfileManager(profiles: [profile(id: "gym-1", name: "Home")])
+        await manager.signIn()
+        #expect(manager.activeWorkoutGymProfile == nil)
+
+        manager.activeWorkoutGymProfile = manager.gymProfiles.first
+
+        #expect(manager.activeWorkoutGymProfile?.id == "gym-1")
     }
 }

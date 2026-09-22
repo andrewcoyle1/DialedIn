@@ -12,10 +12,19 @@ struct SearchView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State var presenter: SearchPresenter
 
+    let profileButtonTransition: String = "profile_button_transition"
+    
+    @Namespace private var namespace
+    
     var body: some View {
         List {
             if !presenter.hasSearchQuery {
-                quickActionsGridSection
+                if presenter.quickActions.isEmpty && presenter.recentQueries.isEmpty {
+                    noShortcutsSection
+                } else {
+                    quickActionsGridSection
+                    recentSearchesSection
+                }
             } else {
                 if presenter.isLoading {
                     loadingSection
@@ -33,8 +42,7 @@ struct SearchView: View {
         .listSectionMargins(.horizontal, 0)
         .listRowSeparator(.hidden)
         .navigationTitle("Quick Actions")
-        .toolbarRole(.browser)
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .navigationBarTitleDisplayMode(.inline)
         .searchable(
             text: $presenter.searchString,
             placement: .toolbar,
@@ -53,46 +61,53 @@ struct SearchView: View {
         .scrollIndicators(.hidden)
     }
 
+    /// Driven by the Shortcuts screen. Four hardcoded buttons before that screen existed.
     @ViewBuilder
     private var quickActionsGridSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                QuickActionButton(
-                    title: "Start Workout",
-                    systemImage: "play.circle.fill"
-                )
-                .anyButton {
-                    presenter.onStartWorkoutPressed()
+        if !presenter.quickActions.isEmpty {
+            Section {
+                LazyVGrid(columns: [GridItem(), GridItem()]) {
+                    ForEach(presenter.quickActions) { action in
+                        QuickActionButton(
+                            title: action.title,
+                            systemImage: action.systemImage
+                        )
+                        .anyButton {
+                            presenter.onQuickActionPressed(action)
+                        }
+                    }
                 }
-                
-                QuickActionButton(
-                    title: "Add Exercise",
-                    systemImage: "plus.circle.fill"
-                )
-                .anyButton {
-                    presenter.onAddExercisePressed()
-                }
-                
-                QuickActionButton(
-                    title: "Log Meal",
-                    systemImage: "fork.knife"
-                )
-                .anyButton {
-                    presenter.onLogMealPressed()
-                }
-                
-                QuickActionButton(
-                    title: "Log Weight",
-                    systemImage: "scalemass"
-                )
-                .anyButton {
-                    presenter.onLogWeightPressed()
-                }
+                .removeListRowFormatting()
             }
-            .removeListRowFormatting()
         }
     }
-    
+
+    @ViewBuilder
+    private var recentSearchesSection: some View {
+        if !presenter.recentQueries.isEmpty {
+            Section {
+                ForEach(presenter.recentQueries, id: \.self) { query in
+                    Label(query, systemImage: "clock.arrow.circlepath")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .tappableBackground()
+                        .anyButton(.highlight) {
+                            presenter.onRecentSearchTapped(query: query)
+                        }
+                }
+                .foregroundStyle(.primary)
+            } header: {
+                HStack {
+                    Text("Recent")
+                    Spacer()
+                    Button("Clear") {
+                        presenter.onClearRecentSearchesPressed()
+                    }
+                    .font(.caption)
+                }
+            }
+        }
+    }
+
     private var loadingSection: some View {
         Section {
             HStack {
@@ -106,20 +121,28 @@ struct SearchView: View {
         }
     }
 
+    /// `ContentUnavailableView` rather than a hand-rolled stack, so every empty state in the app
+    /// looks the same.
     private var emptyResultsSection: some View {
         Section {
-            VStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.secondary)
-                Text("No results found")
-                    .font(.headline)
-                Text("Try a different search term")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+            ContentUnavailableView.search(text: presenter.searchString)
+                .removeListRowFormatting()
+        }
+    }
+
+    /// The Add tab with every shortcut turned off and nothing searched yet. Without this the tab
+    /// opened onto a blank list with no way back to the Shortcuts screen.
+    private var noShortcutsSection: some View {
+        Section {
+            ContentUnavailableView {
+                Label("No Shortcuts", systemImage: "square.grid.2x2")
+            } description: {
+                Text("Pick the actions you want here, or search for an exercise, workout or recipe.")
+            } actions: {
+                Button("Choose Shortcuts") {
+                    presenter.onChooseShortcutsPressed()
+                }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 32)
             .removeListRowFormatting()
         }
     }
@@ -129,12 +152,13 @@ struct SearchView: View {
         if !presenter.filteredUsers.isEmpty {
             Section {
                 ForEach(presenter.filteredUsers) { user in
-                    UserSearchRow(
-                        user: user,
-                        isFollowing: presenter.isFollowing(userId: user.userId),
-                        onFollowPressed: { presenter.onFollowPressed(user: user) },
-                        onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
-                    )
+                    UserRowView(user: user) {
+                        FollowButton(
+                            isFollowing: presenter.isFollowing(userId: user.userId),
+                            onFollowPressed: { presenter.onFollowPressed(user: user) },
+                            onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
+                        )
+                    }
                     .removeListRowFormatting()
                 }
             } header: {
@@ -182,21 +206,14 @@ struct SearchView: View {
     @ViewBuilder
     private var recipesSection: some View {
         if !presenter.filteredRecipeTemplates.isEmpty {
-            Section {
-                ForEach(presenter.filteredRecipeTemplates) { recipe in
-                    CustomListCellView(
-                        imageName: recipe.imageURL,
-                        title: recipe.name,
-                        subtitle: recipe.description
-                    )
-                    .anyButton(.highlight) {
-                        presenter.onRecipePressed(recipe: recipe)
-                    }
-                    .removeListRowFormatting()
+            searchItemSection(
+                header: "Recipes",
+                items: presenter.filteredRecipeTemplates,
+                action: { item in
+                    guard let item = item as? RecipeTemplateModel else { return }
+                    presenter.onRecipePressed(recipe: item)
                 }
-            } header: {
-                Text("Recipes")
-            }
+            )
         }
     }
 
@@ -229,27 +246,21 @@ struct SearchView: View {
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Ingredients")
+            Text(header)
         }
-
     }
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                presenter.onProfilePressed()
-            } label: {
-                if let urlString = presenter.userImageUrl {
-                    ImageLoaderView(urlString: urlString)
-                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person")
-                }
-            }
+            ProfileButton(
+                action: {
+                    presenter.onProfilePressed(transitionId: profileButtonTransition, namespace: namespace)
+                },
+                imageUrl: presenter.userImageUrl
+            )
+            .matchedTransitionSource(id: profileButtonTransition, in: namespace)
         }
-        .sharedBackgroundVisibility(.hidden)
     }
 }
 
@@ -260,65 +271,30 @@ protocol SearchListItem: Identifiable {
     var imageURL: String? { get }
 }
 
-private struct UserSearchRow: View {
-
-    let user: UserModel
-    let isFollowing: Bool
-    let onFollowPressed: () -> Void
-    let onUnfollowPressed: () -> Void
-
-    var body: some View {
-        HStack(spacing: 12) {
-            if let imageUrl = user.profileImageNameCalculated {
-                ImageLoaderView(urlString: imageUrl)
-                    .frame(width: 44, height: 44)
-                    .clipShape(Circle())
-            } else {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 44))
-                    .foregroundStyle(.secondary)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(user.fullNameCalculated ?? user.firstNameCalculated ?? "Unknown")
-                    .font(.body.weight(.medium))
-            }
-
-            Spacer(minLength: 0)
-
-            Button {
-                if isFollowing {
-                    onUnfollowPressed()
-                } else {
-                    onFollowPressed()
-                }
-            } label: {
-                Text(isFollowing ? "Following" : "Follow")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
-                    .background(isFollowing ? Color(.secondarySystemBackground) : Color.accentColor)
-                    .foregroundStyle(isFollowing ? Color.primary : Color.white)
-                    .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.vertical, 6)
-    }
-}
-
+/// The Add tab's grid tile. Icon over title rather than a single `Label`, so the two-word and
+/// four-word shortcuts line up with each other instead of each centring their own width.
 private struct QuickActionButton: View {
-    
+
     @Environment(\.colorScheme) private var colorScheme
-    
+
     let title: String
     let systemImage: String
-    
+
     var body: some View {
-            Label(title, systemImage: systemImage)
-                .frame(maxWidth: .infinity)
-                .frame(height: 100)
-                .background(colorScheme.backgroundPrimary, in: .containerRelative)
+        VStack(spacing: 8) {
+            Image(systemName: systemImage)
+                .font(.title2)
+                .foregroundStyle(Color.accentColor)
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(.horizontal, 8)
+        .frame(maxWidth: .infinity)
+        .frame(height: 100)
+        .background(colorScheme.backgroundPrimary, in: .containerRelative)
     }
 }
 

@@ -70,7 +70,16 @@ class ProfilePresenter {
         router.showNotificationsView()
     }
     
+    /// What the user is paying for, shown on the Subscription row.
+    ///
+    /// The screen that used to state this read a stored property nothing ever assigned, so it said
+    /// FREE to everyone, premium subscribers included. This reads the entitlement directly.
+    var subscriptionStatus: String {
+        interactor.isPremium ? "PREMIUM" : "FREE"
+    }
+
     func onSubscriptionPressed() {
+        interactor.trackEvent(eventName: "ProfileView_Subscription_Press", parameters: nil, type: .analytic)
         router.showPaywall()
     }
 
@@ -78,22 +87,43 @@ class ProfilePresenter {
         router.showExercisesView()
     }
 
-    func formatUnitPreferences(length: LengthUnitPreference?, weight: WeightUnitPreference?) -> String {
-        let lengthStr = length == .centimeters ? "Metric" : "Imperial"
-        let weightStr = weight == .kilograms ? "Metric" : "Imperial"
+    // MARK: - Community & Support
 
-        if lengthStr == weightStr {
-            return lengthStr
-        } else {
-            return "Mixed"
+    /// Support was an empty closure, and email is support that exists today — no hosted help desk
+    /// needed. This is now the app's only way to contact us: the "Contact us" row that opened the
+    /// same mailto: sat on a screen nothing navigated to.
+    func onSupportPressed() {
+        interactor.trackEvent(eventName: "ProfileView_Support_Press", parameters: nil, type: .analytic)
+        let emailString = "mailto:\(Constants.supportEmail)"
+        guard let url = URL(string: emailString), UIApplication.shared.canOpenURL(url) else {
+            router.showSimpleAlert(
+                title: "Unable to Open Mail",
+                subtitle: "Email \(Constants.supportEmail) and we will get back to you."
+            )
+            return
         }
+        UIApplication.shared.open(url)
     }
 
-    func navToSettingsView() {
-        interactor.trackEvent(event: Event.navigate)
-        router.showSettingsView()
+    /// Knowledge Base and Roadmap have nowhere to go yet — neither site exists, and
+    /// `Constants` has no URL for either. They say so rather than doing nothing: a row that
+    /// swallows a tap reads as a bug, and the rows are worth keeping as the plan they represent.
+    func onKnowledgeBasePressed() {
+        interactor.trackEvent(eventName: "ProfileView_KnowledgeBase_Press", parameters: nil, type: .analytic)
+        router.showSimpleAlert(
+            title: "Knowledge Base",
+            subtitle: "There is no help site yet. In the meantime, Support emails us directly and we will answer you there."
+        )
     }
-    
+
+    func onRoadmapPressed() {
+        interactor.trackEvent(eventName: "ProfileView_Roadmap_Press", parameters: nil, type: .analytic)
+        router.showSimpleAlert(
+            title: "Roadmap",
+            subtitle: "The public roadmap is not published yet. Send feature requests through Support and they will go on the list."
+        )
+    }
+
     func onShortcutsPressed() {
         router.showShortcutsView(delegate: ShortcutsDelegate())
     }
@@ -137,6 +167,14 @@ class ProfilePresenter {
     func onStrategySettingsPressed() {
         router.showStrategySettingsView(delegate: StrategySettingsDelegate())
     }
+
+    /// `isFromSettings` tells the diet flow it was entered from settings rather than onboarding, so
+    /// it saves the chosen plan and returns instead of advancing to the next onboarding step.
+    func onNutritionPlanPressed() {
+        interactor.trackEvent(eventName: "ProfileView_NutritionPlan_Press", parameters: nil, type: .analytic)
+        router.showPreferredDietView(isFromSettings: true)
+    }
+
     func onAppIconPressed() {
         router.showAppIconView(delegate: AppIconDelegate())
     }
@@ -153,75 +191,25 @@ class ProfilePresenter {
         router.dismissScreen()
     }
     
-    func formatHeight(_ heightCm: Double, unit: LengthUnitPreference) -> String {
-        switch unit {
-        case .centimeters:
-            return String(format: "%.0f cm", heightCm)
-        case .inches:
-            let totalInches = heightCm / 2.54
-            let feet = Int(totalInches / 12)
-            let inches = Int(totalInches.truncatingRemainder(dividingBy: 12))
-            return "\(feet)' \(inches)\""
-        }
-    }
-
     func formatWeight(_ weightKg: Double, unit: WeightUnitPreference) -> String {
         switch unit {
         case .kilograms:
             return String(format: "%.1f kg", weightKg)
         case .pounds:
-            let pounds = weightKg * 2.20462
-            return String(format: "%.1f lbs", pounds)
-        }
-    }
-
-    func calculateBMI(heightCm: Double, weightKg: Double) -> Double {
-        let heightM = heightCm / 100
-        return weightKg / (heightM * heightM)
-    }
-
-    func formatExerciseFrequency(_ frequency: ExerciseFrequency) -> String {
-        switch frequency {
-        case .never: return "Never"
-        case .oneToTwo: return "1-2 times/week"
-        case .threeToFour: return "3-4 times/week"
-        case .fiveToSix: return "5-6 times/week"
-        case .daily: return "Daily"
-        }
-    }
-
-    func formatActivityLevel(_ level: ActivityLevel) -> String {
-        switch level {
-        case .sedentary: return "Sedentary"
-        case .light: return "Light"
-        case .moderate: return "Moderate"
-        case .active: return "Active"
-        case .veryActive: return "Very Active"
-        }
-    }
-
-    func formatCardioFitness(_ level: CardioFitnessLevel) -> String {
-        switch level {
-        case .beginner: return "Beginner"
-        case .novice: return "Novice"
-        case .intermediate: return "Intermediate"
-        case .advanced: return "Advanced"
-        case .elite: return "Elite"
+            return String(format: "%.1f lbs", UnitConversion.kgToLbs(weightKg))
         }
     }
 
     enum Event: LoggableEvent {
-        case navigate
         case ratingsPressed
         case ratingsYesPressed
         case ratingsNoPressed
 
         var eventName: String {
             switch self {
-            case .navigate:     return "Fail"
-            case .ratingsPressed:               return "SettingsView_Ratings_Pressed"
-            case .ratingsYesPressed:            return "SettingsView_RatingsYes_Pressed"
-            case .ratingsNoPressed:             return "SettingsView_RatingsNo_Pressed"
+            case .ratingsPressed:               return "ProfileView_Ratings_Pressed"
+            case .ratingsYesPressed:            return "ProfileView_RatingsYes_Pressed"
+            case .ratingsNoPressed:             return "ProfileView_RatingsNo_Pressed"
             }
         }
 
@@ -236,8 +224,6 @@ class ProfilePresenter {
             switch self {
             case .ratingsPressed, .ratingsYesPressed, .ratingsNoPressed:
                 return .analytic
-            case .navigate:
-                return .info
             }
         }
     }

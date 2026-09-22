@@ -45,17 +45,21 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
 
     // MARK: - Body
 
+    /// A `Section` nested inside the feed's own section, on a square edge-to-edge fill. Every other
+    /// surface in the app is a rounded, inset card, so the feed was the one place that read as a
+    /// wall of text rather than a stack of cards.
     var body: some View {
-        Section {
-            VStack(alignment: .leading) {
-                authorHeader(AuthorHeaderDelegate(author: presenter.author, date: presenter.session.dateCreated))
-                sessionContent
-            }
-            .frame(maxWidth: .infinity)
+        VStack(alignment: .leading, spacing: 12) {
+            authorHeader(AuthorHeaderDelegate(author: presenter.author, date: presenter.session.dateCreated))
+            sessionContent
+            Divider()
             footerBar
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(colorScheme.backgroundPrimary)
+        .background(colorScheme.backgroundPrimary, in: .rect(cornerRadius: 24))
+        .padding(.horizontal)
+        .padding(.bottom, 12)
     }
 
     // MARK: - Session Title and Stats
@@ -117,28 +121,35 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
                 Label("\(presenter.likeCount)", systemImage: presenter.isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
             }
             .frame(maxWidth: .infinity)
+            .foregroundStyle(presenter.isLiked ? Color.accentColor : Color.secondary)
+            .accessibilityLabel(presenter.isLiked ? "Unlike" : "Like")
             Button {
                 presenter.onCommentButtonPressed()
             } label: {
                 Image(systemName: "bubble")
             }
             .frame(maxWidth: .infinity)
-            Button {
-                presenter.onShareButtonPressed()
-            } label: {
+            .accessibilityLabel("Comments")
+            ShareLink(item: presenter.shareSummary) {
                 Image(systemName: "square.and.arrow.up")
             }
             .frame(maxWidth: .infinity)
+            .accessibilityLabel("Share workout")
         }
+        .font(.subheadline)
+        // Three actions of equal weight. The like button turns accented once it is on, so the "on"
+        // state reads at a glance instead of only through a filled-vs-outline thumb.
+        .foregroundStyle(.secondary)
         .buttonStyle(.plain)
     }
 
     // MARK: - Helpers
 
     private func setsDescription(for exercise: WorkoutExerciseModel) -> String {
-        let sets = exercise.sets.filter { !$0.isWarmup }
+        let sets = exercise.workingSets
         guard !sets.isEmpty else { return "\(exercise.setTargets.count) sets" }
-        let count = sets.count
+        // "3 × 10" is three sets of ten a side, not six of them.
+        let count = exercise.workingSetCount
         switch exercise.trackingMode {
         case .weightReps:
             if let first = sets.first, let reps = first.reps, let weight = first.weightKg {

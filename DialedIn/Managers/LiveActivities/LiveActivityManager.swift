@@ -81,7 +81,8 @@ class LiveActivityManager: LiveActivityUpdating {
     ///   - totalVolumeKg: Double?
     ///   - elapsedTime: TimeInterval?
     func updateLiveActivity(params: LiveActivityUpdateParams) {
-        logger.trackEvent(event: Event.updateLiveActivityStart)
+        // No Start here: this only builds the content state and hands it to the private overload,
+        // which logs the attempt. Tracking in both counted every update twice.
         let updatedState = makeContentState(
             params: MakeContentStateParams(
                 session: params.session,
@@ -99,7 +100,8 @@ class LiveActivityManager: LiveActivityUpdating {
     
     /// Discard the currently active Live Activity
     func discardLiveActivity() async {
-        await currentActivity?.end(nil, dismissalPolicy: .immediate)
+        guard let activity = currentActivity else { return }
+        await SendableActivity(activity: activity).end(nil, dismissalPolicy: .immediate)
     }
 
     /// Ensure a Workout Live Activity using data from the given session
@@ -128,7 +130,10 @@ class LiveActivityManager: LiveActivityUpdating {
         if isCompleted {
             let elapsedTime = Date().timeIntervalSince(session.dateCreated)
             let allSets = session.exercises.flatMap { $0.sets }
-            let completedSetsCount = allSets.filter { $0.completedAt != nil }.count
+            // Sets pair; volume does not — both sides of a set are real work lifted.
+            let completedSetsCount = session.exercises.reduce(0) {
+                $0 + $1.sets.filter { $0.completedAt != nil }.pairedSetCount
+            }
             let totalVolume = allSets.compactMap { set -> Double? in
                 guard let weight = set.weightKg, let reps = set.reps else { return nil }
                 return weight * Double(reps)
@@ -156,8 +161,10 @@ class LiveActivityManager: LiveActivityUpdating {
             return
         }
         
+        let sendableActivity = SendableActivity(activity: activity)
+
         Task {
-            await activity.end(
+            await sendableActivity.end(
                 ActivityContent(
                     state: finalState,
                     staleDate: nil
@@ -211,20 +218,28 @@ class LiveActivityManager: LiveActivityUpdating {
     }
     
     private func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
-        logger.trackEvent(event: Event.updateLiveActivityStart)
-        // Only update if meaningful changes occurred
+        // Only update if meaningful changes occurred. A skipped no-op is not an attempt, so the
+        // Start belongs below the guard — logging it above gave every unchanged tick a Start with
+        // no terminal event and buried the real failures.
         guard shouldUpdateLiveActivity(contentState: contentState) else { return }
-        
+
+        logger.trackEvent(event: Event.updateLiveActivityStart)
         self.lastContentState = contentState
 
         // Guard activity existence and acceptable state to avoid runtime errors
-        if let activity = self.currentActivity,
-           activity.activityState == .active ||
-            activity.activityState == .stale {
-            Task {
-                await activity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
-                logger.trackEvent(event: Event.updateLiveActivitySuccess)
-            }
+        guard let activity = self.currentActivity,
+              activity.activityState == .active ||
+                activity.activityState == .stale else {
+            // The activity was dismissed or ended under us. This used to fall out of the `if` with
+            // nothing logged, so a Live Activity that stopped updating mid-workout was invisible.
+            logger.trackEvent(event: Event.updateLiveActivityFail(error: LiveActivityError.noUpdatableActivity))
+            return
+        }
+
+        let sendableActivity = SendableActivity(activity: activity)
+        Task {
+            await sendableActivity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
+            logger.trackEvent(event: Event.updateLiveActivitySuccess)
         }
     }
         
@@ -433,7 +448,7 @@ class LiveActivityManager: LiveActivityUpdating {
             )
             // Reflect locally and push update with staleDate aligned to rest end
             self.activityViewState?.contentState = newState
-            await activity.update(
+            await SendableActivity(activity: activity).update(
                 ActivityContent(
                     state: newState,
                     staleDate: restEndsAt,
@@ -454,8 +469,11 @@ class LiveActivityManager: LiveActivityUpdating {
 
     private func computeTotals(session: WorkoutSessionModel, totalVolumeKgOverride: Double?) -> Totals {
         let allSets = session.exercises.flatMap { $0.sets }
-        let totalSetsCount = allSets.count
-        let completedSetsCount = allSets.filter { $0.completedAt != nil }.count
+        // Sets pair; volume does not — both sides of a set are real work lifted.
+        let totalSetsCount = session.exercises.reduce(0) { $0 + $1.sets.pairedSetCount }
+        let completedSetsCount = session.exercises.reduce(0) {
+            $0 + $1.sets.filter { $0.completedAt != nil }.pairedSetCount
+        }
         let progress = totalSetsCount > 0 ? Double(completedSetsCount) / Double(totalSetsCount) : 0
 
         let computedVolume = allSets
@@ -495,8 +513,8 @@ class LiveActivityManager: LiveActivityUpdating {
         let currentExerciseImageName = currentExercise?.imageName
 
         let currentExerciseSets = currentExercise?.sets ?? []
-        let currentExerciseCompletedSetsCount = currentExerciseSets.filter { $0.completedAt != nil }.count
-        let currentExerciseTotalSetsCount = currentExerciseSets.count
+        let currentExerciseCompletedSetsCount = currentExerciseSets.filter { $0.completedAt != nil }.pairedSetCount
+        let currentExerciseTotalSetsCount = currentExerciseSets.pairedSetCount
         let targetSet = currentExercise?.sets.first { $0.completedAt == nil }
 
         return CurrentExerciseData(
@@ -510,50 +528,24 @@ class LiveActivityManager: LiveActivityUpdating {
 
 }
 
-// MARK: Events
-extension LiveActivityManager {
-    enum Event: LoggableEvent {
-        case startLiveActivityStart
-        case startLiveActivitySuccess
-        case startLiveActivityFail(error: Error)
-        case liveActivitiesNotEnabled
-        case updateLiveActivityStart
-        case updateLiveActivitySuccess
-        case updateLiveActivityFail(error: Error)
-        case endLiveActivityStart
-        case endLiveActivitySuccess
+/// `ActivityKit.Activity` is a framework-managed reference type that is safe to use from any
+/// concurrency domain, but Apple does not annotate it as `Sendable`, and its `update`/`end` methods
+/// are `@concurrent`. Handing a main actor-isolated activity to them therefore trips region-based
+/// isolation. This box carries the activity across that one boundary without loosening isolation
+/// anywhere else in the manager.
+private struct SendableActivity<Attributes: ActivityAttributes>: @unchecked Sendable {
 
-        var eventName: String {
-            switch self {
-            case .startLiveActivityStart:       return "LiveActivityMan_StartLiveActiviey_Start"
-            case .startLiveActivitySuccess:     return "LiveActivityMan_StartLiveActiviey_Success"
-            case .startLiveActivityFail:        return "LiveActivityMan_StartLiveActiviey_Fail"
-            case .liveActivitiesNotEnabled:     return "LiveActivityMan_LiveActivitiesNotEnabled"
-            case .updateLiveActivityStart:      return "LiveActivityMan_UpdateLiveActivity_Start"
-            case .updateLiveActivitySuccess:    return "LiveActivityMan_UpdateLiveActivity_Success"
-            case .updateLiveActivityFail:       return "LiveActivityMan_UpdateLiveActivity_Fail"
-            case .endLiveActivityStart:         return "LiveActivityMan_EndLiveActivity_Start"
-            case .endLiveActivitySuccess:       return "LiveActivityMan_EndLiveActivity_Success"
-            }
-        }
-        
-        var parameters: [String: Any]? {
-            switch self {
-            case .startLiveActivityFail(error: let error), .updateLiveActivityFail(error: let error):
-                return error.eventParameters
-            default:
-                return nil
-            }
-        }
-        
-        var type: LogType {
-            switch self {
-            case .startLiveActivityFail, .updateLiveActivityFail:
-                return .severe
-            default:
-                return .analytic
-            }
-        }
+    let activity: Activity<Attributes>
+
+    func update(_ content: ActivityContent<Attributes.ContentState>) async {
+        await activity.update(content)
+    }
+
+    func end(
+        _ content: ActivityContent<Attributes.ContentState>?,
+        dismissalPolicy: ActivityUIDismissalPolicy
+    ) async {
+        await activity.end(content, dismissalPolicy: dismissalPolicy)
     }
 }
 

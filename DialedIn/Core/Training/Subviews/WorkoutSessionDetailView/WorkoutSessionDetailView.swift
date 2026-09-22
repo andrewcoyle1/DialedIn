@@ -23,29 +23,23 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
     let delegate: WorkoutSessionDetailDelegate
 
     @ViewBuilder var authorHeader: (AuthorHeaderDelegate) -> AuthorHeader
-    @ViewBuilder var editableExerciseCardWrapper: (EditableExerciseCardWrapperDelegate) -> AnyView
 
     init(
         presenter: WorkoutSessionDetailPresenter,
         delegate: WorkoutSessionDetailDelegate,
         authorHeader: @escaping (AuthorHeaderDelegate) -> AuthorHeader,
-        editableExerciseCardWrapper: @escaping (EditableExerciseCardWrapperDelegate) -> AnyView
     ) {
         self._presenter = State(initialValue: presenter)
         self._session = State(initialValue: delegate.initialSession)
         self.delegate = delegate
         self.authorHeader = authorHeader
-        self.editableExerciseCardWrapper = editableExerciseCardWrapper
     }
     
     var body: some View {
         List {
             authorHeaderSection
-//            headerSection(session: session, endedAt: session.endedAt)
             workoutDetailsSection
             exerciseDetailsSection
-//            exercisesSection
-//            deleteSection
         }
         .navigationTitle(session.name)
         .navigationSubtitle(session.dateCreated.formatted(date: .long, time: .shortened))
@@ -54,16 +48,91 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         .toolbar {
             toolbarContent
         }
+        .sheet(isPresented: $presenter.isEditingStartTime) {
+            startTimeSheet
+        }
+        .sheet(isPresented: $presenter.isEditingDuration) {
+            durationSheet
+        }
         .onAppear {
             presenter.loadUnitPreferences(for: session)
         }
+        .task {
+            await presenter.loadAuthor(for: session)
+        }
+    }
+
+    private var startTimeSheet: some View {
+        NavigationStack {
+            VStack {
+                DatePicker(
+                    "Started at",
+                    selection: Binding(
+                        get: { session.dateCreated },
+                        set: { presenter.onStartTimeChanged($0, session: $session) }
+                    ),
+                    in: ...Date(),
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+                .datePickerStyle(.graphical)
+                Text("The workout keeps its duration; only when it started changes.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal)
+            .navigationTitle("Start Time")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { presenter.isEditingStartTime = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private var durationSheet: some View {
+        NavigationStack {
+            HStack {
+                Picker("Hours", selection: $presenter.durationHours) {
+                    ForEach(0..<13, id: \.self) { hour in
+                        Text("\(hour) hr").tag(hour)
+                    }
+                }
+                .pickerStyle(.wheel)
+
+                Picker("Minutes", selection: $presenter.durationMinutes) {
+                    ForEach(0..<60, id: \.self) { minute in
+                        Text("\(minute) min").tag(minute)
+                    }
+                }
+                .pickerStyle(.wheel)
+            }
+            .padding(.horizontal)
+            .navigationTitle("Duration")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { presenter.isEditingDuration = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { presenter.onDurationConfirmed(session: $session) }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
     
+    @ViewBuilder
     private var authorHeaderSection: some View {
-        Section {
-            authorHeader(AuthorHeaderDelegate(author: .mock, date: session.dateCreated))
+        if let author = presenter.author {
+            Section {
+                authorHeader(AuthorHeaderDelegate(author: author, date: session.dateCreated))
+            }
+            .listSectionMargins(.top, 0)
         }
-        .listSectionMargins(.top, 0)
     }
     
     private var workoutDetailsSection: some View {
@@ -81,7 +150,7 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
                     .padding(8)
                     .background(Color.secondary.opacity(0.2), in: .capsule)
                     .anyButton(.press) {
-
+                        presenter.onEditStartTimePressed()
                     }
             }
             if let duration = session.endedAt?.timeIntervalSince(session.dateCreated) {
@@ -95,7 +164,7 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
                         .padding(8)
                         .background(Color.secondary.opacity(0.2), in: .capsule)
                         .anyButton(.press) {
-
+                            presenter.onEditDurationPressed(session: session)
                         }
                 }
             }
@@ -123,8 +192,12 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         Section {
             ForEach(session.exercises) { exercise in
                 DisclosureGroup {
-                    ForEach(exercise.sets.filter { !$0.isWarmup }.enumerated(), id: \.element.id) { setIndex, set in
-                        SetDetailRow(set: set, index: setIndex + 1, trackingMode: exercise.trackingMode)
+                    ForEach(exercise.workingSets, id: \.id) { set in
+                        SetDetailRow(
+                            set: set,
+                            index: exercise.workingSetNumber(for: set),
+                            trackingMode: exercise.trackingMode
+                        )
                     }
                 } label: {
                     let volume: Double = exercise.sets
@@ -198,74 +271,6 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         }
     }
         
-    private var exercisesSection: some View {
-        Section {
-            if presenter.isEditMode {
-                ForEach(0..<session.exercises.count, id: \.self) { index in
-                    let exercise = session.exercises[index]
-                    let preference = presenter.getUnitPreference(for: exercise.templateId)
-                    editableExerciseCardWrapper(
-                        EditableExerciseCardWrapperDelegate(
-                            exercise: exercise,
-                            index: index + 1,
-                            weightUnit: preference.weightUnit,
-                            distanceUnit: preference.distanceUnit,
-                            onExerciseUpdate: { updated in
-                                presenter.updateExercise(session: $session, at: index, with: updated)
-                            },
-                            onAddSet: {
-                                presenter.addSet(session: $session, to: exercise.id)
-                            },
-                            onDeleteSet: { setId in
-                                presenter.deleteSet(session: $session, setId, from: exercise.id)
-                            },
-                            onWeightUnitChange: { unit in
-                                presenter.updateWeightUnit(unit, for: exercise.templateId)
-                            },
-                            onDistanceUnitChange: { unit in
-                                presenter.updateDistanceUnit(unit, for: exercise.templateId)
-                            }
-                        )
-                    )
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            presenter.deleteExercise(session: $session, id: exercise.id)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                }
-
-                Button {
-                    presenter.onAddExercisePressed()
-                } label: {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Add Exercise")
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(Color.accentColor)
-                }
-            } else {
-                ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, exercise in
-                    ExerciseDetailCard(exercise: exercise, index: index + 1)
-                }
-            }
-        } header: {
-            Text("Exercises")
-        }
-    }
-    
-    private var deleteSection: some View {
-        Section {
-            Button(role: .destructive) {
-                presenter.onDeletePressed(session: session)
-            }
-            .foregroundStyle(.red)
-            .disabled(presenter.isLoading)
-        }
-    }
-    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         
@@ -373,10 +378,6 @@ extension CoreBuilder {
             delegate: delegate,
             authorHeader: { delegate in
                 self.authorHeaderView(router: router, delegate: delegate)
-            },
-            editableExerciseCardWrapper: { delegate in
-                self.editableExerciseCardWrapper(delegate: delegate)
-                    .any()
             }
         )
     }

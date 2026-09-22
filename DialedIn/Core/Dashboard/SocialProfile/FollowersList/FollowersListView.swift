@@ -2,6 +2,9 @@ import SwiftUI
 
 struct FollowersListDelegate {
     let followers: [UserModel]
+    /// The screen is reached as "Followers" and as "People you both follow", so the title travels
+    /// with the list rather than being hardcoded to one of them.
+    var title: String = "Followers"
 }
 
 struct FollowersListView: View {
@@ -10,25 +13,24 @@ struct FollowersListView: View {
     let delegate: FollowersListDelegate
 
     var body: some View {
-        List(delegate.followers) { user in
-            HStack {
-                ZStack {
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 24))
-                    if let url = user.profileImageNameCalculated {
-                        ImageLoaderView(urlString: url, clipShape: AnyShape(Circle()))
-                    }
-                }
-                .frame(width: 44, height: 44)
-
-                VStack(alignment: .leading) {
-                    if let name = user.fullNameCalculated {
-                        Text(name).font(.headline)
-                    }
+        List {
+            if delegate.followers.isEmpty {
+                // The list was drawn straight from the array, so an empty one was a blank screen.
+                ContentUnavailableView(
+                    "No One Yet",
+                    systemImage: "person.2",
+                    description: Text("When people follow this profile they will show up here.")
+                )
+                .removeListRowFormatting()
+            } else {
+                ForEach(delegate.followers) { user in
+                    UserRowView(user: user)
                 }
             }
         }
-        .navigationTitle("Followers")
+        .navigationTitle(delegate.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .scrollIndicators(.hidden)
     }
 }
 

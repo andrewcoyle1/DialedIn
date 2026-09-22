@@ -13,30 +13,18 @@ struct WorkoutStreakDelegate {
 
 struct WorkoutStreakCard: View {
     
-    @Environment(\.colorScheme) private var colorScheme
-    
     @State var presenter: WorkoutStreakPresenter
     let delegate: WorkoutStreakDelegate
     
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("Workout Streak")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.leading)
+        DashboardCard(title: "Workout Streak") {
             VStack(alignment: .leading, spacing: 16) {
                 streakHeader
                 weeklyDotsRow
                 Divider()
                 streakStats
             }
-            .padding()
-            .background(colorScheme.backgroundPrimary, in: .rect)
-            .cornerRadius(24)
-            .padding(.bottom)
-            .frame(height: 200)
         }
-        .padding(.horizontal)
     }
     
     private var streakHeader: some View {

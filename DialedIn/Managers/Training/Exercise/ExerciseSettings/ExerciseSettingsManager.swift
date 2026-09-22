@@ -54,6 +54,10 @@ extension CoreInteractor {
 
     // MARK: ExerciseSettingsManager
 
+    var allExerciseSettings: [ExerciseSettingsModel] {
+        exerciseSettingsManager.allExerciseSettings
+    }
+
     func exerciseNote(for exerciseId: String) -> String? {
         exerciseSettingsManager.note(for: exerciseId)
     }

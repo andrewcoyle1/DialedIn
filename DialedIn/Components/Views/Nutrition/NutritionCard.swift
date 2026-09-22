@@ -12,19 +12,10 @@ struct NutritionCard: View {
     let fatTarget: Double
     let onLogMealTapped: () -> Void
     
-    @Environment(\.colorScheme) private var colorScheme
-    
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("Today's Nutrition")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.leading)
-            
+        DashboardCard(title: "Today's Nutrition") {
             cardItem
         }
-        .frame(height: 200)
-        .padding(.horizontal)
     }
     
     private var cardItem: some View {
@@ -65,11 +56,6 @@ struct NutritionCard: View {
             }
             .buttonStyle(.bordered)
         }
-        .padding()
-        .background(colorScheme.backgroundPrimary, in: .rect)
-        .cornerRadius(24)
-        .padding(.bottom)
-//        .frame(height: 200)
     }
     
     private func macroBar(label: String, value: Double, target: Double, color: Color) -> some View {

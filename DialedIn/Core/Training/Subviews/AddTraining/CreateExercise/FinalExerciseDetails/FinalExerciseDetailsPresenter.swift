@@ -19,7 +19,10 @@ class FinalExerciseDetailsPresenter {
     }
 
     func onNextPressed(delegate: FinalExerciseDetailsDelegate) {
-        let alternateNamesArray: [String] = self.alternateNames.components(separatedBy: ",")
+        let alternateNamesArray: [String] = self.alternateNames
+            .components(separatedBy: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
         router.showExerciseSaveView(
             delegate: ExerciseSaveDelegate(
                 exerciseName: delegate.name,

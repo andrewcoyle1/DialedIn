@@ -16,7 +16,7 @@ class ExpenditureDetailPresenter {
     private let calendar = Calendar.current
 
     private(set) var cachedEntries: [ExpenditureDetailEntry] = []
-    private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
+    private(set) var cachedTimeSeries: [TimeSeries] = []
 
     init(interactor: ExpenditureDetailInteractor, router: ExpenditureDetailRouter) {
         self.interactor = interactor
@@ -54,7 +54,7 @@ class ExpenditureDetailPresenter {
 
         cachedEntries = entries.reversed()
         cachedTimeSeries = [
-            TimeSeriesData.TimeSeries(name: "ExpenditureDetail", data: data)
+            TimeSeries(name: "Expenditure", data: data)
         ]
     }
 }
@@ -66,21 +66,22 @@ extension ExpenditureDetailPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         cachedTimeSeries
     }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
-            title: "ExpenditureDetail",
+            title: "Expenditure",
             analyticsName: "ExpenditureDetailView",
             yAxisSuffix: "",
-            seriesNames: ["ExpenditureDetail"],
-            showsAddButton: false,
-            sectionHeader: "Daily ExpenditureDetail",
+            seriesNames: ["Expenditure"],
+            showsAddButton: true,
+            sectionHeader: "Daily Expenditure",
             emptyStateMessage: "No expenditure data",
-            pageSize: 20,
-            chartType: .line
+            chartType: .line,
+            addActionTitle: "Edit Profile",
+            addActionSystemImage: "person.crop.circle"
         )
     }
 
@@ -89,10 +90,9 @@ extension ExpenditureDetailPresenter: @MainActor MetricDetailPresenter {
     }
 
     func onAddPressed() {
-        // No-op: expenditure is derived from user profile
+        // TDEE is estimated from height, weight, age and activity level — all of which live on
+        // the account screen, which is where this now goes.
+        router.showAccountView(delegate: AccountDelegate())
     }
 
-    func onDeleteEntry(_ entry: ExpenditureDetailEntry) async {
-        // No-op: expenditure is derived from user profile
-    }
 }

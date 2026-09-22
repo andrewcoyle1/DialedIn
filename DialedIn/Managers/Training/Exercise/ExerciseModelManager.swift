@@ -180,8 +180,9 @@ extension CoreInteractor {
 
 // MARK: - Supporting Types
 
-/// Container for decoding JSON
-private struct PrebuiltExercisesContainer: Codable {
+/// Container for decoding JSON. Not private — `PrebuiltSeedData` decodes the same file to
+/// build mock data from the seeded exercises.
+struct PrebuiltExercisesContainer: Codable {
     let exercises: [ExerciseModel]
 }
 

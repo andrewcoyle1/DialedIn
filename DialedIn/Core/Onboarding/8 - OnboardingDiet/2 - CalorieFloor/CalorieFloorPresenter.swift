@@ -14,8 +14,6 @@ class CalorieFloorPresenter {
     private let router: CalorieFloorRouter
 
     var selectedFloor: CalorieFloor?
-    var trainingDaysPerWeek: Int?
-    var hasTrainingPlan: Bool = false
 
     init(
         interactor: CalorieFloorInteractor,
@@ -23,19 +21,18 @@ class CalorieFloorPresenter {
     ) {
         self.interactor = interactor
         self.router = router
-        loadTrainingContext()
+        prefillCalorieFloor()
     }
-    
-    private func loadTrainingContext() {
-    }
-    
-    private func prefillCalorieFloor(daysPerWeek: Int) {
-        // Heuristic: 1-2 days = standard (conservative), 3-4 = standard, 5-6 = standard
-        // Since we only have standard and low, default to standard for all
-        if selectedFloor == nil {
-            selectedFloor = .standard
-            interactor.trackEvent(event: Event.calorieFloorPrefilled(floor: .standard, reason: "training_days_\(daysPerWeek)"))
-        }
+
+    /// `loadTrainingContext()` used to be called here and was empty, so `prefillCalorieFloor` — which
+    /// it was the only caller of — never ran and the screen opened with nothing selected. Its two
+    /// properties, `trainingDaysPerWeek` and `hasTrainingPlan`, were written by nothing and read by
+    /// nothing, and its own comment recorded that every training volume mapped to `.standard` anyway.
+    /// So this is what it did, minus the parameter that changed nothing.
+    private func prefillCalorieFloor() {
+        guard selectedFloor == nil else { return }
+        selectedFloor = .standard
+        interactor.trackEvent(event: Event.calorieFloorPrefilled(floor: .standard, reason: "default"))
     }
     
     func onContinuePressed(delegate oldDelegate: CalorieFloorDelegate) {
@@ -53,22 +50,18 @@ func onDevSettingsPressed() {
 #endif
 
     enum Event: LoggableEvent {
-        case trainingContextLoaded(daysPerWeek: Int?)
         case calorieFloorPrefilled(floor: CalorieFloor, reason: String)
         case navigate(skipReason: String? = nil)
 
         var eventName: String {
             switch self {
-            case .trainingContextLoaded: return "Onboarding_CalFloor_TrainingContextLoaded"
             case .calorieFloorPrefilled: return "Onboarding_CalFloor_Prefilled"
             case .navigate: return "Onboarding_CalFloor_Navigate"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
-            case .trainingContextLoaded(daysPerWeek: let days):
-                return ["daysPerWeek": days as Any]
             case .calorieFloorPrefilled(floor: let floor, reason: let reason):
                 return ["floor": floor.rawValue, "reason": reason]
             case .navigate(skipReason: let skipReason):
@@ -79,10 +72,10 @@ func onDevSettingsPressed() {
                 return params
             }
         }
-        
+
         var type: LogType {
             switch self {
-            case .navigate, .trainingContextLoaded, .calorieFloorPrefilled:
+            case .navigate, .calorieFloorPrefilled:
                 return .info
             }
         }

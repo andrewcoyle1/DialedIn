@@ -17,10 +17,16 @@ struct MealLogModel: DataSyncModelProtocol, Hashable {
     var items: [MealItemModel]
     var notes: String?
 
-    var totalCalories: Double { items.compactMap { $0.nutrients[.calories] }.reduce(0, +) }
-    var totalProteinGrams: Double { items.compactMap { $0.nutrients[.protein] }.reduce(0, +) }
-    var totalCarbGrams: Double { items.compactMap { $0.nutrients[.carbs] }.reduce(0, +) }
-    var totalFatGrams: Double { items.compactMap { $0.nutrients[.fatTotal] }.reduce(0, +) }
+    /// Every nutrient in the meal, summed across its items — micronutrients included, since each
+    /// item carries a full snapshot taken when it was logged.
+    var totalNutrients: NutrientMap {
+        items.reduce(NutrientMap()) { $0 + $1.nutrients }
+    }
+
+    var totalCalories: Double { totalNutrients[.calories] ?? 0 }
+    var totalProteinGrams: Double { totalNutrients[.protein] ?? 0 }
+    var totalCarbGrams: Double { totalNutrients[.carbs] ?? 0 }
+    var totalFatGrams: Double { totalNutrients[.fatTotal] ?? 0 }
 
     init(
         mealId: String = UUID().uuidString,
@@ -45,205 +51,5 @@ struct MealLogModel: DataSyncModelProtocol, Hashable {
         case date
         case items
         case notes
-    }
-
-    static var mock: MealLogModel {
-        let today = Date()
-        return MealLogModel(
-            mealId: UUID().uuidString,
-            authorId: UserModel.mock.userId,
-            dayKey: today.dayKey,
-            date: today,
-            items: MealItemModel.mocks,
-            notes: "Had a great breakfast!"
-        )
-    }
-
-    static var mocks: [MealLogModel] {
-        [
-            Self.mock,
-            Self.mock,
-            Self.mock,
-            Self.mock,
-            Self.mock
-        ]
-    }
-
-    /// Generates a week's worth of mock meal data (Monday to Sunday) for testing
-    static var mockWeekMealsByDay: [String: [MealLogModel]] {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekday = calendar.component(.weekday, from: today)
-        let daysFromMonday = (weekday + 5) % 7
-        let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today) ?? today
-
-        var mockMealsByDay: [String: [MealLogModel]] = [:]
-
-        for offset in 0..<7 {
-            let date = calendar.date(byAdding: .day, value: offset, to: monday) ?? monday
-            let key = date.dayKey
-
-            // Create sample meals with items
-            let breakfastItems = [
-                MealItemModel(
-                    itemId: UUID().uuidString,
-                    sourceType: .ingredient,
-                    sourceId: "ing-oats",
-                    displayName: "Oatmeal",
-                    amount: 50,
-                    unit: "g",
-                    resolvedGrams: 50,
-                    resolvedMilliliters: nil,
-                    nutrients: [.calories: 190, .protein: 7, .carbs: 32, .fatTotal: 3.5]
-                )
-            ]
-
-            let breakfast = MealLogModel(
-                mealId: UUID().uuidString,
-                authorId: "mock-user",
-                dayKey: key,
-                date: date.addingTimeInterval(hours: 8),
-                items: breakfastItems,
-                notes: nil
-            )
-
-            mockMealsByDay[key] = [breakfast]
-        }
-
-        return mockMealsByDay
-    }
-
-    /// Generates a week's worth of comprehensive preview meal data with breakfast, lunch, and dinner
-    static var previewWeekMealsByDay: [String: [MealLogModel]] {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekday = calendar.component(.weekday, from: today)
-        let daysFromMonday = (weekday + 5) % 7
-        let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today) ?? today
-
-        var mealsByDay: [String: [MealLogModel]] = [:]
-
-        for offset in 0..<7 {
-            let date = calendar.date(byAdding: .day, value: offset, to: monday) ?? monday
-            let key = date.dayKey
-
-            // Create sample meal items for variety
-            let breakfastItems = [
-                MealItemModel(
-                    itemId: UUID().uuidString,
-                    sourceType: .ingredient,
-                    sourceId: "ing-oats",
-                    displayName: "Oatmeal",
-                    amount: 50,
-                    unit: "g",
-                    resolvedGrams: 50,
-                    resolvedMilliliters: nil,
-                    nutrients: [.calories: 190, .protein: 7, .carbs: 32, .fatTotal: 3.5]
-                ),
-                MealItemModel(
-                    itemId: UUID().uuidString,
-                    sourceType: .ingredient,
-                    sourceId: "ing-banana",
-                    displayName: "Banana",
-                    amount: 1,
-                    unit: "unit",
-                    resolvedGrams: 120,
-                    resolvedMilliliters: nil,
-                    nutrients: [.calories: 105, .protein: 1.3, .carbs: 27, .fatTotal: 0.4]
-                )
-            ]
-
-            let lunchItems = [
-                MealItemModel(
-                    itemId: UUID().uuidString,
-                    sourceType: .ingredient,
-                    sourceId: "ing-chicken",
-                    displayName: "Grilled Chicken",
-                    amount: 200,
-                    unit: "g",
-                    resolvedGrams: 200,
-                    resolvedMilliliters: nil,
-                    nutrients: [.calories: 330, .protein: 62, .carbs: 0, .fatTotal: 7]
-                ),
-                MealItemModel(
-                    itemId: UUID().uuidString,
-                    sourceType: .ingredient,
-                    sourceId: "ing-rice",
-                    displayName: "Brown Rice",
-                    amount: 150,
-                    unit: "g",
-                    resolvedGrams: 150,
-                    resolvedMilliliters: nil,
-                    nutrients: [.calories: 165, .protein: 3.5, .carbs: 35, .fatTotal: 1.2]
-                ),
-                MealItemModel(
-                    itemId: UUID().uuidString,
-                    sourceType: .ingredient,
-                    sourceId: "ing-broccoli",
-                    displayName: "Broccoli",
-                    amount: 100,
-                    unit: "g",
-                    resolvedGrams: 100,
-                    resolvedMilliliters: nil,
-                    nutrients: [.calories: 35, .protein: 2.8, .carbs: 7, .fatTotal: 0.4]
-                )
-            ]
-
-            let dinnerItems = [
-                MealItemModel(
-                    itemId: UUID().uuidString,
-                    sourceType: .recipe,
-                    sourceId: "recipe-salmon",
-                    displayName: "Baked Salmon with Vegetables",
-                    amount: 1,
-                    unit: "serving",
-                    resolvedGrams: nil,
-                    resolvedMilliliters: nil,
-                    nutrients: [.calories: 450, .protein: 38, .carbs: 22, .fatTotal: 24]
-                ),
-                MealItemModel(
-                    itemId: UUID().uuidString,
-                    sourceType: .ingredient,
-                    sourceId: "ing-quinoa",
-                    displayName: "Quinoa",
-                    amount: 100,
-                    unit: "g",
-                    resolvedGrams: 100,
-                    resolvedMilliliters: nil,
-                    nutrients: [.calories: 120, .protein: 4.4, .carbs: 21, .fatTotal: 1.9]
-                )
-            ]
-
-            let breakfast = MealLogModel(
-                mealId: UUID().uuidString,
-                authorId: "preview-user",
-                dayKey: key,
-                date: date.addingTimeInterval(hours: 8),
-                items: breakfastItems,
-                notes: offset % 3 == 0 ? "Great morning meal!" : nil
-            )
-
-            let lunch = MealLogModel(
-                mealId: UUID().uuidString,
-                authorId: "preview-user",
-                dayKey: key,
-                date: date.addingTimeInterval(hours: 13),
-                items: lunchItems,
-                notes: nil
-            )
-
-            let dinner = MealLogModel(
-                mealId: UUID().uuidString,
-                authorId: "preview-user",
-                dayKey: key,
-                date: date.addingTimeInterval(hours: 19),
-                items: dinnerItems,
-                notes: offset % 2 == 0 ? "Delicious dinner!" : nil
-            )
-
-            mealsByDay[key] = [breakfast, lunch, dinner]
-        }
-
-        return mealsByDay
     }
 }

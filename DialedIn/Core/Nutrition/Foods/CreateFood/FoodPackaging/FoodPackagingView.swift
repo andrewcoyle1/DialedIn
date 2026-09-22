@@ -35,6 +35,8 @@ struct FoodPackagingView: View {
     
     var body: some View {
         List {
+            // Header-only by design, as a title above the three photo sections below — hence the
+            // zero section spacing. Not an unfinished section.
             Section { } header: {
                 Text("Photos of Food Packaging")
             }

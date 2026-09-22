@@ -112,6 +112,12 @@ class GymProfilePresenter {
                 onComplete()
             } catch {
                 interactor.trackEvent(event: Event.saveGymProfileFail(error: error))
+                // `onComplete` is what leaves this screen, so a silent failure leaves Back and
+                // Continue looking broken. Say why nothing moved.
+                router.showSimpleAlert(
+                    title: "Unable to Save Gym Profile",
+                    subtitle: "Please check your internet connection and try again."
+                )
             }
         }
 
@@ -208,6 +214,7 @@ class GymProfilePresenter {
     }
     
     func onImageSelectorChanged(_ newItem: PhotosPickerItem) async {
+        interactor.trackEvent(event: Event.imageSelectorStart)
         do {
             if let data = try await newItem.loadTransferable(type: Data.self) {
                 selectedImageData = data
@@ -235,47 +242,7 @@ class GymProfilePresenter {
     }
 
     private func route(to step: OnboardingStep) {
-        switch step {
-        case .auth, .subscription:
-            // For anything at/before subscription, move them into complete-account setup
-            router.showCompleteAccountSetupView()
-
-        case .completeAccountSetup:
-            router.showCompleteAccountSetupView()
-
-        case .notifications:
-            router.showNotificationsPermissionsView()
-
-        case .healthData:
-            router.showOnboardingHealthDataView()
-
-        case .healthDisclaimer:
-            router.showHealthDisclaimerView()
-
-        case .goalSetting:
-            router.showGoalSettingView()
-
-        case .gymProfileSetup:
-            let delegate = CreateGymProfileDelegate(onComplete: self.handleNavigation)
-            router.showCreateGymProfileView(delegate: delegate)
-
-        case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(
-                delegate: CreateProgramDelegate(
-                    onComplete: { [weak self] in
-                        guard let self else { return }
-                        Task { @MainActor in
-                            self.handleNavigation()
-                        }
-                    }
-                )
-            )
-        case .customiseProgram:
-            router.showCustomisingDietProgramView()
-
-        case .complete:
-            router.showOnboardingCompletedView()
-        }
+        router.routeToOnboardingStep(step, onComplete: handleNavigation)
     }
 
     enum Event: LoggableEvent {

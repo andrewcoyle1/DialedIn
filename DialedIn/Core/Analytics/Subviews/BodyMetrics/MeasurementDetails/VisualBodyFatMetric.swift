@@ -46,9 +46,9 @@ final class VisualBodyFatPresenter: @MainActor MetricDetailPresenter {
 
     var entries: [VisualBodyFatEntry]
 
-    var timeSeries: [TimeSeriesData.TimeSeries] {
+    var timeSeries: [TimeSeries] {
         let data = entries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: $0.bodyFatPercent) }
-        return [TimeSeriesData.TimeSeries(name: "Body Fat", data: data)]
+        return [TimeSeries(name: "Body Fat", data: data)]
     }
 
     var configuration: MetricConfiguration {
@@ -57,11 +57,12 @@ final class VisualBodyFatPresenter: @MainActor MetricDetailPresenter {
             analyticsName: "VisualBodyFatView",
             yAxisSuffix: " %",
             seriesNames: ["Body Fat"],
-            showsAddButton: false,
+            showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No body fat entries",
-            pageSize: nil,
-            chartColor: .green
+            chartColor: .green,
+            addActionTitle: "Sync from Health",
+            addActionSystemImage: "arrow.clockwise"
         )
     }
 
@@ -80,18 +81,33 @@ final class VisualBodyFatPresenter: @MainActor MetricDetailPresenter {
         entries = Self.bodyFatEntries(from: interactor.bodyMeasurements)
     }
 
+    /// There is no manual body-fat entry flow in the app — the value comes from HealthKit, via the
+    /// same backfill `onAppear` runs. So the action is to fetch it again rather than nothing: an
+    /// empty screen previously offered no way forward at all.
     func onAddPressed() {
-        // No-op until data entry flow is available
+        Task {
+            await interactor.backfillBodyFatFromHealthKit()
+            entries = Self.bodyFatEntries(from: interactor.bodyMeasurements)
+        }
     }
 
     func onDismissPressed() {
         router.dismissScreen()
     }
 
+    var supportsDeletion: Bool { true }
+
     func onDeleteEntry(_ entry: VisualBodyFatEntry) async {
         guard let baseEntry = interactor.bodyMeasurements.first(where: { $0.id == entry.id }) else { return }
         let updatedEntry = baseEntry.withCleared(.bodyFatPercentage)
-        try? await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        do {
+            try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
+        } catch {
+            // Was `try?`. The refresh below re-reads unchanged data, so a failed delete put the row
+            // straight back with nothing said about why.
+            router.showSimpleAlert(title: "Unable to Delete Entry", subtitle: "Please try again.")
+            return
+        }
         entries = Self.bodyFatEntries(from: interactor.bodyMeasurements)
     }
 

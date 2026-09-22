@@ -11,6 +11,7 @@ import SwiftUI
 protocol ExerciseDetailInteractor {
     var auth: UserAuthInfo? { get }
     var workoutSessions: [WorkoutSessionModel] { get }
+    func getPreference(templateId: String) -> ExerciseUnitPreference
 }
 
 extension CoreInteractor: ExerciseDetailInteractor { }

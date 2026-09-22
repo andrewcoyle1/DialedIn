@@ -196,13 +196,13 @@ struct WeightGoalCompPropsAndCalcsTests {
     
     // MARK: - Identifiable Tests
     
-    @Test("Test WeightGoal Is Identifiable")
-    func testWeightGoalIsIdentifiable() {
-        let randomGoalId = String.random
+    /// A goal no longer carries a generated `goalId`: a user has one weight goal, stored under
+    /// their own id, so two goals for the same user are the same document.
+    @Test("Test WeightGoal Is Identified By Its User")
+    func testWeightGoalIsIdentifiedByItsUser() {
         let randomUserId = String.random
         
         let goal = WeightGoal(
-            goalId: randomGoalId,
             userId: randomUserId,
             objective: .loseWeight,
             startingWeightKg: 75.0,
@@ -210,12 +210,11 @@ struct WeightGoalCompPropsAndCalcsTests {
             weeklyChangeKg: 0.5
         )
         
-        #expect(goal.id == randomGoalId)
-        #expect(goal.goalId == randomGoalId)
+        #expect(goal.id == randomUserId)
     }
     
-    @Test("Test Default ID Generation")
-    func testDefaultIdGeneration() {
+    @Test("Test Two Goals For One User Share An Id")
+    func testTwoGoalsForOneUserShareAnId() {
         let randomUserId = String.random
         
         let goal1 = WeightGoal(
@@ -228,15 +227,14 @@ struct WeightGoalCompPropsAndCalcsTests {
         
         let goal2 = WeightGoal(
             userId: randomUserId,
-            objective: .loseWeight,
+            objective: .gainWeight,
             startingWeightKg: 75.0,
-            targetWeightKg: 68.0,
+            targetWeightKg: 80.0,
             weeklyChangeKg: 0.5
         )
         
-        // Both should have valid UUIDs, but different ones
-        #expect(goal1.goalId != goal2.goalId)
-        #expect(!goal1.goalId.isEmpty)
-        #expect(!goal2.goalId.isEmpty)
+        // Saving the second overwrites the first, rather than leaving two active goals behind.
+        #expect(goal1.id == goal2.id)
+        #expect(!goal1.id.isEmpty)
     }
 }

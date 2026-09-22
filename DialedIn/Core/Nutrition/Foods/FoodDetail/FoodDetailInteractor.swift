@@ -8,6 +8,8 @@
 @MainActor
 protocol FoodDetailInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
+    func isFavouriteFood(id: String) -> Bool
+    func setFavouriteFood(id: String, isFavourite: Bool) async throws
 }
 
 extension CoreInteractor: FoodDetailInteractor { }

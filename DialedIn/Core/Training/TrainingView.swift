@@ -18,14 +18,17 @@ struct TrainingDelegate {
 
 struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
 
-    @Environment(\.layoutMode) private var layoutMode
-    @Environment(\.scenePhase) private var scenePhase
-
     @State var presenter: TrainingPresenter
     let delegate: TrainingDelegate
 
-    @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
+    let profileTransitionId: String = "profile_button_transition"
+    
+    @ViewBuilder var calendarHeader: (CalendarHeaderDelegate, Binding<Bool>) -> CalendarHeaderView
     @ViewBuilder var activeProgramContent: (TrainingProgram) -> ActiveProgramView
+
+    @Namespace private var namespace
+
+    @State private var isCalendarExpanded = false
 
     var body: some View {
         List {
@@ -38,23 +41,27 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             moreSection
         }
         .navigationTitle("Training")
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
-        .toolbarRole(.browser)
         .safeAreaInset(edge: .top) {
             calendarHeader(
                 CalendarHeaderDelegate(
                     onDatePressed: { date in
                         presenter.onDatePressed(date: date)
                     },
-                    getForDate: { date in
-                        presenter.getLoggedWorkoutCountForDate(date, calendar: presenter.calendar)
+                    // Tapping a day opens that day's session; the screen has no "selected day"
+                    // state for a highlight to reflect.
+                    showsSelection: false,
+                    markersByDay: {
+                        presenter.loggedWorkoutMarkersByDay()
                     }
-                )
+                ),
+                $isCalendarExpanded
             )
+            .background(.bar)
         }
     }
 
@@ -142,31 +149,31 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
 
         ToolbarItem(placement: .topBarTrailing) {
             Button {
+                isCalendarExpanded = true
+            } label: {
+                Image(systemName: "calendar")
+            }
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
                 presenter.onAddPressed()
             } label: {
                 Image(systemName: "plus")
             }
         }
-
+        
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+        
         ToolbarItem(placement: .topBarTrailing) {
-            let avatarSize: CGFloat = 44
-
-            Button {
-                presenter.onProfilePressed()
-            } label: {
-                ZStack {
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 24))
-                    if let urlString = presenter.userImageUrl {
-                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                            .frame(width: avatarSize, height: avatarSize)
-                            .contentShape(Circle())
-                    }
-                }
-            }
+            ProfileButton(
+                action: {
+                    presenter.onProfilePressed(transitionId: profileTransitionId, namespace: namespace)
+                },
+                imageUrl: presenter.userImageUrl
+            )
+            .matchedTransitionSource(id: profileTransitionId, in: namespace)
         }
-        .sharedBackgroundVisibility(.hidden)
-
     }
 }
 
@@ -178,8 +185,12 @@ extension CoreBuilder {
                 router: CoreRouter(router: router, builder: self)
             ),
             delegate: delegate,
-            calendarHeader: { calendarDelegate in
-                self.calendarHeaderView(router: router, delegate: calendarDelegate)
+            calendarHeader: { calendarDelegate, isCalendarExpanded in
+                self.calendarHeaderView(
+                    router: router,
+                    delegate: calendarDelegate,
+                    isCalendarExpanded: isCalendarExpanded
+                )
             },
             activeProgramContent: { program in
                 self.activeTrainingProgramView(

@@ -172,8 +172,15 @@ class SearchPresenter {
         !trimmedSearchString.isEmpty
     }
 
+    /// Checks `filteredUsers`, not `users`: the view renders the filtered list, so a remote search
+    /// that returned people whose names the local filter then rejected showed a list of five empty
+    /// sections instead of "no results".
     var hasResults: Bool {
-        !filteredExercises.isEmpty || !filteredWorkoutTemplates.isEmpty || !filteredRecipeTemplates.isEmpty || !filteredFoods.isEmpty || !users.isEmpty
+        !filteredExercises.isEmpty
+            || !filteredWorkoutTemplates.isEmpty
+            || !filteredRecipeTemplates.isEmpty
+            || !filteredFoods.isEmpty
+            || !filteredUsers.isEmpty
     }
 
     func isFollowing(userId: String) -> Bool {
@@ -267,6 +274,46 @@ class SearchPresenter {
         recentQueries = []
     }
 
+    // MARK: - Quick actions
+
+    /// The Add tab's grid, as chosen on the Shortcuts screen.
+    var quickActions: [QuickAction] {
+        interactor.shortcutSettings.quickActions
+    }
+
+    /// One switch instead of a per-action closure at the call site, so adding a `QuickAction` case is
+    /// a compile error here until it is routed somewhere.
+    func onQuickActionPressed(_ action: QuickAction) {
+        // The eventName overload rather than a nested `Event` enum: this presenter tracks nothing
+        // else, and one case does not justify the enum.
+        interactor.trackEvent(
+            eventName: "SearchView_QuickAction_Press",
+            parameters: ["action": action.rawValue],
+            type: .analytic
+        )
+        switch action {
+        case .startWorkout:    onStartWorkoutPressed()
+        case .addExercise:     onAddExercisePressed()
+        case .logMeal:         onLogMealPressed()
+        case .logWeight:       onLogWeightPressed()
+        case .browseWorkouts:  router.showWorkoutsView(delegate: WorkoutsDelegate())
+        case .browseExercises: onBrowseExercisesPressed()
+        case .browseRecipes:   router.showRecipesView()
+        }
+    }
+
+    /// The list was opened with an empty delegate, so every row tapped into a nil closure and the
+    /// screen was a dead end. Selecting an exercise goes where the search results' own rows go.
+    func onBrowseExercisesPressed() {
+        router.showExerciseListBuilderView(
+            delegate: ExerciseListBuilderDelegate(
+                onExerciseSelectionChanged: { [weak self] exercise in
+                    self?.onExercisePressed(exercise: exercise)
+                }
+            )
+        )
+    }
+
     func onStartWorkoutPressed() {
         router.showWorkoutsView(delegate: WorkoutsDelegate())
     }
@@ -344,32 +391,12 @@ class SearchPresenter {
         }
     }
 
-    func onProfilePressed() {
-        router.showProfileView()
+    /// The empty Add tab's way back to the screen that fills it.
+    func onChooseShortcutsPressed() {
+        router.showShortcutsView(delegate: ShortcutsDelegate())
     }
 
-    private func showWorkoutStartModal(for template: WorkoutTemplateModel) {
-        router.showWorkoutStartModal(
-            delegate: WorkoutStartDelegate(
-                template: template,
-                trainingProgramId: nil,
-                onStartWorkoutPressed: { [weak self] in
-                    guard let self else { return }
-                    Task {
-                        do {
-                            try await self.interactor.startWorkout(for: template, in: nil)
-                            self.router.dismissModal()
-                            self.router.dismissEnvironment()
-                            self.router.showWorkoutTrackerView()
-                        } catch {
-                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
-                        }
-                    }
-                },
-                onCancelPressed: { [weak self] in
-                    self?.router.dismissModal()
-                }
-            )
-        )
+    func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
+        router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
 }

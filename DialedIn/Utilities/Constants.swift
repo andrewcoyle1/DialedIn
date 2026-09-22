@@ -11,8 +11,16 @@ struct Constants {
     
 //    static let randomImage = "https://picsum.photos/600/600"
     static let randomImage = "SplashScreen"
+    /// The address behind Profile's "Support". Was a bare literal at its one call site.
+    static let supportEmail = "andrewcoyle.1@outlook.com"
+
+    // ⚠️ PLACEHOLDERS. All four point at apple.com. They are surfaced through `LegalDocument`,
+    // which is what the app links to — replace these with the real published documents before
+    // release.
     static let termsofServiceURL = "https://www.apple.com"
     static let privacyPolicyURL = "https://www.apple.com"
+    static let healthDisclaimerURL = "https://www.apple.com"
+    static let consumerHealthPrivacyURL = "https://www.apple.com"
     
     static let onboardingModuleId = "onboarding"
     static let tabBarModuleId = "tabbar"
@@ -47,6 +55,16 @@ struct Constants {
     
     /// Posted when remote data sync completes (e.g. on app foreground). Listen to refresh active training program.
     static let remoteDataSyncDidComplete = Notification.Name("DialedIn.RemoteDataSyncDidComplete")
+
+    /// Posted when a rest timer runs out of its own accord. Cancelling a rest does not post it —
+    /// the user who cancelled a rest already knows it is over, and does not need telling.
+    static let workoutRestDidComplete = Notification.Name("DialedIn.WorkoutRestDidComplete")
+
+    /// Posted by a screen that needs the tab bar to select a different tab. `TabBarView` is the only
+    /// place in the app that can change tabs, and a screen inside one has no route to it — going via
+    /// the `compound://` scheme would work but raises the system's "Open in Compound?" prompt for
+    /// what is in-app navigation. `userInfo` carries `tab` as a `DeepLink.Tab` raw value.
+    static let selectTab = Notification.Name("DialedIn.SelectTab")
     
     /// Map exercise template names to bundled asset names for Live Activity
     /// Returns nil for exercises without bundled images

@@ -74,18 +74,25 @@ struct ProfileView: View {
                     presenter.onProfileEditPressed()
                 }
             }
+        } header: {
+            Text("Profile")
         }
     }
     
     private var generalSection: some View {
         Section {
             Group {
-                Label("Subscription", systemImage: "tag")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .tappableBackground()
-                    .anyButton(.highlight) {
-                        presenter.onSubscriptionPressed()
-                    }
+                HStack(spacing: 8) {
+                    Label("Subscription", systemImage: "tag")
+                    Spacer(minLength: 0)
+                    Text(presenter.subscriptionStatus)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .tappableBackground()
+                .anyButton(.highlight) {
+                    presenter.onSubscriptionPressed()
+                }
                 Label("Integrations", systemImage: "app.connected.to.app.below.fill")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
@@ -146,6 +153,12 @@ struct ProfileView: View {
                     .anyButton {
                         presenter.onStrategySettingsPressed()
                     }
+                Label("Nutrition Plan", systemImage: "fork.knife")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
+                    .anyButton {
+                        presenter.onNutritionPlanPressed()
+                    }
             }
             .foregroundStyle(.primary)
             //            .removeListRowFormatting()
@@ -190,19 +203,19 @@ struct ProfileView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        
+                        presenter.onKnowledgeBasePressed()
                     }
                 Label("Roadmap", systemImage: "map")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        
+                        presenter.onRoadmapPressed()
                     }
                 Label("Support", systemImage: "questionmark.circle")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        
+                        presenter.onSupportPressed()
                     }
                 Label("Rate us on the app store", systemImage: "star")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)

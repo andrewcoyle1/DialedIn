@@ -22,6 +22,13 @@ struct ExerciseListBuilderView: View {
             if presenter.searchText.isEmpty {
                 userExercisesSection
                 systemExercisesSection
+                // A filter can empty both sections, and a list with two bare headers and nothing
+                // under them does not explain itself.
+                if presenter.filters.isActive,
+                   presenter.userExercises.isEmpty,
+                   presenter.systemExercises.isEmpty {
+                    noMatchesSection
+                }
             } else {
                 filteredExercisesSection
             }
@@ -40,77 +47,206 @@ struct ExerciseListBuilderView: View {
         }
     }
     
+    // MARK: - Filter bar
+
+    /// Each chip is a `Menu` of inline toggles rather than a pushed picker screen: nine chips would
+    /// otherwise mean nine screens, and a filter you set and unset repeatedly wants to stay put
+    /// while you do it. A chip tints and counts itself when its dimension is narrowing the list.
     private var filterSection: some View {
         ScrollView(.horizontal) {
             HStack {
-                Image(systemName: "arrow.counterclockwise")
-                    .padding(8)
-                    .glassEffect(.clear)
-                    .anyButton {
-                        
-                    }
+                resetChip
                     .padding(.leading)
-                
-                Label("Gym", systemImage: "building")
-                    .padding(8)
-                    .glassEffect(.clear)
-                    .anyButton {
-                        
-                    }
 
-                Label("Type", systemImage: "signpost.right")
-                    .padding(8)
-                    .glassEffect(.clear)
-                    .anyButton {
-                        
-                    }
+                gymChip
 
-                Label("Laterality", systemImage: "arrowshape.left.arrowshape.right")
-                    .padding(8)
-                    .glassEffect(.clear)
-                    .anyButton {
-                        
-                    }
+                multiSelectChip(
+                    "Type",
+                    systemImage: "signpost.right",
+                    options: ExerciseType.allCases,
+                    name: \.name,
+                    selection: $presenter.filters.types
+                )
 
-                Label("Resistance", systemImage: "scalemass")
-                    .padding(8)
-                    .glassEffect(.clear)
-                    .anyButton {
-                        
-                    }
+                multiSelectChip(
+                    "Laterality",
+                    systemImage: "arrowshape.left.arrowshape.right",
+                    options: Laterality.allCases,
+                    name: \.name,
+                    selection: $presenter.filters.lateralities
+                )
 
-                Label("Support", systemImage: "bed.double")
-                    .padding(8)
-                    .glassEffect(.clear)
-                    .anyButton {
-                        
-                    }
+                multiSelectChip(
+                    "Resistance",
+                    systemImage: "scalemass",
+                    options: EquipmentKind.allCases,
+                    name: \.sectionTitle,
+                    selection: $presenter.filters.resistanceKinds
+                )
 
-                Label("Range of Motion", systemImage: "arrowshape.left.arrowshape.right")
-                    .padding(8)
-                    .glassEffect(.clear)
-                    .anyButton {
-                        
-                    }
+                multiSelectChip(
+                    "Support",
+                    systemImage: "bed.double",
+                    options: EquipmentKind.allCases,
+                    name: \.sectionTitle,
+                    selection: $presenter.filters.supportKinds
+                )
 
-                Label("Stability", systemImage: "camera.metering.center.weighted.average")
-                    .padding(8)
-                    .glassEffect(.clear)
-                    .anyButton {
-                        
-                    }
+                ratingChip(
+                    "Range of Motion",
+                    systemImage: "arrowshape.left.arrowshape.right",
+                    minimum: $presenter.filters.minimumRangeOfMotion
+                )
 
-                Label("Library", systemImage: "book.closed")
-                    .padding(8)
-                    .glassEffect(.clear)
-                    .anyButton {
-                        
-                    }
+                ratingChip(
+                    "Stability",
+                    systemImage: "camera.metering.center.weighted.average",
+                    minimum: $presenter.filters.minimumStability
+                )
+
+                libraryChip
                     .padding(.trailing)
-
             }
         }
         .scrollIndicators(.hidden)
+    }
+
+    /// Only offered when something is actually filtered — a reset that resets nothing reads as a
+    /// broken button.
+    @ViewBuilder
+    private var resetChip: some View {
+        if presenter.filters.isActive {
+            Image(systemName: "arrow.counterclockwise")
+                .padding(8)
+                .glassEffect(.clear)
+                .anyButton {
+                    presenter.onResetFiltersPressed()
+                }
+                .accessibilityLabel("Clear filters")
+        }
+    }
+
+    private var gymChip: some View {
+        Menu {
+            Picker("Gym", selection: $presenter.filters.gymProfileId) {
+                Text("Any Equipment").tag(nil as String?)
+                ForEach(presenter.gymProfiles) { profile in
+                    Text(profile.name).tag(profile.id as String?)
+                }
+            }
+        } label: {
+            chipLabel(
+                presenter.gymFilterLabel,
+                systemImage: "building",
+                isActive: presenter.filters.gymProfileId != nil
+            )
+        }
+        .onChange(of: presenter.filters.gymProfileId) { _, _ in
+            presenter.onFilterChanged("gym")
+        }
+    }
+
+    private var libraryChip: some View {
+        Menu {
+            Picker("Library", selection: $presenter.filters.library) {
+                ForEach(ExerciseFilters.LibraryScope.allCases) { scope in
+                    Text(scope.name).tag(scope)
+                }
+            }
+        } label: {
+            chipLabel(
+                presenter.filters.library == .all ? "Library" : presenter.filters.library.name,
+                systemImage: "book.closed",
+                isActive: presenter.filters.library != .all
+            )
+        }
+        .onChange(of: presenter.filters.library) { _, _ in
+            presenter.onFilterChanged("library")
+        }
+    }
+
+    /// A chip over any `Hashable & Identifiable` option set, so Type, Laterality, Resistance and
+    /// Support are one implementation instead of four near-copies.
+    private func multiSelectChip<Option: Hashable & Identifiable>(
+        _ title: String,
+        systemImage: String,
+        options: [Option],
+        name: KeyPath<Option, String>,
+        selection: Binding<Set<Option>>
+    ) -> some View {
+        Menu {
+            ForEach(options) { option in
+                Button {
+                    if selection.wrappedValue.contains(option) {
+                        selection.wrappedValue.remove(option)
+                    } else {
+                        selection.wrappedValue.insert(option)
+                    }
+                    presenter.onFilterChanged(title)
+                } label: {
+                    if selection.wrappedValue.contains(option) {
+                        Label(option[keyPath: name], systemImage: "checkmark")
+                    } else {
+                        Text(option[keyPath: name])
+                    }
+                }
+            }
+        } label: {
+            chipLabel(
+                title,
+                systemImage: systemImage,
+                isActive: !selection.wrappedValue.isEmpty,
+                count: selection.wrappedValue.count
+            )
+        }
+    }
+
+    /// Range of motion and stability are 0...5 ratings, so the chip offers a floor rather than an
+    /// exact value.
+    private func ratingChip(
+        _ title: String,
+        systemImage: String,
+        minimum: Binding<Int?>
+    ) -> some View {
+        Menu {
+            Picker(title, selection: minimum) {
+                Text("Any").tag(nil as Int?)
+                ForEach(1...5, id: \.self) { rating in
+                    Text("\(rating)+").tag(rating as Int?)
+                }
+            }
+        } label: {
+            chipLabel(
+                minimum.wrappedValue.map { "\(title) \($0)+" } ?? title,
+                systemImage: systemImage,
+                isActive: minimum.wrappedValue != nil
+            )
+        }
+        .onChange(of: minimum.wrappedValue) { _, _ in
+            presenter.onFilterChanged(title)
+        }
+    }
+
+    private func chipLabel(
+        _ title: String,
+        systemImage: String,
+        isActive: Bool,
+        count: Int = 0
+    ) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: systemImage)
+            Text(title)
+            if count > 1 {
+                Text("\(count)")
+                    .font(.caption2)
+                    .padding(.horizontal, 5)
+                    .background(.tint.opacity(0.25), in: .capsule)
+            }
+        }
+        .lineLimit(1)
+        .padding(8)
+        .foregroundStyle(isActive ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
+        .glassEffect(.clear)
     }
 
     private var userExercisesSection: some View {
@@ -125,7 +261,10 @@ struct ExerciseListBuilderView: View {
                         resizingMode: .fit
                     )
                     .anyButton(.highlight) {
-                        delegate.onExerciseSelectionChanged?(exercise)
+                        presenter.onExercisePressed(
+                            exercise: exercise,
+                            onExerciseSelectionChanged: delegate.onExerciseSelectionChanged
+                        )
                     }
                     .removeListRowFormatting()
                 }
@@ -162,12 +301,25 @@ struct ExerciseListBuilderView: View {
                     resizingMode: .fit
                 )
                 .anyButton(.highlight) {
-                    delegate.onExerciseSelectionChanged?(exercise)
+                    presenter.onExercisePressed(
+                        exercise: exercise,
+                        onExerciseSelectionChanged: delegate.onExerciseSelectionChanged
+                    )
                 }
                 .removeListRowFormatting()
             }
         } header: {
             Text("Official Exercises")
+        }
+    }
+
+    private var noMatchesSection: some View {
+        Section {
+            ContentUnavailableView(
+                "No Matching Exercises",
+                systemImage: "line.3.horizontal.decrease",
+                description: Text("No exercise matches every filter. Try clearing one.")
+            )
         }
     }
 
@@ -182,7 +334,10 @@ struct ExerciseListBuilderView: View {
                     resizingMode: .fit
                 )
                 .anyButton(.highlight) {
-                    delegate.onExerciseSelectionChanged?(exercise)
+                    presenter.onExercisePressed(
+                        exercise: exercise,
+                        onExerciseSelectionChanged: delegate.onExerciseSelectionChanged
+                    )
                 }
                 .removeListRowFormatting()
             }

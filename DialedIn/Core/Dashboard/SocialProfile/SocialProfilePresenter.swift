@@ -47,13 +47,20 @@ class SocialProfilePresenter {
         router.showFollowersList(delegate: delegate)
     }
 
+    /// The "See all" beside the overlapping avatars was a plain `Text` — styled like a link, wired
+    /// to nothing. It opens the same list screen the followers count does.
+    func onMutualFollowersPressed() {
+        let delegate = FollowersListDelegate(
+            followers: mutualFollowers,
+            title: "People You Both Follow"
+        )
+        router.showFollowersList(delegate: delegate)
+    }
+
     func onViewDisappear(delegate: SocialProfileDelegate) {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
 
-    func onChatPressed(user: UserModel) {
-
-    }
 }
 
 extension SocialProfilePresenter {

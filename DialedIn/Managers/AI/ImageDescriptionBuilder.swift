@@ -148,7 +148,7 @@ struct ImageDescriptionBuilder {
         }
         
         if let equipment, !equipment.isEmpty {
-            sections.append("Equipment: \(String(describing: equipment.joined))")
+            sections.append("Equipment: \(equipment.joined(separator: ", "))")
         }
         
         return sections

@@ -9,12 +9,12 @@ struct InactiveTrainingProgramDelegate {
     }
 }
 
-struct InactiveTrainingProgramView<ProgramDisclosureGroup: View>: View {
+struct InactiveTrainingProgramView<ProgramDisclosure: View>: View {
     
     @State var presenter: InactiveTrainingProgramPresenter
     let delegate: InactiveTrainingProgramDelegate
     
-    @ViewBuilder var trainingProgramDisclosureGroup: (TrainingProgramDisclosureGroupDelegate) -> ProgramDisclosureGroup
+    @ViewBuilder var trainingProgramDisclosureGroup: (TrainingProgramDisclosureGroupDelegate) -> ProgramDisclosure
     
     var body: some View {
         Group {

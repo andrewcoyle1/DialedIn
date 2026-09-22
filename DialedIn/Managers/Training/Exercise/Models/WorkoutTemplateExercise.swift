@@ -24,13 +24,11 @@ struct WorkoutTemplateExercise: DataSyncModelProtocol, Equatable, Hashable {
         mocks[0]
     }
     
+    /// Six exercises from the seeded library — the length of a real workout, and enough to
+    /// exercise a list without rendering all thirty-two.
     static var mocks: [WorkoutTemplateExercise] {
-        var mocks: [WorkoutTemplateExercise] = []
-        
-        for exercise in ExerciseModel.mocks {
-            mocks.append(WorkoutTemplateExercise(exercise: exercise, setRestTimers: false))
+        ExerciseModel.mocks.prefix(6).map { exercise in
+            WorkoutTemplateExercise(exercise: exercise, setRestTimers: false)
         }
-        
-        return mocks
     }
 }

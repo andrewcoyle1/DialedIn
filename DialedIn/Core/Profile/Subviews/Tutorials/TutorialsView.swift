@@ -12,40 +12,19 @@ struct TutorialsView: View {
     let delegate: TutorialsDelegate
     
     var body: some View {
-        List {
-            Section {
-                Text("Hello, World!")
-            } header: {
-                Text("Reset Tutorials")
-            }
-        }
-        .navigationTitle("Tutorials")
-        .navigationBarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .bottom) {
-            CallToActionButton {
-                presenter.onResetTutorialsPressed()
-            } label: {
-                Text("Reset Tutorials")
-            }
-            .padding(.bottom)
-        }
+        // Was `Text("Hello, World!")` under a "Reset Tutorials" header, with a Reset CTA wired to an
+        // empty presenter function. Nothing in the app tracks tutorial progress, so nothing to reset.
+        FeatureUnavailableView(
+            title: "Tutorials",
+            systemImage: "book",
+            summary: "There are no tutorials to reset yet. When the app starts showing first-run guidance, this is where you will be able to see it again."
+        )
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
         .onDisappear {
             presenter.onViewDisappear(delegate: delegate)
         }
-    }
-}
-
-#Preview {
-    let container = DevPreview.shared.container()
-    let interactor = CoreInteractor(container: container)
-    let builder = CoreBuilder(interactor: interactor)
-    let delegate = TutorialsDelegate()
-    
-    return RouterView { router in
-        builder.tutorialsView(router: router, delegate: delegate)
     }
 }
 

@@ -26,17 +26,21 @@ class CalorieDistributionPresenter {
         loadTrainingContext()
     }
     
+    /// The body of this was commented out against a `plan.weeks.first.scheduledWorkouts` shape that
+    /// `TrainingProgram` no longer has, so it did nothing: `hasTrainingPlan` stayed false,
+    /// `trainingDaysPerWeek` stayed nil, and `prefillCalorieDistribution` was never reached.
+    ///
+    /// `workoutTemplates` is the program's weekly cycle — `DashboardPresenter.todaysScheduledItem`
+    /// indexes it by weekday, and a template with no exercises is a rest day — so the training days
+    /// are the templates that have exercises.
     private func loadTrainingContext() {
-//        if let plan = interactor.currentTrainingPlan {
-//            hasTrainingPlan = true
-//            // Calculate days per week from first week's scheduled workouts
-//            if let firstWeek = plan.weeks.first {
-//                trainingDaysPerWeek = firstWeek.scheduledWorkouts.count
-//                // Prefill based on training frequency
-//                prefillCalorieDistribution(daysPerWeek: trainingDaysPerWeek ?? 0)
-//            }
-//            interactor.trackEvent(event: Event.trainingContextLoaded(daysPerWeek: trainingDaysPerWeek))
-//        }
+        guard let program = interactor.activeTrainingProgram else { return }
+
+        hasTrainingPlan = true
+        let trainingDays = program.workoutTemplates.filter { !$0.exercises.isEmpty }.count
+        trainingDaysPerWeek = trainingDays
+        prefillCalorieDistribution(daysPerWeek: trainingDays)
+        interactor.trackEvent(event: Event.trainingContextLoaded(daysPerWeek: trainingDays))
     }
     
     private func prefillCalorieDistribution(daysPerWeek: Int) {

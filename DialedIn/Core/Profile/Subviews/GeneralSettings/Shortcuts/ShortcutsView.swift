@@ -12,26 +12,65 @@ struct ShortcutsView: View {
     var body: some View {
         List {
             Section {
-                Text("Hello, World!")
+                if presenter.quickActions.isEmpty {
+                    Text("No shortcuts. The Add tab will show only search until you add one.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(presenter.quickActions) { action in
+                        Label(action.title, systemImage: action.systemImage)
+                    }
+                    .onDelete { presenter.onRemove(at: $0) }
+                    .onMove { presenter.onMove(from: $0, to: $1) }
+                }
             } header: {
-                Text("Toolbar")
+                Text("On the Add Tab")
+            } footer: {
+                if presenter.hasOddCount {
+                    Text("Tap Edit to reorder or remove. An odd number leaves a gap in the two-column grid.")
+                } else {
+                    Text("Tap Edit to reorder or remove.")
+                }
+            }
+
+            if !presenter.availableActions.isEmpty {
+                Section {
+                    ForEach(presenter.availableActions) { action in
+                        Button {
+                            presenter.onAddPressed(action)
+                        } label: {
+                            Label(action.title, systemImage: action.systemImage)
+                        }
+                    }
+                } header: {
+                    Text("Available")
+                }
+            }
+
+            if !presenter.isShowingDefaults {
+                Section {
+                    Button("Restore Defaults") {
+                        presenter.onRestoreDefaultsPressed()
+                    }
+                }
             }
         }
         .navigationTitle("Shortcuts")
         .navigationBarTitleDisplayMode(.inline)
+        // An EditButton rather than a forced `editMode`: in edit mode a `Button` row can stop
+        // responding to taps, which would break the Available section below.
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                EditButton()
+            }
+        }
         .onAppear {
             presenter.onViewAppear()
         }
         .onDisappear {
             presenter.onViewDisappear()
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(role: .confirm) {
-                    
-                }
-            }
-        }
+        // No confirm button: each change saves as it is made, like every other settings screen here.
     }
 }
 

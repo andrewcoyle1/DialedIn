@@ -106,8 +106,17 @@ class NutritionManager {
             exerciseFrequency: user?.submittedExerciseFrequency
         )
 
+        // The id has to be the user id, not a fresh UUID. `DietPlan.id` is `planId`, and
+        // `FirebaseRemoteDocumentService.saveDocument` writes to `document(model.id)`, while
+        // `CoreInteractor.logIn` listens on `diet_plans/<uid>`. A UUID here meant every plan was
+        // written to a document nothing was listening to, so `currentDietPlan` stayed nil and the
+        // nutrition targets never appeared. There is one plan per user, so the uid is also the
+        // right identity for it.
+        //
+        // Falling back to a UUID keeps a plan computed before sign-in addressable; it still will
+        // not be listened to, which is what the onboarding order already assumes.
         return DietPlan(
-            planId: UUID().uuidString,
+            planId: userId ?? UUID().uuidString,
             userId: userId,
             createdAt: now,
             tdeeEstimate: round(tdee),
@@ -130,8 +139,25 @@ class NutritionManager {
         }
     }
 
+    // MARK: - Profile figures
+
+    // Weight and height arrive as plain `Double`s off a Firestore document, so a corrupt or
+    // half-written profile can carry a NaN or an infinity. From `computeDietPlan` those flow
+    // straight into the protein grams and macro splits, which `DietPlanView` prints through
+    // `Int(_:)` — and `Int(_:)` traps on anything not finite. A one-sided `max(value, floor)`
+    // catches neither; `Double.clamped(to:whenNotFinite:)` says why. A figure that is not usable
+    // falls back to the same default a missing one already used.
+
+    private static func clampedWeightKilograms(_ weight: Double?) -> Double {
+        (weight ?? 70).clamped(to: 30...500, whenNotFinite: 70)
+    }
+
+    private static func clampedHeightCentimeters(_ height: Double?) -> Double {
+        (height ?? 175).clamped(to: 120...260, whenNotFinite: 175)
+    }
+
     private func calculateProteinGrams(user: UserModel?, proteinIntake: ProteinIntake) -> Double {
-        let userKg = max(user?.submittedWeightKilograms ?? 70, 30)
+        let userKg = Self.clampedWeightKilograms(user?.submittedWeightKilograms)
         let proteinPerKg: Double
         switch proteinIntake {
         case .low: proteinPerKg = 1.6
@@ -187,6 +213,17 @@ class NutritionManager {
         return [high, low, high, low, high, low, low].map { max($0, minimumCalories) }
     }
 
+    /// Splits each day's non-protein calories between fat and carbs.
+    ///
+    /// `calculateMacroPercentages` returns shares of the day's *total* calories, so applying
+    /// `fatPercent` straight to the post-protein remainder understated fat — balanced came out at
+    /// 23% of the day rather than 30% — and `carbPercent` was not read at all, which left keto at
+    /// roughly 150g of carbs, about 21% of calories and ketogenic by no definition.
+    ///
+    /// Protein is a fixed number of grams and the day's calories vary, so the two shares cannot
+    /// both be applied to the total and still sum to it. Splitting the remainder by the fat:carb
+    /// ratio honours the diet's intent exactly on a day at the target, keeps every day summing to
+    /// its own calories, and degrades sensibly on the high and low days of a varied week.
     private func computeDailyMacros(
         dailyCalories: [Double],
         proteinGrams: Double,
@@ -194,9 +231,17 @@ class NutritionManager {
     ) -> [DailyMacroTarget] {
         let proteinCalories = proteinGrams * 4
 
+        // A protein target large enough to swallow the day can drive either share negative.
+        // Clamping first keeps the ratio inside 0...1; an even split is the neutral fallback when
+        // protein has claimed everything and there is nothing left to divide anyway.
+        let fatShare = max(macroPercentages.fatPercent, 0)
+        let carbShare = max(macroPercentages.carbPercent, 0)
+        let totalShare = fatShare + carbShare
+        let fatRatio = totalShare > 0 ? fatShare / totalShare : 0.5
+
         return dailyCalories.map { cals in
             let remainingCalories = max(cals - proteinCalories, 0)
-            let fatCalories = max(remainingCalories * macroPercentages.fatPercent, 0)
+            let fatCalories = max(remainingCalories * fatRatio, 0)
             let carbCalories = max(remainingCalories - fatCalories, 0)
             let fatGrams = fatCalories / 9
             let carbGrams = carbCalories / 4
@@ -210,14 +255,26 @@ class NutritionManager {
     }
 
     // MARK: - Estimation
-    func estimateTDEE(user: UserModel?) -> Double {
+    func estimateTDEE(
+        user: UserModel?,
+        equation: BMREquation = .mifflinStJeor,
+        bodyFatPercentage: Double? = nil
+    ) -> Double {
         let gender = user?.submittedGender ?? .male
-        let weightKg = max(user?.submittedWeightKilograms ?? 70, 30)
-        let heightCm = max(user?.submittedHeightCentimeters ?? 175, 120)
+        let weightKg = Self.clampedWeightKilograms(user?.submittedWeightKilograms)
+        let heightCm = Self.clampedHeightCentimeters(user?.submittedHeightCentimeters)
         let ageYears = calculateAge(from: user?.submittedDateOfBirth)
 
-        let mifflinGenderCoefficient: Double = (gender == .male) ? 5 : -161
-        let bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * Double(ageYears)) + mifflinGenderCoefficient
+        let bmr = basalMetabolicRate(
+            equation: equation,
+            body: BodyComposition(
+                gender: gender,
+                weightKg: weightKg,
+                heightCm: heightCm,
+                age: Double(ageYears),
+                bodyFatPercentage: bodyFatPercentage
+            )
+        )
 
         let activityMultiplier = calculateActivityMultiplier(
             dailyActivity: user?.submittedDailyActivityLevel ?? .moderate,
@@ -226,6 +283,42 @@ class NutritionManager {
 
         let tdee = bmr * activityMultiplier
         return max(1000, tdee)
+    }
+
+    /// The equation the user picked on the Expenditure settings screen. Katch-McArdle works from
+    /// lean mass, so without a logged body fat percentage it has nothing to work from and falls
+    /// back to Mifflin-St Jeor rather than inventing a figure.
+    /// The body inputs every BMR equation draws on, grouped so the equation helpers stay within
+    /// the parameter-count limit.
+    private struct BodyComposition {
+        let gender: Gender
+        let weightKg: Double
+        let heightCm: Double
+        let age: Double
+        let bodyFatPercentage: Double?
+    }
+
+    private func basalMetabolicRate(equation: BMREquation, body: BodyComposition) -> Double {
+        switch equation {
+        case .mifflinStJeor:
+            return mifflinStJeorBMR(body: body)
+        case .harrisBenedict:
+            if body.gender == .male {
+                return 88.362 + (13.397 * body.weightKg) + (4.799 * body.heightCm) - (5.677 * body.age)
+            }
+            return 447.593 + (9.247 * body.weightKg) + (3.098 * body.heightCm) - (4.330 * body.age)
+        case .katchMcArdle:
+            guard let bodyFat = body.bodyFatPercentage, bodyFat > 0, bodyFat < 100 else {
+                return mifflinStJeorBMR(body: body)
+            }
+            let leanMassKg = body.weightKg * (1 - (bodyFat / 100))
+            return 370 + (21.6 * leanMassKg)
+        }
+    }
+
+    private func mifflinStJeorBMR(body: BodyComposition) -> Double {
+        let genderCoefficient: Double = (body.gender == .male) ? 5 : -161
+        return (10 * body.weightKg) + (6.25 * body.heightCm) - (5 * body.age) + genderCoefficient
     }
 
     private func calculateAge(from dateOfBirth: Date?) -> Int {
@@ -286,7 +379,19 @@ extension CoreInteractor {
 
     // Estimation
     func estimateTDEE(user: UserModel?) -> Double {
-        nutritionManager.estimateTDEE(user: user)
+        let bodyFatPercentage = latestBodyFatPercentage
+        return nutritionManager.estimateTDEE(
+            user: user,
+            equation: nutritionStrategySettings.resolvedBMREquation(bodyFatPercentage: bodyFatPercentage),
+            bodyFatPercentage: bodyFatPercentage
+        )
+    }
+
+    /// Katch-McArdle needs lean mass, so it needs the most recent weigh-in that recorded a body
+    /// fat percentage. Nil for everyone who has never logged one.
+    private var latestBodyFatPercentage: Double? {
+        let entries = bodyMeasurements.filter { $0.bodyFatPercentage != nil && $0.deletedAt == nil }
+        return entries.max(by: { $0.date < $1.date })?.bodyFatPercentage
     }
 
 }

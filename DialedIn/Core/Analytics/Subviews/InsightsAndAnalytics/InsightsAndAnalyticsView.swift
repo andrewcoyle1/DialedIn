@@ -38,149 +38,108 @@ struct InsightsAndAnalyticsView: View {
 
     private var activitySection: some View {
         let workoutColor = Color.orange
-        return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard(
-                    title: "Workouts",
-                    subtitle: presenter.workoutSubtitle,
-                    subsubtitle: presenter.workoutLatestValueText,
-                    subsubsubtitle: presenter.workoutUnitText,
-                    themeColor: workoutColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SetsBarChart(
-                        data: presenter.workoutSparklineData.map(\.value),
-                        slotCount: 7,
-                        color: workoutColor
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onWorkoutsPressed(themeColor: workoutColor)
-                }
+        return analyticsSection(title: "Activity") {
+            AnalyticsCard(
+                title: "Workouts",
+                subtitle: presenter.workoutSubtitle,
+                subsubtitle: presenter.workoutLatestValueText,
+                subsubsubtitle: presenter.workoutUnitText,
+                themeColor: workoutColor,
+                chartConfiguration: .compact
+            ) {
+                SetsBarChart(
+                    data: presenter.workoutSparklineData.map(\.value),
+                    slotCount: 7,
+                    color: workoutColor
+                )
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-        } header: {
-            Text("Activity")
+            .analyticsCardButton {
+                presenter.onWorkoutsPressed(themeColor: workoutColor)
+            }
         }
-        .listSectionMargins(.horizontal, 0)
-        .listRowSeparator(.hidden)
     }
 
     private var energySection: some View {
         let expenditureColor = Color.pink
-        return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard(
-                    title: "Expenditure",
-                    subtitle: presenter.expenditureSubtitle,
-                    subsubtitle: presenter.expenditureLatestValueText,
-                    subsubsubtitle: presenter.expenditureUnitText,
-                    themeColor: expenditureColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.expenditureSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: expenditureColor,
-                            lineWidth: 2,
-                            fillColor: expenditureColor,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onExpenditurePressed(themeColor: expenditureColor)
-                }
-                AnalyticsCard(
-                    title: "Energy Balance",
-                    subtitle: presenter.energyBalanceSubtitle,
-                    subsubtitle: presenter.energyBalanceLatestValueText,
-                    subsubsubtitle: presenter.energyBalanceUnitText,
-                    themeColor: nil,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    EnergyBalanceChart(
-                        expenditure: presenter.energyBalanceExpenditure,
-                        energyIntake: presenter.energyBalanceIntake
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onEnergyBalancePressed(themeColor: nil)
-                }
+        return analyticsSection(title: "Energy") {
+            SparklineAnalyticsCard(
+                title: "Expenditure",
+                subtitle: presenter.expenditureSubtitle,
+                value: presenter.expenditureLatestValueText,
+                unit: presenter.expenditureUnitText,
+                themeColor: expenditureColor,
+                data: presenter.expenditureSparklineData,
+                action: { presenter.onExpenditurePressed(themeColor: expenditureColor) }
+            )
+            AnalyticsCard(
+                title: "Energy Balance",
+                subtitle: presenter.energyBalanceSubtitle,
+                subsubtitle: presenter.energyBalanceLatestValueText,
+                subsubsubtitle: presenter.energyBalanceUnitText,
+                themeColor: nil,
+                chartConfiguration: .compact
+            ) {
+                EnergyBalanceChart(
+                    expenditure: presenter.energyBalanceExpenditure,
+                    energyIntake: presenter.energyBalanceIntake
+                )
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-        } header: {
-            Text("Energy")
+            .analyticsCardButton {
+                presenter.onEnergyBalancePressed(themeColor: nil)
+            }
         }
-        .listSectionMargins(.horizontal, 0)
-        .listRowSeparator(.hidden)
     }
 
     private var bodySection: some View {
         let weightTrendColor = Color.purple
-        return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard(
-                    title: "Weight Trend",
-                    subtitle: presenter.weightTrendSubtitle,
-                    subsubtitle: presenter.weightTrendLatestValueText,
-                    subsubsubtitle: presenter.weightTrendUnitText,
-                    themeColor: weightTrendColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.weightTrendSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: weightTrendColor,
-                            lineWidth: 2,
-                            fillColor: weightTrendColor,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onWeightTrendPressed(themeColor: weightTrendColor)
-                }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-        } header: {
-            Text("Body")
+        return analyticsSection(title: "Body") {
+            SparklineAnalyticsCard(
+                title: "Weight Trend",
+                subtitle: presenter.weightTrendSubtitle,
+                value: presenter.weightTrendLatestValueText,
+                unit: presenter.weightTrendUnitText,
+                themeColor: weightTrendColor,
+                data: presenter.weightTrendSparklineData,
+                action: { presenter.onWeightTrendPressed(themeColor: weightTrendColor) }
+            )
         }
-        .listSectionMargins(.horizontal, 0)
-        .listRowSeparator(.hidden)
     }
 
     private var goalsSection: some View {
         let goalProgressColor = Color.green
-        return Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard(
-                    title: "Goal Progress",
-                    subtitle: "Last 7 Days",
-                    subsubtitle: "14",
-                    subsubsubtitle: "%",
-                    themeColor: goalProgressColor,
-                    chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2),
-                    chart: {
-                        MacroProgressChart(current: 14, target: 100, maxValue: 100, color: goalProgressColor)
-                    }
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onGoalProgressPressed(themeColor: goalProgressColor)
+        // Was hardcoded to "14%" over "Last 7 Days", the same placeholder the Analytics tab carried.
+        return analyticsSection(title: "Goals") {
+            AnalyticsCard(
+                title: "Goal Progress",
+                subtitle: presenter.goalProgressSubtitle,
+                subsubtitle: presenter.goalProgressLatestValueText,
+                subsubsubtitle: presenter.goalProgressUnitText,
+                themeColor: goalProgressColor,
+                chartConfiguration: .compact,
+                chart: {
+                    MacroProgressChart(
+                        current: presenter.goalProgressPercent,
+                        target: 100,
+                        maxValue: 100,
+                        color: goalProgressColor
+                    )
                 }
+            )
+            .analyticsCardButton {
+                presenter.onGoalProgressPressed(themeColor: goalProgressColor)
             }
-            .padding(.horizontal)
-            .removeListRowFormatting()
+        }
+    }
+
+    /// The section shape this screen repeats four times, and the same one the Analytics tab uses.
+    private func analyticsSection<Content: View>(
+        title: String,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
+        Section {
+            AnalyticsCardGrid(content: content)
         } header: {
-            Text("Goals")
+            SectionHeaderView(title: title)
         }
         .listSectionMargins(.horizontal, 0)
         .listRowSeparator(.hidden)

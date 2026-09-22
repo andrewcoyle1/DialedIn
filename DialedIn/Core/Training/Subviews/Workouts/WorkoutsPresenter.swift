@@ -40,36 +40,4 @@ class WorkoutsPresenter {
         )
     }
 
-    enum Event: LoggableEvent {
-        case incrementWorkoutStart
-        case incrementWorkoutSuccess
-        case incrementWorkoutFail(error: Error)
-
-        var eventName: String {
-            switch self {
-            case .incrementWorkoutStart:              return "WorkoutsView_IncrementWorkout_Start"
-            case .incrementWorkoutSuccess:            return "WorkoutsView_IncrementWorkout_Success"
-            case .incrementWorkoutFail:               return "WorkoutsView_IncrementWorkout_Fail"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            case .incrementWorkoutFail(error: let error):
-                return error.eventParameters
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            case .incrementWorkoutFail:
-                return .severe
-            default:
-                return .analytic
-
-            }
-        }
-    }
 }

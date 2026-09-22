@@ -1,0 +1,274 @@
+# Dead settings audit
+
+Every stored property on every settings model in the app, and whether anything outside the screen
+that writes it ever reads it.
+
+## Summary
+
+- **69 stored settings** across six documents: `WorkoutSettings` (23), `FoodLogSettings` (29),
+  `NutritionStrategySettings` (13), `ExerciseSettingsModel` (2), `AnalyticsSettings` (1),
+  `ShortcutSettings` (1).
+- **26 were dead** when this audit was written — saved to Firestore and read by nothing outside
+  the screen that writes them.
+- **Ten have since been wired** and are live: `restDurationOverride`, `restTimerPlaySound`,
+  `restTimerVibrate`, `previousWorkoutReference`, `autoSetCurrentTime`, `quickAddEnabled`,
+  `supersetAutoScroll`, `note`, `showOverages`, `estimationMethod`.
+- **Sixteen remain dead, and every one of them needs a feature built first**, not a line of
+  plumbing. They are listed as `feature` below, each with what is missing.
+- **53 are live.**
+- Time Selection and Optimisation are no longer inert. **Favourite Measurements** still is: its
+  list of nine units has no picker anywhere in the app to order. **Strategy Settings** is inert
+  in full, **Expenditure Settings** but for `bmrEquation` and `estimationMethod`, and **Smart
+  Progression Settings** in full — there is no smart-progression engine for its three fields to
+  steer.
+
+### What "read by" means here
+
+A read counts only if it is production code that is **not** the settings screen that writes the
+value. Reads in `#Preview` blocks, in tests, and in the writing screen's own presenter or view are
+excluded: a toggle that renders its own state and nothing else is still a toggle that does nothing.
+Where a setting is surfaced through a helper (`AnalyticsSettings.isVisible(_:)`,
+`ShortcutSettings.quickActions`) the helper's callers are what was traced, not the stored property.
+
+### Verdicts
+
+- `live` — production code outside the writing screen reads it.
+- `feature` — the behaviour it describes does not exist. Reading the flag would change nothing;
+  honouring it means building the thing it names. The row says what is missing.
+- `decide` — the product owner has to say what it should mean before either is possible.
+
+Nothing here is marked `remove`. The instruction standing over this work is that no setting,
+control or screen is to be deleted however dead — including `algorithmVersion`, whose single case
+cannot change anything even once there is an engine to change.
+
+---
+
+## Workout Settings
+
+`DialedIn/Managers/Training/WorkoutSettings/Models/WorkoutSettings.swift` — document
+`workout_settings`, one per user.
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `propagateChanges` | `WorkoutSettings` | `WorkoutSettingsPresenter.propagateChanges` | `WorkoutTrackerPresenter.propagateChanges(_:)` | live |
+| `rirTracking` | `WorkoutSettings` | `WorkoutSettingsPresenter.rirTracking` | `WorkoutTrackerPresenter.showRIRTracking` | live |
+| `exerciseAutoNext` | `WorkoutSettings` | `WorkoutSettingsPresenter.exerciseAutoNext` | `WorkoutTrackerPresenter.advanceAfterExerciseCompletion(exerciseIndex:in:)` | live |
+| `keepAlive` | `WorkoutSettings` | `WorkoutSettingsPresenter.keepAlive` | `WorkoutTrackerPresenter` (sets `isIdleTimerDisabled`) | live |
+| `showWorkoutTimer` | `WorkoutSettings` | `WorkoutSettingsPresenter.showWorkoutTimer` | `WorkoutTrackerPresenter.showWorkoutTimer` | live |
+| `showBodyweightContribution` | `WorkoutSettings` | `WorkoutSettingsPresenter.showBodyweightContribution` | `WorkoutTrackerPresenter` | live |
+| `addSmartWarmUps` | `WorkoutSettings` | `WorkoutSettingsPresenter.addSmartWarmUps` | `WorkoutTrackerPresenter` (warm-up seeding guard) | live |
+| `supersetAutoScroll` | `WorkoutSettings` | `WorkoutSettingsPresenter.supersetAutoScroll` | `WorkoutTrackerPresenter.advanceWithinSuperset(exerciseIndex:in:)` | live — **wired**. Not at `advanceAfterExerciseCompletion` as the audit guessed: the toggle says *after set completion*, which is the round-robin step between two members, not finishing an exercise. New rule in `WorkoutTrackerPresenter+Superset`. **Default `true`, so this changes behaviour for every existing user** — a release note, not a silent improvement. |
+| **`previousWorkoutReference`** | `WorkoutSettings` | `PrevWORefSettingsPresenter.previousWorkoutReference` | **nothing** — only its own screen | `wire` — `WorkoutTrackerPresenter.loadPreviousWorkoutSession()`, which calls `getLastCompletedSessionForTemplate(templateId:authorId:)` unconditionally. `.workoutsInProgram` means filtering that lookup by `trainingProgramId`. |
+| **`smartProgressionApplyInSession`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.applyInSession` | **nothing** | `feature` — there is no smart-progression engine in the app; the whole feature is three settings and a screen. Missing: an engine that proposes a next-session load from logged history. |
+| **`smartProgressionInitialLogFill`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.initialLogFill` | **nothing** | `feature` — see the note below; two of its three options are buildable today but the **default one is not**, so wiring it would leave the control lying in the position most users are in. |
+| **`smartProgressionAdjustmentMode`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.adjustmentMode` | **nothing** | `feature` — nothing applies progression, so weight-first vs reps-first has nothing to choose between. |
+
+### What `smartProgressionInitialLogFill` would take
+
+Worth writing down, because it is the one dead setting whose wiring looks like plumbing and is not.
+
+Its three options are `.smartProgression` (the default), `.previousValues` and `.empty`.
+`WorkoutSessionModel.init(template:previousWorkoutSession:…)` already prefills each working set
+from the matching set of the previous session, rounded to the gym's increments — that is exactly
+`.previousValues`, and an inline comment there mislabels it "smart progression". `.empty` is a
+few lines away.
+
+But `.smartProgression` is the default, and it is the one that needs the engine. Wiring the other
+two would make the screen *look* finished while the option most users are sitting on quietly meant
+something else. That is worse than leaving all three honest, so all three wait for the engine.
+| `useRestTimers` | `WorkoutSettings` | `RestTimerSettingsPresenter.useRestTimers` | `SetTrackerRowPresenter` (set-completion handler) | live |
+| `restAfterLastWarmUp` | `WorkoutSettings` | `RestTimerSettingsPresenter.restAfterLastWarmUp` | `SetTrackerRowPresenter.restAfterCompleting(_:in:)` | live |
+| `restBetweenExercises` | `WorkoutSettings` | `RestTimerSettingsPresenter.restBetweenExercises` | `SetTrackerRowPresenter.restAfterCompleting(_:in:)` | live |
+| `restBetweenSideSets` | `WorkoutSettings` | `RestTimerSettingsPresenter.restBetweenSideSets` | `SetTrackerRowPresenter.restAfterCompleting(_:in:)` | live |
+| `warmUpRestScaling` | `WorkoutSettings` | `RestTimerSettingsPresenter.warmUpRestScaling` | `SetTrackerRowPresenter.restAfterCompleting(_:in:)` | live |
+| `betweenExercisesRestScaling` | `WorkoutSettings` | `RestTimerSettingsPresenter.betweenExercisesRestScaling` | `SetTrackerRowPresenter.restAfterCompleting(_:in:)` | live |
+| `sideSetRestScaling` | `WorkoutSettings` | `RestTimerSettingsPresenter.sideSetRestScaling` | `SetTrackerRowPresenter.restAfterCompleting(_:in:)` | live |
+| **`restTimerPlaySound`** | `WorkoutSettings` | `RestTimerSettingsPresenter.restTimerPlaySound` | **nothing** | `wire` — `HKWorkoutManager.startRest(durationSeconds:session:currentExerciseIndex:)`, the one place a rest is started and therefore the one place its end can be announced. |
+| **`restTimerVibrate`** | `WorkoutSettings` | `RestTimerSettingsPresenter.restTimerVibrate` | **nothing** | `wire` — same place as `restTimerPlaySound`. |
+| `restDurationsByExerciseType` | `WorkoutSettings` | `TimerDurationPresenter.saveEdit()` | `SetTrackerRowPresenter.baseRestDuration(for:)` | live |
+| `defaultRestDurationSeconds` | `WorkoutSettings` | `RestTimerSettingsPresenter` | `SetTrackerRowPresenter.baseRestDuration(for:)`, `WorkoutTrackerPresenter.restDurationSeconds`, `WorkoutRestTimerIntents` | live |
+
+## Exercise Settings (per exercise)
+
+`DialedIn/Managers/Training/Exercise/ExerciseSettings/Models/ExerciseSettingsModel.swift` — one
+document per exercise template.
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `note` | `ExerciseSettingsModel` | `ExerciseSettingsPresenter.onNotePressed()` | `ExerciseTrackerPresenter.note(for:)` → the card header | live — **wired**. No note is still no note, so a user who never wrote one sees the header unchanged. |
+| **`restDurationOverride`** | `ExerciseSettingsModel` | `ExerciseSettingsPresenter.onRestTimerPressed()` **and** `TimerDurationPresenter.saveExerciseEdit()` | **nothing** — both screens only read back their own writes | `wire` — `SetTrackerRowPresenter.baseRestDuration(for:)`, which today falls straight from the per-type override to the global default and never consults the per-exercise one. This is the setting with the most obvious missing line in the app. |
+
+## Food Log Settings
+
+`DialedIn/Managers/Nutrition/FoodLogSettings/Models/FoodLogSettings.swift` — document
+`food_log_settings`. Seven screens write it.
+
+### Food Log Settings (the parent screen)
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `showOverages` | `FoodLogSettings` | `FoodLogSettingsPresenter.showOverages` | `NutritionPresenter.showOverages` → `MacroHeader.remaining(total:target:showOverages:)` | live — **wired**. The remaining page clamped at zero, so a target passed read "0 left" whatever the excess; on, it counts past zero. Default `false` keeps the clamp. The row's subtitle described the opposite state and was fixed alongside. |
+| `showsFoodTimestamps` | `FoodLogSettings` | `FoodLogSettingsPresenter.showsFoodTimestamps` | `NutritionPresenter.showsFoodTimestamps` → `MealItemRowStyle` | live |
+| `showHourlyMacroTotals` | `FoodLogSettings` | `FoodLogSettingsPresenter.showHourlyMacroTotals` | `MealHourHeaderPresenter.showHourlyMacroTotals` | live |
+| `showCalendarWeekBanner` | `FoodLogSettings` | `FoodLogSettingsPresenter.showCalendarWeekBanner` | `NutritionPresenter` → `NutritionView` | live |
+| **`premove`** | `FoodLogSettings` | `FoodLogSettingsPresenter.premove` | **nothing** | `decide` — unchanged. The name says nothing about what it should do, and no code or comment explains it. The product owner has to say what it means before anyone can wire it. |
+| `timestampSide` | `FoodLogSettings` | `FoodLogSettingsPresenter.timestampSide` | `NutritionPresenter.timestampSide` → `MealItemRowStyle` | live |
+| `showAddFoodsButton` | `FoodLogSettings` | `FoodLogSettingsPresenter.showAddFoodsButton` | `MealHourHeaderPresenter.showAddFoodsButton` | live |
+| `startHour` | `FoodLogSettings` | `FoodLogSettingsPresenter.startHour` | `NutritionPresenter` (timeline range) | live |
+| `endHour` | `FoodLogSettings` | `FoodLogSettingsPresenter.endHour` | `NutritionPresenter` (timeline range) | live |
+| `showBrandedFoods` | `FoodLogSettings` | `FoodLogSettingsPresenter.showBrandedFoods` | `FoodItemSearchPresenter`, `IngredientListBuilderPresenter` | live |
+| `showOpenFoodFactsFoods` | `FoodLogSettings` | `FoodLogSettingsPresenter.showOpenFoodFactsFoods` | `FoodItemSearchPresenter` | live |
+
+### Timeline Actions (nutrition tab)
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `hideFoodDetails` | `FoodLogSettings` | `TimelineActionsPresenter.hideFoodDetails` | `NutritionPresenter` | live |
+| `hideEmptyHours` | `FoodLogSettings` | `TimelineActionsPresenter.hideEmptyHours` | `NutritionPresenter` | live |
+
+### Timeline Food Tiles
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `showFoodImageInTimeline` | `FoodLogSettings` | `TimelineFoodTilesPresenter` | `NutritionPresenter` | live |
+| `showCaloriesInTimeline` | `FoodLogSettings` | `TimelineFoodTilesPresenter` | `NutritionPresenter` | live |
+| `showMacrosInTimeline` | `FoodLogSettings` | `TimelineFoodTilesPresenter` | `NutritionPresenter` | live |
+
+### Logger Food Tiles
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `showFoodImageInLogger` | `FoodLogSettings` | `LoggerFoodTilesPresenter` | `IngredientListBuilderPresenter`, `RecipeListBuilderPresenter` | live |
+| `showCaloriesInLogger` | `FoodLogSettings` | `LoggerFoodTilesPresenter` | `IngredientListBuilderPresenter`, `RecipeListBuilderPresenter` | live |
+| `showMacrosInLogger` | `FoodLogSettings` | `LoggerFoodTilesPresenter` | `IngredientListBuilderPresenter`, `RecipeListBuilderPresenter` | live |
+| `showPortionInLogger` | `FoodLogSettings` | `LoggerFoodTilesPresenter` | `IngredientListBuilderPresenter`, `RecipeListBuilderPresenter` | live |
+
+### Logger Banner
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `showCaloriesRing` | `FoodLogSettings` | `LoggerBannerPresenter` | `NutritionPresenter` → `MacroHeader` | live |
+| `showProteinRing` | `FoodLogSettings` | `LoggerBannerPresenter` | `NutritionPresenter` → `MacroHeader` | live |
+| `showFatRing` | `FoodLogSettings` | `LoggerBannerPresenter` | `NutritionPresenter` → `MacroHeader` | live |
+| `showCarbsRing` | `FoodLogSettings` | `LoggerBannerPresenter` | `NutritionPresenter` → `MacroHeader` | live |
+
+### Time Selection
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `autoSetCurrentTime` | `FoodLogSettings` | `TimeSelectionPresenter.autoSetCurrentTime` | `MealHourHeaderPresenter.mealTime(for:)` | live — **wired**. A timeline row is the start of its hour, so the `+` on it filed a meal at 13:00 when tapped at 13:42. On, the exact time is used instead. Only for a row on today: "now" is not inside a past day, and presetting it there would move the meal rather than sharpen it. Default `false`, so nothing changes for an existing user. |
+
+### Favourite Measurements — **wholly inert**
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| **`favouriteMeasurements`** | `FoodLogSettings` | `FavouriteMeasurementsPresenter.toggleMeasurement(_:)` | **nothing** | `feature` — corrected from `wire`. **The serving-unit picker this was to order does not exist.** A food is logged in one unit fixed by its `measurementMethod` (`IngredientAmountPresenter.unitLabel(ingredient:)` returns "g" or "ml" and nothing else offers a choice), and of the nine units on the screen only `g` and `ml` appear anywhere. Missing: a unit choice in the logger, plus the conversions behind `oz`, `cup`, `tbsp`, `tsp` and `serving`. |
+
+### Favourites (written from the nutrition tab, not a settings screen)
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `favouriteFoodIds` | `FoodLogSettings` | `CoreInteractor.setFavouriteFood(id:isFavourite:)` | `FoodLibraryPresenter` | live |
+| `favouriteRecipeIds` | `FoodLogSettings` | `CoreInteractor.setFavouriteRecipe(id:isFavourite:)` | `FoodLibraryPresenter` | live |
+
+### Optimisation
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `quickAddEnabled` | `FoodLogSettings` | `OptimisationPresenter.quickAddEnabled` | `NutritionLibraryPickerPresenter.navToIngredientAmount(_:onPick:)`, `FoodLibraryPresenter.onFavouriteFoodPressed(_:onPick:)` | live — **wired**. The audit read this as needing a quick-add feature built. It did not: the toggle's own subtitle says "use default portion and skip the amount entry screen", and both halves already existed — `FoodModel.portionGramsCalculated` / `portionMillilitersCalculated` for the portion, and the item construction in `IngredientAmountPresenter.add`, now shared as `FoodModel.mealItem(amount:)`. Default `false`, so the amount step still shows for everyone who has not asked otherwise. |
+
+## Nutrition Strategy Settings
+
+`DialedIn/Managers/Nutrition/NutritionStrategySettings/Models/NutritionStrategySettings.swift` —
+document `nutrition_strategy_settings`. Two screens write it.
+
+### Strategy Settings — inert
+
+All six configure a weekly check-in. Searching the app for one finds nothing: no check-in screen,
+no fasting state, no logging break, no notion of a partial day. Every row here is `feature`, and
+they are one feature rather than six.
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| **`checkInWeekday`** | `NutritionStrategySettings` | `StrategySettingsPresenter.checkInWeekday` | **nothing** | `feature` — no weekly check-in exists to happen on that day. |
+| **`fastCheckIn`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastCheckInEnabled` | **nothing** | `feature` — same; there is no check-in to make fast. |
+| **`partialLoggingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.partialLoggingEnabled` | **nothing** | `feature` — nothing distinguishes a partly logged day from a fully logged one. |
+| **`weighInEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.weighInEnabled` | **nothing** | `feature` — weight is logged from the Analytics tab whatever this says; there is no check-in to include it in. |
+| **`fastingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastingEnabled` | **nothing** | `feature` — the word "fasting" appears nowhere else in the app. |
+| **`loggingBreakEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.loggingBreakEnabled` | **nothing** | `feature` — there is no such thing as a break from logging to enable. |
+
+### Expenditure Settings — inert but for one field
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `bmrEquation` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.bmrEquation` | `NutritionManager` (BMR calculation) | live |
+| `estimationMethod` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.estimationMethod` | `NutritionStrategySettings.resolvedBMREquation(bodyFatPercentage:)` → `CoreInteractor.estimateTDEE(user:)` | live — **wired**, as the audit guessed. `.bodyFatAware` runs Katch-McArdle, the one equation in the app that reads body fat, when a usable percentage is logged. `.standard`, the default, leaves `bmrEquation` alone. |
+| **`calculationStartDate`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationStartDate` | **nothing** | `feature` — `estimateTDEE(user:)` returns one figure from the profile and reads no history at all, so there is no window for a start date to bound. |
+| **`calculationMode`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationMode` | **nothing** | `feature` — the model's own comment says the adaptive engine is unwritten work, and the screen's own footer tells the user so. Dynamic vs fixed has nothing to switch between until it exists. |
+| **`algorithmVersion`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.algorithmVersion` | **nothing** | `feature` — one case, `v1`, so the control cannot change anything even once an engine exists. **Kept deliberately**: it is the seam a second version would arrive through. Not to be removed. |
+| **`stepInformedUpdates`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.stepInformedUpdates` | **nothing** | `feature` — `StepsManager` has the step history, but expenditure never reads a day of anything. It speeds up an update process that does not run. |
+| **`predictiveGoalAdjustments`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.predictiveGoalAdjustments` | **nothing** | `feature` — same engine. There is no adjustment to make predictive. |
+
+## Analytics Settings
+
+`DialedIn/Managers/Analytics/AnalyticsSettings/Models/AnalyticsSettings.swift` — document
+`analytics_settings`.
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `hiddenSectionIds` | `AnalyticsSettings` | `CustomiseAnalyticsPresenter.setVisible(_:for:)` | `AnalyticsPresenter.isVisible(_:)` → `AnalyticsView` | live |
+
+## Shortcut Settings
+
+`DialedIn/Managers/Shortcuts/Models/ShortcutSettings.swift` — document `shortcut_settings`.
+
+| Setting | Defined in | Written by | Read by | Verdict |
+|---|---|---|---|---|
+| `quickActionIds` | `ShortcutSettings` | `ShortcutsPresenter.apply(_:event:)` | `SearchPresenter.quickActions` → `SearchView` | live |
+
+---
+
+## Bugs found and fixed alongside this audit
+
+These are defects regardless of which way the wire-or-remove decision goes, so they were fixed here
+rather than left with the audit.
+
+1. **Two screens disagreed on what an empty rest picker means.**
+   `ExerciseSettingsPresenter.onRestTimerPressed()` treats 0:00 as "clear the override" and stores
+   `nil`; `TimerDurationPresenter.saveExerciseEdit()` stored a literal zero-second override, which
+   then showed in the override list as a row reading "0:00". `TimerDurationPresenter` now clears on
+   zero, matching the other screen.
+
+2. **Eleven settings screens wrote a stale copy of their document.**
+   Each holds a snapshot of the whole settings document taken at `init` and saves the whole thing
+   back, so a copy that was never refreshed reverts whatever another screen saved in the meantime.
+   Five workout-settings screens had already been fixed by re-reading in `onViewAppear`; the same
+   shape remained in:
+   - `FoodLogSettings` (seven writers): `TimelineFoodTilesPresenter`, `LoggerFoodTilesPresenter`,
+     `LoggerBannerPresenter`, `TimeSelectionPresenter`, `FavouriteMeasurementsPresenter`,
+     `OptimisationPresenter`, `TimelineActionsPresenter`. This one also loses the user's favourite
+     foods and recipes, which live in the same document and are written from the nutrition tab.
+   - `NutritionStrategySettings` (two writers): `StrategySettingsPresenter`,
+     `ExpenditureSettingsPresenter` — each reverts the other.
+   - `AnalyticsSettings` and `ShortcutSettings` have one writer each, so no sibling screen can
+     revert them, but a change arriving from another device while the screen sits open still can.
+     `CustomiseAnalyticsPresenter` and `ShortcutsPresenter` were given the same re-read.
+
+## What is left
+
+Every setting whose behaviour already existed has been wired. What remains is sixteen settings
+across four unbuilt features, and they should be tracked as features rather than as plumbing:
+
+1. **A smart-progression engine** — `smartProgressionApplyInSession`,
+   `smartProgressionInitialLogFill`, `smartProgressionAdjustmentMode`.
+2. **A weekly check-in** — `checkInWeekday`, `fastCheckIn`, `partialLoggingEnabled`,
+   `weighInEnabled`, `fastingEnabled`, `loggingBreakEnabled`.
+3. **An adaptive expenditure engine** — `calculationStartDate`, `calculationMode`,
+   `algorithmVersion`, `stepInformedUpdates`, `predictiveGoalAdjustments`.
+4. **A unit choice in the food logger** — `favouriteMeasurements`.
+
+Plus `premove`, which needs the product owner to say what it is before it can be sorted into any
+of these.
+
+A thin implementation of any of them would be worse than the honest gap: a control that half
+works reads as finished.

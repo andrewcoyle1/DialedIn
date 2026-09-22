@@ -1,115 +1,66 @@
 //
-//  AnalyticsCard.swift
+//  DashboardCard.swift
 //  DialedIn
 //
-//  Created by Andrew Coyle on 04/02/2026.
+//  The frame the Dashboard's carousel cards share. Today's Workout, Workout Streak and Nutrition
+//  each drew their own title and rounded surface, and each sized itself differently — one had no
+//  height at all, one put 200pt on the surface, one put it on the title and surface together — so
+//  the three pages of a single `TabView` did not line up with each other.
 //
 
 import SwiftUI
 
-struct AnalyticsCardChartConfiguration {
-    var height: CGFloat = 44
-    var verticalPadding: CGFloat = 4
-}
+struct DashboardCard<Content: View>: View {
 
-struct AnalyticsCard<MetricChart: View>: View {
-    
     @Environment(\.colorScheme) private var colorScheme
-    
-    var title: String?
-    var subtitle: String?
-    var subsubtitle: String?
-    var subsubsubtitle: String?
-    var themeColor: Color?
-    var chartConfiguration: AnalyticsCardChartConfiguration
-    var chart: () -> MetricChart
-    
-    init(
-        title: String? = "Title",
-        subtitle: String? = "Subtitle",
-        subsubtitle: String? = "Subsubtitle",
-        subsubsubtitle: String? = "Subsubsubtitle",
-        themeColor: Color? = nil,
-        chartConfiguration: AnalyticsCardChartConfiguration = AnalyticsCardChartConfiguration(),
-        chart: @escaping () -> MetricChart = {
-            ContributionChartView(
-                data: [0, 0.1, 0.3, 0.5, 0.7, 0.9],
-                rows: 3,
-                columns: 10,
-                targetValue: 1,
-                blockColor: .red,
-                rectangleWidth: .infinity,
-                endDate: .now,
-                showsCaptioning: false
-            )
-        }
-    ) {
-        self.title = title
-        self.subtitle = subtitle
-        self.subsubtitle = subsubtitle
-        self.subsubsubtitle = subsubsubtitle
-        self.themeColor = themeColor
-        self.chartConfiguration = chartConfiguration
-        self.chart = chart
-    }
-    
+
+    let title: String
+    /// Cards whose content brings its own surface (the Today's Workout label styles itself) opt out
+    /// of the rounded background rather than nesting two.
+    var drawsSurface: Bool = true
+    @ViewBuilder var content: () -> Content
+
+    /// One height for every page of the Dashboard carousel.
+    static var contentHeight: CGFloat { 200 }
+
+    /// The title above the surface, plus the stack's spacing. The carousel sizes its scroll area
+    /// from `contentHeight + titleHeight` rather than the `+ 60` guess it used to carry.
+    static var titleHeight: CGFloat { 30 }
+
     var body: some View {
         VStack(alignment: .leading) {
-            if let title {
-                Text(title)
-                    .lineLimit(1)
-            }
-            
-            if let subtitle {
-                Text(subtitle)
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
-            }
-                
-            Spacer()
-            
-            chart()
-                .frame(maxWidth: .infinity, maxHeight: chartConfiguration.height)
-                .padding(.vertical, chartConfiguration.verticalPadding)
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(.secondary)
 
-            Spacer()
-
-            HStack {
-                HStack(alignment: .firstTextBaseline) {
-                    if let subsubtitle {
-                        Text(subsubtitle)
-                            .lineLimit(1)
-                            .font(.caption)
-                        
-                    }
-                    if let subsubsubtitle {
-                        Text(subsubsubtitle)
-                            .lineLimit(1)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-            }
+            surface
+                .frame(height: Self.contentHeight)
         }
-        .frame(height: 120)
-        .padding()
-        .background(colorScheme.backgroundPrimary)
-        .cornerRadius(16)
     }
-    
+
+    @ViewBuilder
+    private var surface: some View {
+        if drawsSurface {
+            content()
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(colorScheme.backgroundPrimary, in: .rect(cornerRadius: 24))
+        } else {
+            content()
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
 }
 
 #Preview {
-    List {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                AnalyticsCard()
-            }
-            .removeListRowFormatting()
-            .padding(.horizontal)
+    DashboardCard(title: "Workout Streak") {
+        VStack(alignment: .leading) {
+            Text("12 days")
+                .font(.largeTitle.bold())
+            Spacer()
+            Text("Best streak 21 days")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
-        .listSectionMargins(.horizontal, 0)
     }
 }

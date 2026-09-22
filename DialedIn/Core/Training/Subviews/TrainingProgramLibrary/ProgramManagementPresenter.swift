@@ -33,6 +33,16 @@ class TrainingProgramLibraryPresenter {
         self.router = router
     }
     
+    /// The `onAppear`/`onDisappear` cases were declared here from the start but the screen had no
+    /// hooks to send them, so the program library was the one screen missing from screen views.
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func showDeleteAlert(program: TrainingProgram) {
         router.showAlert(
             title: "Delete Program",
@@ -63,6 +73,9 @@ class TrainingProgramLibraryPresenter {
             interactor.trackEvent(event: Event.deleteProgramSuccess)
         } catch {
             interactor.trackEvent(event: Event.deleteProgramFail(error: error))
+            // The program is still listed after a failed delete, so say so rather than leave the
+            // confirmation looking like it did nothing.
+            router.showSimpleAlert(title: "Unable to delete program", subtitle: "Please try again.")
         }
     }
         
@@ -93,9 +106,9 @@ extension TrainingProgramLibraryPresenter {
             switch self {
             case .onAppear:             return "TrainingProgramLibraryView_Appear"
             case .onDisappear:          return "TrainingProgramLibraryView_Disappear"
-            case .deleteProgramStart:   return "TrainingProgramLibraryView_Start"
-            case .deleteProgramSuccess: return "TrainingProgramLibraryView_Success"
-            case .deleteProgramFail:    return "TrainingProgramLibraryView_Fail"
+            case .deleteProgramStart:   return "TrainingProgramLibraryView_DeleteProgram_Start"
+            case .deleteProgramSuccess: return "TrainingProgramLibraryView_DeleteProgram_Success"
+            case .deleteProgramFail:    return "TrainingProgramLibraryView_DeleteProgram_Fail"
             }
         }
         

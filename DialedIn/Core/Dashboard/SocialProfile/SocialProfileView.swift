@@ -17,14 +17,13 @@ struct SocialProfileView: View {
     var body: some View {
         List {
             profileSection
-            
-            dataSection
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            toolbarContent
-        }
+        .scrollIndicators(.hidden)
+        // A toolbar sat here with a share button and an ellipsis menu, both empty actions. Sharing a
+        // profile needs a shareable link, and there is no user-profile deep link route (the `compound`
+        // scheme has none); the ellipsis had no menu items defined at all.
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
@@ -33,163 +32,93 @@ struct SocialProfileView: View {
         }
     }
     
+    /// Sat in a plain list row under a "Profile" header that repeated the navigation title, on the
+    /// list's own background. It is a card now, like every other surface the app shows.
     private var profileSection: some View {
         Section {
-            VStack(alignment: .leading) {
-                HStack {
-                    // Profile Image
-                    ZStack {
-                        Image(systemName: "person.circle")
-                            .resizable()
-                            .font(.system(size: 24))
-                        if let urlString = delegate.user.profileImageNameCalculated {
-                            ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                                .contentShape(Circle())
-                        }
-                    }
-                    .frame(width: 80, height: 80)
-                    
-                    VStack {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 16) {
+                    UserAvatarView(imageUrl: delegate.user.profileImageNameCalculated, size: 80)
+
+                    VStack(alignment: .leading, spacing: 4) {
                         if let name = delegate.user.fullNameCalculated {
                             Text(name)
-                                .font(.headline)
+                                .font(.title3)
+                                .fontWeight(.semibold)
                         }
+                        // Was formatted with a time component, so a date of birth read
+                        // "14 Mar 1994 at 00:00".
                         if let dob = delegate.user.submittedDateOfBirth {
-                            Text(dob.formatted(date: .abbreviated, time: .shortened))
+                            Text(dob.formatted(date: .abbreviated, time: .omitted))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
                     }
+
+                    Spacer(minLength: 0)
                 }
-                HStack {
-                    StatItem(header: "Activity", value: "1")
-                    Button {
-                        presenter.onFollowersPressed()
-                    } label: {
-                        StatItem(header: "Followers", value: "\(presenter.followersCount)")
-                    }
-                    .buttonStyle(.plain)
+
+                Divider()
+
+                HStack(spacing: 32) {
+                    // An "Activity 1" stat sat here, hardcoded. Nothing counts a user's activity, and
+                    // followers/following beside it are real, which made the fake one look real too.
+                    StatItem(header: "Followers", value: "\(presenter.followersCount)")
+                        .tappableBackground()
+                        .anyButton(.press) {
+                            presenter.onFollowersPressed()
+                        }
                     StatItem(header: "Following", value: "\(presenter.followingCount)")
                     Spacer()
-                    Image(systemName: "bubble.left.and.bubble.right")
-                        .anyButton(.press) {
-                            presenter.onChatPressed(user: delegate.user)
-                        }
+                    // A chat button sat here. There is no messaging anywhere in the app — no model, no
+                    // manager, no screen — so it was an empty closure over a feature that does not exist.
                 }
-                
+
                 if !presenter.mutualFollowers.isEmpty {
+                    Divider()
                     mutualFollowersImagesSection
                 }
             }
-            
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(colorScheme.backgroundPrimary, in: .rect(cornerRadius: 24))
+            .padding(.horizontal)
+            .removeListRowFormatting()
         }
+        .listSectionMargins(.all, 0)
+        .listSectionSeparator(.hidden)
     }
     
-    private var dataSection: some View {
-        Section {
-            CustomLabelButtonView(
-                title: "Activities",
-                subtitle: "Yesterday") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Statistics",
-                subtitle: "This year: 93.0 km") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Routes",
-                subtitle: "-") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Segments",
-                subtitle: "-") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Best Efforts",
-                subtitle: "See all") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                title: "Posts",
-                subtitle: "1") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-            CustomLabelButtonView(
-                symbolName: "shoe",
-                title: "Gear",
-                subtitle: "Puma Deviate Nitro") {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                        .anyButton(.press) {
-                            
-                        }
-                }
-        }
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItemGroup(placement: .topBarTrailing) {
-            Button {
-                
-            } label: {
-                Image(systemName: "square.and.arrow.up")
-            }
-            Button {
-                
-            } label: {
-                Image(systemName: "ellipsis")
-            }
-        }
-    }
-    
+    // A "Data" section sat here: Activities, Statistics, Routes, Segments, Best Efforts, Posts and
+    // Gear — seven rows, every action an empty closure, with invented subtitles ("This year: 93.0 km",
+    // "Puma Deviate Nitro", "Yesterday"). It needs the Strava *read* API, and `StravaManager` is
+    // upload-only: authenticate, uploadActivity, disconnect, and no fetch of any kind. Showing
+    // someone else's mileage as fact is the worst version of this, so the section is gone rather than
+    // emptied. "Posts" is the one row that maps to data the app owns — the session feed — but
+    // SocialProfileInteractor cannot reach another user's sessions today. Recorded in the plan.
+
     private var mutualFollowersImagesSection: some View {
-        HStack(spacing: -10) {
-            ForEach(presenter.mutualFollowers.prefix(5)) { user in
-                mutualFollowersImageCircle(user: user)
+        HStack {
+            // The avatars overlap; the label beside them must not, so the negative spacing is
+            // scoped to the stack that wants it instead of the whole row.
+            HStack(spacing: -10) {
+                ForEach(presenter.mutualFollowers.prefix(5)) { user in
+                    mutualFollowersImageCircle(user: user)
+                }
             }
-            HStack {
-                Text("People you both follow")
-                Spacer()
-                Text("See all")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .padding(.leading)
+
+            Text("People you both follow")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            Text("See All")
+                .font(.caption)
+                .underline()
+                .anyButton(.press) {
+                    presenter.onMutualFollowersPressed()
+                }
         }
     }
 

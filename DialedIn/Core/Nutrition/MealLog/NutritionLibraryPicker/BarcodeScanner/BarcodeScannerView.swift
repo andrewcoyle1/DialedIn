@@ -58,12 +58,51 @@ struct BarcodeScannerView: View {
             guard let code = newValue, presenter.scanningMode == .barcode else { return }
             presenter.onBarcodeDetected(code)
         }
+        .sheet(isPresented: $presenter.isEnteringManually) {
+            manualEntrySheet
+        }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
         .onDisappear {
             presenter.onViewDisappear(delegate: delegate)
         }
+    }
+
+    // MARK: - Manual entry
+
+    private var manualEntrySheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField(
+                        presenter.scanningMode == .barcode ? "Barcode number" : "Label text",
+                        text: $presenter.manualEntryText,
+                        axis: presenter.scanningMode == .barcode ? .horizontal : .vertical
+                    )
+                    .keyboardType(presenter.scanningMode == .barcode ? .numberPad : .default)
+                    .lineLimit(presenter.scanningMode == .barcode ? 1 : 10)
+                } footer: {
+                    Text(
+                        presenter.scanningMode == .barcode
+                        ? "Type the barcode digits printed under the bars."
+                        : "Type the nutrition table as it appears on the packaging."
+                    )
+                }
+            }
+            .navigationTitle(presenter.scanningMode == .barcode ? "Enter Barcode" : "Enter Label")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { presenter.isEnteringManually = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { presenter.onManualEntrySubmitted() }
+                        .disabled(presenter.manualEntryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 
     // MARK: - Top controls
@@ -81,16 +120,23 @@ struct BarcodeScannerView: View {
             Spacer()
 
             Button {
+                presenter.onManualEntryPressed()
             } label: {
                 Image(systemName: "keyboard")
                     .padding()
                     .background(.secondary, in: .circle)
             }
-            Button {
-            } label: {
-                Image(systemName: "flashlight.on.fill")
-                    .padding()
-                    .background(.secondary, in: .circle)
+            .accessibilityLabel("Enter manually")
+
+            if presenter.isTorchAvailable {
+                Button {
+                    presenter.onTorchPressed()
+                } label: {
+                    Image(systemName: presenter.isTorchOn ? "flashlight.on.fill" : "flashlight.off.fill")
+                        .padding()
+                        .background(.secondary, in: .circle)
+                }
+                .accessibilityLabel(presenter.isTorchOn ? "Turn off torch" : "Turn on torch")
             }
         }
         .padding()
@@ -212,23 +258,20 @@ struct BarcodeScannerView: View {
                 }
 
                 // Secondary nutrients
-                let secondaryItems: [(String, Double?, String)] = [
-                    ("Fiber", ingredient.fiber, "g"),
-                    ("Sugar", ingredient.sugar, "g"),
-                    ("Sat fat", ingredient.fatSaturated, "g"),
-                    ("Sodium", ingredient.sodiumMg, "mg"),
-                    ("Potassium", ingredient.potassiumMg, "mg"),
-                    ("Calcium", ingredient.calciumMg, "mg"),
-                    ("Iron", ingredient.ironMg, "mg")
+                let secondaryItems: [NutrientAmount] = [
+                    NutrientAmount(name: "Fiber", value: ingredient.fiber, unit: "g"),
+                    NutrientAmount(name: "Sugar", value: ingredient.sugar, unit: "g"),
+                    NutrientAmount(name: "Sat fat", value: ingredient.fatSaturated, unit: "g"),
+                    NutrientAmount(name: "Sodium", value: ingredient.sodiumMg, unit: "mg"),
+                    NutrientAmount(name: "Potassium", value: ingredient.potassiumMg, unit: "mg"),
+                    NutrientAmount(name: "Calcium", value: ingredient.calciumMg, unit: "mg"),
+                    NutrientAmount(name: "Iron", value: ingredient.ironMg, unit: "mg")
                 ]
-                let available = secondaryItems.compactMap { name, value, unit -> (String, Double, String)? in
-                    guard let val = value else { return nil }
-                    return (name, val, unit)
-                }
+                let available = secondaryItems.filter { $0.value != nil }
                 if !available.isEmpty {
                     FlowLayout(spacing: 6) {
-                        ForEach(available, id: \.0) { name, value, unit in
-                            Text("\(name): \(formatted(value))\(unit)")
+                        ForEach(available, id: \.name) { nutrient in
+                            Text("\(nutrient.name): \(formatted(nutrient.value))\(nutrient.unit)")
                                 .font(.caption2)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
@@ -308,8 +351,11 @@ struct BarcodeScannerView: View {
             .background(color.opacity(0.2), in: Capsule())
     }
 
-    private func formatted(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
+    /// Accepts an optional so `NutrientAmount.value` can be passed straight through;
+    /// non-optional call sites are unaffected.
+    private func formatted(_ value: Double?) -> String {
+        guard let value else { return "–" }
+        return value.truncatingRemainder(dividingBy: 1) == 0
             ? String(Int(value))
             : String(format: "%.1f", value)
     }

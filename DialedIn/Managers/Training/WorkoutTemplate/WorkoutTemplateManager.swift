@@ -14,7 +14,9 @@ class WorkoutTemplateManager {
     private let userWorkoutTemplateSyncEngine: CollectionSyncEngine<WorkoutTemplateModel>
     private let systemWorkoutTemplatePersistence: any LocalCollectionPersistence<WorkoutTemplateModel>
 
-    private let userDefaults = UserDefaults.standard
+    /// Injectable only so a test can point the seeding flags at storage of its own; the app
+    /// always uses `.standard`, which is where the developer menu reads and clears the same keys.
+    private let userDefaults: UserDefaults
     private static let hasSeededKey = "hasSeededPrebuiltWorkouts"
     private static let seedingVersionKey = "prebuiltWorkoutsSeedingVersion"
     private static let currentSeedingVersion = 3
@@ -41,10 +43,12 @@ class WorkoutTemplateManager {
 
     init(
         userWorkoutTemplateSyncEngine: CollectionSyncEngine<WorkoutTemplateModel>,
-        systemWorkoutTemplatePersistence: any LocalCollectionPersistence<WorkoutTemplateModel>
+        systemWorkoutTemplatePersistence: any LocalCollectionPersistence<WorkoutTemplateModel>,
+        userDefaults: UserDefaults = .standard
     ) {
         self.userWorkoutTemplateSyncEngine = userWorkoutTemplateSyncEngine
         self.systemWorkoutTemplatePersistence = systemWorkoutTemplatePersistence
+        self.userDefaults = userDefaults
     }
 
     func signIn() async {
@@ -59,9 +63,20 @@ class WorkoutTemplateManager {
 
     func seedWorkoutTemplatesIfNeeded(exercises: [ExerciseModel]) throws {
         guard !hasSeeded || seedingVersion < Self.currentSeedingVersion else { return }
+
+        // Prebuilt workouts are resolved against the exercise library, and loadPrebuiltWorkouts
+        // compactMaps away any workout whose exercises are missing. With no exercises every
+        // workout drops, so carrying on here would delete the templates the user already has,
+        // seed nothing in their place, and still mark the library as seeded — leaving them
+        // permanently without prebuilt workouts and no retry. Exercises seed before workouts,
+        // but a caller that gets that ordering wrong should lose nothing.
+        guard !exercises.isEmpty else { return }
+
+        let workouts = try loadPrebuiltWorkouts(exercises: exercises)
+        guard !workouts.isEmpty else { return }
+
         // Always clear before inserting — prevents accumulation from past version bumps
         try deleteExistingSystemWorkoutTemplates()
-        let workouts = try loadPrebuiltWorkouts(exercises: exercises)
         try seedWorkouts(workouts)
         userDefaults.set(true, forKey: Self.hasSeededKey)
         userDefaults.set(Self.currentSeedingVersion, forKey: Self.seedingVersionKey)
@@ -128,11 +143,13 @@ class WorkoutTemplateManager {
 
 // MARK: - Supporting Types
 
-private struct PrebuiltWorkoutsContainer: Codable {
+// Not private — `PrebuiltSeedData` decodes the same file to build mock data from the seeded
+// workout templates.
+struct PrebuiltWorkoutsContainer: Codable {
     let workouts: [PrebuiltWorkoutDTO]
 }
 
-private struct PrebuiltWorkoutDTO: Codable {
+struct PrebuiltWorkoutDTO: Codable {
     let workoutId: String
     let name: String
     let description: String?
