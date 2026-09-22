@@ -23,13 +23,19 @@ class HeightPresenter {
         Double(selectedCentimeters)
     }
     
+    /// Feet and inches are derived from one rounded total so they cannot disagree with each other.
+    /// Rounding the total and then splitting it also keeps `height` consistent with what
+    /// `updateImperialFromCentimeters` puts in the pickers.
+    private var totalHeightInches: Int {
+        Int((Double(heightInCentimeters) / 2.54).rounded())
+    }
+
     private var heightInFeet: Int {
-        Int(Double(heightInCentimeters) / 30.48) // Convert cm to feet
+        totalHeightInches / 12
     }
     
     private var heightInInches: Int {
-        let totalInches = Int(Double(heightInCentimeters) / 2.54)
-        return totalInches % 12 // Remaining inches after feet
+        totalHeightInches % 12 // Remaining inches after feet
     }
     
     var height: Double {
@@ -74,15 +80,18 @@ class HeightPresenter {
         router.showWeightView(delegate: delegate)
     }
     
+    // Both conversions round rather than truncate. Truncating dropped up to a whole inch on the
+    // way back to imperial — 175 cm is 5 ft 8.9 in and was shown as 5 ft 8 in — and a whole
+    // centimetre on the way out, so 6 ft was stored as 182 cm instead of 183.
     func updateImperialFromCentimeters() {
-        let totalInches = Int(Double(selectedCentimeters) / 2.54)
+        let totalInches = Int((Double(selectedCentimeters) / 2.54).rounded())
         selectedFeet = totalInches / 12
         selectedInches = totalInches % 12
     }
     
     func updateCentimetersFromImperial() {
         let totalInches = (selectedFeet * 12) + selectedInches
-        selectedCentimeters = Int(Double(totalInches) * 2.54)
+        selectedCentimeters = Int((Double(totalInches) * 2.54).rounded())
     }
 
 #if DEV || MOCK
