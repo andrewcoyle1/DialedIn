@@ -97,8 +97,8 @@ class GymProfilesPresenter {
 
         var eventName: String {
             switch self {
-            case .onAppear:                     return "GymProfilesView_OnAppear"
-            case .onDisappear:                  return "GymProfilesView_OnDisappear"
+            case .onAppear:                     return "GymProfilesView_Appear"
+            case .onDisappear:                  return "GymProfilesView_Disappear"
             case .deleteProfileStart:           return "GymProfilesView_DeleteProfile_Start"
             case .deleteProfileSuccess:         return "GymProfilesView_DeleteProfile_Success"
             case .deleteProfileFail:            return "GymProfilesView_DeleteProfile_Fail"

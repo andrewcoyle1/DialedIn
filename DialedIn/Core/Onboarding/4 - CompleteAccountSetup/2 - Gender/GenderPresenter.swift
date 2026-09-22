@@ -56,8 +56,8 @@ func onDevSettingsPressed() {
 
         var eventName: String {
             switch self {
-            case .onAppear:             return "AppView_Appear"
-            case .onDisappear:          return "AppView_Disappear"
+            case .onAppear:             return "GenderView_Appear"
+            case .onDisappear:          return "GenderView_Disappear"
             case .navigate: return "GenderView_Navigate"
             }
         }

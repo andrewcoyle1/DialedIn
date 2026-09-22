@@ -207,9 +207,9 @@ class ProfilePresenter {
 
         var eventName: String {
             switch self {
-            case .ratingsPressed:               return "SettingsView_Ratings_Pressed"
-            case .ratingsYesPressed:            return "SettingsView_RatingsYes_Pressed"
-            case .ratingsNoPressed:             return "SettingsView_RatingsNo_Pressed"
+            case .ratingsPressed:               return "ProfileView_Ratings_Pressed"
+            case .ratingsYesPressed:            return "ProfileView_RatingsYes_Pressed"
+            case .ratingsNoPressed:             return "ProfileView_RatingsNo_Pressed"
             }
         }
 

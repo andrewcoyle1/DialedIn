@@ -101,8 +101,8 @@ class RecipeListBuilderPresenter {
 
         var eventName: String {
             switch self {
-            case .onAppear:     return "RecipesView_Appear"
-            case .onDisappear:  return "RecipesView_Disappear"
+            case .onAppear:     return "RecipeListBuilderView_Appear"
+            case .onDisappear:  return "RecipeListBuilderView_Disappear"
             }
         }
 

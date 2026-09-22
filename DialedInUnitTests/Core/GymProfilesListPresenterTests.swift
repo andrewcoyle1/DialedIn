@@ -250,7 +250,7 @@ struct GymProfilesListPresenterTests {
 
         screen.presenter.onViewAppear()
 
-        #expect(screen.interactor.trackedScreenEventNames == ["GymProfilesView_OnAppear"])
+        #expect(screen.interactor.trackedScreenEventNames == ["GymProfilesView_Appear"])
     }
 }
 

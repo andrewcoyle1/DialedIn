@@ -106,9 +106,9 @@ extension TrainingProgramLibraryPresenter {
             switch self {
             case .onAppear:             return "TrainingProgramLibraryView_Appear"
             case .onDisappear:          return "TrainingProgramLibraryView_Disappear"
-            case .deleteProgramStart:   return "TrainingProgramLibraryView_Start"
-            case .deleteProgramSuccess: return "TrainingProgramLibraryView_Success"
-            case .deleteProgramFail:    return "TrainingProgramLibraryView_Fail"
+            case .deleteProgramStart:   return "TrainingProgramLibraryView_DeleteProgram_Start"
+            case .deleteProgramSuccess: return "TrainingProgramLibraryView_DeleteProgram_Success"
+            case .deleteProgramFail:    return "TrainingProgramLibraryView_DeleteProgram_Fail"
             }
         }
         
