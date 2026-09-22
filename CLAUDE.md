@@ -118,6 +118,33 @@ swiftlint
 
 SwiftLint config (`.swiftlint.yml`): line limit 300, type body 500 lines, file length 750 lines, `trailing_whitespace` disabled.
 
+### CI
+
+`.github/workflows/ci.yml` runs on every pull request and on pushes to `main`, as one job on the
+`macos-26` runner with Xcode pinned to `/Applications/Xcode_26.6.app`. In order, it:
+
+1. Recreates the four gitignored config files from their checked-in examples — `Keys.swift`,
+   `Info.plist`, and both `GoogleService-Info-{Dev,Prod}.plist` (all copied from
+   `GoogleService-Info-Example.plist`). The examples are enough because only the Crashlytics
+   run-script phase reads the plists and it exits early on simulator builds. The `Keys.swift`
+   example defines all 30 constants the app references, so it compiles unchanged.
+2. Runs `swiftlint --strict`, before the build so a style failure fails fast. `main` is at zero
+   violations, so any warning fails the job.
+3. Runs `xcodebuild test` for `DialedIn - Development` with `-skip-testing:DialedInUITests`,
+   writing `TestResults.xcresult`, which is uploaded as an artifact only when the job fails.
+
+The simulator destination is **discovered, not hardcoded**: a step picks the newest installed iOS
+runtime and the first available iPhone on it, and fails if that runtime is below iOS 26. Do not
+replace this with a fixed device name — the lineup differs between runner images, and older
+runtimes that cannot run an iOS 26 deployment target are usually installed alongside the new one.
+
+SwiftPM checkouts are cached under `SourcePackages` (via `-clonedSourcePackagesDirPath`), keyed on
+`Package.resolved`. `concurrency` cancels superseded runs per ref; `timeout-minutes: 60`.
+
+Because CI installs SwiftLint from Homebrew, it can drift ahead of the local version (0.59.1 at the
+time of writing) and a newly added rule can fail `--strict` on code that lints clean locally. If CI
+reports violations that you cannot reproduce, compare `swiftlint version` first.
+
 ## First-Time Setup
 
 Copy example files and fill in credentials. All three destinations are gitignored, and the app
