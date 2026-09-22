@@ -45,7 +45,7 @@ struct WorkoutSettingsManagerTests {
     func testSigningInWithNoDocumentSavesTheDefaults() async throws {
         let manager = TestManagers.workoutSettingsManager(nil)
 
-        try await manager.signIn(userId: "author-1")
+        try await manager.signIn(userId: "author-1", isNewUser: true)
 
         let created = await TestManagers.eventually { manager.workoutSettings.authorId == "author-1" }
         #expect(created)
@@ -60,7 +60,7 @@ struct WorkoutSettingsManagerTests {
     func testSigningInKeepsSettingsTheUserAlreadySaved() async throws {
         let manager = TestManagers.workoutSettingsManager(customised())
 
-        try await manager.signIn(userId: "author-1")
+        try await manager.signIn(userId: "author-1", isNewUser: false)
 
         let loaded = await TestManagers.eventually { manager.workoutSettings.rirTracking }
         #expect(loaded)
@@ -74,7 +74,7 @@ struct WorkoutSettingsManagerTests {
     @Test("Test Saving Settings Replaces What The Manager Hands Out")
     func testSavingSettingsReplacesWhatTheManagerHandsOut() async throws {
         let manager = TestManagers.workoutSettingsManager(nil)
-        try await manager.signIn(userId: "author-1")
+        try await manager.signIn(userId: "author-1", isNewUser: true)
 
         try await manager.saveSettings(customised())
 
@@ -88,7 +88,7 @@ struct WorkoutSettingsManagerTests {
     @Test("Test Saving From A Fresh Read Keeps The Other Settings")
     func testSavingFromAFreshReadKeepsTheOtherSettings() async throws {
         let manager = TestManagers.workoutSettingsManager(customised())
-        try await manager.signIn(userId: "author-1")
+        try await manager.signIn(userId: "author-1", isNewUser: false)
         _ = await TestManagers.eventually { manager.workoutSettings.rirTracking }
 
         // A screen's edit: read what is there now, change one thing, write it all back.
@@ -108,7 +108,7 @@ struct WorkoutSettingsManagerTests {
     @Test("Test A Stale Snapshot Overwrites A Setting Saved After It Was Taken")
     func testAStaleSnapshotOverwritesASettingSavedAfterItWasTaken() async throws {
         let manager = TestManagers.workoutSettingsManager(nil)
-        try await manager.signIn(userId: "author-1")
+        try await manager.signIn(userId: "author-1", isNewUser: true)
         let stale = manager.workoutSettings
 
         var other = stale
@@ -134,7 +134,7 @@ struct WorkoutSettingsManagerTests {
     @Test("Test Signing Out Drops Back To The Defaults")
     func testSigningOutDropsBackToTheDefaults() async throws {
         let manager = TestManagers.workoutSettingsManager(customised())
-        try await manager.signIn(userId: "author-1")
+        try await manager.signIn(userId: "author-1", isNewUser: false)
         _ = await TestManagers.eventually { manager.workoutSettings.rirTracking }
 
         manager.signOut()
