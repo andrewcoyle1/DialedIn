@@ -10,6 +10,7 @@ import SwiftUI
 @MainActor
 protocol ExpenditureDetailInteractor {
     var currentUser: UserModel? { get }
+    var expenditureHistory: [ExpenditureEstimate] { get }
     func estimateTDEE(user: UserModel?) -> Double
 }
 

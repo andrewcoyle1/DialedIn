@@ -23,6 +23,14 @@ class NutritionOverviewPresenter {
     private(set) var target: DailyMacroTarget?
     private(set) var breakdown: DailyNutritionBreakdown = .empty
 
+    /// The pending suggestion that the calorie target should move, or nil when there is none.
+    ///
+    /// Held rather than read through to the interactor so accepting or dismissing takes the card
+    /// off the screen in the same frame, instead of waiting for the plan to come back from
+    /// Firestore.
+    private(set) var proposal: TargetProposal?
+    private(set) var isApplyingProposal: Bool = false
+
     init(interactor: NutritionOverviewInteractor, router: NutritionOverviewRouter) {
         self.interactor = interactor
         self.router = router
@@ -40,6 +48,7 @@ class NutritionOverviewPresenter {
     private func loadData(delegate: NutritionOverviewDelegate) {
         let dayKey = delegate.dayKey
         self.dayKey = dayKey
+        proposal = interactor.targetProposal
         totals = (try? interactor.getDailyTotals(dayKey: dayKey)) ?? totals
         breakdown = (try? interactor.getDailyNutritionBreakdown(dayKey: dayKey)) ?? .empty
         guard let userId = interactor.userId else { return }
@@ -47,6 +56,32 @@ class NutritionOverviewPresenter {
         Task {
             target = try? await interactor.getDailyTarget(for: date, userId: userId)
         }
+    }
+
+    // MARK: Target proposal
+
+    /// "2,180 kcal a day, up from 2,050" — the whole of what the card has to say.
+    var proposalSummary: String? {
+        guard let proposal else { return nil }
+        let direction = proposal.proposedTargetKcal > proposal.currentTargetKcal ? "up from" : "down from"
+        return "\(Int(proposal.proposedTargetKcal)) kcal a day, \(direction) \(Int(proposal.currentTargetKcal))."
+    }
+
+    func onAcceptProposalPressed() {
+        guard !isApplyingProposal else { return }
+        interactor.trackEvent(event: Event.proposalAccepted(proposal: proposal))
+        isApplyingProposal = true
+        proposal = nil
+        Task {
+            try? await interactor.acceptTargetProposal()
+            isApplyingProposal = false
+        }
+    }
+
+    func onDismissProposalPressed() {
+        interactor.trackEvent(event: Event.proposalDismissed(proposal: proposal))
+        interactor.dismissTargetProposal()
+        proposal = nil
     }
 
     // MARK: Progress helpers (0–1)
@@ -102,11 +137,15 @@ extension NutritionOverviewPresenter {
     enum Event: LoggableEvent {
         case onAppear(delegate: NutritionOverviewDelegate)
         case onDisappear(delegate: NutritionOverviewDelegate)
+        case proposalAccepted(proposal: TargetProposal?)
+        case proposalDismissed(proposal: TargetProposal?)
 
         var eventName: String {
             switch self {
-            case .onAppear:    return "NutritionOverviewView_Appear"
-            case .onDisappear: return "NutritionOverviewView_Disappear"
+            case .onAppear:          return "NutritionOverviewView_Appear"
+            case .onDisappear:       return "NutritionOverviewView_Disappear"
+            case .proposalAccepted:  return "NutritionOverviewView_Proposal_Accept"
+            case .proposalDismissed: return "NutritionOverviewView_Proposal_Dismiss"
             }
         }
 
@@ -114,6 +153,14 @@ extension NutritionOverviewPresenter {
             switch self {
             case .onAppear(let delegate), .onDisappear(let delegate):
                 return delegate.eventParameters
+            case .proposalAccepted(let proposal), .proposalDismissed(let proposal):
+                guard let proposal else { return nil }
+                return [
+                    "proposal_current_kcal": proposal.currentTargetKcal,
+                    "proposal_proposed_kcal": proposal.proposedTargetKcal,
+                    "proposal_expenditure_kcal": proposal.expenditureKcal,
+                    "proposal_reason": proposal.reason.rawValue
+                ]
             }
         }
 

@@ -32,10 +32,34 @@ class ExpenditureDetailPresenter {
         router.dismissScreen()
     }
 
+    /// The last ninety days of the adaptive estimate.
+    ///
+    /// This drew a flat line off `estimateTDEE` for as long as there was no engine to draw
+    /// anything else. `expenditureHistory` gives one figure per day, so the chart now moves with
+    /// what was actually logged. A user with no history at all still gets the formula figure, as a
+    /// flat line, which is the honest picture of what the app knows about them.
     private func rebuildCaches() {
-        let tdee = interactor.estimateTDEE(user: interactor.currentUser)
-        let now = Date()
-        let startOfToday = calendar.startOfDay(for: now)
+        let history = interactor.expenditureHistory.suffix(90)
+        guard !history.isEmpty else {
+            rebuildFlatCaches(kcal: interactor.estimateTDEE(user: interactor.currentUser))
+            return
+        }
+
+        var entries: [ExpenditureDetailEntry] = []
+        var data: [TimeSeriesDatapoint] = []
+        for estimate in history {
+            let dayKey = estimate.day.dayKey
+            entries.append(ExpenditureDetailEntry(id: dayKey, date: estimate.day, expenditure: estimate.kcal))
+            data.append(TimeSeriesDatapoint(id: dayKey, date: estimate.day, value: estimate.kcal))
+        }
+
+        cachedEntries = entries.reversed()
+        cachedTimeSeries = [TimeSeries(name: "Expenditure", data: data)]
+    }
+
+    /// Ninety flat days, for the account that has logged nothing yet.
+    private func rebuildFlatCaches(kcal: Double) {
+        let startOfToday = calendar.startOfDay(for: Date())
         guard let startDate = calendar.date(byAdding: .day, value: -89, to: startOfToday) else {
             cachedEntries = []
             cachedTimeSeries = []
@@ -44,18 +68,15 @@ class ExpenditureDetailPresenter {
 
         var entries: [ExpenditureDetailEntry] = []
         var data: [TimeSeriesDatapoint] = []
-
         for offset in 0..<90 {
             guard let date = calendar.date(byAdding: .day, value: offset, to: startDate) else { continue }
             let dayKey = date.dayKey
-            entries.append(ExpenditureDetailEntry(id: dayKey, date: date, expenditure: tdee))
-            data.append(TimeSeriesDatapoint(id: dayKey, date: date, value: tdee))
+            entries.append(ExpenditureDetailEntry(id: dayKey, date: date, expenditure: kcal))
+            data.append(TimeSeriesDatapoint(id: dayKey, date: date, value: kcal))
         }
 
         cachedEntries = entries.reversed()
-        cachedTimeSeries = [
-            TimeSeries(name: "Expenditure", data: data)
-        ]
+        cachedTimeSeries = [TimeSeries(name: "Expenditure", data: data)]
     }
 }
 

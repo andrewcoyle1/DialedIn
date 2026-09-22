@@ -8,6 +8,9 @@ protocol NutritionOverviewInteractor: GlobalInteractor {
     func getDailyNutritionBreakdown(dayKey: String) throws -> DailyNutritionBreakdown
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?
     func getMeals(for dayKey: String) throws -> [MealLogModel]
+    var targetProposal: TargetProposal? { get }
+    func acceptTargetProposal() async throws
+    func dismissTargetProposal()
 }
 
 extension CoreInteractor: NutritionOverviewInteractor { }

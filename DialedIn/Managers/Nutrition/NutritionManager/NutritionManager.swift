@@ -70,10 +70,21 @@ class NutritionManager {
     }
 
     // MARK: - Core logic
-    func computeDietPlan(user: UserModel?, delegate: DietPlanDelegate, trainingProgram: TrainingProgram? = nil) -> DietPlan {
+    /// `expenditureKcal` is the adaptive figure from `ExpenditureEngine` where there is one.
+    ///
+    /// Nil keeps the behaviour every existing caller already has: the one-shot formula estimate.
+    /// A non-nil figure replaces it outright — for the day targets and for `tdeeEstimate` — rather
+    /// than being blended with it, because the engine has already done the blending, against a
+    /// month of logs the formula cannot see.
+    func computeDietPlan(
+        user: UserModel?,
+        delegate: DietPlanDelegate,
+        trainingProgram: TrainingProgram? = nil,
+        expenditureKcal: Double? = nil
+    ) -> DietPlan {
         let now = Date()
         let userId = user?.userId
-        let tdee = estimateTDEE(user: user)
+        let tdee = expenditureKcal ?? estimateTDEE(user: user)
         let minimumCalories = delegate.calorieFloor.minimumValue
         let targetCalories = max(tdee, minimumCalories)
 
@@ -362,6 +373,16 @@ extension CoreInteractor {
 
     func computeDietPlan(user: UserModel?, delegate: DietPlanDelegate) -> DietPlan {
         nutritionManager.computeDietPlan(user: user, delegate: delegate, trainingProgram: activeTrainingProgram)
+    }
+
+    /// The same plan built on a supplied expenditure rather than the formula estimate.
+    func computeDietPlan(user: UserModel?, delegate: DietPlanDelegate, expenditureKcal: Double?) -> DietPlan {
+        nutritionManager.computeDietPlan(
+            user: user,
+            delegate: delegate,
+            trainingProgram: activeTrainingProgram,
+            expenditureKcal: expenditureKcal
+        )
     }
 
     func saveDietPlan(_ plan: DietPlan) async throws {

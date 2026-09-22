@@ -12,6 +12,7 @@ struct NutritionOverviewView: View {
 
     var body: some View {
         List {
+            proposalSection
             caloriesSection
             contributorsSection
             macrosSection
@@ -28,6 +29,37 @@ struct NutritionOverviewView: View {
         }
         .onDisappear {
             presenter.onViewDisappear(delegate: delegate)
+        }
+    }
+
+    // MARK: - Target proposal
+
+    /// Deliberately plain. The weekly check-in flow will give this a proper home and a proper
+    /// look; until then it is two buttons and a sentence, which is enough to make the engine's
+    /// output actionable without pretending to be the finished feature.
+    @ViewBuilder
+    private var proposalSection: some View {
+        if let summary = presenter.proposalSummary {
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("New targets suggested")
+                        .font(.headline)
+                    Text(summary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    HStack(spacing: 12) {
+                        Button("Accept") {
+                            presenter.onAcceptProposalPressed()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        Button("Not now") {
+                            presenter.onDismissProposalPressed()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
         }
     }
 
