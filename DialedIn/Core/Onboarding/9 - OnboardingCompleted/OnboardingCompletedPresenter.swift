@@ -34,6 +34,9 @@ class OnboardingCompletedPresenter {
                 isCompletingProfileSetup = false
                 router.switchToCoreModule()
             } catch {
+                // The Continue button is disabled on this flag, so leaving it set after a failed
+                // save left the last screen of onboarding with no working way forward.
+                isCompletingProfileSetup = false
                 router.showAlert(error: error)
                 interactor.trackEvent(event: Event.finishFail(error: error))
             }
