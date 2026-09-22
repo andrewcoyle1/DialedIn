@@ -34,7 +34,7 @@ struct OnboardingCompletedRetryTests {
     }
 
     @Test("A failed save re-enables the button so the user can try again")
-    func testAFailedFinishLeavesTheScreenUsable() async throws {
+    func testAFailedFinishLeavesTheScreenUsable() async {
         let interactor = Interactor()
         interactor.shouldThrow = true
         let router = Router()
@@ -42,39 +42,39 @@ struct OnboardingCompletedRetryTests {
 
         sut.onFinishButtonPressed()
 
-        try await TestManagers.eventually { router.alertedErrors.count == 1 }
+        #expect(await TestManagers.eventually { router.alertedErrors.count == 1 })
         #expect(sut.isCompletingProfileSetup == false)
         #expect(router.switchedToCore == 0)
         #expect(interactor.trackedEventNames.contains("OnboardingCompletedView_Finish_Fail"))
     }
 
     @Test("The retry after a failure gets through and finishes onboarding")
-    func testTheUserCanRetryAfterAFailure() async throws {
+    func testTheUserCanRetryAfterAFailure() async {
         let interactor = Interactor()
         interactor.shouldThrow = true
         let router = Router()
         let sut = OnboardingCompletedPresenter(interactor: interactor, router: router)
 
         sut.onFinishButtonPressed()
-        try await TestManagers.eventually { router.alertedErrors.count == 1 }
+        #expect(await TestManagers.eventually { router.alertedErrors.count == 1 })
 
         interactor.shouldThrow = false
         sut.onFinishButtonPressed()
 
-        try await TestManagers.eventually { router.switchedToCore == 1 }
+        #expect(await TestManagers.eventually { router.switchedToCore == 1 })
         #expect(interactor.saveCount == 2)
         #expect(sut.isCompletingProfileSetup == false)
     }
 
     @Test("A successful finish switches to the main app and clears the flag")
-    func testASuccessfulFinishHandsOverToTheApp() async throws {
+    func testASuccessfulFinishHandsOverToTheApp() async {
         let interactor = Interactor()
         let router = Router()
         let sut = OnboardingCompletedPresenter(interactor: interactor, router: router)
 
         sut.onFinishButtonPressed()
 
-        try await TestManagers.eventually { router.switchedToCore == 1 }
+        #expect(await TestManagers.eventually { router.switchedToCore == 1 })
         #expect(sut.isCompletingProfileSetup == false)
         #expect(router.alertedErrors.isEmpty)
         #expect(interactor.trackedEventNames.contains("OnboardingCompletedView_Finish_Success"))
