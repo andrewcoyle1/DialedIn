@@ -105,8 +105,16 @@ class GoalSummaryPresenter {
         return target - current
     }
     
+    /// Zero when there is no journey to estimate.
+    ///
+    /// "Maintain" reaches this screen with the current weight as its own target and a weekly rate
+    /// of zero, so the division is 0 / 0 — NaN, which traps when converted to an `Int` and took the
+    /// screen down as it drew. A rate of zero towards a different target is infinite for the same
+    /// reason. The view already reads zero as "maintaining current weight", so that is the answer.
     func estimatedWeeks(delegate: GoalSummaryDelegate) -> Int {
-        return Int(ceil(abs(weightDifference(targetWeight: delegate.targetWeight)) / delegate.weightChangeRate))
+        let weeks = ceil(abs(weightDifference(targetWeight: delegate.targetWeight)) / delegate.weightChangeRate)
+        guard weeks.isFinite, weeks > 0 else { return 0 }
+        return Int(weeks)
     }
     
     func estimatedMonths(delegate: GoalSummaryDelegate) -> Int {
