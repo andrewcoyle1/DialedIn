@@ -149,23 +149,31 @@ struct GoalManagerTests {
         }
     }
 
-    /// Deleting stops the document listener without clearing the stored id, so a goal saved after
-    /// a delete does not reach `currentGoal` until the next sign-in. Only account deletion deletes
-    /// a goal today, which is why that does not show up in the app.
-    @Test("Test A Goal Saved After A Delete Is Not Current Until The Next Sign In")
-    func testAGoalSavedAfterADeleteIsNotCurrentUntilTheNextSignIn() async throws {
+    /// `DocumentSyncEngine.deleteDocument` stops its listener and never restarts it, so without
+    /// the manager putting it back a goal saved after a delete would land remotely with nothing
+    /// listening, and stay invisible until the next sign-in.
+    @Test("Test A Goal Saved After A Delete Becomes Current")
+    func testAGoalSavedAfterADeleteBecomesCurrent() async throws {
         let manager = try await TestManagers.signedInGoalManager(goal: goal())
         try await manager.deleteGoal()
+        #expect(manager.currentGoal == nil)
 
         try await manager.saveGoal(goal(targetWeightKg: 70))
 
-        // A short window on purpose: the write has already returned, so there is nothing left to
-        // wait for, and the engine's own listener retry backoff starts at two seconds.
-        let reappeared = await TestManagers.eventually(timeout: .seconds(1)) { manager.currentGoal != nil }
-        #expect(reappeared == false)
-
-        try await manager.signIn(userId: userId)
         #expect(await TestManagers.eventually { manager.currentGoal?.targetWeightKg == 70 })
+    }
+
+    /// Deleting before signing in has no id to restart from, and must not leave a listener behind
+    /// on whatever the engine last held.
+    @Test("Test A Delete Before Signing In Starts No Listener")
+    func testADeleteBeforeSigningInStartsNoListener() async throws {
+        let manager = TestManagers.goalManager(goal: goal())
+
+        await #expect(throws: (any Error).self) {
+            try await manager.deleteGoal()
+        }
+
+        #expect(manager.currentGoal == nil)
     }
 
     // MARK: - Status transitions
