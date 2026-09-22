@@ -353,6 +353,39 @@ extension TestManagers {
         )
     }
 
+    static func nutritionStrategyManager(
+        annotations: [NutritionDayAnnotation] = [],
+        loggingBreak: LoggingBreak? = nil,
+        record: CheckInRecord? = nil
+    ) -> NutritionStrategyManager {
+        NutritionStrategyManager(
+            dayAnnotationSyncEngine: collectionEngine(annotations, key: "nutrition-day-annotations"),
+            loggingBreakSyncEngine: documentEngine(loggingBreak, key: "logging-break"),
+            checkInRecordSyncEngine: documentEngine(record, key: "check-in-record")
+        )
+    }
+
+    /// A strategy manager already listening, so its three properties hold what it was given.
+    static func signedInNutritionStrategyManager(
+        annotations: [NutritionDayAnnotation] = [],
+        loggingBreak: LoggingBreak? = nil,
+        record: CheckInRecord? = nil,
+        userId: String = "user-1"
+    ) async throws -> NutritionStrategyManager {
+        let manager = nutritionStrategyManager(annotations: annotations, loggingBreak: loggingBreak, record: record)
+        try await manager.signIn(userId: userId)
+        if !annotations.isEmpty {
+            await eventually { manager.dayAnnotations.count == annotations.count }
+        }
+        if loggingBreak != nil {
+            await eventually { manager.loggingBreak != nil }
+        }
+        if record != nil {
+            await eventually { manager.checkInRecord != nil }
+        }
+        return manager
+    }
+
     static func nutritionManager(plan: DietPlan? = nil) -> NutritionManager {
         NutritionManager(dietPlanSyncEngine: documentEngine(plan, key: "diet-plan"))
     }

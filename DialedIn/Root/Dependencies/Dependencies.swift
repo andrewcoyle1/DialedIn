@@ -35,6 +35,7 @@ struct Dependencies {
         let workoutSettingsManager: WorkoutSettingsManager
         let foodLogSettingsManager: FoodLogSettingsManager
         let nutritionStrategySettingsManager: NutritionStrategySettingsManager
+        let nutritionStrategyManager: NutritionStrategyManager
         let analyticsSettingsManager: AnalyticsSettingsManager
         let shortcutSettingsManager: ShortcutSettingsManager
         let exerciseSettingsManager: ExerciseSettingsManager
@@ -159,6 +160,29 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionStrategySettingsManager = NutritionStrategySettingsManager(settingsSyncEngine: nutritionStrategySyncEngine)
+            let dayAnnotationSyncEngine = CollectionSyncEngine<NutritionDayAnnotation>(
+                remote: MockRemoteCollectionService(collection: []),
+                managerKey: Keys.nutritionDayAnnotationManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            let loggingBreakSyncEngine = DocumentSyncEngine<LoggingBreak>(
+                remote: MockRemoteDocumentService(document: nil),
+                managerKey: Keys.loggingBreakManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            let checkInRecordSyncEngine = DocumentSyncEngine<CheckInRecord>(
+                remote: MockRemoteDocumentService(document: nil),
+                managerKey: Keys.checkInRecordManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            nutritionStrategyManager = NutritionStrategyManager(
+                dayAnnotationSyncEngine: dayAnnotationSyncEngine,
+                loggingBreakSyncEngine: loggingBreakSyncEngine,
+                checkInRecordSyncEngine: checkInRecordSyncEngine
+            )
             let analyticsSettingsSyncEngine = DocumentSyncEngine<AnalyticsSettings>(
                 remote: MockRemoteDocumentService(document: AnalyticsSettings.mock),
                 managerKey: Keys.analyticsSettingsManagerKey,
@@ -374,6 +398,44 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionStrategySettingsManager = NutritionStrategySettingsManager(settingsSyncEngine: nutritionStrategySyncEngineDev)
+            let dayAnnotationSyncEngineDev = CollectionSyncEngine<NutritionDayAnnotation>(
+                remote: FirebaseRemoteCollectionService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/nutrition_day_annotations"
+                    }
+                ),
+                managerKey: Keys.nutritionDayAnnotationManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            let loggingBreakSyncEngineDev = DocumentSyncEngine<LoggingBreak>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/logging_break"
+                    }
+                ),
+                managerKey: Keys.loggingBreakManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            let checkInRecordSyncEngineDev = DocumentSyncEngine<CheckInRecord>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/check_in_record"
+                    }
+                ),
+                managerKey: Keys.checkInRecordManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            nutritionStrategyManager = NutritionStrategyManager(
+                dayAnnotationSyncEngine: dayAnnotationSyncEngineDev,
+                loggingBreakSyncEngine: loggingBreakSyncEngineDev,
+                checkInRecordSyncEngine: checkInRecordSyncEngineDev
+            )
             let analyticsSettingsSyncEngineDev = DocumentSyncEngine<AnalyticsSettings>(
                 remote: FirebaseRemoteDocumentService(
                     collectionPath: {[weak authManager] in
@@ -646,6 +708,44 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionStrategySettingsManager = NutritionStrategySettingsManager(settingsSyncEngine: nutritionStrategySyncEngineProd)
+            let dayAnnotationSyncEngineProd = CollectionSyncEngine<NutritionDayAnnotation>(
+                remote: FirebaseRemoteCollectionService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/nutrition_day_annotations"
+                    }
+                ),
+                managerKey: Keys.nutritionDayAnnotationManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            let loggingBreakSyncEngineProd = DocumentSyncEngine<LoggingBreak>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/logging_break"
+                    }
+                ),
+                managerKey: Keys.loggingBreakManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            let checkInRecordSyncEngineProd = DocumentSyncEngine<CheckInRecord>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/check_in_record"
+                    }
+                ),
+                managerKey: Keys.checkInRecordManagerKey,
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            nutritionStrategyManager = NutritionStrategyManager(
+                dayAnnotationSyncEngine: dayAnnotationSyncEngineProd,
+                loggingBreakSyncEngine: loggingBreakSyncEngineProd,
+                checkInRecordSyncEngine: checkInRecordSyncEngineProd
+            )
             let analyticsSettingsSyncEngineProd = DocumentSyncEngine<AnalyticsSettings>(
                 remote: FirebaseRemoteDocumentService(
                     collectionPath: {[weak authManager] in
@@ -855,6 +955,7 @@ struct Dependencies {
         container.register(WorkoutSettingsManager.self, service: workoutSettingsManager)
         container.register(FoodLogSettingsManager.self, service: foodLogSettingsManager)
         container.register(NutritionStrategySettingsManager.self, service: nutritionStrategySettingsManager)
+        container.register(NutritionStrategyManager.self, service: nutritionStrategyManager)
         container.register(AnalyticsSettingsManager.self, service: analyticsSettingsManager)
         container.register(ShortcutSettingsManager.self, service: shortcutSettingsManager)
         container.register(ExerciseSettingsManager.self, service: exerciseSettingsManager)
