@@ -110,6 +110,19 @@ struct NutritionSettingsFoodLogTests {
         #expect(screen.interactor.savedSettings.last?.favouriteRecipeIds == ["recipe-1"])
     }
 
+    /// The Show Overages row described the opposite of its own state: on, it said no negative
+    /// numbers would be used. Each half now says what that state actually does.
+    @Test("Test The Show Overages Subtitle Describes The State It Is In")
+    func testTheShowOveragesSubtitleDescribesTheStateItIsIn() {
+        let screen = makeScreen()
+
+        #expect(screen.presenter.showOverages == false)
+        #expect(screen.presenter.showOveragesSubtitle.hasPrefix("No negative numbers"))
+
+        screen.presenter.showOverages = true
+        #expect(screen.presenter.showOveragesSubtitle.hasPrefix("Negative numbers will be used"))
+    }
+
     /// Six rows on this screen push a sub-screen that edits the same document. Coming back and
     /// flicking a toggle here used to save the copy taken when this screen was first opened, so the
     /// tile and ring choices just made in the sub-screen silently reverted.

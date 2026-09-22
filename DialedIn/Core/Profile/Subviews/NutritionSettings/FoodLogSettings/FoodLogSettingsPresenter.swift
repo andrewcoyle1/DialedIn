@@ -16,6 +16,17 @@ class FoodLogSettingsPresenter {
         set { settings.showOverages = newValue; save() }
     }
 
+    /// What the Show Overages row says beneath itself.
+    ///
+    /// Lives here rather than inline in the view because the two halves had been written the
+    /// wrong way round — on, the row claimed overages would be hidden — and a subtitle a test can
+    /// read is a subtitle that cannot silently invert again.
+    var showOveragesSubtitle: String {
+        showOverages
+            ? "Negative numbers will be used in nutrient remaining views if you exceed your target."
+            : "No negative numbers will be used if you exceed a nutrient target."
+    }
+
     var showsFoodTimestamps: Bool {
         get { settings.showsFoodTimestamps }
         set { settings.showsFoodTimestamps = newValue; save() }
