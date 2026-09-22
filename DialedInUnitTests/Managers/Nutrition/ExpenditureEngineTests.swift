@@ -307,6 +307,40 @@ struct ExpenditureEngineTests {
         #expect(history(samples) == history(samples))
     }
 
+    // MARK: - Malformed input
+
+    /// `history(samples:...)` takes a plain array from whoever calls it. Two samples for one day
+    /// is not something `ExpenditureSampleBuilder` can produce, but a trap is not an acceptable
+    /// answer to a bad argument on a public entry point — the later sample wins and the replay
+    /// carries on.
+    @Test("Test Two Samples For One Day Do Not Trap")
+    func testTwoSamplesForOneDayDoNotTrap() throws {
+        let base = maintenanceDays(60)
+        let duplicated = base + [
+            DailySample(day: day(30, of: 60), intakeKcal: 2400, weightKg: 80, steps: nil)
+        ]
+
+        let last = try #require(history(duplicated).last)
+
+        #expect(history(duplicated).count == 61)
+        #expect(last.source == .adaptive)
+        #expect(abs(last.kcal - 2400) < 15)
+    }
+
+    /// The later of two samples for a day is the one that counts, so a corrected reading wins over
+    /// the one it corrects.
+    @Test("Test The Later Of Two Samples For A Day Wins")
+    func testTheLaterOfTwoSamplesForADayWins() throws {
+        let base = maintenanceDays(30)
+        let overridden = base + [DailySample(day: day(29, of: 30), intakeKcal: nil, weightKg: nil, steps: nil)]
+
+        let last = try #require(history(overridden).last)
+
+        // The window holds 28 days; yesterday's sample was replaced by an empty one, so 27 of
+        // them are logged rather than all 28.
+        #expect(last.loggedDays == 27)
+    }
+
     // MARK: - current(...)
 
     @Test("Test Current Is The Last Day Of The History")

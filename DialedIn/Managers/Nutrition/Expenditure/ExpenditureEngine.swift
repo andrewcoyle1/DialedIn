@@ -106,7 +106,11 @@ struct ExpenditureEngine {
             return [Self.priorEstimate(day: startOfToday, kcal: prior, fixed: settings.calculationMode == .fixed)]
         }
 
-        let byDay = Dictionary(uniqueKeysWithValues: usable.map { ($0.day, $0) })
+        // `uniqueKeysWithValues` would trap on two samples for one day. Nothing the app builds
+        // produces that — `ExpenditureSampleBuilder` folds by day — but this is a public entry
+        // point taking a plain array, and a trap is not an acceptable answer to a bad argument.
+        // The later sample wins, which is the same rule the builder's own merge follows.
+        let byDay = Dictionary(usable.map { ($0.day, $0) }, uniquingKeysWith: { _, later in later })
         let trend = Self.trendWeights(usable, calendar: calendar)
         var running = prior
         var estimates: [ExpenditureEstimate] = []
