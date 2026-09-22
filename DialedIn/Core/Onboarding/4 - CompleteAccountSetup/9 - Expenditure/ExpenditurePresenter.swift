@@ -74,11 +74,23 @@ class ExpenditurePresenter {
         
     private func ageYears(dateOfBirth: Date) -> Int {
         let years = Calendar.current.dateComponents([.year], from: dateOfBirth, to: Date()).year ?? 30
-        return max(14, years)
+        return min(120, max(14, years))
     }
-    
-    private func weightKg(weight: Double) -> Double { max(weight, 30) }
-    private func heightCm(height: Double) -> Double { max(height, 120) }
+
+    /// Holds a user-supplied number inside a range the arithmetic can survive.
+    ///
+    /// `bmrInt`, `tdeeInt` and `breakdownItems` are all read from the view body, so their `Int(_:)`
+    /// conversions run while drawing — and `Int(_:)` traps on a value that is not finite or that
+    /// overflows. A one-sided `max(_:_:)` is not enough to prevent that: it propagates NaN rather
+    /// than filtering it, and it leaves the top open. Anything that is not a number is treated as
+    /// missing and falls back to `lower`.
+    private func clamped(_ value: Double, from lower: Double, through upper: Double) -> Double {
+        guard value.isFinite else { return lower }
+        return min(max(value, lower), upper)
+    }
+
+    private func weightKg(weight: Double) -> Double { clamped(weight, from: 30, through: 500) }
+    private func heightCm(height: Double) -> Double { clamped(height, from: 120, through: 260) }
     private func mifflinGenderCoefficient(gender: Gender) -> Double { (gender == .male) ? 5 : -161 }
     
     private func bmr(weight: Double, height: Double, dateOfBirth: Date, gender: Gender) -> Double { (10 * weightKg(weight: weight)) + (6.25 * heightCm(height: height)) - (5 * Double(ageYears(dateOfBirth: dateOfBirth))) + mifflinGenderCoefficient(gender: gender) }
@@ -206,10 +218,11 @@ class ExpenditurePresenter {
 
     func onContinuePressed(delegate: ExpenditureDelegate) {
 
-        router.showLoadingModal()
-        // Cancel any existing save to prevent race conditions
-
+        // The guard comes first: returning after the modal was shown would leave a spinner on
+        // screen with nothing left running to dismiss it.
         guard canContinue == true else { return }
+        router.showLoadingModal()
+
         Task {
             defer {
                 router.dismissModal()
