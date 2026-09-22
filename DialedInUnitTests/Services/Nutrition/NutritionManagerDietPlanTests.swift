@@ -360,14 +360,14 @@ struct NutritionManagerDietPlanTests {
     /// uid. A fresh UUID here — as it used to be — wrote every plan to a document nothing was
     /// listening to, leaving `currentDietPlan` nil and the nutrition targets permanently blank.
     @Test("Test A Computed Plan Is Identified By The User")
-    func testAComputedPlanIsIdentifiedByTheUser() throws {
+    func testAComputedPlanIsIdentifiedByTheUser() {
         let nutritionManager = manager()
         let user = profile()
 
         let first = nutritionManager.computeDietPlan(user: user, delegate: delegate())
         let second = nutritionManager.computeDietPlan(user: user, delegate: delegate())
 
-        let userId = try #require(user.userId)
+        let userId = user.userId
         #expect(first.planId == userId)
         #expect(first.id == userId)
         // Recomputing replaces the plan rather than adding a second one beside it.

@@ -309,7 +309,7 @@ struct HKWorkoutManagerRestTests {
         SharedWorkoutStorage.clearRestEndTime()
         let spy = LiveActivityUpdaterSpy()
         var manager: HKWorkoutManager? = HKWorkoutManager(logger: LogManager(), liveActivityUpdater: spy)
-        weak var weakManager = manager
+        weak let weakManager = manager
         manager?.startRest(durationSeconds: 3600, session: session)
 
         manager = nil

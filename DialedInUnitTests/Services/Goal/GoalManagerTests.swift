@@ -151,12 +151,44 @@ struct GoalManagerTests {
 
     /// `DocumentSyncEngine.deleteDocument` stops its listener and never restarts it, so without
     /// the manager putting it back a goal saved after a delete would land remotely with nothing
-    /// listening, and stay invisible until the next sign-in.
+    /// listening, and stay invisible until the next sign-in. `saveGoal` is what puts it back —
+    /// deliberately not `deleteGoal`, whose only caller is account deletion.
     @Test("Test A Goal Saved After A Delete Becomes Current")
     func testAGoalSavedAfterADeleteBecomesCurrent() async throws {
         let manager = try await TestManagers.signedInGoalManager(goal: goal())
         try await manager.deleteGoal()
         #expect(manager.currentGoal == nil)
+
+        try await manager.saveGoal(goal(targetWeightKg: 70))
+
+        #expect(await TestManagers.eventually { manager.currentGoal?.targetWeightKg == 70 })
+    }
+
+    /// The restart is driven by a flag, so it has to survive being used more than once: a second
+    /// delete must stop the listener again, and the save after it must put it back. A one-shot
+    /// flag would pass the single-cycle test above and leave the second goal invisible.
+    @Test("Test A Second Delete And Save Cycle Also Becomes Current")
+    func testASecondDeleteAndSaveCycleAlsoBecomesCurrent() async throws {
+        let manager = try await TestManagers.signedInGoalManager(goal: goal())
+
+        try await manager.deleteGoal()
+        try await manager.saveGoal(goal(targetWeightKg: 70))
+        #expect(await TestManagers.eventually { manager.currentGoal?.targetWeightKg == 70 })
+
+        try await manager.deleteGoal()
+        #expect(manager.currentGoal == nil)
+
+        try await manager.saveGoal(goal(targetWeightKg: 65))
+
+        #expect(await TestManagers.eventually { manager.currentGoal?.targetWeightKg == 65 })
+    }
+
+    /// Saving without a delete first must not disturb a listener that is already running: the
+    /// restart is guarded on the flag, and starting a listener that is already attached would
+    /// cancel and re-create it on every save.
+    @Test("Test Saving While Listening Leaves The Goal Current")
+    func testSavingWhileListeningLeavesTheGoalCurrent() async throws {
+        let manager = try await TestManagers.signedInGoalManager(goal: goal())
 
         try await manager.saveGoal(goal(targetWeightKg: 70))
 
