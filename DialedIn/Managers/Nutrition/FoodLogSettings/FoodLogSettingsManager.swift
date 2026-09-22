@@ -20,7 +20,15 @@ class FoodLogSettingsManager {
     func signIn(userId: String) async throws {
         self.userId = userId
         try await foodLogSettingsSyncEngine.startListening(documentId: "food_log_settings")
-        if foodLogSettingsSyncEngine.currentDocument == nil {
+
+        // `startListening` does not wait for its listener's first emission, so `currentDocument`
+        // is not a reliable answer to "does this user already have a document" immediately after
+        // it returns — reading it here raced the listener and could overwrite an existing
+        // document (favourites included) with a blank one. `getDocumentAsync` performs a real
+        // fetch when nothing is cached yet, so it reflects what is actually stored.
+        do {
+            _ = try await foodLogSettingsSyncEngine.getDocumentAsync()
+        } catch {
             try await foodLogSettingsSyncEngine.saveDocument(FoodLogSettings(authorId: userId))
         }
     }
