@@ -465,6 +465,41 @@ struct BarcodeScannerPresenterTests {
         #expect(screen.interactor.savedFoods.first?.authorId == "user-1")
     }
 
+    /// The view feeds every `scannedCode` change back into `onBarcodeDetected`, and typing a
+    /// barcode sets the code *and* calls through itself, so the lookup used to run twice. Each run
+    /// files its own copy of the product in the library under a fresh id, so the user ends up with
+    /// the same food twice and no way to tell which is which.
+    @Test("Test A Typed Barcode Is Only Looked Up Once")
+    func testATypedBarcodeIsOnlyLookedUpOnce() async {
+        let screen = makeScreen()
+        screen.interactor.remoteFood = FoodModel(name: "Vendor Oat Milk", barcode: "5012345678900")
+        screen.presenter.manualEntryText = "5012345678900"
+
+        screen.presenter.onManualEntrySubmitted()
+        // The binding change the view observes, replayed here the way SwiftUI delivers it.
+        screen.presenter.onBarcodeDetected(screen.presenter.scannedCode ?? "")
+        await TestManagers.eventually { !screen.presenter.isLookingUpBarcode }
+
+        #expect(screen.interactor.lookedUpCodes == ["5012345678900"])
+        #expect(screen.interactor.savedFoods.count == 1)
+    }
+
+    /// Re-scan is the deliberate retry, so it has to let the same code through again — otherwise a
+    /// lookup that failed on a flaky connection could never be tried a second time.
+    @Test("Test Rescanning Allows The Same Barcode To Be Looked Up Again")
+    func testRescanningAllowsTheSameBarcodeToBeLookedUpAgain() async {
+        let screen = makeScreen()
+        screen.interactor.lookupError = URLError(.timedOut)
+        await detect("5012345678900", on: screen)
+
+        screen.presenter.onRescanPressed()
+        screen.interactor.lookupError = nil
+        await detect("5012345678900", on: screen)
+
+        #expect(screen.interactor.lookedUpCodes == ["5012345678900", "5012345678900"])
+        #expect(screen.presenter.parsedIngredient != nil)
+    }
+
     @Test("Test Detecting A Barcode Is Tracked")
     func testDetectingABarcodeIsTracked() async {
         let screen = makeScreen()

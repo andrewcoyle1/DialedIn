@@ -26,6 +26,12 @@ class BarcodeScannerPresenter {
     private(set) var isLookingUpBarcode: Bool = false
     private(set) var barcodeError: String?
 
+    /// The code the current result was produced from. The view feeds every `scannedCode` change
+    /// back into `onBarcodeDetected`, so a typed barcode — which sets the code and calls through
+    /// itself — would otherwise be looked up twice and filed in the library twice, each copy under
+    /// its own id. Cleared by `onRescanPressed`, so the same code can be tried again deliberately.
+    private var resolvedBarcode: String?
+
     // MARK: Manual entry
     var isEnteringManually: Bool = false
     var manualEntryText: String = ""
@@ -78,12 +84,12 @@ class BarcodeScannerPresenter {
         let text = manualEntryText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         isEnteringManually = false
-        scannedCode = text
 
         switch scanningMode {
         case .barcode:
             onBarcodeDetected(text)
         case .label:
+            scannedCode = text
             Task { await onParseLabelPressed() }
         }
     }
@@ -135,6 +141,7 @@ class BarcodeScannerPresenter {
 
     func onRescanPressed() {
         scannedCode = nil
+        resolvedBarcode = nil
         parsedIngredient = nil
         labelError = nil
         barcodeError = nil
@@ -143,6 +150,8 @@ class BarcodeScannerPresenter {
     }
 
     func onBarcodeDetected(_ code: String) {
+        guard resolvedBarcode != code else { return }
+        resolvedBarcode = code
         scannedCode = code
         isLookingUpBarcode = true
         barcodeError = nil
