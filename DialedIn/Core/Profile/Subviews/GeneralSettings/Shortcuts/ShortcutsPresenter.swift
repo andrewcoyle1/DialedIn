@@ -70,7 +70,11 @@ class ShortcutsPresenter {
         Task { try? await interactor.saveShortcutSettings(settings) }
     }
 
+    /// Re-read rather than trusting the snapshot taken at init: `apply(_:event:)` writes the whole
+    /// `ShortcutSettings` document, so a copy taken when this screen was first pushed would revert
+    /// a change made on another device while it sat there.
     func onViewAppear() {
+        settings = interactor.shortcutSettings
         interactor.trackScreenEvent(event: Event.onAppear)
     }
 
