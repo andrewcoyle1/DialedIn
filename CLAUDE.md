@@ -40,9 +40,26 @@ xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
   -only-testing:DialedInUnitTests/OnboardingHeightConversionTests
 ```
 
-That is roughly two minutes against twenty-five for the whole suite, so use it while iterating.
-Verify a change with a full run before calling it done, and read the counts from the result
-bundle:
+**Run the full suite only when pushing.** Not between steps, and not to confirm something a
+narrower run has already shown. Measured on this machine: the whole suite is about fifteen minutes
+of test time on top of the build, one suite through `-only-testing` is about forty-five seconds,
+and the package's own `swift test` is under two. Pick the narrowest run that could actually fail:
+
+| Change | Run |
+|---|---|
+| A `Swiftful*` package | `swift test` in that package's clone |
+| One module | `-only-testing:` its suite |
+| Docs only | nothing |
+| Chasing a flake | one invocation with `-test-iterations N -run-tests-until-failure` |
+
+Repeat runs belong in **one** invocation with `-test-iterations`, never N invocations — the build
+and simulator boot dominate, so five separate calls cost five times the setup for the same tests.
+
+Add `-skip-testing:DialedInUITests` to anything routine. It is three tests, one of them
+chronically flaky, and it needs its own simulator clone; it is also what makes a run report
+`** TEST FAILED **` when every unit test passed.
+
+Read the counts from the result bundle:
 
 ```bash
 xcrun xcresulttool get test-results summary \
