@@ -272,9 +272,13 @@ struct AppShellAppPresenterTests {
         screen.presenter.onNewActivityNotification(notification: notification(activity(id: "b")))
         #expect(screen.presenter.activityBanner?.id == "b")
 
-        // The first banner's four-second timer comes and goes without touching "b".
-        #expect(await TestManagers.eventually(timeout: .seconds(4)) { screen.presenter.activityBanner?.id == "b" })
-        #expect(await TestManagers.eventually(timeout: .seconds(6)) { screen.presenter.activityBanner == nil })
+        // Only the clearing is waited on. Both banners are created within microseconds of each
+        // other, so "a"'s timer and "b"'s fire at effectively the same moment — there is no
+        // instant at which "b" can be observed having outlived "a"'s timer and not yet its own.
+        // What is left to prove is that the screen ends up empty, and the window is wide because
+        // a loaded machine can delay a four-second timer well past six seconds. It cost a
+        // false failure in a full run.
+        #expect(await TestManagers.eventually(timeout: .seconds(20)) { screen.presenter.activityBanner == nil })
     }
 
     // MARK: - Lifecycle
