@@ -35,6 +35,8 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     private(set) var didClearPendingSet = false
     private(set) var didAddStreakEvent = false
     private(set) var stravaUploads: [String] = []
+    private(set) var preparedSounds: [SoundEffectFile] = []
+    private(set) var playedSounds: [SoundEffectFile] = []
 
     func setActiveWorkoutGymProfile(_ profile: GymProfileModel?) { }
     func getGymProfile(gymProfileId: String) async throws -> GymProfileModel {
@@ -78,8 +80,22 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     func updateLiveActivity(params: LiveActivityUpdateParams) { }
     func discardLiveActivity() async { }
 
-    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
-        lastCompletedSession
+    /// Records the program filter the presenter asked for, and honours it against
+    /// `completedSessions` when that is set — so a test can assert both the request and the result.
+    private(set) var lastCompletedSessionLookups: [String?] = []
+    var completedSessions: [WorkoutSessionModel]?
+
+    func getLastCompletedSessionForTemplate(
+        templateId: String,
+        authorId: String,
+        inTrainingProgramId: String?
+    ) async throws -> WorkoutSessionModel? {
+        lastCompletedSessionLookups.append(inTrainingProgramId)
+        guard let completedSessions else { return lastCompletedSession }
+        return completedSessions
+            .filter { $0.workoutTemplateId == templateId }
+            .filter { inTrainingProgramId == nil || $0.trainingProgramId == inTrainingProgramId }
+            .max { ($0.endedAt ?? .distantPast) < ($1.endedAt ?? .distantPast) }
     }
 
     func schedulePushNotification(delegate: PushNotificationDelegate) async throws { }
@@ -90,6 +106,12 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     func cancelRest() {
         didCancelRest = true
         restEndTime = nil
+    }
+    func prepareSoundEffect(sound: SoundEffectFile, simultaneousPlayers: Int) {
+        preparedSounds.append(sound)
+    }
+    func playSoundEffect(sound: SoundEffectFile) {
+        playedSounds.append(sound)
     }
     func addWorkoutStreakEvent() async throws { didAddStreakEvent = true }
     func getPreference(templateId: String) -> ExerciseUnitPreference {

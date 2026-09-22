@@ -112,9 +112,11 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     // MARK: - Workout History
 
     /// Lookup the last completed session for a given template and author, if present.
+    /// `inTrainingProgramId` narrows the search to that one program; `nil` searches every session.
     func getLastCompletedSessionForTemplate(
         templateId: String,
-        authorId: String
+        authorId: String,
+        inTrainingProgramId: String?
     ) async throws -> WorkoutSessionModel?
 
     // MARK: - Rest & Notifications
@@ -131,6 +133,13 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
 
     /// Cancel any running rest timer.
     func cancelRest()
+
+    /// Load the players for a sound before it is needed — the manager cannot play a sound it has
+    /// not prepared, and a rest ending is too late to start loading one.
+    func prepareSoundEffect(sound: SoundEffectFile, simultaneousPlayers: Int)
+
+    /// Play a prepared sound.
+    func playSoundEffect(sound: SoundEffectFile)
 
     /// The current workout settings.
     var workoutSettings: WorkoutSettings { get }

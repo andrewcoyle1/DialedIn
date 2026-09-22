@@ -56,6 +56,10 @@ struct Constants {
     /// Posted when remote data sync completes (e.g. on app foreground). Listen to refresh active training program.
     static let remoteDataSyncDidComplete = Notification.Name("DialedIn.RemoteDataSyncDidComplete")
 
+    /// Posted when a rest timer runs out of its own accord. Cancelling a rest does not post it —
+    /// the user who cancelled a rest already knows it is over, and does not need telling.
+    static let workoutRestDidComplete = Notification.Name("DialedIn.WorkoutRestDidComplete")
+
     /// Posted by a screen that needs the tab bar to select a different tab. `TabBarView` is the only
     /// place in the app that can change tabs, and a screen inside one has no route to it — going via
     /// the `compound://` scheme would work but raises the system's "Open in Compound?" prompt for

@@ -26,10 +26,6 @@ class WorkoutTrackerPresenter {
     var workoutTemplate: WorkoutTemplateModel?
     var gymProfile: GymProfileModel?
     
-    var restDurationSeconds: Int {
-        interactor.workoutSettings.defaultRestDurationSeconds
-    }
-
     var pendingSelectedTemplates: [WorkoutTemplateExercise] = []
 
     var editMode: EditMode = .inactive
@@ -64,10 +60,6 @@ class WorkoutTrackerPresenter {
     
     // Notification identifier for rest timer
     let restTimerNotificationId = "workout-rest-timer"
-    
-    var restEndTime: Date? {
-        interactor.restEndTime
-    }
     
     var exercisesCount: String {
         "\(workoutSession.exercises.count) exercises"
@@ -163,11 +155,6 @@ class WorkoutTrackerPresenter {
         }
     }
     
-    var isRestActive: Bool {
-        guard let end = interactor.restEndTime else { return false }
-        return Date() < end
-    }
-    
     /// Counted per exercise so a left/right pair is the one set it is — see `WorkoutSetPairing`.
     var completedSetsCount: Int {
         workoutSession.exercises.reduce(0) { $0 + $1.sets.filter { $0.completedAt != nil }.pairedSetCount }
@@ -245,28 +232,6 @@ class WorkoutTrackerPresenter {
         workoutSession.updateExercises(updated)
     }
             
-    // MARK: - Previous Values
-    
-    func loadPreviousWorkoutSession() {
-        // Only load previous session if this workout is from a template
-        guard let templateId = workoutSession.workoutTemplateId,
-              let authorId = interactor.currentUser?.userId else {
-            previousWorkoutSession = nil
-            return
-        }
-        
-        Task {
-            do {
-                previousWorkoutSession = try await interactor.getLastCompletedSessionForTemplate(
-                    templateId: templateId,
-                    authorId: authorId
-                )
-            } catch {
-                previousWorkoutSession = nil
-            }
-        }
-    }
-    
     // MARK: - Workout Actions
     
     private func discardWorkout() {
@@ -312,14 +277,6 @@ class WorkoutTrackerPresenter {
         expandedExerciseId = isExpanded ? exerciseId : nil
 
         refreshLiveActivity()
-    }
-
-    func cancelRestTimer() {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        // Cancel in manager (will also update Live Activity)
-        interactor.cancelRest()
-        #endif
-        
     }
 
     // MARK: - Persistence
@@ -537,34 +494,6 @@ class WorkoutTrackerPresenter {
         var updatedExercises = workoutSession.exercises
         updatedExercises[exerciseIndex].notes = notes.isEmpty ? nil : notes
         workoutSession.updateExercises(updatedExercises)
-    }
-
-    func startRestTimer(durationSeconds: Int = 0) {
-        let duration = durationSeconds > 0 ? durationSeconds : restDurationSeconds
-        interactor.trackEvent(event: Event.startRestTimerCalled(inputDuration: durationSeconds, resolvedDuration: duration))
-        interactor.startRest(durationSeconds: duration, session: workoutSession, currentExerciseIndex: currentExerciseIndex)
-        interactor.trackEvent(event: Event.startRestTimerAfterCall(restEndTime: interactor.restEndTime))
-
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        // Schedule local notification for when rest is complete
-        if let endTime = interactor.restEndTime {
-            Task {
-                do {
-                    let delegate = PushNotificationDelegate(
-                        identifier: restTimerNotificationId,
-                        title: "Rest Complete",
-                        subtitle: "Time to get back to your workout!",
-                        triggerDate: endTime,
-                        sound: true,
-                        badge: nil
-                    )
-                    try await interactor.schedulePushNotification(delegate: delegate)
-                } catch {
-                    // Silently fail - notification is nice to have but not critical
-                }
-            }
-        }
-        #endif
     }
 
     private func handleWorkoutSessionChange(from oldSession: WorkoutSessionModel) {

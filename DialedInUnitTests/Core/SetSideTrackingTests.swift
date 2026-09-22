@@ -42,9 +42,14 @@ struct SetSideTrackingTests {
     private final class RowInteractor: SpyGlobalInteractor, SetTrackerRowInteractor {
         var workoutSettings: WorkoutSettings = WorkoutSettings(authorId: "user-1")
         var allExercises: [ExerciseModel] = []
+        var restOverrides: [String: Int] = [:]
 
         func getPreference(templateId: String) -> ExerciseUnitPreference {
             ExerciseUnitPreference(exerciseModelId: templateId)
+        }
+
+        func exerciseRestOverride(for exerciseId: String) -> Int? {
+            restOverrides[exerciseId]
         }
     }
 
