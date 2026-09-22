@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Testing
 @testable import DialedIn
 
 /// Managers built the way `Dependencies` builds them for `.mock`, but with local persistence off.
@@ -58,9 +59,15 @@ enum TestManagers {
     /// A sync engine applies a write when its listener next emits, which happens on its own task
     /// after the write returns — so `currentCollection` is not up to date the instant `saveDocument`
     /// does. Polling keeps that from being either a fixed sleep or a race.
+    ///
+    /// The timeout is generous because it only costs anything when a test is already failing: the
+    /// wait returns the moment the condition holds. At three seconds a busy machine — several
+    /// simulator clones running at once — timed thirty of these out in one run, every one of them
+    /// a listener that had simply not emitted yet. Twenty seconds is the window the auto-dismiss
+    /// test in `AppShellPresenterTests` already needed for the same reason.
     @discardableResult
     static func eventually(
-        timeout: Duration = .seconds(3),
+        timeout: Duration = .seconds(20),
         _ condition: () -> Bool
     ) async -> Bool {
         let deadline = ContinuousClock.now.advanced(by: timeout)
@@ -78,7 +85,12 @@ enum TestManagers {
         let manager = userManager(user: user)
         try await manager.signIn(auth: UserAuthInfo(uid: user?.userId ?? "test-user"), isNewUser: false)
         if user != nil {
-            await eventually { manager.currentUser != nil }
+            // Named here rather than left to whichever assertion reads `currentUser` next, so a
+            // listener that never emitted does not look like a wrong value.
+            let signedIn = await eventually { manager.currentUser != nil }
+            if !signedIn {
+                Issue.record("The user sync engine never emitted, so the manager has no user.")
+            }
         }
         return manager
     }

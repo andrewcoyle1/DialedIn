@@ -22,13 +22,30 @@ struct FoodItemSearchPresenterTests {
         var recentFoods: [FoodModel] = []
         var foodLogSettings: FoodLogSettings = FoodLogSettings(authorId: "user-1")
         var results: [FoodModel] = []
+        var resultsByQuery: [String: [FoodModel]] = [:]
         var error: Error?
         private(set) var queries: [String] = []
 
+        private var held: Set<String> = []
+        private var gates: [String: CheckedContinuation<Void, Never>] = [:]
+
+        /// Leaves the next search for `query` suspended, standing in for a request still in
+        /// flight at the remote, until `release(_:)` answers it.
+        func hold(_ query: String) {
+            held.insert(query)
+        }
+
+        func release(_ query: String) {
+            gates.removeValue(forKey: query)?.resume()
+        }
+
         func searchOpenFoodFacts(query: String) async throws -> [FoodModel] {
             queries.append(query)
+            if held.remove(query) != nil {
+                await withCheckedContinuation { gates[query] = $0 }
+            }
             if let error { throw error }
-            return results
+            return resultsByQuery[query] ?? results
         }
     }
 
@@ -42,12 +59,26 @@ struct FoodItemSearchPresenterTests {
         let delegate = FoodItemSearchDelegate()
     }
 
+    /// The debounce is driven short here so the tests wait on the search landing rather than on
+    /// the clock. At the shipped 700ms every one of these was a race against the machine's load.
+    private static let debounce: Duration = .milliseconds(10)
+
     private func makeScreen() -> Screen {
         let interactor = Interactor()
         return Screen(
-            presenter: FoodItemSearchPresenter(interactor: interactor, router: Router()),
+            presenter: FoodItemSearchPresenter(
+                interactor: interactor,
+                router: Router(),
+                searchDebounce: Self.debounce
+            ),
             interactor: interactor
         )
+    }
+
+    /// Waits out the debounce and then some, for the tests that have to show a search *never*
+    /// fires. There is no state to poll for something that does not happen.
+    private func waitPastTheDebounce() async {
+        try? await Task.sleep(for: Self.debounce * 20)
     }
 
     private func food(_ name: String, brand: String? = nil) -> FoodModel {
@@ -106,6 +137,28 @@ struct FoodItemSearchPresenterTests {
         #expect(screen.interactor.queries == ["oat"])
     }
 
+    /// Cancelling a search cannot recall a request already in flight at the remote, so the
+    /// superseded answer still arrives. It has to be dropped on arrival — otherwise the results
+    /// for "oat" land on top of the ones the user is looking at for "oats".
+    @Test("Test A Superseded Search Does Not Overwrite The Newer One")
+    func testASupersededSearchDoesNotOverwriteTheNewerOne() async {
+        let screen = makeScreen()
+        screen.interactor.resultsByQuery = ["oat": [food("Oat Milk")], "oats": [food("Oats")]]
+        screen.interactor.hold("oat")
+
+        screen.presenter.onSearchTextChanged("oat")
+        await TestManagers.eventually { screen.interactor.queries == ["oat"] }
+
+        screen.presenter.onSearchTextChanged("oats")
+        await TestManagers.eventually { screen.presenter.openFoodFactsFoods.map(\.name) == ["Oats"] }
+
+        screen.interactor.release("oat")
+        await waitPastTheDebounce()
+
+        #expect(screen.presenter.openFoodFactsFoods.map(\.name) == ["Oats"])
+        #expect(!screen.presenter.isSearching)
+    }
+
     /// Clearing the field drops the results immediately rather than waiting on a search, and asks
     /// for nothing — an empty query has no answer.
     @Test("Test Clearing The Field Clears The Results And Searches For Nothing")
@@ -118,14 +171,17 @@ struct FoodItemSearchPresenterTests {
         screen.presenter.onSearchTextChanged("")
 
         #expect(screen.presenter.openFoodFactsFoods.isEmpty)
+        // Past the debounce, or an empty query that *was* searched for would still be waiting.
+        await waitPastTheDebounce()
         #expect(screen.interactor.queries == ["oat"])
     }
 
     @Test("Test A Whitespace Only Query Is Not Searched")
-    func testAWhitespaceOnlyQueryIsNotSearched() {
+    func testAWhitespaceOnlyQueryIsNotSearched() async {
         let screen = makeScreen()
 
         screen.presenter.onSearchTextChanged("   ")
+        await waitPastTheDebounce()
 
         #expect(screen.interactor.queries.isEmpty)
     }
@@ -138,6 +194,7 @@ struct FoodItemSearchPresenterTests {
         screen.interactor.foodLogSettings.showOpenFoodFactsFoods = false
 
         screen.presenter.onSearchTextChanged("oat")
+        await waitPastTheDebounce()
 
         #expect(screen.interactor.queries.isEmpty)
         #expect(screen.presenter.openFoodFactsFoods.isEmpty)
@@ -185,7 +242,7 @@ struct FoodItemSearchPresenterTests {
 
         screen.presenter.onSearchTextChanged("oat")
         screen.presenter.onViewDisappear(delegate: screen.delegate)
-        try? await Task.sleep(nanoseconds: 900_000_000)
+        await waitPastTheDebounce()
 
         #expect(screen.interactor.queries.isEmpty)
         #expect(screen.presenter.openFoodFactsFoods.isEmpty)
