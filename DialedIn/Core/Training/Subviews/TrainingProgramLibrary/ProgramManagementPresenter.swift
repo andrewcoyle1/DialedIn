@@ -63,6 +63,9 @@ class TrainingProgramLibraryPresenter {
             interactor.trackEvent(event: Event.deleteProgramSuccess)
         } catch {
             interactor.trackEvent(event: Event.deleteProgramFail(error: error))
+            // The program is still listed after a failed delete, so say so rather than leave the
+            // confirmation looking like it did nothing.
+            router.showSimpleAlert(title: "Unable to delete program", subtitle: "Please try again.")
         }
     }
         

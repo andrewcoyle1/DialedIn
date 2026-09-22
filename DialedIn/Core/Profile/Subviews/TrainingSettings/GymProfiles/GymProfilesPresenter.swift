@@ -63,6 +63,9 @@ class GymProfilesPresenter {
                 interactor.trackEvent(event: Event.deleteProfileSuccess)
             } catch {
                 interactor.trackEvent(event: Event.deleteProfileFail(error: error))
+                // The row is still in the list afterwards, so without this the swipe just looks
+                // like it did not take.
+                router.showSimpleAlert(title: "Unable to delete gym profile", subtitle: "Please try again.")
             }
         }
     }
@@ -77,6 +80,7 @@ class GymProfilesPresenter {
 
             } catch {
                 interactor.trackEvent(event: Event.favouriteGymProfileFail(error: error))
+                router.showSimpleAlert(title: "Unable to set your usual gym", subtitle: "Please try again.")
             }
         }
     }

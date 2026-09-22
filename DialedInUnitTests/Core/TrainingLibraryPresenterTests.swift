@@ -466,6 +466,14 @@ struct TrainingProgramManagementPresenterTests {
         private(set) var shown: [String] = []
         private(set) var editDelegates: [EditTrainingProgramDelegate] = []
 
+        /// Bound on the class declaring the conformance, or the protocol's default implementation
+        /// runs and the alert escapes to the real router unseen.
+        private(set) var alertTitles: [String] = []
+
+        func showAlert(error: Error) { alertTitles.append("Error") }
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { alertTitles.append(title) }
+        func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
+
         func showDevSettingsView() { shown.append("devSettings") }
         func showProgramSettingsView(program: Binding<TrainingProgram>) { shown.append("programSettings") }
         func showCreateProgramView(delegate: CreateProgramDelegate) { shown.append("createProgram") }
@@ -541,6 +549,9 @@ struct TrainingProgramManagementPresenterTests {
             "TrainingProgramLibraryView_Start",
             "TrainingProgramLibraryView_Fail"
         ])
+        // And reported to the user: the program is still in the list, so the confirmed delete
+        // otherwise reads as having done nothing.
+        #expect(screen.router.alertTitles == ["Unable to delete program"])
     }
 
     @Test("Test Pressing A Saved Program Opens That Program For Editing")
