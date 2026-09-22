@@ -212,6 +212,21 @@ struct OnboardingNamePhotoPresenterTests {
         #expect(screen.interactor.trackedEventNames.contains("NamePhoto_Save_Success"))
     }
 
+    /// The screen already refuses to treat whitespace as a name, so it must not then store the
+    /// whitespace around one — a saved " Ada " greets the user with a stray space forever.
+    @Test("Whitespace around the name is trimmed before it is saved")
+    func testWhitespaceAroundTheNameIsTrimmedBeforeSaving() async {
+        let screen = makeScreen()
+        screen.presenter.firstName = "  Ada "
+        screen.presenter.lastName = "\nLovelace  "
+
+        screen.presenter.saveAndContinue()
+        await TestManagers.eventually { !screen.router.shown.isEmpty }
+
+        #expect(screen.interactor.savedNames.map(\.first) == ["Ada"])
+        #expect(screen.interactor.savedNames.map(\.last) == ["Lovelace"])
+    }
+
     /// Moving on after a failed save would leave the user with a profile that never got their name
     /// and no way to notice.
     @Test("A failed save explains itself and stays put")
