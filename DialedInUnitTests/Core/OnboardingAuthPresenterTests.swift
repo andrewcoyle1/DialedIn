@@ -218,6 +218,24 @@ struct OnboardingAuthPresenterTests {
 
     // MARK: - Where the user lands afterwards
 
+    /// The subscription gate is ahead of every other destination, including this one.
+    ///
+    /// This is a premium app, so finishing onboarding is not a permanent pass into it. A user who
+    /// completed onboarding while subscribed and has since lapsed used to match the returning-user
+    /// branch above the premium check and be let straight in, free, on every single sign-in.
+    @Test("A returning user whose subscription has lapsed is sent to the subscription page")
+    func testALapsedReturningUserIsSentToTheSubscriptionPage() async {
+        let screen = makeScreen()
+        screen.interactor.isPremium = false
+        screen.interactor.userAfterLogin = onboardingStageUser(upTo: .complete)
+
+        screen.presenter.handleOnAuthSuccess(user: UserAuthInfo(uid: "user-1"), isNewUser: false)
+
+        #expect(await TestManagers.eventually { !screen.router.shown.isEmpty })
+        #expect(screen.router.shown == ["subscription"])
+        #expect(screen.interactor.trackedEventNames.contains("Auth_PaywallShownAfterLogin"))
+    }
+
     /// A returning user with a finished account has no onboarding left to do.
     @Test("A returning user with a finished profile goes straight to the app")
     func testAReturningFinishedUserGoesStraightToTheApp() async {

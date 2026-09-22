@@ -139,13 +139,17 @@ class AuthPresenter {
                 interactor.trackEvent(event: Event.userLoginSuccess)
                 
                 guard let user = currentUser else { return }
-                if !isNewUser && user.didCompleteOnboarding {
-                    // Returning user with a full account — go straight to core
-                    router.switchToCoreModule()
-                } else if interactor.isPremium == false {
-                    // No subscription — show the subscription info screen
+                // The subscription gate comes first, ahead of every other destination. This is a
+                // premium app: a user without a subscription is shown the subscription page no
+                // matter how far through onboarding they are. It used to sit after the returning
+                // user branch below, which meant anyone who had finished onboarding and then
+                // lapsed went straight into the app for free on every sign-in.
+                if interactor.isPremium == false {
                     interactor.trackEvent(event: Event.paywallShownAfterLogin)
                     router.showSubscriptionView()
+                } else if !isNewUser && user.didCompleteOnboarding {
+                    // Returning subscriber with a full account — go straight to core
+                    router.switchToCoreModule()
                 } else if user.inferredOnboardingStep != .complete {
                     // Premium but onboarding not finished — resume from inferred step
                     handleNavigation()
