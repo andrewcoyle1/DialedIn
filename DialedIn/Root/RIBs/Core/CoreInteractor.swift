@@ -56,6 +56,7 @@ struct CoreInteractor: GlobalInteractor {
     let stravaManager: StravaManager
     let openFoodFactsService: any OpenFoodFactsService
     let appState: AppState
+    let premiumEntitlementResolution: PremiumEntitlementResolution
     let hapticManager: HapticManager
     let soundEffectManager: SoundEffectManager
 
@@ -99,6 +100,7 @@ struct CoreInteractor: GlobalInteractor {
         self.stravaManager = container.resolve(StravaManager.self)!
         self.openFoodFactsService = container.resolve(OpenFoodFactsServiceContainer.self)!.service
         self.appState = container.resolve(AppState.self)!
+        self.premiumEntitlementResolution = container.resolve(PremiumEntitlementResolution.self)!
 
         self.hapticManager = container.resolve(HapticManager.self)!
         self.soundEffectManager = container.resolve(SoundEffectManager.self)!
@@ -115,10 +117,12 @@ struct CoreInteractor: GlobalInteractor {
     func logIn(user: UserAuthInfo, isNewUser: Bool) async throws {
         try await userManager.signIn(auth: user, isNewUser: isNewUser)
         async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: user.uid)
-        async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: user.uid)
-        async let nutritionStrategySignIn: () = nutritionStrategySettingsManager.signIn(userId: user.uid)
-        async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: user.uid)
-        async let shortcutSettingsSignIn: () = shortcutSettingsManager.signIn(userId: user.uid)
+        async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
+        async let nutritionStrategySignIn: () = nutritionStrategySettingsManager.signIn(
+            userId: user.uid, isNewUser: isNewUser
+        )
+        async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
+        async let shortcutSettingsSignIn: () = shortcutSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
         async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: user.uid)
         async let stepsSignIn: () = stepsManager.signIn()
         async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
@@ -171,6 +175,11 @@ struct CoreInteractor: GlobalInteractor {
                 firebaseAppInstanceId: Constants.firebaseAnalyticsAppInstanceID
             )
         )
+        // The one moment the store has definitively answered. Until this lands, `isPremium` cannot
+        // tell "no subscription" from "no answer yet" and stays optimistic; if the store throws
+        // (offline, most often) this line is skipped, `logIn` rethrows, and the caller retries — so
+        // the question gets asked again rather than answered wrongly.
+        premiumEntitlementResolution.markResolved()
         logManager.addUserProperties(dict: Utilities.eventParameters, isHighPriority: false)
 
         activityNotificationManager.startListening(userId: user.uid)
@@ -179,6 +188,7 @@ struct CoreInteractor: GlobalInteractor {
     func signOut() async throws {
         try authManager.signOut()
         try await purchaseManager.logOut()
+        premiumEntitlementResolution.reset()
         userManager.signOut()
         stepsManager.signOut()
         workoutTemplateManager.signOut()

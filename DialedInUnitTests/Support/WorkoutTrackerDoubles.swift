@@ -36,6 +36,11 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     private(set) var didAddStreakEvent = false
     private(set) var endedLiveActivities: [(isCompleted: Bool, statusMessage: String?)] = []
     var endWorkoutSessionError: Error?
+
+    /// Consumed one per call, so a test can say "fails twice, then works" — which is the whole
+    /// point of the retry. Falls back to `endWorkoutSessionError` once it runs dry.
+    var endWorkoutSessionErrors: [Error?] = []
+    private(set) var endWorkoutSessionAttempts = 0
     var streakError: Error?
     private(set) var stravaUploads: [String] = []
     private(set) var preparedSounds: [SoundEffectFile] = []
@@ -68,7 +73,9 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
         return activeSession
     }
     func endWorkoutSession(_ session: WorkoutSessionModel) async throws {
-        if let endWorkoutSessionError { throw endWorkoutSessionError }
+        endWorkoutSessionAttempts += 1
+        let error = endWorkoutSessionErrors.isEmpty ? endWorkoutSessionError : endWorkoutSessionErrors.removeFirst()
+        if let error { throw error }
         endedSessions.append(session)
     }
     func deleteActiveSession() throws { activeSession = nil }
@@ -142,4 +149,18 @@ final class WorkoutTrackerRouterDouble: WorkoutTrackerRouter {
     func showWorkoutNotesView(delegate: WorkoutNotesDelegate) { shown.append("workoutNotes") }
     func showWorkoutSettingsView(delegate: WorkoutSettingsDelegate) { shown.append("workoutSettings") }
     func showGymProfileView(delegate: GymProfileDelegate) { shown.append("gymProfile") }
+}
+
+extension RetryBackoff {
+
+    /// A retry schedule a test can drive to its end in a millisecond.
+    ///
+    /// Injecting this rather than waiting out the real one is the difference between a test and a
+    /// flake: the shipped schedule spends twenty-six seconds getting to the same answer.
+    static let testImmediate = RetryBackoff(
+        baseDelay: .milliseconds(1),
+        multiplier: 1,
+        maxAttempts: 4,
+        maxTotalDelay: .seconds(1)
+    )
 }

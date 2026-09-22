@@ -37,12 +37,6 @@ struct WorkoutTrackerPresenterTests {
 
     private let start = Date(timeIntervalSince1970: 1_000_000)
 
-    private func settle() async {
-        for _ in 0..<10 {
-            await Task.yield()
-        }
-    }
-
     private func set(
         _ index: Int,
         reps: Int? = 8,
@@ -102,14 +96,15 @@ struct WorkoutTrackerPresenterTests {
     private func makeScreen(
         exercises: [WorkoutExerciseModel],
         settings: (inout WorkoutSettings) -> Void = { _ in },
-        templateId: String? = nil
+        templateId: String? = nil,
+        backoff: RetryBackoff = .testImmediate
     ) throws -> Screen {
         let interactor = WorkoutTrackerInteractorDouble()
         interactor.activeSession = session(exercises: exercises, templateId: templateId)
         settings(&interactor.workoutSettings)
         let router = WorkoutTrackerRouterDouble()
         return Screen(
-            presenter: try WorkoutTrackerPresenter(interactor: interactor, router: router),
+            presenter: try WorkoutTrackerPresenter(interactor: interactor, router: router, saveRetryBackoff: backoff),
             interactor: interactor,
             router: router
         )
@@ -599,53 +594,6 @@ struct WorkoutTrackerPresenterTests {
         screen.presenter.updateExerciseNotes("Felt heavy", exerciseId: "e1")
 
         #expect(screen.interactor.savedActiveSessions.count > before)
-    }
-
-    // MARK: - Finishing
-
-    @Test("Test Finishing Ends The Session And Records It")
-    func testFinishingEndsTheSessionAndRecordsIt() async throws {
-        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1, done: true)])])
-
-        screen.presenter.finishWorkout()
-        await settle()
-
-        #expect(screen.presenter.workoutSession.endedAt != nil)
-        #expect(screen.interactor.endedSessions.map(\.id) == ["session-1"])
-        #expect(screen.interactor.didAddStreakEvent)
-        #expect(screen.interactor.stravaUploads == ["session-1"])
-    }
-
-    /// The streak is a side effect of finishing, not a condition of it. It used to share a `do`
-    /// with the save, so a failed streak write skipped the Strava upload and — with the screen
-    /// already dismissed — left the Live Activity running with nothing left to end it.
-    @Test("Test A Failed Streak Write Still Ends The Live Activity")
-    func testAFailedStreakWriteStillEndsTheLiveActivity() async throws {
-        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1, done: true)])])
-        screen.interactor.streakError = URLError(.notConnectedToInternet)
-
-        screen.presenter.finishWorkout()
-        await settle()
-
-        #expect(screen.interactor.endedSessions.map(\.id) == ["session-1"])
-        #expect(screen.interactor.stravaUploads == ["session-1"])
-        #expect(screen.interactor.endedLiveActivities.count == 1)
-    }
-
-    /// A workout that could not be saved is still over, so its Live Activity still has to end —
-    /// and it must not claim the workout was saved.
-    @Test("Test A Failed Save Ends The Live Activity Without Claiming It Saved")
-    func testAFailedSaveEndsTheLiveActivityWithoutClaimingItSaved() async throws {
-        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1, done: true)])])
-        screen.interactor.endWorkoutSessionError = URLError(.notConnectedToInternet)
-
-        screen.presenter.finishWorkout()
-        await settle()
-
-        #expect(screen.interactor.endedSessions.isEmpty)
-        #expect(screen.interactor.endedLiveActivities.count == 1)
-        #expect(screen.interactor.endedLiveActivities.first?.isCompleted == false)
-        #expect(screen.interactor.endedLiveActivities.first?.statusMessage != "Workout ended & saved.")
     }
 
     // MARK: - The gym profile

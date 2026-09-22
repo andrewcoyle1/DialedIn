@@ -45,6 +45,7 @@ class DevPreview {
         container.register(LiveActivityManager.self, service: liveActivityManager)
         #endif
         container.register(AppState.self, service: appState)
+        container.register(PremiumEntitlementResolution.self, service: premiumEntitlementResolution)
         container.register(ImageUploadManager.self, service: imageUploadManager)
         container.register(SoundEffectManager.self, service: soundEffectManager)
         container.register(HapticManager.self, service: hapticManager)
@@ -90,6 +91,7 @@ class DevPreview {
     let liveActivityManager: LiveActivityManager
     #endif
     let appState: AppState
+    let premiumEntitlementResolution = PremiumEntitlementResolution()
 
     let hapticManager: HapticManager
     let soundEffectManager: SoundEffectManager
@@ -296,10 +298,12 @@ class DevPreview {
                 try? await userManager.signIn(auth: mockUser, isNewUser: false)
                 async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: mockUser.uid)
                 async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: mockUser.uid)
-                async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: mockUser.uid)
-                async let nutritionStrategySettingsSignIn: () = nutritionStrategySettingsManager.signIn(userId: mockUser.uid)
-                async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: mockUser.uid)
-                async let shortcutSettingsSignIn: () = shortcutSettingsManager.signIn(userId: mockUser.uid)
+                async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: mockUser.uid, isNewUser: false)
+                async let nutritionStrategySettingsSignIn: () = nutritionStrategySettingsManager.signIn(
+                    userId: mockUser.uid, isNewUser: false
+                )
+                async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: mockUser.uid, isNewUser: false)
+                async let shortcutSettingsSignIn: () = shortcutSettingsManager.signIn(userId: mockUser.uid, isNewUser: false)
                 async let stepsSignIn: () = stepsManager.signIn()
                 async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
                 async let gymProfileSignIn: () = gymProfileManager.signIn()
