@@ -24,6 +24,10 @@ extension Notification.Name {
 
     /// Notification for a new real-time activity notification (like / comment)
     static let newActivityNotification = Notification.Name("NewActivityNotification")
+
+    /// Notification carrying an `AppToast` to show over whatever screen is up. Posting rather than
+    /// routing is what lets a message outlive the screen that raised it.
+    static let appToast = Notification.Name("AppToast")
 }
 
 // The below code, postFCMToken + getFCMToken are examples of this.

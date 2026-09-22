@@ -840,6 +840,10 @@ struct Dependencies {
         hapticManager = HapticManager(logger: logManager)
         soundEffectManager = SoundEffectManager(logger: logManager)
 
+        // No configuration-specific setup — it holds only what the app learns at runtime, so
+        // every build configuration starts it the same way: unresolved.
+        let premiumEntitlementResolution = PremiumEntitlementResolution()
+
         let container = DependencyContainer()
         container.register(AuthManager.self, service: authManager)
         container.register(UserManager.self, service: userManager)
@@ -875,6 +879,7 @@ struct Dependencies {
         container.register(LiveActivityManager.self, service: liveActivityManager)
         #endif
         container.register(AppState.self, service: appState)
+        container.register(PremiumEntitlementResolution.self, service: premiumEntitlementResolution)
         container.register(ImageUploadManager.self, service: imageUploadManager)
         container.register(HapticManager.self, service: hapticManager)
         container.register(SoundEffectManager.self, service: soundEffectManager)

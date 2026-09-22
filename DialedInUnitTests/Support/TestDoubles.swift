@@ -53,6 +53,14 @@ class SpyGlobalInteractor: GlobalInteractor {
     func playHaptic(option: HapticOption) {
         playedHaptics.append(option)
     }
+
+    /// Every toast raised, in order — the app-level ones a presenter puts up after its own screen
+    /// has gone.
+    private(set) var shownToasts: [AppToast] = []
+
+    func showAppToast(_ toast: AppToast) {
+        shownToasts.append(toast)
+    }
 }
 
 /// The onboarding destinations, recorded rather than shown.

@@ -244,3 +244,53 @@ enum TestManagers {
         WorkoutSettingsManager(workoutSettingsSyncEngine: documentEngine(settings, key: "workout-settings"))
     }
 }
+
+// MARK: - Nutrition, settings and shortcut managers
+
+@MainActor
+extension TestManagers {
+
+    static func foodManager(foods: [FoodModel] = []) -> FoodManager {
+        FoodManager(foodSyncEngine: collectionEngine(foods, key: "foods"))
+    }
+
+    /// A food manager already listening, so `foods` holds what its remote was given.
+    static func signedInFoodManager(foods: [FoodModel]) async -> FoodManager {
+        let manager = foodManager(foods: foods)
+        await manager.signIn()
+        await eventually { manager.foods.count == foods.count }
+        return manager
+    }
+
+    static func recipeTemplateManager(recipes: [RecipeTemplateModel] = []) -> RecipeTemplateManager {
+        RecipeTemplateManager(userRecipeTemplateSyncEngine: collectionEngine(recipes, key: "recipes"))
+    }
+
+    /// A recipe manager already listening, so `userRecipeTemplates` holds what its remote was given.
+    static func signedInRecipeTemplateManager(recipes: [RecipeTemplateModel]) async -> RecipeTemplateManager {
+        let manager = recipeTemplateManager(recipes: recipes)
+        await manager.signIn()
+        await eventually { manager.userRecipeTemplates.count == recipes.count }
+        return manager
+    }
+
+    static func foodLogSettingsManager(stored: FoodLogSettings? = nil) -> FoodLogSettingsManager {
+        FoodLogSettingsManager(foodLogSettingsSyncEngine: documentEngine(stored, key: "food-log-settings"))
+    }
+
+    static func analyticsSettingsManager(stored: AnalyticsSettings? = nil) -> AnalyticsSettingsManager {
+        AnalyticsSettingsManager(settingsSyncEngine: documentEngine(stored, key: "analytics-settings"))
+    }
+
+    static func shortcutSettingsManager(stored: ShortcutSettings? = nil) -> ShortcutSettingsManager {
+        ShortcutSettingsManager(settingsSyncEngine: documentEngine(stored, key: "shortcut-settings"))
+    }
+
+    static func nutritionStrategySettingsManager(
+        stored: NutritionStrategySettings? = nil
+    ) -> NutritionStrategySettingsManager {
+        NutritionStrategySettingsManager(
+            settingsSyncEngine: documentEngine(stored, key: "nutrition-strategy-settings")
+        )
+    }
+}
