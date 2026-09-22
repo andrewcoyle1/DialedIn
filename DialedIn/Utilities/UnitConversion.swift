@@ -128,11 +128,6 @@ struct UnitConversion {
         }
     }
 
-    static func formatLength(_ centimeters: Double, unit: LengthUnitPreference, decimals: Int = 1) -> String {
-        convertLength(centimeters, to: unit)
-            .formatted(.number.precision(.fractionLength(decimals)))
-    }
-
     // MARK: - Distance Conversion
     
     /// Convert meters to miles
