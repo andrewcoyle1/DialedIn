@@ -65,15 +65,6 @@ class HeightPresenter {
 
     }
     
-    private var canSubmit: Bool {
-        switch unit {
-        case .centimeters:
-            return (100...250).contains(selectedCentimeters)
-        case .inches:
-            return (3...8).contains(selectedFeet) && (0...11).contains(selectedInches)
-        }
-    }
-    
     func onContinuePressed(delegate: HeightDelegate) {
         let delegate = WeightDelegate(delegate: delegate, heightInCentimeters: heightInCentimeters, lengthUnitPreference: preference)
         interactor.trackEvent(event: Event.navigate)
