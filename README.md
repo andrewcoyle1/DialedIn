@@ -69,12 +69,12 @@ See [CLAUDE.md](CLAUDE.md) for the full architecture reference.
 
 3. **Configure API Keys**
    - Copy `DialedIn/Utilities/Keys.swift.example` to `DialedIn/Utilities/Keys.swift`
-   - Fill in the 27 constants:
+   - Fill in the 30 constants:
      - OpenAI API key (if using AI features)
      - Mixpanel token
      - RevenueCat API key
      - Strava client ID and secret
-     - 22 `*ManagerKey` strings — arbitrary names used as local-persistence paths. Keep them
+     - 25 `*ManagerKey` strings — arbitrary names used as local-persistence paths. Keep them
        stable once chosen; renaming one orphans data already stored under the old name.
    - **Note**: `Keys.swift` is gitignored. You must create it locally for the app to build.
 
@@ -136,12 +136,11 @@ xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
-> **Known issue:** the unit test target does not currently compile. Eight of the 22 files in
-> `DialedInUnitTests/` still reference types removed by earlier refactors — `MockUserServices`,
-> `MockExerciseModelServices`, `GymProfileServices`, `RemoteGymProfileService`,
-> `ExerciseModelModel`, `ExerciseCategory` — none of which exist in the app any more. Because
-> Swift compiles the target as a unit, no tests run until these are reconciled. The app targets
-> themselves build cleanly.
+The suite is 2,715 tests across 168 files in `DialedInUnitTests/`, and it passes. Run the whole
+thing only when pushing — `-only-testing:DialedInUnitTests/<Suite>` is about forty-five seconds
+against fifteen minutes for everything. Add `-skip-testing:DialedInUITests` to anything routine:
+the UI bundle is three tests, one of them chronically flaky, and a single flake there prints
+`** TEST FAILED **` over a clean unit run. See CLAUDE.md for the full cadence.
 
 Lint (SwiftLint must be installed):
 ```bash
