@@ -128,7 +128,12 @@ class TimelineActionsPresenter {
         }
     }
 
+    /// Re-read rather than trusting the snapshot taken at init: `save()` writes the whole
+    /// `FoodLogSettings` document, so a stale copy would revert whatever the Food Log settings
+    /// screens — or the favourite food and recipe ids written from this same tab — saved in the
+    /// meantime.
     func onViewAppear(delegate: TimelineActionsDelegate) {
+        settings = interactor.foodLogSettings
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
     }
     
