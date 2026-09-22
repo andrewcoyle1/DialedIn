@@ -149,6 +149,39 @@ struct RecipeAmountPresenterTests {
         #expect(presenter.servings == 0)
     }
 
+    /// `Double`'s string initialiser parses "nan", "inf" and "-inf" literally, and "1e400"
+    /// overflows to infinity, so a text field is three letters away from a number that is not a
+    /// number. `max(parsed, 0)` filtered none of them — `max` is `y >= x ? y : x` and every
+    /// comparison against NaN is false, so the NaN came back instead of the floor, and an
+    /// infinity was above the floor already.
+    @Test("Test A Serving Count That Is Not A Number Reads As Zero")
+    func testAServingCountThatIsNotANumberReadsAsZero() {
+        let presenter = presenter()
+
+        for typed in ["nan", "NaN", "inf", "-inf", "infinity", "1e400"] {
+            presenter.servingsText = typed
+            #expect(presenter.servings == 0, "\(typed) should not survive as a serving count")
+        }
+    }
+
+    /// The reason the parse is guarded at all. `servings` multiplies into every nutrient logged
+    /// for the meal, and those are both written to the meal document and printed through `Int(_:)`
+    /// by the meal-log rows — a trap, not a wrong number.
+    @Test("Test Nutrients Logged From A Serving Count That Is Not A Number Are Finite")
+    func testNutrientsLoggedFromAServingCountThatIsNotANumberAreFinite() {
+        for typed in ["nan", "inf", "-inf", "1e400"] {
+            let presenter = presenter()
+            presenter.servingsText = typed
+            let box = ItemBox()
+
+            presenter.add(recipe: recipe(servings: 4)) { box.item = $0 }
+
+            let item = box.item
+            #expect(item?.amount.isFinite == true)
+            #expect(item?.nutrients.allSatisfy { $0.value.isFinite } == true)
+        }
+    }
+
     /// A nutrient no ingredient carries a figure for has none after aggregation either.
     @Test("Test A Nutrient No Ingredient Has Stays Absent")
     func testANutrientNoIngredientHasStaysAbsent() {
