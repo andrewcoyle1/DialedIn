@@ -37,8 +37,25 @@ class TargetWeightPresenter {
     }
 
     // MARK: - Ranges
+
+    /// The user's own weight, as a number the wheel arithmetic can survive.
+    ///
+    /// Both wheels turn this into an `Int`, and `Int(_:)` traps on a value that is not finite.
+    /// The weight is a plain `Double` off a Firestore document, so a corrupt or half-written
+    /// profile carries the trap with it — and both ranges are read from the view body, so it
+    /// would fire as the screen drew. A missing weight already reads as zero here, and every
+    /// branch below has a fallback for that, so zero is the honest answer for an unusable one too.
+    private var currentWeightKilograms: Double {
+        (interactor.currentUser?.submittedWeightKilograms ?? 0)
+            .clamped(to: 0...Self.heaviestPlausibleKilograms, whenNotFinite: 0)
+    }
+
+    /// Far above the top of either wheel. It exists so the conversion cannot overflow, not to
+    /// express an opinion about anybody's weight.
+    private static let heaviestPlausibleKilograms: Double = 1_000
+
     func kilogramRange(delegate: TargetWeightDelegate) -> ClosedRange<Int> {
-        let weight = interactor.currentUser?.submittedWeightKilograms ?? 0
+        let weight = currentWeightKilograms
         // The bound that faces the user's own weight rounds *away* from the objective, so a whole
         // number on the wheel is never on the wrong side of a fractional weight. Rounding both
         // ways alike offered someone at 72.6 kg who chose "lose weight" a target of 73 — a goal
@@ -68,7 +85,7 @@ class TargetWeightPresenter {
         // Convert kg range to lb bounds for parity
         let minLb = 66
         let maxLb = 440
-        let weightLb = UnitConversion.kgToLbs(interactor.currentUser?.submittedWeightKilograms ?? 0)
+        let weightLb = UnitConversion.kgToLbs(currentWeightKilograms)
         // Rounded away from the objective, for the reason given on `kilogramRange` — and the
         // conversion makes a fractional pound figure out of almost every stored weight, so this
         // wheel is where a whole-number bound lands on the wrong side most often.
@@ -96,9 +113,12 @@ class TargetWeightPresenter {
         // Initialise user weight and correct unit
         let user = interactor.currentUser
         let fallbackKg = 70
-        let currentKg = max(1, Int(user?.submittedWeightKilograms ?? 0))
+        // `max(1, Int(weight))` would not have helped: the trap is inside the conversion, which
+        // runs before the floor is ever applied.
+        let weight = currentWeightKilograms
+        let currentKg = max(1, Int(weight))
 
-        currentWeight = user?.submittedWeightKilograms ?? Double(fallbackKg)
+        currentWeight = user?.submittedWeightKilograms.flatMap { $0.isFinite ? $0 : nil } ?? Double(fallbackKg)
         weightUnit = user?.submittedWeightUnitPreference ?? .kilograms
 
         // Initialize ranges and selections respecting objective
@@ -108,7 +128,7 @@ class TargetWeightPresenter {
             selectedKilograms = clamp(initial: initial, within: kilogramRange(delegate: delegate))
             updateFromKilograms()
         case .pounds:
-            let currentLb = max(1, Int(UnitConversion.kgToLbs(user?.submittedWeightKilograms ?? 0)))
+            let currentLb = max(1, Int(UnitConversion.kgToLbs(weight)))
             let fallbackLb = Int(UnitConversion.kgToLbs(Double(fallbackKg)).rounded())
             let initial = currentLb > 0 ? currentLb : fallbackLb
             selectedPounds = clamp(initial: initial, within: poundRange(delegate: delegate))

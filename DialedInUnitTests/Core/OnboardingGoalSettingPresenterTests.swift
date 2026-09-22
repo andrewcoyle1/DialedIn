@@ -303,6 +303,30 @@ struct OnboardingTargetWeightPresenterTests {
         }
     }
 
+    /// A stored weight that is not a number at all. Both wheels turn the weight into an `Int`,
+    /// and `Int(_:)` traps on NaN and on either infinity — the `max(1, Int(weight))` in `onAppear`
+    /// was no help, because the trap is inside the conversion and the floor never ran. Both ranges
+    /// are read from the view body, so the screen would have gone down as it drew.
+    @Test("A stored weight that is not a number still gives a valid wheel")
+    func testAWeightThatIsNotANumberStillGivesAValidWheel() {
+        for weight in [Double.nan, .infinity, -.infinity] {
+            let screen = makeScreen(user: goalUser(weightKg: weight))
+
+            for objective in OverarchingObjective.allCases {
+                let delegate = TargetWeightDelegate(overarchingObjective: objective)
+                let kgRange = screen.presenter.kilogramRange(delegate: delegate)
+                let lbRange = screen.presenter.poundRange(delegate: delegate)
+                #expect(kgRange.lowerBound <= kgRange.upperBound)
+                #expect(lbRange.lowerBound <= lbRange.upperBound)
+            }
+
+            screen.presenter.onAppear(delegate: TargetWeightDelegate(overarchingObjective: .loseWeight))
+            // Treated as a missing weight, which already fell back to 70 kg.
+            #expect(screen.presenter.currentWeight == 70)
+            #expect(screen.presenter.targetWeight.isFinite)
+        }
+    }
+
     /// The wheel opens on the user's own weight, so the first flick is a change they meant rather
     /// than a correction of a number the app invented.
     @Test("The wheel opens on the user's own weight")
