@@ -12,9 +12,10 @@ import Foundation
 /// `calculationStartDate`, `algorithmVersion` and `stepInformedUpdates` shape the estimate, and
 /// `predictiveGoalAdjustments` shapes the `TargetProposal` built on it. `estimationMethod` and
 /// `bmrEquation` still shape the prior through `resolvedBMREquation`. The strategy fields above
-/// them — the check-in cadence, partial logging, fasting and logging breaks — remain inert; they
-/// wait on the weekly check-in flow, which is not this engine. See
-/// `docs/specs/adaptive-expenditure.md`.
+/// them — the check-in cadence, partial logging, fasting and logging breaks — drive the weekly
+/// check-in: `CheckInSchedule` reads `checkInWeekday`, and `CheckInPresenter` builds its step
+/// list from the other five. See `docs/specs/adaptive-expenditure.md` and
+/// `docs/specs/weekly-check-in.md`.
 struct NutritionStrategySettings: DataSyncModelProtocol {
 
     var id: String = "nutrition_strategy_settings"
