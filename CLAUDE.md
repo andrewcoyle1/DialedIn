@@ -27,7 +27,7 @@ xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
-The tests compile and pass (2,216 tests). Treat a `TEST FAILED` as a regression from your
+The tests compile and pass (2,507 tests). Treat a `TEST FAILED` as a regression from your
 change.
 
 `-only-testing` works, but only under the scheme's own name for the target. The productName is
@@ -340,7 +340,7 @@ under `functions/` have no effect until deployed.
 ## Code Health Baseline
 
 As of the latest commit on `development`, all three schemes build with **zero warnings** and
-`swiftlint` reports **zero violations** across 1,252 files. Treat any new warning as something to
+`swiftlint` reports **zero violations** across 1,288 files. Treat any new warning as something to
 fix rather than accumulate.
 
 Two file-wide suppressions exist, each documented at the site:
