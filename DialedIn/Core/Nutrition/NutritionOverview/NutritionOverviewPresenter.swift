@@ -67,19 +67,31 @@ class NutritionOverviewPresenter {
         return "\(Int(proposal.proposedTargetKcal)) kcal a day, \(direction) \(Int(proposal.currentTargetKcal))."
     }
 
+    /// Takes the card away optimistically, and puts it back if the save does not land.
+    ///
+    /// Swallowing the error would leave the user with no card and an unchanged plan — the one
+    /// outcome that looks exactly like success and is not. The card coming back, with the alert
+    /// next to it, is what makes a failed accept retryable.
     func onAcceptProposalPressed() {
-        guard !isApplyingProposal else { return }
-        interactor.trackEvent(event: Event.proposalAccepted(proposal: proposal))
+        guard !isApplyingProposal, let accepted = proposal else { return }
+        interactor.trackEvent(event: Event.proposalAccepted(proposal: accepted))
         isApplyingProposal = true
         proposal = nil
         Task {
-            try? await interactor.acceptTargetProposal()
+            do {
+                try await interactor.acceptTargetProposal()
+            } catch {
+                proposal = accepted
+                router.showAlert(error: error)
+                interactor.trackEvent(event: Event.proposalAcceptFailed(error: error))
+            }
             isApplyingProposal = false
         }
     }
 
     func onDismissProposalPressed() {
-        interactor.trackEvent(event: Event.proposalDismissed(proposal: proposal))
+        guard let dismissed = proposal else { return }
+        interactor.trackEvent(event: Event.proposalDismissed(proposal: dismissed))
         interactor.dismissTargetProposal()
         proposal = nil
     }
@@ -137,15 +149,17 @@ extension NutritionOverviewPresenter {
     enum Event: LoggableEvent {
         case onAppear(delegate: NutritionOverviewDelegate)
         case onDisappear(delegate: NutritionOverviewDelegate)
-        case proposalAccepted(proposal: TargetProposal?)
-        case proposalDismissed(proposal: TargetProposal?)
+        case proposalAccepted(proposal: TargetProposal)
+        case proposalDismissed(proposal: TargetProposal)
+        case proposalAcceptFailed(error: Error)
 
         var eventName: String {
             switch self {
-            case .onAppear:          return "NutritionOverviewView_Appear"
-            case .onDisappear:       return "NutritionOverviewView_Disappear"
-            case .proposalAccepted:  return "NutritionOverviewView_Proposal_Accept"
-            case .proposalDismissed: return "NutritionOverviewView_Proposal_Dismiss"
+            case .onAppear:            return "NutritionOverviewView_Appear"
+            case .onDisappear:         return "NutritionOverviewView_Disappear"
+            case .proposalAccepted:    return "NutritionOverviewView_Proposal_Accept"
+            case .proposalDismissed:   return "NutritionOverviewView_Proposal_Dismiss"
+            case .proposalAcceptFailed: return "NutritionOverviewView_Proposal_Accept_Fail"
             }
         }
 
@@ -154,19 +168,21 @@ extension NutritionOverviewPresenter {
             case .onAppear(let delegate), .onDisappear(let delegate):
                 return delegate.eventParameters
             case .proposalAccepted(let proposal), .proposalDismissed(let proposal):
-                guard let proposal else { return nil }
                 return [
                     "proposal_current_kcal": proposal.currentTargetKcal,
                     "proposal_proposed_kcal": proposal.proposedTargetKcal,
                     "proposal_expenditure_kcal": proposal.expenditureKcal,
                     "proposal_reason": proposal.reason.rawValue
                 ]
+            case .proposalAcceptFailed(let error):
+                return ["error": error.localizedDescription]
             }
         }
 
         var type: LogType {
             switch self {
-            default: return .analytic
+            case .proposalAcceptFailed: return .severe
+            default:                    return .analytic
             }
         }
     }
