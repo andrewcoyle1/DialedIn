@@ -34,6 +34,9 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     private(set) var didCancelRest = false
     private(set) var didClearPendingSet = false
     private(set) var didAddStreakEvent = false
+    private(set) var endedLiveActivities: [(isCompleted: Bool, statusMessage: String?)] = []
+    var endWorkoutSessionError: Error?
+    var streakError: Error?
     private(set) var stravaUploads: [String] = []
     private(set) var preparedSounds: [SoundEffectFile] = []
     private(set) var playedSounds: [SoundEffectFile] = []
@@ -64,7 +67,10 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
         guard let activeSession else { throw WorkoutTrackerPresenter.WorkoutTrackerError.noActiveWorkout }
         return activeSession
     }
-    func endWorkoutSession(_ session: WorkoutSessionModel) async throws { endedSessions.append(session) }
+    func endWorkoutSession(_ session: WorkoutSessionModel) async throws {
+        if let endWorkoutSessionError { throw endWorkoutSessionError }
+        endedSessions.append(session)
+    }
     func deleteActiveSession() throws { activeSession = nil }
     func endWorkout() { }
     func discardWorkout() { }
@@ -76,7 +82,9 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
         restEndsAt: Date?,
         statusMessage: String?
     ) { }
-    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool, statusMessage: String?) { }
+    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool, statusMessage: String?) {
+        endedLiveActivities.append((isCompleted: isCompleted, statusMessage: statusMessage))
+    }
     func updateLiveActivity(params: LiveActivityUpdateParams) { }
     func discardLiveActivity() async { }
 
@@ -113,7 +121,10 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     func playSoundEffect(sound: SoundEffectFile) {
         playedSounds.append(sound)
     }
-    func addWorkoutStreakEvent() async throws { didAddStreakEvent = true }
+    func addWorkoutStreakEvent() async throws {
+        if let streakError { throw streakError }
+        didAddStreakEvent = true
+    }
     func getPreference(templateId: String) -> ExerciseUnitPreference {
         preferences[templateId] ?? ExerciseUnitPreference(exerciseModelId: templateId)
     }

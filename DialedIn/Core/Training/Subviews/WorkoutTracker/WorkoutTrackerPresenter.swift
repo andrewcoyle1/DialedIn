@@ -567,17 +567,35 @@ class WorkoutTrackerPresenter {
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             interactor.endWorkout()
             #endif
+
+            var didSave = true
             do {
                 try await interactor.endWorkoutSession(sessionSnapshot)
-                try await interactor.addWorkoutStreakEvent()
-                await interactor.preCompleteConsecutiveRestDays(after: sessionSnapshot)
-                await interactor.uploadToStravaIfConnected(sessionSnapshot)
-                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                interactor.endLiveActivity(session: sessionSnapshot, isCompleted: true, statusMessage: "Workout ended & saved.")
-                #endif
             } catch {
+                didSave = false
                 interactor.trackEvent(eventName: "finish_workout_save_error", parameters: ["error": error.localizedDescription], type: .severe)
             }
+
+            // The streak is a side effect of finishing, not part of it. Sharing a `do` with the
+            // save let a failed streak write skip everything below, and the Live Activity was the
+            // worst of it: the screen was already gone, so nothing else would ever end it and the
+            // Dynamic Island kept showing a workout in progress.
+            do {
+                try await interactor.addWorkoutStreakEvent()
+            } catch {
+                interactor.trackEvent(eventName: "finish_workout_streak_error", parameters: ["error": error.localizedDescription], type: .warning)
+            }
+
+            await interactor.preCompleteConsecutiveRestDays(after: sessionSnapshot)
+            await interactor.uploadToStravaIfConnected(sessionSnapshot)
+
+            #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+            interactor.endLiveActivity(
+                session: sessionSnapshot,
+                isCompleted: didSave,
+                statusMessage: didSave ? "Workout ended & saved." : "Workout ended, but could not be saved."
+            )
+            #endif
         }
     }
 }

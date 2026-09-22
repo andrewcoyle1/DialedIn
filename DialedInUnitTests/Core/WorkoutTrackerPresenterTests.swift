@@ -616,6 +616,38 @@ struct WorkoutTrackerPresenterTests {
         #expect(screen.interactor.stravaUploads == ["session-1"])
     }
 
+    /// The streak is a side effect of finishing, not a condition of it. It used to share a `do`
+    /// with the save, so a failed streak write skipped the Strava upload and — with the screen
+    /// already dismissed — left the Live Activity running with nothing left to end it.
+    @Test("Test A Failed Streak Write Still Ends The Live Activity")
+    func testAFailedStreakWriteStillEndsTheLiveActivity() async throws {
+        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1, done: true)])])
+        screen.interactor.streakError = URLError(.notConnectedToInternet)
+
+        screen.presenter.finishWorkout()
+        await settle()
+
+        #expect(screen.interactor.endedSessions.map(\.id) == ["session-1"])
+        #expect(screen.interactor.stravaUploads == ["session-1"])
+        #expect(screen.interactor.endedLiveActivities.count == 1)
+    }
+
+    /// A workout that could not be saved is still over, so its Live Activity still has to end —
+    /// and it must not claim the workout was saved.
+    @Test("Test A Failed Save Ends The Live Activity Without Claiming It Saved")
+    func testAFailedSaveEndsTheLiveActivityWithoutClaimingItSaved() async throws {
+        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1, done: true)])])
+        screen.interactor.endWorkoutSessionError = URLError(.notConnectedToInternet)
+
+        screen.presenter.finishWorkout()
+        await settle()
+
+        #expect(screen.interactor.endedSessions.isEmpty)
+        #expect(screen.interactor.endedLiveActivities.count == 1)
+        #expect(screen.interactor.endedLiveActivities.first?.isCompleted == false)
+        #expect(screen.interactor.endedLiveActivities.first?.statusMessage != "Workout ended & saved.")
+    }
+
     // MARK: - The gym profile
 
     @Test("Test The Gym Profile Opens Only When There Is One")
