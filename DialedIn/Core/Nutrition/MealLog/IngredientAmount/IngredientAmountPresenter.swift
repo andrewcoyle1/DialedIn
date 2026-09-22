@@ -22,8 +22,14 @@ class IngredientAmountPresenter {
         }
     }
 
-    var amountValue: Double { Double(amountText) ?? 0 }
-    var scale: Double { max(amountValue, 0) / 100.0 }
+    /// How much of the ingredient is being logged.
+    ///
+    /// `amountText` is a text field, so `"nan"` and `"inf"` are a few letters away. The
+    /// `max(_, 0)` that used to floor `scale` filtered neither — see `Double.enteredAmount` — and
+    /// the macro rows on this screen print `calories * scale` through `Int(_:)` while drawing, so
+    /// the screen trapped as the letters were typed rather than showing a wrong number.
+    var amountValue: Double { .enteredAmount(amountText) }
+    var scale: Double { amountValue / 100.0 }
     func calories(ingredient: FoodModel) -> Double? { ingredient.calories.map { $0 * scale } }
     func protein(ingredient: FoodModel) -> Double? { ingredient.protein.map { $0 * scale } }
     func carbs(ingredient: FoodModel) -> Double? { ingredient.carbs.map { $0 * scale } }
