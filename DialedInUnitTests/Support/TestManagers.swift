@@ -66,8 +66,14 @@ enum TestManagers {
     /// a listener that had simply not emitted yet. Twenty seconds is the window the auto-dismiss
     /// test in `AppShellPresenterTests` already needed for the same reason.
     @discardableResult
+    /// The default ceiling is deliberately far above what any condition here needs. Locally these
+    /// resolve in milliseconds, but CI runs the whole suite in parallel on about three cores, where
+    /// a condition that is merely slow rather than wrong has repeatedly outlived a 20s ceiling
+    /// (GitHub Actions runs 35778253166 and 35781891366). Raising it cannot mask a failure: a
+    /// condition that never holds still fails, and one that holds returns immediately — only a
+    /// genuine regression waits out the full timeout.
     static func eventually(
-        timeout: Duration = .seconds(20),
+        timeout: Duration = .seconds(60),
         _ condition: () -> Bool
     ) async -> Bool {
         let deadline = ContinuousClock.now.advanced(by: timeout)

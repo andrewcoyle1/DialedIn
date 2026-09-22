@@ -113,6 +113,35 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
             .max { ($0.endedAt ?? .distantPast) < ($1.endedAt ?? .distantPast) }
     }
 
+    /// Serves `completedSessions` newest first, so the progression history reads the way the real
+    /// lookup does.
+    func getLastCompletedSessionsForTemplate(
+        templateId: String,
+        authorId: String,
+        inTrainingProgramId: String?,
+        limit: Int
+    ) async throws -> [WorkoutSessionModel] {
+        lastCompletedSessionLookups.append(inTrainingProgramId)
+        let sessions = completedSessions ?? [lastCompletedSession].compactMap { $0 }
+        return Array(
+            sessions
+                .filter { $0.workoutTemplateId == templateId }
+                .filter { inTrainingProgramId == nil || $0.trainingProgramId == inTrainingProgramId }
+                .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
+                .prefix(max(limit, 0))
+        )
+    }
+
+    /// What `progressionSuggestions(for:gymProfile:)` hands back, keyed by exercise `templateId`.
+    var progressionSuggestionsByTemplateId: [String: ProgressionSuggestion] = [:]
+
+    func progressionSuggestions(
+        for session: WorkoutSessionModel,
+        gymProfile: GymProfileModel?
+    ) async -> [String: ProgressionSuggestion] {
+        progressionSuggestionsByTemplateId
+    }
+
     func schedulePushNotification(delegate: PushNotificationDelegate) async throws { }
     func startRest(durationSeconds: Int, session: WorkoutSessionModel, currentExerciseIndex: Int) {
         startedRests.append(durationSeconds)

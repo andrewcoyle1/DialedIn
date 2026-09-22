@@ -1,5 +1,7 @@
 # DialedIn
 
+[![CI](https://github.com/andrewcoyle1/DialedIn/actions/workflows/ci.yml/badge.svg)](https://github.com/andrewcoyle1/DialedIn/actions/workflows/ci.yml)
+
 A production-grade iOS fitness tracking application built with SwiftUI and VIPER architecture.
 
 ## Features

@@ -162,17 +162,31 @@ class WorkoutSessionManager {
         authorId: String,
         inTrainingProgramId: String? = nil
     ) async throws -> WorkoutSessionModel? {
+        try await getLastCompletedSessionsForTemplate(
+            templateId: templateId,
+            authorId: authorId,
+            inTrainingProgramId: inTrainingProgramId,
+            limit: 1
+        ).first
+    }
+
+    /// The last `limit` completed sessions for a template, most recent first.
+    ///
+    /// Smart progression needs more than one: a single missed session is a bad day, and only the
+    /// second one in a row is a signal to deload.
+    func getLastCompletedSessionsForTemplate(
+        templateId: String,
+        authorId: String,
+        inTrainingProgramId: String? = nil,
+        limit: Int = 3
+    ) async throws -> [WorkoutSessionModel] {
         // Check the already-loaded collection first (current user's sessions)
         let cached = userWorkoutSessionSyncEngine.currentCollection
             .filter { $0.workoutTemplateId == templateId && $0.endedAt != nil }
             .filter { inTrainingProgramId == nil || $0.trainingProgramId == inTrainingProgramId }
             .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
 
-        if let mostRecent = cached.first {
-            return mostRecent
-        }
-
-        return nil
+        return Array(cached.prefix(max(limit, 0)))
     }
 }
 
@@ -282,6 +296,20 @@ extension CoreInteractor {
             templateId: templateId,
             authorId: authorId,
             inTrainingProgramId: inTrainingProgramId
+        )
+    }
+
+    func getLastCompletedSessionsForTemplate(
+        templateId: String,
+        authorId: String,
+        inTrainingProgramId: String? = nil,
+        limit: Int = 3
+    ) async throws -> [WorkoutSessionModel] {
+        try await workoutSessionManager.getLastCompletedSessionsForTemplate(
+            templateId: templateId,
+            authorId: authorId,
+            inTrainingProgramId: inTrainingProgramId,
+            limit: limit
         )
     }
 

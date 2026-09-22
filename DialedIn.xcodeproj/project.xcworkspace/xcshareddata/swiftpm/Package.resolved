@@ -177,8 +177,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/andrewcoyle1/QuickCharts",
       "state" : {
-        "revision" : "f3b7ad1f6e6d087aee911fa16d788a563ad3eee4",
-        "version" : "0.6.0"
+        "revision" : "641fabc71a28748a43ae4baedfe0938549008c61",
+        "version" : "0.6.1"
       }
     },
     {
