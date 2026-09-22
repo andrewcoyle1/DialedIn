@@ -27,8 +27,8 @@ xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
-The tests compile and pass (2,507 tests). Treat a `TEST FAILED` as a regression from your
-change.
+The tests compile and pass (2,715 tests in `DialedInUnitTests`). Treat a `TEST FAILED` as a
+regression from your change unless it is only the UI-test flake described below.
 
 `-only-testing` works, but only under the scheme's own name for the target. The productName is
 `DialedInTests`, and `-only-testing:DialedInTests` is rejected; the BlueprintName is
@@ -49,9 +49,27 @@ xcrun xcresulttool get test-results summary \
   --path "$(ls -td ~/Library/Developer/Xcode/DerivedData/DialedIn-*/Logs/Test/*.xcresult | head -1)"
 ```
 
-The UI-test runner often fails to launch in the simulator (`FBSOpenApplicationServiceErrorDomain
-Code=1`). That does not fail the run — `** TEST SUCCEEDED **` with `failedTests: 0` is the signal
-that matters.
+The UI-test runner is flaky in the simulator: it either fails to launch
+(`FBSOpenApplicationServiceErrorDomain Code=1`) or drops the connection mid-test (`Failed to get
+matching snapshot: Lost connection to the application`). This **does** fail the run — the whole
+invocation prints `** TEST FAILED **` on the strength of one UI test — so `** TEST SUCCEEDED **`
+is not a reliable signal on its own. Check the unit bundle's own result instead:
+
+```bash
+B="$(ls -td ~/Library/Developer/Xcode/DerivedData/DialedIn-*/Logs/Test/*.xcresult | head -1)"
+xcrun xcresulttool get test-results tests --path "$B" | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+def walk(n):
+    for c in n:
+        if c.get("nodeType") in ("Unit test bundle", "UI test bundle"):
+            print(c["nodeType"], "|", c.get("name"), "|", c.get("result"))
+        walk(c.get("children", []))
+walk(d.get("testNodes", []))'
+```
+
+`Unit test bundle | DialedInUnitTests | Passed` is what matters. The summary's top-level
+`failedTests` counts both bundles together, so it reads 1 on a clean unit run that hit the flake.
 
 Managers take sync engines rather than a services struct, so tests build them through
 **`DialedInUnitTests/Support/TestManagers.swift`**, which wires them the way `Dependencies` does
@@ -339,9 +357,13 @@ under `functions/` have no effect until deployed.
 
 ## Code Health Baseline
 
-As of the latest commit on `development`, all three schemes build with **zero warnings** and
-`swiftlint` reports **zero violations** across 1,288 files. Treat any new warning as something to
+As of the latest commit on `main`, all three schemes build with **zero warnings** and
+`swiftlint` reports **zero violations** across 1,305 files. Treat any new warning as something to
 fix rather than accumulate.
+
+Building a scheme does not compile the test target, so a warning in `DialedInUnitTests` shows up
+only under `xcodebuild test`. Check the test run's log for `warning:` as well as the three builds
+before claiming the baseline holds.
 
 Two file-wide suppressions exist, each documented at the site:
 - `Dependencies.swift` disables `type_body_length`/`file_length` — it is one long DI root whose
@@ -352,4 +374,5 @@ Two file-wide suppressions exist, each documented at the site:
 
 Six single-line `swiftlint:disable:next` comments also exist, in `Dependencies.swift`,
 `DevPreview.swift`, `CoreInteractor.swift`, `WorkoutSessionModel.swift`, `PushManager.swift` and
-`NutritionOverviewPresenter.swift`, each for `function_body_length` or `large_tuple`.
+`NutritionOverviewPresenter.swift`, each for `function_body_length` or `large_tuple` — the
+`Dependencies.swift` one also covers `cyclomatic_complexity`.
