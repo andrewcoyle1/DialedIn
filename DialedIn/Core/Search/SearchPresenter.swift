@@ -297,9 +297,21 @@ class SearchPresenter {
         case .logMeal:         onLogMealPressed()
         case .logWeight:       onLogWeightPressed()
         case .browseWorkouts:  router.showWorkoutsView(delegate: WorkoutsDelegate())
-        case .browseExercises: router.showExerciseListBuilderView(delegate: ExerciseListBuilderDelegate())
+        case .browseExercises: onBrowseExercisesPressed()
         case .browseRecipes:   router.showRecipesView()
         }
+    }
+
+    /// The list was opened with an empty delegate, so every row tapped into a nil closure and the
+    /// screen was a dead end. Selecting an exercise goes where the search results' own rows go.
+    func onBrowseExercisesPressed() {
+        router.showExerciseListBuilderView(
+            delegate: ExerciseListBuilderDelegate(
+                onExerciseSelectionChanged: { [weak self] exercise in
+                    self?.onExercisePressed(exercise: exercise)
+                }
+            )
+        )
     }
 
     func onStartWorkoutPressed() {

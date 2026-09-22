@@ -261,7 +261,10 @@ struct ExerciseListBuilderView: View {
                         resizingMode: .fit
                     )
                     .anyButton(.highlight) {
-                        delegate.onExerciseSelectionChanged?(exercise)
+                        presenter.onExercisePressed(
+                            exercise: exercise,
+                            onExerciseSelectionChanged: delegate.onExerciseSelectionChanged
+                        )
                     }
                     .removeListRowFormatting()
                 }
@@ -298,7 +301,10 @@ struct ExerciseListBuilderView: View {
                     resizingMode: .fit
                 )
                 .anyButton(.highlight) {
-                    delegate.onExerciseSelectionChanged?(exercise)
+                    presenter.onExercisePressed(
+                        exercise: exercise,
+                        onExerciseSelectionChanged: delegate.onExerciseSelectionChanged
+                    )
                 }
                 .removeListRowFormatting()
             }
@@ -328,7 +334,10 @@ struct ExerciseListBuilderView: View {
                     resizingMode: .fit
                 )
                 .anyButton(.highlight) {
-                    delegate.onExerciseSelectionChanged?(exercise)
+                    presenter.onExercisePressed(
+                        exercise: exercise,
+                        onExerciseSelectionChanged: delegate.onExerciseSelectionChanged
+                    )
                 }
                 .removeListRowFormatting()
             }

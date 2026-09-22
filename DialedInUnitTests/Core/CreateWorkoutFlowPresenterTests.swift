@@ -283,8 +283,8 @@ struct WorkoutBuildGymChoicePresenterTests {
         screen.presenter.onViewAppear()
         screen.presenter.onViewDisappear()
 
-        #expect(screen.interactor.trackedScreenEventNames == ["GymProfilesView_Appear"])
-        #expect(screen.interactor.trackedEventNames == ["GymProfilesView_Disappear"])
+        #expect(screen.interactor.trackedScreenEventNames == ["ChooseGymProfileView_Appear"])
+        #expect(screen.interactor.trackedEventNames == ["ChooseGymProfileView_Disappear"])
     }
 }
 

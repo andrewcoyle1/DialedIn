@@ -595,7 +595,7 @@ struct ExpenditurePresenterSaveTests {
         // The screens after this one assume a profile that would not be there.
         #expect(router.alertTitles == ["Unable to Save Profile"])
         #expect(router.shown.isEmpty)
-        #expect(interactor.trackedEventNames.contains("Expenditureo_SaveProfile_Fail"))
+        #expect(interactor.trackedEventNames.contains("Expenditure_SaveProfile_Fail"))
     }
 
     @Test("The user can press Continue again after a failed save")

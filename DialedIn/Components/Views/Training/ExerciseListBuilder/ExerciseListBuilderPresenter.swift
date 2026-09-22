@@ -121,12 +121,20 @@ class ExerciseListBuilderPresenter {
         router.showCreateExerciseView()
     }
 
+    /// Picking an exercise is what this screen exists for, and every row used to call the delegate
+    /// closure straight from the view — so the one action worth measuring here was never measured.
+    func onExercisePressed(exercise: ExerciseModel, onExerciseSelectionChanged: ((ExerciseModel) -> Void)?) {
+        interactor.trackEvent(event: Event.exerciseSelected(exercise: exercise))
+        onExerciseSelectionChanged?(exercise)
+    }
+
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
         case onAddExercisePressed
         case filtersReset
         case filterChanged(name: String)
+        case exerciseSelected(exercise: ExerciseModel)
 
         var eventName: String {
             switch self {
@@ -135,6 +143,7 @@ class ExerciseListBuilderPresenter {
             case .onAddExercisePressed: return "ExercisesView_AddExercisePressed"
             case .filtersReset:         return "ExercisesView_Filters_Reset"
             case .filterChanged:        return "ExercisesView_Filter_Changed"
+            case .exerciseSelected:     return "ExercisesView_Exercise_Selected"
             }
         }
 
@@ -142,6 +151,10 @@ class ExerciseListBuilderPresenter {
             switch self {
             case .filterChanged(name: let name):
                 return ["filter": name]
+            // Id and name rather than the whole model: this fires on every tap, and the rest of the
+            // record is recoverable from the id.
+            case .exerciseSelected(exercise: let exercise):
+                return ["exercise_id": exercise.id, "exercise_name": exercise.name]
             default:
                 return nil
             }

@@ -50,8 +50,13 @@ struct ProfilePresenterTests {
         func showExpenditureSettingsView(delegate: ExpenditureSettingsDelegate) { shown.append("expenditureSettings") }
         func showStrategySettingsView(delegate: StrategySettingsDelegate) { shown.append("strategySettings") }
         func showPreferredDietView(isFromSettings: Bool) { shown.append("preferredDiet-\(isFromSettings)") }
+        private(set) var ratingsYesPressed: (() -> Void)?
+        private(set) var ratingsNoPressed: (() -> Void)?
+
         func showRatingsModal(onYesPressed: @escaping () -> Void, onNoPressed: @escaping () -> Void) {
             shown.append("ratings")
+            ratingsYesPressed = onYesPressed
+            ratingsNoPressed = onNoPressed
         }
     }
 
@@ -142,5 +147,31 @@ struct ProfilePresenterTests {
         screen.presenter.onWorkoutSettingsPressed()
 
         #expect(screen.router.shown == ["gymProfiles", "exercises", "workoutSettings"])
+    }
+
+    // MARK: - Ratings
+
+    /// These were logged as `SettingsView_*` from a screen called Profile, and the SettingsView they
+    /// were named after has since been deleted — so the prompt's funnel was filed under a screen
+    /// that no longer exists.
+    @Test("Test The Ratings Prompt Is Tracked Under The Screen It Is Shown From")
+    func testTheRatingsPromptIsTrackedUnderTheScreenItIsShownFrom() {
+        let screen = makeScreen()
+
+        screen.presenter.onRatingsButtonPressed()
+        screen.router.ratingsNoPressed?()
+
+        #expect(screen.router.shown == ["ratings"])
+        #expect(screen.interactor.trackedEventNames == [
+            "ProfileView_Ratings_Pressed",
+            "ProfileView_RatingsNo_Pressed"
+        ])
+    }
+
+    /// The "yes" branch hands off to StoreKit, which has no window to present from in a test, so its
+    /// name is asserted on the event rather than by driving the button.
+    @Test("Test The Ratings Yes Event Is Named For The Profile Screen")
+    func testTheRatingsYesEventIsNamedForTheProfileScreen() {
+        #expect(ProfilePresenter.Event.ratingsYesPressed.eventName == "ProfileView_RatingsYes_Pressed")
     }
 }

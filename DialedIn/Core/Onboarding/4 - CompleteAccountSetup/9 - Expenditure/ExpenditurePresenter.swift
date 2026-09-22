@@ -286,7 +286,7 @@ func onDevSettingsPressed() {
             switch self {
             case .profileSaveStart: return "Expenditure_SaveProfile_Start"
             case .profileSaveSuccess: return "Expenditure_SaveProfile_Success"
-            case .profileSaveFail: return "Expenditureo_SaveProfile_Fail"
+            case .profileSaveFail: return "Expenditure_SaveProfile_Fail"
             }
         }
 

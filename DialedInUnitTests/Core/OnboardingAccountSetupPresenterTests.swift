@@ -404,8 +404,8 @@ struct OnboardingGenderPresenterTests {
         screen.presenter.onViewAppear()
         screen.presenter.onViewDisappear()
 
-        #expect(screen.interactor.trackedScreenEventNames == ["AppView_Appear"])
-        #expect(screen.interactor.trackedEventNames == ["AppView_Disappear"])
+        #expect(screen.interactor.trackedScreenEventNames == ["GenderView_Appear"])
+        #expect(screen.interactor.trackedEventNames == ["GenderView_Disappear"])
     }
 }
 

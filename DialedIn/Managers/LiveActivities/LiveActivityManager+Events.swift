@@ -34,9 +34,9 @@ extension LiveActivityManager {
 
         var eventName: String {
             switch self {
-            case .startLiveActivityStart:       return "LiveActivityMan_StartLiveActiviey_Start"
-            case .startLiveActivitySuccess:     return "LiveActivityMan_StartLiveActiviey_Success"
-            case .startLiveActivityFail:        return "LiveActivityMan_StartLiveActiviey_Fail"
+            case .startLiveActivityStart:       return "LiveActivityMan_StartLiveActivity_Start"
+            case .startLiveActivitySuccess:     return "LiveActivityMan_StartLiveActivity_Success"
+            case .startLiveActivityFail:        return "LiveActivityMan_StartLiveActivity_Fail"
             case .liveActivitiesNotEnabled:     return "LiveActivityMan_LiveActivitiesNotEnabled"
             case .updateLiveActivityStart:      return "LiveActivityMan_UpdateLiveActivity_Start"
             case .updateLiveActivitySuccess:    return "LiveActivityMan_UpdateLiveActivity_Success"

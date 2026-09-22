@@ -543,8 +543,8 @@ struct TrainingProgramManagementPresenterTests {
 
         #expect(screen.interactor.deletedProgramIds == ["ul"])
         #expect(screen.interactor.trackedEventNames == [
-            "TrainingProgramLibraryView_Start",
-            "TrainingProgramLibraryView_Success"
+            "TrainingProgramLibraryView_DeleteProgram_Start",
+            "TrainingProgramLibraryView_DeleteProgram_Success"
         ])
     }
 
@@ -559,8 +559,8 @@ struct TrainingProgramManagementPresenterTests {
 
         #expect(screen.interactor.deletedProgramIds.isEmpty)
         #expect(screen.interactor.trackedEventNames == [
-            "TrainingProgramLibraryView_Start",
-            "TrainingProgramLibraryView_Fail"
+            "TrainingProgramLibraryView_DeleteProgram_Start",
+            "TrainingProgramLibraryView_DeleteProgram_Fail"
         ])
         // And reported to the user: the program is still in the list, so the confirmed delete
         // otherwise reads as having done nothing.
