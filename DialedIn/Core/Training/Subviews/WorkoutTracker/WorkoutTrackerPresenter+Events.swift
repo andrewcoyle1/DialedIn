@@ -14,11 +14,13 @@ extension WorkoutTrackerPresenter {
     enum Event: LoggableEvent {
         case startRestTimerCalled(inputDuration: Int, resolvedDuration: Int)
         case startRestTimerAfterCall(restEndTime: Date?)
+        case progressionAdjusted(exerciseId: String, setsChanged: Int)
 
         var eventName: String {
             switch self {
             case .startRestTimerCalled:     return "WorkoutTracker_StartRestTimer_Called"
             case .startRestTimerAfterCall:  return "WorkoutTracker_StartRestTimer_AfterCall"
+            case .progressionAdjusted:      return "WorkoutTracker_Progression_Adjusted"
             }
         }
 
@@ -33,6 +35,11 @@ extension WorkoutTrackerPresenter {
                 return [
                     "rest_end_time": restEndTime?.timeIntervalSince1970 as Any,
                     "rest_end_time_is_nil": restEndTime == nil
+                ]
+            case .progressionAdjusted(let exerciseId, let setsChanged):
+                return [
+                    "exercise_id": exerciseId,
+                    "sets_changed": setsChanged
                 ]
             }
         }

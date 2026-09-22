@@ -64,6 +64,14 @@ class WorkoutTrackerPresenter {
     var previousWorkoutSession: WorkoutSessionModel?
     var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
 
+    /// What smart progression decided for each exercise, keyed by `templateId`. Drives the hint
+    /// in the exercise header. See `WorkoutTrackerPresenter+Progression`.
+    var progressionSuggestions: [String: ProgressionSuggestion] = [:]
+
+    /// The values the screen filled in for the user, per set id. A set that still holds these
+    /// may be re-suggested live; one the user has edited may not.
+    var progressionBaseline: [String: SuggestedSet] = [:]
+
     // Prevents handleWorkoutSessionChange from double-processing when updateSet() is the caller
     private var isProcessingUpdateSet = false
     
@@ -103,6 +111,8 @@ class WorkoutTrackerPresenter {
         
         self.workoutSession = session
         loadUnitPreferences()
+        // Before anything the user does, so an edited set can be told from a filled-in one.
+        captureProgressionBaseline()
         
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Ensure an existing Live Activity is reused, otherwise start one
@@ -196,6 +206,7 @@ class WorkoutTrackerPresenter {
     func onAppear() async {
         startObservingPendingCompletions()
         loadPreviousWorkoutSession()
+        loadProgressionSuggestions()
         UIApplication.shared.isIdleTimerDisabled = interactor.workoutSettings.keepAlive
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)

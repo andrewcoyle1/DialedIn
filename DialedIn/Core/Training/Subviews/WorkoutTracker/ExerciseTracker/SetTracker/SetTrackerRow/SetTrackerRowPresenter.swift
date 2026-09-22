@@ -14,6 +14,10 @@ class SetTrackerRowPresenter {
     var restBeforeSetIdToSec: [String: Int] = [:]
     var onStartRest: ((Int) -> Void)?
 
+    /// Handed the set that was just logged. Smart progression uses it to re-suggest the sets of
+    /// this exercise that are still to come.
+    var onSetCompleted: (@MainActor (WorkoutSetModel, WorkoutExerciseModel) -> Void)?
+
     var previousLookup: [PreviousSetKey: WorkoutSetModel] = [:]
     var defaultRestDurationSeconds: Int {
         interactor.workoutSettings.defaultRestDurationSeconds
@@ -54,6 +58,10 @@ class SetTrackerRowPresenter {
             ))
             if useRestTimers, let duration {
                 onStartRest?(duration)
+            }
+            // Off by default. With it on, finishing a set re-suggests the ones still to come.
+            if interactor.workoutSettings.smartProgressionApplyInSession {
+                onSetCompleted?(set.wrappedValue, exercise)
             }
         } else {
             set.wrappedValue.completedAt = nil
