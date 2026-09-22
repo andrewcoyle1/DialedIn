@@ -70,7 +70,16 @@ class ProfilePresenter {
         router.showNotificationsView()
     }
     
+    /// What the user is paying for, shown on the Subscription row.
+    ///
+    /// The screen that used to state this read a stored property nothing ever assigned, so it said
+    /// FREE to everyone, premium subscribers included. This reads the entitlement directly.
+    var subscriptionStatus: String {
+        interactor.isPremium ? "PREMIUM" : "FREE"
+    }
+
     func onSubscriptionPressed() {
+        interactor.trackEvent(eventName: "ProfileView_Subscription_Press", parameters: nil, type: .analytic)
         router.showPaywall()
     }
 
@@ -78,15 +87,11 @@ class ProfilePresenter {
         router.showExercisesView()
     }
 
-    func navToSettingsView() {
-        interactor.trackEvent(event: Event.navigate)
-        router.showSettingsView()
-    }
-    
     // MARK: - Community & Support
 
-    /// Opens the same mailto: `SettingsPresenter.onContactUsPressed` uses. Support was an empty
-    /// closure, and email is support that exists today — no hosted help desk needed.
+    /// Support was an empty closure, and email is support that exists today — no hosted help desk
+    /// needed. This is now the app's only way to contact us: the "Contact us" row that opened the
+    /// same mailto: sat on a screen nothing navigated to.
     func onSupportPressed() {
         interactor.trackEvent(eventName: "ProfileView_Support_Press", parameters: nil, type: .analytic)
         let emailString = "mailto:\(Constants.supportEmail)"
@@ -162,6 +167,14 @@ class ProfilePresenter {
     func onStrategySettingsPressed() {
         router.showStrategySettingsView(delegate: StrategySettingsDelegate())
     }
+
+    /// `isFromSettings` tells the diet flow it was entered from settings rather than onboarding, so
+    /// it saves the chosen plan and returns instead of advancing to the next onboarding step.
+    func onNutritionPlanPressed() {
+        interactor.trackEvent(eventName: "ProfileView_NutritionPlan_Press", parameters: nil, type: .analytic)
+        router.showPreferredDietView(isFromSettings: true)
+    }
+
     func onAppIconPressed() {
         router.showAppIconView(delegate: AppIconDelegate())
     }
@@ -188,14 +201,12 @@ class ProfilePresenter {
     }
 
     enum Event: LoggableEvent {
-        case navigate
         case ratingsPressed
         case ratingsYesPressed
         case ratingsNoPressed
 
         var eventName: String {
             switch self {
-            case .navigate:     return "Fail"
             case .ratingsPressed:               return "SettingsView_Ratings_Pressed"
             case .ratingsYesPressed:            return "SettingsView_RatingsYes_Pressed"
             case .ratingsNoPressed:             return "SettingsView_RatingsNo_Pressed"
@@ -213,8 +224,6 @@ class ProfilePresenter {
             switch self {
             case .ratingsPressed, .ratingsYesPressed, .ratingsNoPressed:
                 return .analytic
-            case .navigate:
-                return .info
             }
         }
     }

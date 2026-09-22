@@ -151,10 +151,19 @@ struct AccountView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Text("Log Out")
-                .anyButton {
-                    presenter.onSignOutPressed()
-                }
+            // Signing an anonymous account out locks it away for good, so that account is offered
+            // the upgrade in place of Log Out rather than alongside it.
+            if presenter.isAnonymousUser {
+                Text("Save & back-up account")
+                    .anyButton {
+                        presenter.onSaveAccountPressed()
+                    }
+            } else {
+                Text("Log Out")
+                    .anyButton {
+                        presenter.onSignOutPressed()
+                    }
+            }
             Button(role: .destructive) {
                 presenter.onDeleteAccountPressed()
             } label: {

@@ -8,7 +8,6 @@
 @MainActor
 protocol ProfileRouter: GlobalRouter {
     func showAccountView(delegate: AccountDelegate)
-    func showSettingsView()
     func showNotificationsView()
     func showExercisesView()
     func showWorkoutSettingsView(delegate: WorkoutSettingsDelegate)
@@ -26,6 +25,7 @@ protocol ProfileRouter: GlobalRouter {
     func showFoodLogSettingsView(delegate: FoodLogSettingsDelegate)
     func showExpenditureSettingsView(delegate: ExpenditureSettingsDelegate)
     func showStrategySettingsView(delegate: StrategySettingsDelegate)
+    func showPreferredDietView(isFromSettings: Bool)
     func showRatingsModal(onYesPressed: @escaping () -> Void, onNoPressed: @escaping () -> Void)
 }
 

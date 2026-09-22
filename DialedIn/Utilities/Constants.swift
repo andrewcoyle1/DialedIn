@@ -11,8 +11,7 @@ struct Constants {
     
 //    static let randomImage = "https://picsum.photos/600/600"
     static let randomImage = "SplashScreen"
-    /// The address behind both Settings' "Contact us" and Profile's "Support". Was a bare literal in
-    /// SettingsPresenter.
+    /// The address behind Profile's "Support". Was a bare literal at its one call site.
     static let supportEmail = "andrewcoyle.1@outlook.com"
 
     // ⚠️ PLACEHOLDERS. All four point at apple.com. They are surfaced through `LegalDocument`,

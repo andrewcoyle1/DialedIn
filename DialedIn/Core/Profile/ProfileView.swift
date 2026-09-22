@@ -82,12 +82,17 @@ struct ProfileView: View {
     private var generalSection: some View {
         Section {
             Group {
-                Label("Subscription", systemImage: "tag")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .tappableBackground()
-                    .anyButton(.highlight) {
-                        presenter.onSubscriptionPressed()
-                    }
+                HStack(spacing: 8) {
+                    Label("Subscription", systemImage: "tag")
+                    Spacer(minLength: 0)
+                    Text(presenter.subscriptionStatus)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .tappableBackground()
+                .anyButton(.highlight) {
+                    presenter.onSubscriptionPressed()
+                }
                 Label("Integrations", systemImage: "app.connected.to.app.below.fill")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
@@ -147,6 +152,12 @@ struct ProfileView: View {
                     .tappableBackground()
                     .anyButton {
                         presenter.onStrategySettingsPressed()
+                    }
+                Label("Nutrition Plan", systemImage: "fork.knife")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
+                    .anyButton {
+                        presenter.onNutritionPlanPressed()
                     }
             }
             .foregroundStyle(.primary)
