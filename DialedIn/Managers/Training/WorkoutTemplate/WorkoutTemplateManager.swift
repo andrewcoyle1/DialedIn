@@ -14,7 +14,9 @@ class WorkoutTemplateManager {
     private let userWorkoutTemplateSyncEngine: CollectionSyncEngine<WorkoutTemplateModel>
     private let systemWorkoutTemplatePersistence: any LocalCollectionPersistence<WorkoutTemplateModel>
 
-    private let userDefaults = UserDefaults.standard
+    /// Injectable only so a test can point the seeding flags at storage of its own; the app
+    /// always uses `.standard`, which is where the developer menu reads and clears the same keys.
+    private let userDefaults: UserDefaults
     private static let hasSeededKey = "hasSeededPrebuiltWorkouts"
     private static let seedingVersionKey = "prebuiltWorkoutsSeedingVersion"
     private static let currentSeedingVersion = 3
@@ -41,10 +43,12 @@ class WorkoutTemplateManager {
 
     init(
         userWorkoutTemplateSyncEngine: CollectionSyncEngine<WorkoutTemplateModel>,
-        systemWorkoutTemplatePersistence: any LocalCollectionPersistence<WorkoutTemplateModel>
+        systemWorkoutTemplatePersistence: any LocalCollectionPersistence<WorkoutTemplateModel>,
+        userDefaults: UserDefaults = .standard
     ) {
         self.userWorkoutTemplateSyncEngine = userWorkoutTemplateSyncEngine
         self.systemWorkoutTemplatePersistence = systemWorkoutTemplatePersistence
+        self.userDefaults = userDefaults
     }
 
     func signIn() async {
