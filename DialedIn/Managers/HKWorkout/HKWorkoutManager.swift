@@ -383,11 +383,15 @@ extension HKWorkoutManager {
     /// a second instead of waiting out a real one.
     @MainActor
     func startRest(duration durationSeconds: TimeInterval, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {
-        logger.trackEvent(event: Event.startRestCalled(durationSeconds: Int(durationSeconds), liveActivityUpdaterIsNil: liveActivityUpdater == nil))
+        // `durationSeconds` is caller-supplied and not guaranteed finite. `Int(_:)` traps on NaN or
+        // infinity, and a one-sided `max(0, durationSeconds)` does not filter NaN either — every
+        // comparison against NaN is false, so it would pass straight through. Sanitise once, up
+        // front, before either the logged value or the stored duration is derived from it.
+        let duration = durationSeconds.clamped(to: 0...86_400, whenNotFinite: 0)
+        logger.trackEvent(event: Event.startRestCalled(durationSeconds: Int(duration), liveActivityUpdaterIsNil: liveActivityUpdater == nil))
         // Cancel any existing rest to avoid multiple timers
         cancelRest()
 
-        let duration = max(0, durationSeconds)
         restEndTime = Date().addingTimeInterval(duration)
 
         // Write to shared storage so widget can read it
@@ -461,24 +465,29 @@ extension HKWorkoutManager {
         )
     }
 
-    nonisolated private func scheduleRestEndTimer(endTime: Date) {
+    // Deliberately MainActor-isolated rather than `nonisolated`, and both callers are already on
+    // MainActor. `timer.resume()` arms the timer immediately, and storing it into `restTimer` used
+    // to be deferred to a separate `Task { @MainActor ... }` hop — which meant a caller that started
+    // a rest and cancelled it again in the same synchronous scope (as `cancelRest()`,
+    // `syncRestEndTimeFromSharedStorage()`, `endWorkout()` and `discardWorkout()` can all do) found
+    // `restTimer` still nil and had nothing to cancel, leaving the real timer armed to fire and
+    // announce a rest that had already been called off. Assigning synchronously here closes that
+    // window: `restTimer` holds the live timer before this function returns.
+    private func scheduleRestEndTimer(endTime: Date) {
         let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
         let delta = max(0, endTime.timeIntervalSinceNow)
         timer.schedule(deadline: .now() + delta)
         timer.setEventHandler { [weak self] in
-            // Use Task to safely call MainActor-isolated method from background queue
+            // Use Task to safely call MainActor-isolated method from the background timer queue.
             Task { @MainActor [weak self] in
                 self?.logger.trackEvent(event: Event.restTimerFired)
                 self?.endRest()
             }
         }
+        restTimer = timer
         timer.resume()
 
-        // Store the timer reference back on MainActor
-        Task { @MainActor [weak self] in
-            self?.logger.trackEvent(event: Event.restTimerScheduled(endTime: endTime, deltaSeconds: delta))
-            self?.restTimer = timer
-        }
+        logger.trackEvent(event: Event.restTimerScheduled(endTime: endTime, deltaSeconds: delta))
     }
 }
 

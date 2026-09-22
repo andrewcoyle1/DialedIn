@@ -111,6 +111,28 @@ struct HKWorkoutManagerRestTests {
         #expect((manager.restEndTime?.timeIntervalSince(before) ?? -1) >= 0)
     }
 
+    /// `startRest(duration:)` takes a `TimeInterval` a caller could hand it directly, unlike the
+    /// whole-seconds overload the app actually calls. `Int(_:)` traps on a non-finite value, and a
+    /// one-sided `max(0, …)` does not filter NaN either — every comparison against NaN is false, so
+    /// it passes straight through unclamped. This is the exact shape of bug fixed seven times
+    /// elsewhere in this codebase via `Double.clamped(to:whenNotFinite:)`.
+    @Test("Test A Non-Finite Duration Does Not Trap And Rests For A Sane Amount Of Time")
+    func testANonFiniteDurationDoesNotTrapAndRestsForASaneAmountOfTime() {
+        let (manager, _) = makeManager()
+        let before = Date()
+
+        manager.startRest(duration: .nan, session: session)
+        let nanEnd = manager.restEndTime
+        #expect(nanEnd != nil)
+        #expect((nanEnd?.timeIntervalSince(before) ?? -1) >= 0)
+
+        manager.startRest(duration: .infinity, session: session)
+        let infinityEnd = manager.restEndTime
+        #expect(infinityEnd != nil)
+        // Clamped to a bounded ceiling rather than left as an unusable "rest forever".
+        #expect((infinityEnd?.timeIntervalSince(before) ?? -1) <= 86_401)
+    }
+
     // MARK: - Running Out
 
     @Test("Test A Rest That Runs Out Announces Itself")
