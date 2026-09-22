@@ -50,8 +50,13 @@ class FoodLibraryPresenter {
     }
     
     /// Same destination the search and barcode tabs use, so a favourite is logged with the amount
-    /// step rather than being added at some assumed quantity.
+    /// step rather than being added at some assumed quantity — unless Quick Add is on, in which
+    /// case it takes the same shortcut those tabs take.
     func onFavouriteFoodPressed(_ food: FoodModel, onPick: ((MealItemModel) -> Void)?) {
+        if interactor.foodLogSettings.quickAddEnabled {
+            onPick?(food.mealItem(amount: food.defaultPortionAmount))
+            return
+        }
         router.showIngredientAmountView(
             delegate: IngredientAmountDelegate(
                 ingredient: food,

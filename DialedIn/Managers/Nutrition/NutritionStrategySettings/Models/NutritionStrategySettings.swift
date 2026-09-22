@@ -62,6 +62,22 @@ struct NutritionStrategySettings: DataSyncModelProtocol {
         NutritionStrategySettings(authorId: "mock_user_123")
     }
 
+    /// Which BMR equation the expenditure estimate actually runs, given what has been logged.
+    ///
+    /// `estimationMethod` sits above `bmrEquation` on the same screen and promises to "use your
+    /// logged body fat percentage where one is available". Katch-McArdle is the only equation in
+    /// the app that reads body fat, so being body-fat aware means running it.
+    ///
+    /// Without a usable percentage there is nothing to be aware of, and inventing one is worse
+    /// than the equation the user picked — so the choice stands. `.standard`, the default, always
+    /// leaves it alone, which is what every existing estimate already does.
+    func resolvedBMREquation(bodyFatPercentage: Double?) -> BMREquation {
+        guard estimationMethod == .bodyFatAware,
+              let bodyFat = bodyFatPercentage,
+              bodyFat > 0, bodyFat < 100 else { return bmrEquation }
+        return .katchMcArdle
+    }
+
     /// Monday-first weekday names, indexed by `Calendar`'s 1-based `weekday`.
     var checkInWeekdayName: String {
         let symbols = Calendar.current.weekdaySymbols

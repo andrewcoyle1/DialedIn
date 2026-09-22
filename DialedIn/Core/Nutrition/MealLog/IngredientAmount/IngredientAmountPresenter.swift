@@ -16,10 +16,7 @@ class IngredientAmountPresenter {
     var amountText: String = "100"
 
     func unitLabel(ingredient: FoodModel) -> String {
-        switch ingredient.measurementMethod {
-        case .weight: return "g"
-        case .volume: return "ml"
-        }
+        ingredient.loggedUnitLabel
     }
 
     /// How much of the ingredient is being logged.
@@ -44,20 +41,7 @@ class IngredientAmountPresenter {
     }
 
     func add(ingredient: FoodModel, onConfirm: @escaping (MealItemModel) -> Void) {
-        let resolvedGrams = ingredient.measurementMethod == .weight ? amountValue : nil
-        let resolvedMl = ingredient.measurementMethod == .volume ? amountValue : nil
-        let item = MealItemModel(
-            itemId: UUID().uuidString,
-            sourceType: .ingredient,
-            sourceId: ingredient.ingredientId,
-            displayName: ingredient.name,
-            amount: amountValue,
-            unit: unitLabel(ingredient: ingredient),
-            resolvedGrams: resolvedGrams,
-            resolvedMilliliters: resolvedMl,
-            nutrients: ingredient.nutrients.scaled(by: scale)
-        )
-        onConfirm(item)
+        onConfirm(ingredient.mealItem(amount: amountValue))
     }
 
     func dismissScreen() {

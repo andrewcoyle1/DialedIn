@@ -279,6 +279,17 @@ struct NutritionPresenterTests {
         #expect(screen.presenter.caloriePercentage == 0)
     }
 
+    /// The header is handed the setting rather than reaching for it, so this is the one place it
+    /// can be dropped on the way through.
+    @Test("Test Show Overages Reaches The Macro Header")
+    func testShowOveragesReachesTheMacroHeader() {
+        #expect(makeScreen().presenter.showOverages == false)
+
+        var settings = FoodLogSettings(authorId: "user-1")
+        settings.showOverages = true
+        #expect(makeScreen(settings: settings).presenter.showOverages)
+    }
+
     // MARK: - The timeline
 
     /// The timeline spans the user's own window, one row per hour, ends included.

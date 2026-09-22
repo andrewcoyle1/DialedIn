@@ -308,8 +308,9 @@ struct FoodLibraryPresenterTests {
         let router: Router
     }
 
-    private func makeScreen() -> Screen {
+    private func makeScreen(quickAdd: Bool = false) -> Screen {
         let interactor = Interactor()
+        interactor.foodLogSettings.quickAddEnabled = quickAdd
         let router = Router()
         return Screen(
             presenter: FoodLibraryPresenter(interactor: interactor, router: router),
@@ -406,16 +407,35 @@ struct FoodLibraryPresenterTests {
 
     // MARK: - Opening a favourite
 
-    /// A favourite goes through the amount step like anything else. Adding it at some assumed
-    /// quantity would log a number the user never chose.
+    /// The default. A favourite goes through the amount step like anything else, because adding
+    /// it at some assumed quantity would log a number the user never chose.
     @Test("Test A Favourite Food Opens The Amount Step")
     func testAFavouriteFoodOpensTheAmountStep() {
         let screen = makeScreen()
+        #expect(screen.interactor.foodLogSettings.quickAddEnabled == false)
 
-        screen.presenter.onFavouriteFoodPressed(food("Oats"), onPick: { _ in })
+        var picked: [MealItemModel] = []
+        screen.presenter.onFavouriteFoodPressed(food("Oats"), onPick: { picked.append($0) })
 
         #expect(screen.router.amountDelegates.count == 1)
         #expect(screen.router.amountDelegates.first?.ingredient.name == "Oats")
+        #expect(picked.isEmpty)
+    }
+
+    /// Quick Add is the user asking for that assumed quantity: the food's own portion, logged
+    /// without the amount step.
+    @Test("Test Quick Add Logs A Favourite Without The Amount Step")
+    func testQuickAddLogsAFavouriteWithoutTheAmountStep() throws {
+        let screen = makeScreen(quickAdd: true)
+        let oats = FoodModel(ingredientId: "oats", name: "Oats", servingWeight: 40)
+
+        var picked: [MealItemModel] = []
+        screen.presenter.onFavouriteFoodPressed(oats, onPick: { picked.append($0) })
+
+        #expect(screen.router.amountDelegates.isEmpty)
+        let item = try #require(picked.first)
+        #expect(item.displayName == "Oats")
+        #expect(item.amount == 40)
     }
 
     @Test("Test A Favourite Recipe Opens Its Detail")
@@ -444,6 +464,7 @@ struct FoodLibraryPresenterTests {
 struct NutritionPickerPresenterTests {
 
     private final class PickerInteractor: SpyGlobalInteractor, NutritionLibraryPickerInteractor {
+        var foodLogSettings: FoodLogSettings = FoodLogSettings(authorId: "user-1")
         private(set) var savedExternalFoods: [FoodModel] = []
 
         func saveExternalFood(_ food: FoodModel) async {
@@ -474,8 +495,9 @@ struct NutritionPickerPresenterTests {
         let router: PickerRouter
     }
 
-    private func makeScreen() -> Screen {
+    private func makeScreen(quickAdd: Bool = false) -> Screen {
         let interactor = PickerInteractor()
+        interactor.foodLogSettings.quickAddEnabled = quickAdd
         let router = PickerRouter()
         return Screen(
             presenter: NutritionLibraryPickerPresenter(interactor: interactor, router: router),
@@ -537,6 +559,102 @@ struct NutritionPickerPresenterTests {
 
         #expect(screen.interactor.savedExternalFoods.isEmpty)
         #expect(screen.router.amountDelegates.count == 1)
+    }
+
+    // MARK: - Quick Add
+
+    /// The default. Every food goes through the amount step, which is what every user has today.
+    @Test("Test Quick Add Is Off And The Amount Step Is Shown")
+    func testQuickAddIsOffAndTheAmountStepIsShown() {
+        let screen = makeScreen()
+        #expect(screen.interactor.foodLogSettings.quickAddEnabled == false)
+
+        var picked: [MealItemModel] = []
+        screen.presenter.navToIngredientAmount(
+            FoodModel(ingredientId: "oats", authorId: "user-1", name: "Oats", servingWeight: 40),
+            onPick: { picked.append($0) }
+        )
+
+        #expect(screen.router.amountDelegates.count == 1)
+        #expect(picked.isEmpty)
+    }
+
+    /// On, the food is logged at the portion it declares and the amount screen never opens.
+    @Test("Test Quick Add Logs The Declared Portion")
+    func testQuickAddLogsTheDeclaredPortion() throws {
+        let screen = makeScreen(quickAdd: true)
+        let oats = FoodModel(
+            ingredientId: "oats",
+            authorId: "user-1",
+            name: "Oats",
+            nutrients: [.calories: 380],
+            servingWeight: 40
+        )
+
+        var picked: [MealItemModel] = []
+        screen.presenter.navToIngredientAmount(oats, onPick: { picked.append($0) })
+
+        #expect(screen.router.amountDelegates.isEmpty)
+        let item = try #require(picked.first)
+        #expect(item.amount == 40)
+        #expect(item.unit == "g")
+        #expect(item.resolvedGrams == 40)
+        #expect(item.resolvedMilliliters == nil)
+        // Nutrients are per 100 g, so 40 g of a 380 kcal food is 152 kcal.
+        #expect(item.calories == 152)
+    }
+
+    /// A food that declares no portion falls back to 100 — the basis its nutrients are recorded
+    /// against, so the figures logged are exactly the ones stored.
+    @Test("Test Quick Add Falls Back To The Hundred Gram Basis")
+    func testQuickAddFallsBackToTheHundredGramBasis() throws {
+        let screen = makeScreen(quickAdd: true)
+        let rice = FoodModel(ingredientId: "rice", authorId: "user-1", name: "Rice", nutrients: [.calories: 130])
+
+        var picked: [MealItemModel] = []
+        screen.presenter.navToIngredientAmount(rice, onPick: { picked.append($0) })
+
+        let item = try #require(picked.first)
+        #expect(item.amount == 100)
+        #expect(item.calories == 130)
+    }
+
+    /// A drink is counted in millilitres, and its portion comes from the volume field rather than
+    /// the mass one.
+    @Test("Test Quick Add Logs A Volume Food In Millilitres")
+    func testQuickAddLogsAVolumeFoodInMillilitres() throws {
+        let screen = makeScreen(quickAdd: true)
+        let milk = FoodModel(
+            ingredientId: "milk",
+            authorId: "user-1",
+            name: "Milk",
+            measurementMethod: .volume,
+            nutrients: [.calories: 50],
+            portionVolume: 250
+        )
+
+        var picked: [MealItemModel] = []
+        screen.presenter.navToIngredientAmount(milk, onPick: { picked.append($0) })
+
+        let item = try #require(picked.first)
+        #expect(item.amount == 250)
+        #expect(item.unit == "ml")
+        #expect(item.resolvedMilliliters == 250)
+        #expect(item.resolvedGrams == nil)
+    }
+
+    /// The copy into the user's library still happens: a quick-added external food would
+    /// otherwise point at a food they do not own.
+    @Test("Test Quick Add Still Takes An External Food Into The Library")
+    func testQuickAddStillTakesAnExternalFoodIntoTheLibrary() async {
+        let screen = makeScreen(quickAdd: true)
+        let external = FoodModel(ingredientId: "off-1", authorId: nil, name: "Oat Milk")
+
+        screen.presenter.navToIngredientAmount(external, onPick: { _ in })
+        await TestManagers.eventually { !screen.interactor.savedExternalFoods.isEmpty }
+
+        #expect(screen.interactor.savedExternalFoods.map(\.name) == ["Oat Milk"])
+        #expect(screen.router.amountDelegates.isEmpty)
     }
 
     @Test("Test Choosing A Recipe Opens Its Amount Step")

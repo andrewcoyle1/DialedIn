@@ -140,6 +140,7 @@ class NutritionPresenter {
     var showProteinRing: Bool { interactor.foodLogSettings.showProteinRing }
     var showFatRing: Bool { interactor.foodLogSettings.showFatRing }
     var showCarbsRing: Bool { interactor.foodLogSettings.showCarbsRing }
+    var showOverages: Bool { interactor.foodLogSettings.showOverages }
     var showFoodImageInTimeline: Bool { !hideFoodDetails && interactor.foodLogSettings.showFoodImageInTimeline }
     var showCaloriesInTimeline: Bool { !hideFoodDetails && interactor.foodLogSettings.showCaloriesInTimeline }
     var showMacrosInTimeline: Bool { !hideFoodDetails && interactor.foodLogSettings.showMacrosInTimeline }

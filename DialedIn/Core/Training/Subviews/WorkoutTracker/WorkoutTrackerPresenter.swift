@@ -433,13 +433,17 @@ class WorkoutTrackerPresenter {
 
         if !wasExerciseCompleteBefore && isExerciseCompleteNow {
             advanceAfterExerciseCompletion(exerciseIndex: exerciseIndex, in: updatedExercises)
+        } else if exerciseBefore.sets[setIndex].completedAt == nil, updatedSet.completedAt != nil {
+            advanceWithinSuperset(exerciseIndex: exerciseIndex, in: updatedExercises)
         }
 
         refreshLiveActivity()
     }
 
     /// True when the exercise has sets and every one of them is logged.
-    private func isComplete(_ exercise: WorkoutExerciseModel) -> Bool {
+    ///
+    /// Not private: `WorkoutTrackerPresenter+Superset` skips partners that are already finished.
+    func isComplete(_ exercise: WorkoutExerciseModel) -> Bool {
         !exercise.sets.isEmpty && exercise.sets.allSatisfy { $0.completedAt != nil }
     }
 
@@ -507,6 +511,10 @@ class WorkoutTrackerPresenter {
 
         if !wasExerciseCompleteBefore && isComplete(exercise) {
             advanceAfterExerciseCompletion(exerciseIndex: exerciseIndex, in: workoutSession.exercises)
+        } else {
+            // A set logged from the Live Activity or a widget intent lands here rather than in
+            // `updateSet`, and moves focus the same way.
+            advanceWithinSuperset(exerciseIndex: exerciseIndex, in: workoutSession.exercises)
         }
 
         refreshLiveActivity()

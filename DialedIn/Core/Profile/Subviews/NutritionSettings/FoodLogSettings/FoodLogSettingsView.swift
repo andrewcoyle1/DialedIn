@@ -14,7 +14,7 @@ struct FoodLogSettingsView: View {
             Section {
                 CustomToggleView(
                     title: "Show Overages",
-                    subtitle: presenter.showOverages ? "No negative numbers will be used if you exceed a nutrient target." : "Negative numbers will be used in nutrient remaining views if you exceed your target.",
+                    subtitle: presenter.showOveragesSubtitle,
                     bool: $presenter.showOverages
                 )
             } header: {

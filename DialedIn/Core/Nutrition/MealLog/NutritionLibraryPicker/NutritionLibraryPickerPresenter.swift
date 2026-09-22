@@ -31,6 +31,12 @@ class NutritionLibraryPickerPresenter {
         if ingredient.authorId == nil {
             Task { await interactor.saveExternalFood(ingredient) }
         }
+        // Quick Add promises exactly this: the food's default portion, without the amount screen.
+        // The picker stays open, so the next food is one tap away too.
+        if interactor.foodLogSettings.quickAddEnabled {
+            onPick(ingredient.mealItem(amount: ingredient.defaultPortionAmount))
+            return
+        }
         router.showIngredientAmountView(delegate: IngredientAmountDelegate(ingredient: ingredient, onPick: onPick))
     }
 

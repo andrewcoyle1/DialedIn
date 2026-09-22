@@ -67,6 +67,14 @@ struct ExerciseTrackerView<SetTracker: View>: View {
                 Text("Set \(min(exercise.loggedSetCount + 1, exercise.workingSetCount))/\(exercise.workingSetCount)")
                     .font(.caption)
                     .foregroundColor(exercise.loggedSetCount == exercise.workingSetCount ? .green : .secondary)
+
+                if let note = presenter.note(for: exercise) {
+                    Text(note)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(2)
+                }
             }
         }
         .tappableBackground()
