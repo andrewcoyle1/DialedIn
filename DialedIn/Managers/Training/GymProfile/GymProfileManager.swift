@@ -29,6 +29,10 @@ class GymProfileManager {
     
     func signOut() {
         gymProfileSyncEngine.stopListening()
+        // Held here rather than in the sync engine, so stopping the listener does not clear it.
+        // Left set, it is the previous account's gym, and the next sign-in reads it as the
+        // current user's own.
+        activeWorkoutGymProfile = nil
     }
 
     // MARK: WRITE
@@ -53,6 +57,11 @@ class GymProfileManager {
         
     func deleteGymProfile(_ profileId: String) async throws {
         try await gymProfileSyncEngine.deleteDocument(id: profileId)
+        // A workout in progress filters exercises on the active gym's equipment. Leaving a
+        // deleted gym selected keeps filtering on equipment that no longer exists.
+        if activeWorkoutGymProfile?.id == profileId {
+            activeWorkoutGymProfile = nil
+        }
     }
     
     func deleteAllGymProfiles() async throws {

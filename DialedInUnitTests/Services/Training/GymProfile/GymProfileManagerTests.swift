@@ -57,18 +57,18 @@ struct GymProfileManagerTests {
         #expect(await TestManagers.eventually { manager.gymProfiles.count == 2 })
     }
 
-    /// The active gym is held on the manager rather than in the sync engine, and `signOut` does not
-    /// reset it. Anything that reads `workoutGymProfile` after a sign-out gets the previous
-    /// account's gym until something sets it again.
-    @Test("Test The Active Workout Profile Survives A Sign Out")
-    func testTheActiveWorkoutProfileSurvivesASignOut() async {
+    /// The active gym is held on the manager rather than in the sync engine, so stopping the
+    /// listener does not clear it on its own. It has to be cleared explicitly, or the next account
+    /// to sign in reads the previous one's gym through `CoreInteractor.workoutGymProfile`.
+    @Test("Test Signing Out Clears The Active Workout Profile")
+    func testSigningOutClearsTheActiveWorkoutProfile() async {
         let manager = await TestManagers.signedInGymProfileManager(profiles: twoProfiles)
         manager.activeWorkoutGymProfile = manager.gymProfiles.first
 
         manager.signOut()
 
         #expect(manager.gymProfiles.isEmpty)
-        #expect(manager.activeWorkoutGymProfile?.id == "gym-1")
+        #expect(manager.activeWorkoutGymProfile == nil)
     }
 
     /// Reading by id goes to the store when the collection has not been loaded, so a deep link into
@@ -155,16 +155,28 @@ struct GymProfileManagerTests {
         #expect(manager.gymProfiles.isEmpty)
     }
 
-    /// A deleted gym stays selected as the active workout profile — nothing clears it — so a
-    /// workout started before the delete keeps filtering on equipment the user just removed.
-    @Test("Test Deleting The Active Profile Leaves It Selected")
-    func testDeletingTheActiveProfileLeavesItSelected() async throws {
+    /// A workout in progress filters exercises on the active gym's equipment, so a deleted gym
+    /// left selected keeps filtering on equipment that is no longer there.
+    @Test("Test Deleting The Active Profile Clears The Selection")
+    func testDeletingTheActiveProfileClearsTheSelection() async throws {
         let manager = await TestManagers.signedInGymProfileManager(profiles: twoProfiles)
         manager.activeWorkoutGymProfile = manager.gymProfiles.first
 
         try await manager.deleteGymProfile("gym-1")
 
         #expect(await TestManagers.eventually { manager.gymProfiles.map(\.id) == ["gym-2"] })
+        #expect(manager.activeWorkoutGymProfile == nil)
+    }
+
+    /// Deleting some other gym must not disturb the selection — only the one that went away.
+    @Test("Test Deleting Another Profile Leaves The Selection Alone")
+    func testDeletingAnotherProfileLeavesTheSelectionAlone() async throws {
+        let manager = await TestManagers.signedInGymProfileManager(profiles: twoProfiles)
+        manager.activeWorkoutGymProfile = manager.gymProfiles.first { $0.id == "gym-1" }
+
+        try await manager.deleteGymProfile("gym-2")
+
+        #expect(await TestManagers.eventually { manager.gymProfiles.map(\.id) == ["gym-1"] })
         #expect(manager.activeWorkoutGymProfile?.id == "gym-1")
     }
 
