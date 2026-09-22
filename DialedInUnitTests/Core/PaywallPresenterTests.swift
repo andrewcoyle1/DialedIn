@@ -281,6 +281,21 @@ struct PaywallPurchasePresenterTests {
         #expect(screen.router.shown.isEmpty)
     }
 
+    /// A restore that succeeds but finds nothing is the commonest restore outcome — wrong Apple ID,
+    /// a subscription that lapsed, a purchase made on someone else's account. It used to change
+    /// nothing on screen at all, which reads as a dead button on the one screen a paying customer
+    /// has to get past.
+    @Test("Test Restoring Nothing Active Tells The User Why")
+    func testRestoringNothingActiveTellsTheUserWhy() async {
+        let screen = makeScreen(isOnboarding: true)
+        screen.interactor.restoreResult = []
+
+        screen.presenter.onRestorePurchasePressed()
+
+        #expect(await TestManagers.eventually { screen.router.alertTitles.count == 1 })
+        #expect(screen.router.shown.isEmpty)
+    }
+
     /// A restore that errors says so, rather than looking to the user like "you never paid".
     @Test("Test A Failed Restore Is Reported To The User")
     func testAFailedRestoreIsReportedToTheUser() async {
