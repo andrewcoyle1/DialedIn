@@ -29,49 +29,65 @@ class GoalSummaryPresenter {
         self.isStandaloneMode = isStandaloneMode
     }
     
+    /// Standalone mode, where this screen is the whole flow rather than a step of onboarding.
+    ///
+    /// The goal is saved first and the flow closed only once it is, so a user whose save fails
+    /// sees the alert on the screen they were on rather than back where they started.
     func onCompletePressed(delegate: GoalSummaryDelegate) {
-        onContinuePressed(delegate: delegate)
-        onDismiss?()
+        Task {
+            await saveGoal(delegate: delegate, onSuccess: { [weak self] in self?.onDismiss?() })
+        }
     }
-    
+
     func onContinuePressed(delegate: GoalSummaryDelegate) {
+        Task {
+            await saveGoal(delegate: delegate, onSuccess: { [weak self] in self?.handleNavigation() })
+        }
+    }
+
+    /// Writes the goal, then does whatever the screen it was pressed from does next.
+    ///
+    /// `isLoading` gates both buttons, so it has to be set before the write and cleared on every
+    /// way out of it — including the two that alert. It used to be cleared by a `defer` in the
+    /// synchronous caller, which ran before the write had even started.
+    private func saveGoal(delegate: GoalSummaryDelegate, onSuccess: @MainActor () -> Void) async {
         interactor.trackEvent(event: Event.goalSaveStart)
+        isLoading = true
         defer { isLoading = false }
 
-        Task {
-            guard let user = interactor.currentUser,
-                  let startingWeight = user.submittedWeightKilograms else {
-                router.showSimpleAlert(
-                    title: "Unable to save your Goal",
-                    subtitle: "Current weight not available."
-                )
-                return
-            }
+        guard let user = interactor.currentUser,
+              let startingWeight = user.submittedWeightKilograms else {
+            router.showSimpleAlert(
+                title: "Unable to save your Goal",
+                subtitle: "Current weight not available."
+            )
+            return
+        }
 
-            do {
-                // Create goal in subcollection with frozen starting weight
-                let goal = WeightGoal(
-                    userId: user.userId,
-                    objective: delegate.overarchingObjective,
-                    startingWeightKg: startingWeight,
-                    targetWeightKg: delegate.targetWeight,
-                    weeklyChangeKg: delegate.weightChangeRate,
-                )
-                try await interactor.saveGoal(goal)
+        do {
+            // Create goal in subcollection with frozen starting weight
+            let goal = WeightGoal(
+                userId: user.userId,
+                objective: delegate.overarchingObjective,
+                startingWeightKg: startingWeight,
+                targetWeightKg: delegate.targetWeight,
+                weeklyChangeKg: delegate.weightChangeRate,
+            )
+            try await interactor.saveGoal(goal)
 
-                // Update user's currentGoalId reference
-                try await interactor.updateCurrentGoalId(goalId: goal.id)
+            // Update user's currentGoalId reference
+            try await interactor.updateCurrentGoalId(goalId: goal.id)
 
-                interactor.trackEvent(event: Event.goalSaveSuccess)
+            goalCreated = true
+            interactor.trackEvent(event: Event.goalSaveSuccess)
 
-                handleNavigation()
-            } catch {
-                interactor.trackEvent(event: Event.goalSaveFail(error: error))
-                router.showSimpleAlert(
-                    title: "Unable to save your Goal",
-                    subtitle: "Please check your internet connection and try again."
-                )
-            }
+            onSuccess()
+        } catch {
+            interactor.trackEvent(event: Event.goalSaveFail(error: error))
+            router.showSimpleAlert(
+                title: "Unable to save your Goal",
+                subtitle: "Please check your internet connection and try again."
+            )
         }
     }
     

@@ -367,11 +367,59 @@ struct OnboardingGoalSummaryPresenterTests {
         screen.presenter.onDismiss = { dismissals.count += 1 }
 
         screen.presenter.onCompletePressed(delegate: delegate())
-        await TestManagers.eventually { !screen.interactor.savedGoals.isEmpty }
+        await TestManagers.eventually { dismissals.count == 1 }
 
         #expect(screen.interactor.savedGoals.count == 1)
         #expect(screen.interactor.savedGoalIds.count == 1)
-        await TestManagers.eventually { dismissals.count == 1 }
         #expect(dismissals.count == 1)
+        // Standalone is its own flow, so it closes rather than pushing on into onboarding.
+        #expect(screen.router.shown.isEmpty)
+    }
+
+    /// The flow closes only once the goal is written. Dismissing first would take the user back to
+    /// their profile while the write was still in flight, and leave the alert nowhere to appear.
+    @Test("A failed standalone save keeps the flow open to show the alert")
+    func testAFailedCompleteDoesNotDismissTheFlow() async {
+        let screen = makeScreen(user: summaryUser(goalId: "goal-1"), isStandaloneMode: true)
+        screen.interactor.saveGoalError = URLError(.notConnectedToInternet)
+        let dismissals = DismissCounter()
+        screen.presenter.onDismiss = { dismissals.count += 1 }
+
+        screen.presenter.onCompletePressed(delegate: delegate())
+        await TestManagers.eventually { !screen.router.alertTitles.isEmpty }
+
+        #expect(dismissals.count == 0)
+        #expect(screen.router.alertTitles == ["Unable to save your Goal"])
+    }
+
+    /// Both buttons are disabled while the save is in flight, and the view also required
+    /// `goalCreated` of Complete — which only a successful save sets, and only that button could
+    /// have triggered. Standalone goal setting could therefore never be completed at all.
+    @Test("The save flag is raised while writing, lowered after, and records the goal exists")
+    func testTheSaveFlagsTrackTheWriteRatherThanNothing() async {
+        let screen = makeScreen(user: summaryUser(goalId: "goal-1"), isStandaloneMode: true)
+
+        #expect(screen.presenter.isLoading == false)
+        #expect(screen.presenter.goalCreated == false)
+
+        screen.presenter.onCompletePressed(delegate: delegate())
+        await TestManagers.eventually { screen.presenter.goalCreated }
+
+        #expect(screen.presenter.goalCreated)
+        await TestManagers.eventually { screen.presenter.isLoading == false }
+        #expect(screen.presenter.isLoading == false)
+    }
+
+    /// A failed save leaves the screen usable: the button has to come back so the user can retry.
+    @Test("A failed save re-enables the button rather than leaving it spinning")
+    func testAFailedSaveLeavesTheScreenUsable() async {
+        let screen = makeScreen(user: summaryUser(goalId: "goal-1"))
+        screen.interactor.saveGoalError = URLError(.notConnectedToInternet)
+
+        screen.presenter.onContinuePressed(delegate: delegate())
+        await TestManagers.eventually { !screen.router.alertTitles.isEmpty }
+
+        #expect(screen.presenter.isLoading == false)
+        #expect(screen.presenter.goalCreated == false)
     }
 }

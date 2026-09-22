@@ -64,7 +64,10 @@ struct GoalSummaryView: View {
                         Text("Complete")
                     }
                     .accessibilityIdentifier("Complete")
-                    .disabled(presenter.isLoading || !presenter.goalCreated)
+                    // Gated on the save being in flight only. It used to also require
+                    // `goalCreated`, which nothing ever set — and which only the press of this
+                    // button could have set, so Complete was disabled for good.
+                    .disabled(presenter.isLoading)
                 } else {
                     CallToActionButton {
                         presenter.onContinuePressed(delegate: delegate)
