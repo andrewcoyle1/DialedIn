@@ -100,9 +100,16 @@ class SetTrackerRowPresenter {
         return base
     }
 
-    /// The unscaled rest for this exercise: a per-exercise-type override if one is set, otherwise
-    /// the global default.
+    /// The unscaled rest for this exercise, narrowest setting first: the rest set on this one
+    /// exercise, then the one set for its whole type, then the global default.
+    ///
+    /// A zero-second override is treated as no override at all. Both screens that write it clear
+    /// to `nil` on an empty picker, but a document written by an older build can still carry a
+    /// literal zero, and resting for no time is not something a user can have meant.
     private func baseRestDuration(for exercise: WorkoutExerciseModel) -> Int {
+        if let exerciseDuration = interactor.exerciseRestOverride(for: exercise.templateId), exerciseDuration > 0 {
+            return exerciseDuration
+        }
         if let exerciseType = interactor.allExercises.first(where: { $0.id == exercise.templateId })?.type,
            let typeDuration = interactor.workoutSettings.restDurationsByExerciseType[exerciseType.rawValue] {
             return typeDuration

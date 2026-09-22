@@ -26,9 +26,14 @@ struct SetTrackerRowPresenterTests {
         var workoutSettings: WorkoutSettings = WorkoutSettings(authorId: "user-1")
         var allExercises: [ExerciseModel] = []
         var preferences: [String: ExerciseUnitPreference] = [:]
+        var restOverrides: [String: Int] = [:]
 
         func getPreference(templateId: String) -> ExerciseUnitPreference {
             preferences[templateId] ?? ExerciseUnitPreference(exerciseModelId: templateId)
+        }
+
+        func exerciseRestOverride(for exerciseId: String) -> Int? {
+            restOverrides[exerciseId]
         }
     }
 
@@ -280,6 +285,82 @@ struct SetTrackerRowPresenterTests {
         let box = Box(set())
 
         screen.presenter.onSetComplete(exercise(), box.binding)
+
+        #expect(started == [45])
+    }
+
+    /// The narrowest setting wins: a rest set on this one exercise is more specific than the one
+    /// set for everything of its type, which is more specific than the global default.
+    @Test("Test The Per-Exercise Override Beats The Type Override")
+    func testThePerExerciseOverrideBeatsTheTypeOverride() {
+        let screen = makeScreen()
+        screen.interactor.allExercises = [exerciseModel(id: "template-1", type: .compoundLower)]
+        screen.interactor.workoutSettings.restDurationsByExerciseType = [ExerciseType.compoundLower.rawValue: 240]
+        screen.interactor.restOverrides = ["template-1": 150]
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+        let box = Box(set())
+
+        screen.presenter.onSetComplete(exercise(), box.binding)
+
+        #expect(started == [150])
+    }
+
+    /// No override is the state every existing user is in, and it has to leave the rest exactly
+    /// where it was — on the type override, or on the global default behind it.
+    @Test("Test No Per-Exercise Override Leaves The Rest Alone")
+    func testNoPerExerciseOverrideLeavesTheRestAlone() {
+        let screen = makeScreen()
+        screen.interactor.allExercises = [exerciseModel(id: "template-1", type: .compoundLower)]
+        screen.interactor.restOverrides = [:]
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(exercise(), Box(set()).binding)
+        #expect(started == [90])
+
+        screen.interactor.workoutSettings.restDurationsByExerciseType = [ExerciseType.compoundLower.rawValue: 240]
+        screen.presenter.onSetComplete(exercise(), Box(set(id: "set-2")).binding)
+        #expect(started == [90, 240])
+    }
+
+    /// An override belongs to one exercise, not to whatever exercise is on screen.
+    @Test("Test Another Exercises Override Does Not Apply")
+    func testAnotherExercisesOverrideDoesNotApply() {
+        let screen = makeScreen()
+        screen.interactor.restOverrides = ["template-2": 150]
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(exercise(), Box(set()).binding)
+
+        #expect(started == [90])
+    }
+
+    /// A zero-second override is a leftover from a build that stored an empty picker as a literal
+    /// zero. Resting for no time is not something the user asked for, so it falls through.
+    @Test("Test A Zero Per-Exercise Override Is Not An Override")
+    func testAZeroPerExerciseOverrideIsNotAnOverride() {
+        let screen = makeScreen()
+        screen.interactor.restOverrides = ["template-1": 0]
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(exercise(), Box(set()).binding)
+
+        #expect(started == [90])
+    }
+
+    /// A rest typed on the set itself is narrower still, and beats even the per-exercise one.
+    @Test("Test A Custom Rest Beats The Per-Exercise Override")
+    func testACustomRestBeatsThePerExerciseOverride() {
+        let screen = makeScreen()
+        screen.interactor.restOverrides = ["template-1": 150]
+        screen.presenter.updateRestBefore(setId: "set-1", seconds: 45)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(exercise(), Box(set()).binding)
 
         #expect(started == [45])
     }
