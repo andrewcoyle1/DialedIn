@@ -119,6 +119,22 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
         inTrainingProgramId: String?
     ) async throws -> WorkoutSessionModel?
 
+    /// The same lookup, several sessions deep and most recent first — what smart progression
+    /// reasons from.
+    func getLastCompletedSessionsForTemplate(
+        templateId: String,
+        authorId: String,
+        inTrainingProgramId: String?,
+        limit: Int
+    ) async throws -> [WorkoutSessionModel]
+
+    /// What smart progression suggests for each exercise of a session already under way, keyed
+    /// by the exercise's `templateId`.
+    func progressionSuggestions(
+        for session: WorkoutSessionModel,
+        gymProfile: GymProfileModel?
+    ) async -> [String: ProgressionSuggestion]
+
     // MARK: - Rest & Notifications
 
     func schedulePushNotification(delegate: PushNotificationDelegate) async throws

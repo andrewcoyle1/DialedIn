@@ -13,6 +13,8 @@ struct SetTrackerDelegate {
     var allWorkoutExercises: [WorkoutExerciseModel] = []
     var onSetSupersetGroup: @MainActor (String, String?) -> Void = { _, _ in }
     var onDeleteExercise: @MainActor () -> Void = { }
+    /// Called with the set that was just logged, so the screen can re-suggest what is left.
+    var onSetCompleted: @MainActor (WorkoutSetModel, WorkoutExerciseModel) -> Void = { _, _ in }
 }
 
 struct SetTrackerView<SetTrackerRow: View>: View {
@@ -37,7 +39,8 @@ struct SetTrackerView<SetTrackerRow: View>: View {
                         exercise: delegate.exercise,
                         set: set,
                         lastSet: lastSet,
-                        showAutoRanges: presenter.showAutoRanges
+                        showAutoRanges: presenter.showAutoRanges,
+                        onSetCompleted: delegate.onSetCompleted
                     )
                 )
                 .listRowSeparator(.visible)

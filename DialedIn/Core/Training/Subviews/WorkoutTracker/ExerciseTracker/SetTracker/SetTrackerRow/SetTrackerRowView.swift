@@ -5,6 +5,8 @@ struct SetTrackerRowDelegate {
     var set: Binding<WorkoutSetModel>
     let lastSet: WorkoutSetModel?
     var showAutoRanges: Bool = false
+    /// Called with the set that was just logged, so the screen can re-suggest what is left.
+    var onSetCompleted: @MainActor (WorkoutSetModel, WorkoutExerciseModel) -> Void = { _, _ in }
     var eventParameters: [String: Any]? {
         nil
     }
@@ -539,6 +541,7 @@ extension CoreBuilder {
             router: CoreRouter(router: router, builder: self)
         )
         presenter.onStartRest = onStartRest
+        presenter.onSetCompleted = delegate.onSetCompleted
         return SetTrackerRowView(presenter: presenter, delegate: delegate)
     }
 

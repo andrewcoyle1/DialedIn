@@ -271,14 +271,21 @@ struct CoreInteractor: GlobalInteractor {
             unitPreferences[exerciseModel.exercise.id] = preference
         }
         let previousSession = try await self.workoutSessionManager.getLastWorkoutSessionForTemplate(templateId: template.id)
-        
+        let prefill = await sessionPrefill(
+            for: template,
+            authorId: userId,
+            trainingProgramId: trainingProgramId,
+            unitPreferences: unitPreferences
+        )
+
         let session = WorkoutSessionModel(
             authorId: userId,
             template: template,
             notes: nil,
             trainingProgramId: trainingProgramId,
             previousWorkoutSession: previousSession,
-            unitPreferences: unitPreferences
+            unitPreferences: unitPreferences,
+            prefill: prefill
         )
         
         try self.updateActiveSession(session)

@@ -13,8 +13,12 @@ struct ExerciseTrackerDelegate {
     var isExpanded: Binding<Bool> = .constant(false)
     var allWorkoutExercises: [WorkoutExerciseModel] = []
     var supersetLabel: String?
+    /// The one line smart progression has to say about this exercise, if anything.
+    var progressionHint: String?
     var onSetSupersetGroup: @MainActor (String, String?) -> Void = { _, _ in }
     var onDeleteExercise: @MainActor () -> Void = { }
+    /// Called with the set that was just logged, so the screen can re-suggest what is left.
+    var onSetCompleted: @MainActor (WorkoutSetModel, WorkoutExerciseModel) -> Void = { _, _ in }
 }
 
 struct ExerciseTrackerView<SetTracker: View>: View {
@@ -31,7 +35,8 @@ struct ExerciseTrackerView<SetTracker: View>: View {
                 lastExercise: delegate.lastExercise,
                 allWorkoutExercises: delegate.allWorkoutExercises,
                 onSetSupersetGroup: delegate.onSetSupersetGroup,
-                onDeleteExercise: delegate.onDeleteExercise
+                onDeleteExercise: delegate.onDeleteExercise,
+                onSetCompleted: delegate.onSetCompleted
             )
             setTracker(setDelegate)
         } label: {
@@ -67,6 +72,13 @@ struct ExerciseTrackerView<SetTracker: View>: View {
                 Text("Set \(min(exercise.loggedSetCount + 1, exercise.workingSetCount))/\(exercise.workingSetCount)")
                     .font(.caption)
                     .foregroundColor(exercise.loggedSetCount == exercise.workingSetCount ? .green : .secondary)
+
+                if let progressionHint = delegate.progressionHint {
+                    Text(progressionHint)
+                        .font(.caption)
+                        .foregroundStyle(.blue)
+                        .lineLimit(1)
+                }
 
                 if let note = presenter.note(for: exercise) {
                     Text(note)

@@ -152,11 +152,15 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                         isExpanded: isExpanded,
                         allWorkoutExercises: presenter.workoutSession.exercises,
                         supersetLabel: supersetLabel,
+                        progressionHint: presenter.progressionHint(for: exerciseId),
                         onSetSupersetGroup: { exerciseId, groupId in
                             presenter.setSupersetGroupId(groupId, forExerciseId: exerciseId)
                         },
                         onDeleteExercise: {
                             presenter.deleteExercise(exerciseId)
+                        },
+                        onSetCompleted: { completedSet, _ in
+                            presenter.applyLiveProgression(after: completedSet, in: exerciseId)
                         }
                     )
                     exerciseTrackerView(delegate, { duration in
