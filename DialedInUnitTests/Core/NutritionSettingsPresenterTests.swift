@@ -263,6 +263,7 @@ struct NutritionSettingsExpenditureTests {
 
     private final class Interactor: SpyGlobalInteractor, ExpenditureSettingsInteractor {
         var nutritionStrategySettings = NutritionStrategySettings(authorId: "user-1")
+        var currentExpenditure = ExpenditureEstimate.stub
         private(set) var savedSettings: [NutritionStrategySettings] = []
 
         func saveNutritionStrategySettings(_ settings: NutritionStrategySettings) async throws {
@@ -360,6 +361,53 @@ struct NutritionSettingsExpenditureTests {
         #expect(screen.interactor.savedSettings.last?.calculationStartDate == nil)
         #expect(screen.presenter.calculationStartDateLabel == "Default")
         #expect(!screen.presenter.isChoosingStartDate)
+    }
+
+    // MARK: - Today's estimate
+
+    /// "2,480 kcal" on its own cannot tell a month of logging apart from a guess off the user's
+    /// height, so the line under it says which it is.
+    @Test("Test An Adaptive Estimate Says How Much Was Logged")
+    func testAnAdaptiveEstimateSaysHowMuchWasLogged() {
+        let interactor = Interactor()
+        interactor.currentExpenditure = .stub.with(kcal: 2480, source: .adaptive, loggedDays: 21, windowDays: 28)
+        let presenter = ExpenditureSettingsPresenter(interactor: interactor, router: Router())
+
+        #expect(presenter.expenditureValueText == "2480 kcal")
+        #expect(presenter.expenditureStatusText == "Adaptive \u{00B7} 21 of 28 days logged")
+    }
+
+    @Test("Test A Provisional Estimate Says It Is Still The Profile Figure")
+    func testAProvisionalEstimateSaysItIsStillTheProfileFigure() {
+        let interactor = Interactor()
+        interactor.currentExpenditure = .stub.with(source: .prior, isProvisional: true)
+        let presenter = ExpenditureSettingsPresenter(interactor: interactor, router: Router())
+
+        #expect(presenter.expenditureStatusText == "Estimated from your profile until 14 days are logged")
+    }
+
+    @Test("Test A Fixed Estimate Says Fixed")
+    func testAFixedEstimateSaysFixed() {
+        let interactor = Interactor()
+        interactor.currentExpenditure = .stub.with(source: .fixed)
+        let presenter = ExpenditureSettingsPresenter(interactor: interactor, router: Router())
+
+        #expect(presenter.expenditureStatusText == "Fixed")
+    }
+
+    /// The nowcast is an adjustment on top of the measurement, so it is named separately rather
+    /// than folded silently into the figure.
+    @Test("Test A Step Nowcast Is Called Out Separately")
+    func testAStepNowcastIsCalledOutSeparately() {
+        let interactor = Interactor()
+        interactor.currentExpenditure = .stub.with(stepAdjustmentKcal: 120)
+        let presenter = ExpenditureSettingsPresenter(interactor: interactor, router: Router())
+
+        #expect(presenter.stepAdjustmentText == "Includes +120 kcal from your recent step count")
+
+        interactor.currentExpenditure = .stub.with(stepAdjustmentKcal: 0)
+        presenter.onViewAppear()
+        #expect(presenter.stepAdjustmentText == nil)
     }
 
     /// Every option the pickers offer has to be one the model can hold, or a choice silently does

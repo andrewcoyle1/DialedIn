@@ -21,6 +21,7 @@ struct NutritionStrategyStaleSnapshotTests {
                                     StrategySettingsInteractor,
                                     ExpenditureSettingsInteractor {
         var nutritionStrategySettings = NutritionStrategySettings(authorId: "user-1")
+        var currentExpenditure = ExpenditureEstimate.stub
 
         func saveNutritionStrategySettings(_ settings: NutritionStrategySettings) async throws {
             nutritionStrategySettings = settings

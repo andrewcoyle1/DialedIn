@@ -148,7 +148,9 @@ struct ExpenditureEngine {
             return stats.estimate(day: day, kcal: prior, source: .fixed, isProvisional: false)
         }
 
-        let daysSinceFirst = Self.dayCount(from: firstDay, to: day, calendar: calendar)
+        // The count runs to the day before `day`, because `day` itself has no sample yet: the
+        // window ends yesterday, and so does the evidence.
+        let daysSinceFirst = Self.dayCount(from: firstDay, to: day, calendar: calendar) - 1
         guard stats.isSufficient(daysSinceFirstSample: daysSinceFirst),
               let balance = stats.energyBalance() else {
             return stats.estimate(day: day, kcal: running, source: .prior, isProvisional: true)

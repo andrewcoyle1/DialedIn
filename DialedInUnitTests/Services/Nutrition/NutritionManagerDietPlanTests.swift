@@ -413,6 +413,71 @@ struct NutritionManagerDietPlanTests {
         #expect(plan.createdAt <= Date())
     }
 
+    // MARK: - Supplied expenditure
+
+    /// The adaptive figure replaces the formula outright rather than being blended with it: the
+    /// engine has already blended, against a month of logs the formula cannot see.
+    @Test("Test A Supplied Expenditure Replaces The Formula Estimate")
+    func testASuppliedExpenditureReplacesTheFormulaEstimate() {
+        let plan = manager().computeDietPlan(
+            user: profile(),
+            delegate: delegate(),
+            expenditureKcal: 2200
+        )
+
+        #expect(plan.tdeeEstimate == 2200)
+        #expect(plan.days.allSatisfy { $0.calories == 2200 })
+    }
+
+    /// Every existing caller passes nothing, and has to keep getting exactly what it got before.
+    @Test("Test No Supplied Expenditure Leaves The Formula In Charge")
+    func testNoSuppliedExpenditureLeavesTheFormulaInCharge() {
+        let withoutIt = manager().computeDietPlan(user: profile(), delegate: delegate())
+        let explicitlyNil = manager().computeDietPlan(
+            user: profile(),
+            delegate: delegate(),
+            expenditureKcal: nil
+        )
+
+        #expect(withoutIt.tdeeEstimate == 2800)
+        #expect(explicitlyNil.tdeeEstimate == withoutIt.tdeeEstimate)
+    }
+
+    /// The floor still wins: an engine that has watched someone eat 900 kcal a day for a month
+    /// must not be allowed to write that down as a target.
+    @Test("Test The Calorie Floor Still Holds Against A Supplied Expenditure")
+    func testTheCalorieFloorStillHoldsAgainstASuppliedExpenditure() {
+        let plan = manager().computeDietPlan(
+            user: profile(),
+            delegate: delegate(calorieFloor: .standard),
+            expenditureKcal: 900
+        )
+
+        #expect(plan.days.allSatisfy { $0.calories >= CalorieFloor.standard.minimumValue })
+    }
+
+    /// The delegate rebuilt from a saved plan has to carry the selections back unchanged, or
+    /// accepting a proposal quietly changes the user's diet shape as well as their calories.
+    @Test("Test A Delegate Rebuilt From A Plan Keeps Every Selection")
+    func testADelegateRebuiltFromAPlanKeepsEverySelection() {
+        let original = manager().computeDietPlan(
+            user: profile(),
+            delegate: delegate(
+                preferredDiet: .keto,
+                calorieFloor: .low,
+                calorieDistribution: .varied,
+                proteinIntake: .veryHigh
+            )
+        )
+
+        let rebuilt = DietPlanDelegate(plan: original)
+
+        #expect(rebuilt.preferredDiet == .keto)
+        #expect(rebuilt.calorieFloor == .low)
+        #expect(rebuilt.calorieDistribution == .varied)
+        #expect(rebuilt.proteinIntake == .veryHigh)
+    }
+
     /// A plan computed for nobody — the settings rebuild before a profile has loaded — carries no
     /// author rather than an invented one.
     @Test("Test A Plan Built Without A Profile Has No Author")
