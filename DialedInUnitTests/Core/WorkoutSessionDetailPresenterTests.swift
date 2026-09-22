@@ -119,6 +119,25 @@ struct WorkoutSessionDetailPresenterTests {
         )
     }
 
+    /// `repsPerSide` is one of the three metrics that genuinely mean one limb at a time — see
+    /// `WorkoutSessionModel.isPerSide`.
+    private var perSideExerciseModel: ExerciseModel {
+        ExerciseModel(
+            id: "exercise-model-1",
+            authorId: "author-1",
+            name: "Single Arm Row",
+            trackableMetrics: [.repsPerSide, .weight],
+            type: .compoundUpper,
+            laterality: nil,
+            muscleGroups: [:],
+            isBodyweight: false,
+            rangeOfMotion: 1,
+            stability: 1,
+            bodyWeightContribution: 0,
+            alternateNames: []
+        )
+    }
+
     private func makeScreen(user: UserModel? = UserModel(userId: "author-1")) -> Screen {
         let interactor = Interactor()
         interactor.currentUser = user
@@ -640,6 +659,33 @@ struct WorkoutSessionDetailPresenterTests {
         #expect(workout.value.exercises.count == 2)
         #expect(workout.value.exercises.map(\.index) == [1, 2])
         #expect(screen.presenter.selectedExerciseModels.isEmpty)
+    }
+
+    /// A single-arm exercise added to a finished session has no rows yet to read a side off, so the
+    /// exercise decides. Joining as sideless rows would leave it unable to gain a side at all.
+    @Test("Test A Picked Per-Side Exercise Joins With Sided Sets")
+    func testAPickedPerSideExerciseJoinsWithSidedSets() {
+        let screen = makeScreen()
+        let workout = MutableSession(session())
+        screen.presenter.selectedExerciseModels = [
+            WorkoutTemplateExercise(exercise: perSideExerciseModel, setRestTimers: false)
+        ]
+
+        screen.presenter.addSelectedExercises(session: workout.binding)
+
+        #expect(workout.value.exercises.first?.sets.map(\.side) == [.left, .right])
+    }
+
+    /// A two-sided exercise still joins with one row per set.
+    @Test("Test A Picked Two-Sided Exercise Joins With Sideless Sets")
+    func testAPickedTwoSidedExerciseJoinsWithSidelessSets() {
+        let screen = makeScreen()
+        let workout = MutableSession(session())
+        screen.presenter.selectedExerciseModels = [WorkoutTemplateExercise(exercise: .mock, setRestTimers: false)]
+
+        screen.presenter.addSelectedExercises(session: workout.binding)
+
+        #expect(workout.value.exercises.first?.sets.allSatisfy { $0.side == nil } == true)
     }
 
     @Test("Test Adding Nothing Changes Nothing")

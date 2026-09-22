@@ -289,7 +289,16 @@ class WorkoutSessionDetailPresenter {
             let index = startIndex + offset + 1
             let mode = WorkoutSessionModel.trackingMode(for: template.exercise)
             let targetCount = max(template.setTargets.count, 1)
-            let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId, targetCount: targetCount)
+            // An exercise added to a finished session has no sets to read a side off yet, so the
+            // exercise itself decides — the same call `WorkoutSessionModel` makes when it builds a
+            // session from a template. Without it a single-arm row joins as sideless rows and can
+            // never gain a side afterwards.
+            let defaultSets = WorkoutSessionModel.defaultSets(
+                trackingMode: mode,
+                authorId: userId,
+                targetCount: targetCount,
+                perSide: WorkoutSessionModel.isPerSide(template.exercise)
+            )
             let imageName = Constants.exerciseImageName(for: template.exercise.name)
             
             let newExercise = WorkoutExerciseModel(
