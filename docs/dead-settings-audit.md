@@ -129,11 +129,11 @@ document per exercise template.
 | `showFatRing` | `FoodLogSettings` | `LoggerBannerPresenter` | `NutritionPresenter` → `MacroHeader` | live |
 | `showCarbsRing` | `FoodLogSettings` | `LoggerBannerPresenter` | `NutritionPresenter` → `MacroHeader` | live |
 
-### Time Selection — **wholly inert**
+### Time Selection
 
 | Setting | Defined in | Written by | Read by | Verdict |
 |---|---|---|---|---|
-| **`autoSetCurrentTime`** | `FoodLogSettings` | `TimeSelectionPresenter.autoSetCurrentTime` | **nothing** | `wire` — the meal logger's time field, which today always opens on the meal's existing time. This is the screen's only control, so wiring it is what makes the screen exist. |
+| `autoSetCurrentTime` | `FoodLogSettings` | `TimeSelectionPresenter.autoSetCurrentTime` | `MealHourHeaderPresenter.mealTime(for:)` | live — **wired**. A timeline row is the start of its hour, so the `+` on it filed a meal at 13:00 when tapped at 13:42. On, the exact time is used instead. Only for a row on today: "now" is not inside a past day, and presetting it there would move the meal rather than sharpen it. Default `false`, so nothing changes for an existing user. |
 
 ### Favourite Measurements — **wholly inert**
 
