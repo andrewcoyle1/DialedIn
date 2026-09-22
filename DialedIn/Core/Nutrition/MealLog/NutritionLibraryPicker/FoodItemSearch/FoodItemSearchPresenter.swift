@@ -11,6 +11,10 @@ class FoodItemSearchPresenter {
     private(set) var openFoodFactsFoods: [FoodModel] = []
     private(set) var isSearching: Bool = false
 
+    /// Set when the last search could not be run at all. Empty results and a failed request are
+    /// not the same thing, and "No results found" claims the food does not exist.
+    private(set) var searchFailed: Bool = false
+
     var searchText: String = ""
 
     private var searchTask: Task<Void, Never>?
@@ -47,6 +51,7 @@ class FoodItemSearchPresenter {
         // put the spinner away.
         isSearching = false
         let trimmed = text.trimmingCharacters(in: .whitespaces)
+        searchFailed = false
         guard !trimmed.isEmpty else {
             openFoodFactsFoods = []
             return
@@ -71,6 +76,7 @@ class FoodItemSearchPresenter {
                 guard !Task.isCancelled else { return }
                 interactor.trackEvent(event: Event.searchError(error: error))
                 openFoodFactsFoods = []
+                searchFailed = true
             }
             isSearching = false
         }

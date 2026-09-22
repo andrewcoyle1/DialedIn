@@ -231,6 +231,26 @@ struct FoodItemSearchPresenterTests {
 
         #expect(screen.presenter.openFoodFactsFoods.isEmpty)
         #expect(!screen.presenter.isSearching)
+        // Empty results and a failed request read identically without this: the screen would say
+        // "No results found", asserting the food does not exist when it was never looked for.
+        #expect(screen.presenter.searchFailed)
+    }
+
+    /// And the failure does not stick: the next search starts from a clean state, so a query that
+    /// genuinely has no results is still reported as having none.
+    @Test("Test A Later Search Clears The Failure")
+    func testALaterSearchClearsTheFailure() async {
+        let screen = makeScreen()
+        screen.interactor.error = URLError(.notConnectedToInternet)
+        screen.presenter.onSearchTextChanged("oat")
+        await TestManagers.eventually { screen.presenter.searchFailed }
+
+        screen.interactor.error = nil
+        screen.interactor.results = [food("Oat Milk")]
+        screen.presenter.onSearchTextChanged("oats")
+        await TestManagers.eventually { !screen.presenter.openFoodFactsFoods.isEmpty }
+
+        #expect(!screen.presenter.searchFailed)
     }
 
     /// Leaving cancels whatever is in flight, so a result cannot arrive against a screen that has
