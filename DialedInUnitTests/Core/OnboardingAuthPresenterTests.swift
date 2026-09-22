@@ -164,6 +164,19 @@ struct OnboardingAuthPresenterTests {
         #expect(!screen.interactor.trackedEventNames.contains("Auth_UserLogin_Start"))
     }
 
+    /// The alert tells the user; the event tells us. Without it a provider outage looks in the
+    /// numbers exactly like a screen nobody happened to use, because the only trace left of a
+    /// failed attempt is a start event with nothing after it.
+    @Test("A failed Apple sign in is recorded as a failure")
+    func testAFailedAppleSignInIsRecordedAsAFailure() async {
+        let screen = makeScreen()
+        screen.interactor.appleResult = .failure(AuthFailure())
+
+        screen.presenter.onSignInApplePressed()
+
+        #expect(await TestManagers.eventually { screen.interactor.trackedEventNames.contains("Auth_AppleAuth_Fail") })
+    }
+
     // MARK: - Signing in with Google
 
     @Test("Google sign in hands the identity to the app's login")
@@ -191,6 +204,16 @@ struct OnboardingAuthPresenterTests {
         #expect(await TestManagers.eventually { !screen.router.alertTitles.isEmpty })
         #expect(screen.router.alertTitles == ["Error Signing in with Google"])
         #expect(screen.interactor.logInCalls.isEmpty)
+    }
+
+    @Test("A failed Google sign in is recorded as a failure")
+    func testAFailedGoogleSignInIsRecordedAsAFailure() async {
+        let screen = makeScreen()
+        screen.interactor.googleResult = .failure(AuthFailure())
+
+        screen.presenter.onSignInGooglePressed()
+
+        #expect(await TestManagers.eventually { screen.interactor.trackedEventNames.contains("Auth_GoogleAuth_Fail") })
     }
 
     // MARK: - Where the user lands afterwards
@@ -263,6 +286,19 @@ struct OnboardingAuthPresenterTests {
         #expect(await TestManagers.eventually { !screen.router.alertTitles.isEmpty })
         #expect(screen.router.alertTitles == ["Error Logging In"])
         #expect(screen.router.shown.isEmpty)
+    }
+
+    /// Login failing is the more serious of the two halves — the provider already said yes, so the
+    /// user has an identity the app then failed to admit. That has to be visible in the numbers.
+    @Test("A failed login is recorded as a failure")
+    func testAFailedLoginIsRecordedAsAFailure() async {
+        let screen = makeScreen()
+        screen.interactor.logInError = URLError(.notConnectedToInternet)
+
+        screen.presenter.handleOnAuthSuccess(user: UserAuthInfo(uid: "user-1"), isNewUser: true)
+
+        #expect(await TestManagers.eventually { screen.interactor.trackedEventNames.contains("Auth_UserLogin_Fail") })
+        #expect(!screen.interactor.trackedEventNames.contains("Auth_UserLogin_Success"))
     }
 
     // MARK: - Leaving the screen

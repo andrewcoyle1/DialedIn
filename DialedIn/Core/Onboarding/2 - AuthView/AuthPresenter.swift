@@ -56,6 +56,7 @@ class AuthPresenter {
                 // Proceed immediately to signing in the user on success
                 handleOnAuthSuccess(user: userAuthInfo, isNewUser: isNewUser)
             } catch {
+                interactor.trackEvent(event: Event.appleAuthFail(error: error))
                 router.showAlert(
                     title: "Error Signing in with Apple",
                     subtitle: "Please check your internet connection and try again",
@@ -96,6 +97,7 @@ class AuthPresenter {
                 // Proceed immediately to signing in the user on success
                 handleOnAuthSuccess(user: userAuthInfo, isNewUser: isNewUser)
             } catch {
+                interactor.trackEvent(event: Event.googleAuthFail(error: error))
                 router.showAlert(
                     title: "Error Signing in with Google",
                     subtitle: "Please check your internet connection and try again",
@@ -152,6 +154,7 @@ class AuthPresenter {
                     router.switchToCoreModule()
                 }
             } catch {
+                interactor.trackEvent(event: Event.userLoginFail(error: error))
                 router.showAlert(
                     title: "Error Logging In",
                     subtitle: "Please check your internet connection and try again.",
