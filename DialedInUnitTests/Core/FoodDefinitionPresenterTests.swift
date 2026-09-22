@@ -33,6 +33,14 @@ struct FoodDefinitionPresenterTests {
 
     private final class Router: FoodDefinitionRouter {
         let router: AnyRouter = TestRouting.anyRouter
+
+        /// Bound here, on the class declaring the conformance — a subclass witness would not
+        /// replace the protocol's default implementation and the alert would escape unseen.
+        private(set) var alertTitles: [String] = []
+
+        func showAlert(error: Error) { alertTitles.append("Error") }
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { alertTitles.append(title) }
+        func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
     }
 
     /// Holds the meal items the "create and add" path appends to.
@@ -55,6 +63,7 @@ struct FoodDefinitionPresenterTests {
     private struct Screen {
         let presenter: FoodDefinitionPresenter
         let interactor: Interactor
+        let router: Router
         let box: ItemBox
         let delegate: FoodDefinitionDelegate
     }
@@ -81,9 +90,11 @@ struct FoodDefinitionPresenterTests {
             portionSize: 250,
             portionName: "glass"
         )
+        let router = Router()
         return Screen(
-            presenter: FoodDefinitionPresenter(interactor: interactor, router: Router()),
+            presenter: FoodDefinitionPresenter(interactor: interactor, router: router),
             interactor: interactor,
+            router: router,
             box: box,
             delegate: delegate
         )
@@ -271,6 +282,20 @@ struct FoodDefinitionPresenterTests {
 
         #expect(screen.interactor.savedFoods.isEmpty)
         #expect(screen.box.items.isEmpty)
+    }
+
+    /// Reported to the user, not only to analytics: the form stays open on failure, so without an
+    /// alert Create reads as a button that does nothing.
+    @Test("Test A Failed Save Is Reported To The User")
+    func testAFailedSaveIsReportedToTheUser() async {
+        let screen = makeScreen()
+        screen.presenter.energy = 250
+        screen.interactor.saveError = URLError(.notConnectedToInternet)
+
+        screen.presenter.onCreatePressed(delegate: screen.delegate)
+        await TestManagers.eventually { !screen.router.alertTitles.isEmpty }
+
+        #expect(screen.router.alertTitles == ["Unable to Create Food"])
     }
 
     /// Signed out there is nobody to attribute the food to, so nothing is written and the attempt

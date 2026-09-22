@@ -97,6 +97,12 @@ class FoodDefinitionPresenter {
                 router.dismissScreen()
             } catch {
                 interactor.trackEvent(event: Event.createFoodFail(error: error))
+                // Creating is what closes this form. Silence leaves a filled-in form and a button
+                // that appears to do nothing.
+                router.showSimpleAlert(
+                    title: "Unable to Create Food",
+                    subtitle: "Please check your internet connection and try again."
+                )
             }
         }
     }
@@ -120,6 +126,12 @@ class FoodDefinitionPresenter {
                 router.dismissScreen()
             } catch {
                 interactor.trackEvent(event: Event.createFoodFail(error: error))
+                // Creating is what closes this form. Silence leaves a filled-in form and a button
+                // that appears to do nothing.
+                router.showSimpleAlert(
+                    title: "Unable to Create Food",
+                    subtitle: "Please check your internet connection and try again."
+                )
             }
         }
     }
