@@ -24,6 +24,7 @@ struct ProfilePresenterTests {
         var currentUser: UserModel?
         var currentGoal: WeightGoal?
         var currentDietPlan: DietPlan?
+        var isPremium: Bool = false
     }
 
     private final class Router: ProfileRouter {
@@ -70,6 +71,33 @@ struct ProfilePresenterTests {
             interactor: interactor,
             router: router
         )
+    }
+
+    // MARK: - Subscription
+
+    /// Subscription management has to be reachable: the App Store expects a way to it from inside
+    /// the app, and a subscriber who cannot find one cancels through Settings instead.
+    @Test("Test The Subscription Row Opens The Paywall")
+    func testTheSubscriptionRowOpensThePaywall() {
+        let screen = makeScreen()
+
+        screen.presenter.onSubscriptionPressed()
+
+        #expect(screen.router.shown == ["paywall"])
+        #expect(screen.interactor.trackedEventNames == ["ProfileView_Subscription_Press"])
+    }
+
+    /// The status told every user they were FREE, because the only screen that showed it read a
+    /// stored property nothing assigned. It follows the entitlement now.
+    @Test("Test The Subscription Status Follows The Entitlement")
+    func testTheSubscriptionStatusFollowsTheEntitlement() {
+        let screen = makeScreen()
+
+        screen.interactor.isPremium = false
+        #expect(screen.presenter.subscriptionStatus == "FREE")
+
+        screen.interactor.isPremium = true
+        #expect(screen.presenter.subscriptionStatus == "PREMIUM")
     }
 
     // MARK: - Nutrition Plan

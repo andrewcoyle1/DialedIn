@@ -70,7 +70,17 @@ class ProfilePresenter {
         router.showNotificationsView()
     }
     
+    /// What the user is paying for, shown on the Subscription row.
+    ///
+    /// The only place the app stated this was SettingsView, on a screen nothing navigates to, and
+    /// there it read from a stored property nothing ever assigned — so it said FREE to everyone,
+    /// premium subscribers included. It reads the entitlement directly here.
+    var subscriptionStatus: String {
+        interactor.isPremium ? "PREMIUM" : "FREE"
+    }
+
     func onSubscriptionPressed() {
+        interactor.trackEvent(eventName: "ProfileView_Subscription_Press", parameters: nil, type: .analytic)
         router.showPaywall()
     }
 
