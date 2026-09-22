@@ -514,6 +514,19 @@ struct TrainingProgramManagementPresenterTests {
         #expect(screen.presenter.nonActiveTrainingPrograms.map(\.id) == ["ppl", "ul"])
     }
 
+    /// The `onAppear`/`onDisappear` cases were declared with the screen but it had no hooks to
+    /// send them, so this was the one screen absent from screen views entirely.
+    @Test("Test The Screen Reports Itself As A Screen View")
+    func testTheScreenReportsItselfAsAScreenView() {
+        let screen = makeScreen()
+
+        screen.presenter.onViewAppear()
+        screen.presenter.onViewDisappear()
+
+        #expect(screen.interactor.trackedScreenEventNames == ["TrainingProgramLibraryView_Appear"])
+        #expect(screen.interactor.trackedEventNames == ["TrainingProgramLibraryView_Disappear"])
+    }
+
     @Test("Test Deleting A Program Removes It And Is Reported")
     func testDeletingAProgramRemovesItAndIsReported() async {
         let screen = makeScreen()

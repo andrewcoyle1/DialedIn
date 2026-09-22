@@ -33,6 +33,16 @@ class TrainingProgramLibraryPresenter {
         self.router = router
     }
     
+    /// The `onAppear`/`onDisappear` cases were declared here from the start but the screen had no
+    /// hooks to send them, so the program library was the one screen missing from screen views.
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func showDeleteAlert(program: TrainingProgram) {
         router.showAlert(
             title: "Delete Program",

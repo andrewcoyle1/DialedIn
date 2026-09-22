@@ -31,6 +31,12 @@ struct TrainingProgramLibraryView<ProgramDisclosure: View, InactiveSection: View
         .toolbar {
             toolbarContent
         }
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     private func activeTrainingProgramSection(activeTrainingProgram: TrainingProgram) -> some View {

@@ -53,6 +53,7 @@ class AppPresenter {
             
             do {
                 try await interactor.logIn(user: user, isNewUser: false)
+                interactor.trackEvent(event: Event.existingAuthSuccess)
             } catch {
                 interactor.trackEvent(event: Event.existingAuthFail(error: error))
                 try? await Task.sleep(for: .seconds(5))

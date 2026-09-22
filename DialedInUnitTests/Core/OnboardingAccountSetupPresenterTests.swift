@@ -243,6 +243,17 @@ struct OnboardingNamePhotoPresenterTests {
         #expect(screen.interactor.trackedEventNames.contains("NamePhoto_Save_Fail"))
     }
 
+    /// Every other outcome of the photo picker is logged; the picker handing back nothing was the
+    /// one that returned in silence, so the photo funnel counted fewer attempts than were made.
+    @Test("The picker handing back nothing is recorded")
+    func testThePickerHandingBackNothingIsRecorded() async {
+        let screen = makeScreen()
+
+        await screen.presenter.handlePhotoSelection()
+
+        #expect(screen.interactor.trackedEventNames == ["NamePhoto_PhotoNotSelected"])
+    }
+
     /// A chosen photo is uploaded before the name, so an upload that fails has to surface rather
     /// than quietly dropping the photo and carrying on as though it had worked.
     @Test("A photo that fails to upload stops the flow instead of being dropped")
@@ -288,15 +299,16 @@ struct OnboardingNamePhotoPresenterTests {
         #expect(screen.interactor.uploadedImageCount == 0)
     }
 
-    /// Nothing picked means nothing to load — and in particular nothing logged as though a photo
-    /// had been chosen.
-    @Test("An empty photo selection loads nothing and logs nothing")
+    /// Nothing picked means nothing to load, and in particular nothing logged as though a photo
+    /// *had* been chosen — `NamePhoto_PhotoNotSelected` is the opposite claim to
+    /// `NamePhoto_PhotoSelected`, not a weaker version of it.
+    @Test("An empty photo selection loads nothing")
     func testNoPhotoSelectionLoadsNothing() async {
         let screen = makeScreen()
 
         await screen.presenter.handlePhotoSelection()
 
-        #expect(screen.interactor.trackedEventNames.isEmpty)
+        #expect(!screen.interactor.trackedEventNames.contains("NamePhoto_PhotoSelected"))
         #expect(screen.presenter.selectedImageData == nil)
     }
 }
