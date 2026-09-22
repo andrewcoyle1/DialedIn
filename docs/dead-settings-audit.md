@@ -175,7 +175,7 @@ document `nutrition_strategy_settings`. Two screens write it.
 | Setting | Defined in | Written by | Read by | Verdict |
 |---|---|---|---|---|
 | `bmrEquation` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.bmrEquation` | `NutritionManager` (BMR calculation) | live |
-| **`estimationMethod`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.estimationMethod` | **nothing** | `wire` — `NutritionManager`'s BMR call, which already branches on `bmrEquation` and is where a body-fat-aware estimate would pick Katch-McArdle inputs. |
+| `estimationMethod` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.estimationMethod` | `NutritionStrategySettings.resolvedBMREquation(bodyFatPercentage:)` → `CoreInteractor.estimateTDEE(user:)` | live — **wired**, as the audit guessed. `.bodyFatAware` runs Katch-McArdle, the one equation in the app that reads body fat, when a usable percentage is logged. `.standard`, the default, leaves `bmrEquation` alone. |
 | **`calculationStartDate`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationStartDate` | **nothing** | `decide` — expenditure is a single static figure; there is no window for a start date to bound. |
 | **`calculationMode`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationMode` | **nothing** | `decide` — the model's own comment says an adaptive engine is unwritten work. Dynamic vs fixed has nothing to switch between. |
 | **`algorithmVersion`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.algorithmVersion` | **nothing** | `remove` — one case, `v1`, so the control cannot change anything even once an engine exists. |

@@ -351,10 +351,11 @@ extension CoreInteractor {
 
     // Estimation
     func estimateTDEE(user: UserModel?) -> Double {
-        nutritionManager.estimateTDEE(
+        let bodyFatPercentage = latestBodyFatPercentage
+        return nutritionManager.estimateTDEE(
             user: user,
-            equation: nutritionStrategySettings.bmrEquation,
-            bodyFatPercentage: latestBodyFatPercentage
+            equation: nutritionStrategySettings.resolvedBMREquation(bodyFatPercentage: bodyFatPercentage),
+            bodyFatPercentage: bodyFatPercentage
         )
     }
 
