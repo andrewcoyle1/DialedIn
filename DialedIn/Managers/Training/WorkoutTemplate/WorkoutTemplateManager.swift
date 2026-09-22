@@ -63,9 +63,20 @@ class WorkoutTemplateManager {
 
     func seedWorkoutTemplatesIfNeeded(exercises: [ExerciseModel]) throws {
         guard !hasSeeded || seedingVersion < Self.currentSeedingVersion else { return }
+
+        // Prebuilt workouts are resolved against the exercise library, and loadPrebuiltWorkouts
+        // compactMaps away any workout whose exercises are missing. With no exercises every
+        // workout drops, so carrying on here would delete the templates the user already has,
+        // seed nothing in their place, and still mark the library as seeded — leaving them
+        // permanently without prebuilt workouts and no retry. Exercises seed before workouts,
+        // but a caller that gets that ordering wrong should lose nothing.
+        guard !exercises.isEmpty else { return }
+
+        let workouts = try loadPrebuiltWorkouts(exercises: exercises)
+        guard !workouts.isEmpty else { return }
+
         // Always clear before inserting — prevents accumulation from past version bumps
         try deleteExistingSystemWorkoutTemplates()
-        let workouts = try loadPrebuiltWorkouts(exercises: exercises)
         try seedWorkouts(workouts)
         userDefaults.set(true, forKey: Self.hasSeededKey)
         userDefaults.set(Self.currentSeedingVersion, forKey: Self.seedingVersionKey)
