@@ -341,6 +341,92 @@ struct ExpenditureEngineTests {
         #expect(last.loggedDays == 27)
     }
 
+    // MARK: - Excluded, fasting and broken-off days
+
+    /// Rebuilds `samples` with `isExcluded` set on the days `shouldExclude` picks out.
+    private func excluding(_ samples: [DailySample], where shouldExclude: (Int) -> Bool) -> [DailySample] {
+        samples.enumerated().map { index, sample in
+            DailySample(
+                day: sample.day,
+                intakeKcal: sample.intakeKcal,
+                weightKg: sample.weightKg,
+                steps: sample.steps,
+                isExcluded: shouldExclude(index)
+            )
+        }
+    }
+
+    /// A partially logged day is evidence we do not have, so its intake is not read at all —
+    /// however wild the figure on it happens to be.
+    @Test("Test Excluded Days With Wild Intake Do Not Move The Estimate")
+    func testExcludedDaysWithWildIntakeDoNotMoveTheEstimate() throws {
+        let base = days(60, intake: { index in index >= 50 ? 6000 : 2400 }, weight: { _ in 80 })
+        let excluded = excluding(base) { $0 >= 50 }
+
+        let last = try #require(history(excluded).last)
+
+        #expect(last.source == .adaptive)
+        #expect(abs(last.kcal - 2400) < 15)
+        // The same data without the exclusions is what the guard is saving the estimate from.
+        let unguarded = try #require(history(base).last)
+        #expect(unguarded.kcal > last.kcal + 100)
+    }
+
+    /// The scale did not stop being true because the food log did: an excluded day is unlogged
+    /// for the mean, and still a weigh-in for the trend.
+    @Test("Test An Excluded Day Still Counts As A Weigh In")
+    func testAnExcludedDayStillCountsAsAWeighIn() throws {
+        let excluded = excluding(maintenanceDays(60)) { $0 >= 53 }
+
+        let last = try #require(history(excluded).last)
+
+        #expect(last.loggedDays == 21)
+        #expect(last.weighInCount == 28)
+        #expect(last.trendWeightKg != nil)
+    }
+
+    /// A fasting day is evidence we do have. It is a logged zero, not an absence, so it pulls the
+    /// mean down rather than being imputed at the mean it is supposed to lower.
+    @Test("Test Fasting Days Pull The Mean Down")
+    func testFastingDaysPullTheMeanDown() throws {
+        let fasted = days(60, intake: { index in index >= 53 ? 0 : 2400 }, weight: { _ in 80 })
+
+        let last = try #require(history(fasted).last)
+
+        #expect(last.source == .adaptive)
+        #expect(last.loggedDays == 28)
+        #expect(last.kcal < 2350)
+        // And it is the zeros doing it, not the days going missing.
+        let unlogged = days(60, intake: { index in index >= 53 ? nil : 2400 }, weight: { _ in 80 })
+        let imputed = try #require(history(unlogged).last)
+        #expect(imputed.kcal > last.kcal)
+    }
+
+    /// A week-long break on top of a half-logged fortnight takes the window under the
+    /// logged-fraction guard, and the estimate goes back to carrying the prior forward.
+    @Test("Test A Week Long Break Can Make The Window Insufficient")
+    func testAWeekLongBreakCanMakeTheWindowInsufficient() throws {
+        let halfLogged = days(60, intake: { index in index >= 45 ? 2400 : nil }, weight: { _ in 80 })
+
+        // Fifteen logged days out of twenty-eight clears the guard on its own.
+        let before = try #require(history(halfLogged).last)
+        #expect(before.loggedDays == 15)
+        #expect(before.isProvisional == false)
+
+        let withBreak = excluding(halfLogged) { $0 >= 53 }
+        let after = try #require(history(withBreak).last)
+
+        #expect(after.loggedDays == 8)
+        #expect(after.isProvisional == true)
+        #expect(after.source == .prior)
+    }
+
+    /// The flag defaults to false, so every sample built without it reads exactly as before.
+    @Test("Test Exclusion Defaults To Off")
+    func testExclusionDefaultsToOff() {
+        #expect(DailySample(day: today).isExcluded == false)
+    }
+
     // MARK: - current(...)
 
     @Test("Test Current Is The Last Day Of The History")

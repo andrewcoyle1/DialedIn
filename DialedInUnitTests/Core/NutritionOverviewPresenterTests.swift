@@ -65,6 +65,17 @@ struct NutritionOverviewPresenterTests {
             dismissCount += 1
             targetProposal = nil
         }
+
+        var checkInState: CheckInState = .notDue
+        /// Set to make the skip fail, which is the case the card has to survive.
+        var skipError: Error?
+        private(set) var skippedWeekStarts: [Date] = []
+
+        func markCheckInSkipped(weekStart: Date) async throws {
+            if let skipError { throw skipError }
+            skippedWeekStarts.append(weekStart)
+            checkInState = .notDue
+        }
     }
 
     private final class Router: NutritionOverviewRouter {
@@ -76,6 +87,12 @@ struct NutritionOverviewPresenterTests {
 
         func showAlert(error: Error) {
             shownErrors.append(error)
+        }
+
+        private(set) var shownCheckIns: [CheckInDelegate] = []
+
+        func showCheckInView(delegate: CheckInDelegate) {
+            shownCheckIns.append(delegate)
         }
     }
 
@@ -462,6 +479,78 @@ struct NutritionOverviewPresenterTests {
         #expect(screen.interactor.trackedEventNames.contains("NutritionOverviewView_Proposal_Dismiss"))
     }
 
+    // MARK: - Weekly check-in card
+
+    private static let weekStart = Date(timeIntervalSince1970: 1_758_412_800)
+
+    private func dueScreen() -> Screen {
+        let screen = makeScreen(totals: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+        screen.interactor.checkInState = .due(weekStart: Self.weekStart)
+        return screen
+    }
+
+    /// The check-in card takes the proposal card's place: the proposal is the check-in's last
+    /// step, and two cards offering the same decision is how a considered change becomes a
+    /// stray tap.
+    @Test("Test A Due Check In Replaces The Proposal Card")
+    func testADueCheckInReplacesTheProposalCard() {
+        let screen = dueScreen()
+        screen.interactor.targetProposal = proposal()
+
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        #expect(screen.presenter.dueCheckInWeekStart == Self.weekStart)
+        #expect(screen.presenter.proposal != nil)
+    }
+
+    /// Outside a check-in there is no card and the proposal keeps its place.
+    @Test("Test No Card When No Check In Is Due")
+    func testNoCardWhenNoCheckInIsDue() {
+        let screen = makeScreen(totals: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        #expect(screen.presenter.dueCheckInWeekStart == nil)
+    }
+
+    /// Starting opens the sheet on the week the card was offering.
+    @Test("Test Start Opens The Check In On That Week")
+    func testStartOpensTheCheckInOnThatWeek() {
+        let screen = dueScreen()
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        screen.presenter.onStartCheckInPressed()
+
+        #expect(screen.router.shownCheckIns.map(\.weekStart) == [Self.weekStart])
+        #expect(screen.interactor.trackedEventNames.contains("NutritionOverviewView_CheckIn_Start"))
+    }
+
+    /// Skipping records the week and takes the card away.
+    @Test("Test Skip Records The Week And Clears The Card")
+    func testSkipRecordsTheWeekAndClearsTheCard() async {
+        let screen = dueScreen()
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        screen.presenter.onSkipCheckInPressed()
+
+        #expect(screen.presenter.dueCheckInWeekStart == nil)
+        #expect(await TestManagers.eventually { screen.interactor.skippedWeekStarts == [Self.weekStart] })
+        #expect(screen.interactor.trackedEventNames.contains("NutritionOverviewView_CheckIn_Skip"))
+    }
+
+    /// A skip that does not land puts the card back, next to the alert — a card that vanished
+    /// anyway would look exactly like a week that had been dealt with.
+    @Test("Test A Failed Skip Puts The Card Back")
+    func testAFailedSkipPutsTheCardBack() async {
+        let screen = dueScreen()
+        screen.interactor.skipError = URLError(.notConnectedToInternet)
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        screen.presenter.onSkipCheckInPressed()
+
+        #expect(await TestManagers.eventually { screen.presenter.dueCheckInWeekStart == Self.weekStart })
+        #expect(screen.router.shownErrors.count == 1)
+    }
 }
 
 /// The detail behind one logged meal.
