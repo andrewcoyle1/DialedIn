@@ -53,6 +53,11 @@ func onDevSettingsPressed() {
 
         guard canContinue else { return }
 
+        // The screen already refuses to treat whitespace as a name, so it must not store the
+        // whitespace around one either — an untrimmed " Ada " is what every later greeting reads.
+        let trimmedFirstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+
         router.showLoadingModal()
         interactor.trackEvent(event: Event.namePhotoSaveStart)
 
@@ -66,12 +71,12 @@ func onDevSettingsPressed() {
                 if let uiImage = selectedImageData.flatMap({ UIImage(data: $0) }) {
                     try await interactor.updateProfileImageUrl(image: uiImage)
                 }
-                try await interactor.updateUserName(firstName: firstName, lastName: lastName)
+                try await interactor.updateUserName(firstName: trimmedFirstName, lastName: trimmedLastName)
 #elseif canImport(AppKit)
                 if let nsImage = selectedImageData.flatMap({ NSImage(data: $0) }) {
                     try await interactor.updateProfileImageUrl(image: nsImage)
                 }
-                try await interactor.updateUserName(firstName: firstName, lastName: lastName)
+                try await interactor.updateUserName(firstName: trimmedFirstName, lastName: trimmedLastName)
 #endif
                 
                 interactor.trackEvent(event: Event.namePhotoSaveSuccess)
