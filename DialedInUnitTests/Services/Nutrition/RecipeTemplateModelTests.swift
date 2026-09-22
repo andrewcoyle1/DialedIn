@@ -196,6 +196,57 @@ struct RecipeTemplateModelTests {
         #expect(recipe.portionNameCalculated == "serving")
     }
 
+    // MARK: - Stored bad data
+
+    /// Round trips one ingredient through a store that, like Firestore, hands non-finite doubles
+    /// back verbatim — plain `JSONEncoder`/`JSONDecoder` refuse them and the hole would never be
+    /// reached.
+    private func roundTripLeniently(_ ingredient: RecipeIngredientModel) throws -> RecipeIngredientModel {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        encoder.nonConformingFloatEncodingStrategy = .convertToString(
+            positiveInfinity: "inf", negativeInfinity: "-inf", nan: "nan"
+        )
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        decoder.nonConformingFloatDecodingStrategy = .convertFromString(
+            positiveInfinity: "inf", negativeInfinity: "-inf", nan: "nan"
+        )
+
+        return try decoder.decode(RecipeIngredientModel.self, from: encoder.encode(ingredient))
+    }
+
+    /// `RecipeDetailView` and `RecipeStartView` both print the amount through `Int(_:)` while
+    /// drawing, which traps on a NaN, and a recipe saved before the entry fields were sanitised can
+    /// carry one.
+    @Test("Test A Stored Non Finite Ingredient Amount Reads As Zero")
+    func testAStoredNonFiniteIngredientAmountReadsAsZero() throws {
+        let nan = try roundTripLeniently(RecipeIngredientModel(ingredient: food(), amount: .nan, unit: .grams))
+        let infinite = try roundTripLeniently(RecipeIngredientModel(ingredient: food(), amount: .infinity, unit: .grams))
+
+        #expect(nan.amount == 0)
+        #expect(infinite.amount == 0)
+    }
+
+    /// `Int(_:)` traps on anything that will not fit, not only on the non-finite, so the top is
+    /// closed too.
+    @Test("Test A Stored Ingredient Amount Too Large To Print Is Capped")
+    func testAStoredIngredientAmountTooLargeToPrintIsCapped() throws {
+        let absurd = try roundTripLeniently(RecipeIngredientModel(ingredient: food(), amount: 1e30, unit: .grams))
+
+        #expect(absurd.amount == 1_000_000)
+    }
+
+    @Test("Test An Ordinary Ingredient Amount Is Unchanged")
+    func testAnOrdinaryIngredientAmountIsUnchanged() throws {
+        let ordinary = try roundTripLeniently(RecipeIngredientModel(ingredient: food(), amount: 47.5, unit: .grams))
+
+        #expect(ordinary.amount == 47.5)
+        #expect(ordinary.unit == .grams)
+        #expect(ordinary.ingredient.name == "Rolled Oats")
+    }
+
     @Test("Test A Recipe Round Trips")
     func testARecipeRoundTrips() throws {
         let original = recipe(
