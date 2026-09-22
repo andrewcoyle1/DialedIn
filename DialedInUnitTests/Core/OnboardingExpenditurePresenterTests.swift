@@ -18,8 +18,19 @@ import SwiftUI
 
 /// A fixed date of birth, so age is stable between runs and is never today's date.
 @MainActor
+/// A birth date the given number of whole years ago, anchored to midday.
+///
+/// It has to be relative to now, because the presenter measures age against `Date()` itself. But
+/// taken straight off `Date()` the result inherits the current time of day, and a daylight-saving
+/// shift in the target year can then move it back across a day boundary — which makes the age
+/// come out one lower and fails an exact-arithmetic assertion at random. Midday is far enough
+/// from either boundary that no such shift can reach it.
 private func expenditureBirthDate(yearsAgo: Int) -> Date {
-    Calendar.current.date(byAdding: .year, value: -yearsAgo, to: Date()) ?? Date()
+    let calendar = Calendar.current
+    let midday = calendar.date(
+        bySettingHour: 12, minute: 0, second: 0, of: Date()
+    ) ?? Date()
+    return calendar.date(byAdding: .year, value: -yearsAgo, to: midday) ?? midday
 }
 
 /// The delegate the expenditure screen receives, built field by field rather than by walking the
