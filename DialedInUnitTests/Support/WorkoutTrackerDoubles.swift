@@ -80,8 +80,22 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     func updateLiveActivity(params: LiveActivityUpdateParams) { }
     func discardLiveActivity() async { }
 
-    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
-        lastCompletedSession
+    /// Records the program filter the presenter asked for, and honours it against
+    /// `completedSessions` when that is set — so a test can assert both the request and the result.
+    private(set) var lastCompletedSessionLookups: [String?] = []
+    var completedSessions: [WorkoutSessionModel]?
+
+    func getLastCompletedSessionForTemplate(
+        templateId: String,
+        authorId: String,
+        inTrainingProgramId: String?
+    ) async throws -> WorkoutSessionModel? {
+        lastCompletedSessionLookups.append(inTrainingProgramId)
+        guard let completedSessions else { return lastCompletedSession }
+        return completedSessions
+            .filter { $0.workoutTemplateId == templateId }
+            .filter { inTrainingProgramId == nil || $0.trainingProgramId == inTrainingProgramId }
+            .max { ($0.endedAt ?? .distantPast) < ($1.endedAt ?? .distantPast) }
     }
 
     func schedulePushNotification(delegate: PushNotificationDelegate) async throws { }

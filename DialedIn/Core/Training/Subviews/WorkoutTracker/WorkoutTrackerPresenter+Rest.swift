@@ -26,6 +26,18 @@ extension WorkoutTrackerPresenter {
 
     // MARK: - Previous Values
 
+    /// The program the "previous" figures may come from, or `nil` for any workout at all.
+    ///
+    /// `.workoutsInProgram` means "the same program as this workout", so a session logged outside
+    /// a program has no program to be within and keeps the unrestricted lookup — otherwise the
+    /// setting would silently blank the previous column for every one-off workout.
+    private var previousWorkoutReferenceProgramId: String? {
+        switch interactor.workoutSettings.previousWorkoutReference {
+        case .anyWorkout:        return nil
+        case .workoutsInProgram: return workoutSession.trainingProgramId
+        }
+    }
+
     func loadPreviousWorkoutSession() {
         // Only load previous session if this workout is from a template
         guard let templateId = workoutSession.workoutTemplateId,
@@ -38,7 +50,8 @@ extension WorkoutTrackerPresenter {
             do {
                 previousWorkoutSession = try await interactor.getLastCompletedSessionForTemplate(
                     templateId: templateId,
-                    authorId: authorId
+                    authorId: authorId,
+                    inTrainingProgramId: previousWorkoutReferenceProgramId
                 )
             } catch {
                 previousWorkoutSession = nil

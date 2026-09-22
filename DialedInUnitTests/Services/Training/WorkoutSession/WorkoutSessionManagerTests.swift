@@ -22,6 +22,7 @@ struct WorkoutSessionManagerTests {
     private func session(
         id: String,
         templateId: String? = nil,
+        programId: String? = nil,
         daysAgo: Int = 0,
         ended: Bool = true
     ) -> WorkoutSessionModel {
@@ -31,6 +32,7 @@ struct WorkoutSessionManagerTests {
             authorId: "author-1",
             name: "Push Day",
             workoutTemplateId: templateId,
+            trainingProgramId: programId,
             dateCreated: date,
             endedAt: ended ? date.addingTimeInterval(3600) : nil,
             exercises: []
@@ -91,6 +93,46 @@ struct WorkoutSessionManagerTests {
         let manager = await TestManagers.signedInWorkoutSessionManager(sessions: history)
 
         #expect(try await manager.getLastWorkoutSessionForTemplate(templateId: "legs") == nil)
+    }
+
+    /// The same lookup, narrowed to one program. Passing no program searches everything, which is
+    /// what every caller did before `previousWorkoutReference` was honoured.
+    @Test("Test The Last Session Can Be Narrowed To One Program")
+    func testTheLastSessionCanBeNarrowedToOneProgram() async throws {
+        let manager = await TestManagers.signedInWorkoutSessionManager(sessions: [
+            session(id: "in-program", templateId: "push", programId: "program-1", daysAgo: 10),
+            session(id: "freehand", templateId: "push", daysAgo: 1)
+        ])
+
+        let unrestricted = try await manager.getLastCompletedSessionForTemplate(
+            templateId: "push",
+            authorId: "author-1"
+        )
+        #expect(unrestricted?.id == "freehand")
+
+        let narrowed = try await manager.getLastCompletedSessionForTemplate(
+            templateId: "push",
+            authorId: "author-1",
+            inTrainingProgramId: "program-1"
+        )
+        #expect(narrowed?.id == "in-program")
+    }
+
+    /// A program with nothing logged in it yet has no previous session, rather than borrowing one
+    /// from outside it.
+    @Test("Test A Program With No History Has No Last Session")
+    func testAProgramWithNoHistoryHasNoLastSession() async throws {
+        let manager = await TestManagers.signedInWorkoutSessionManager(sessions: [
+            session(id: "freehand", templateId: "push", daysAgo: 1)
+        ])
+
+        let narrowed = try await manager.getLastCompletedSessionForTemplate(
+            templateId: "push",
+            authorId: "author-1",
+            inTrainingProgramId: "program-1"
+        )
+
+        #expect(narrowed == nil)
     }
 
     // MARK: - Writing

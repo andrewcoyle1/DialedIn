@@ -112,9 +112,11 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     // MARK: - Workout History
 
     /// Lookup the last completed session for a given template and author, if present.
+    /// `inTrainingProgramId` narrows the search to that one program; `nil` searches every session.
     func getLastCompletedSessionForTemplate(
         templateId: String,
-        authorId: String
+        authorId: String,
+        inTrainingProgramId: String?
     ) async throws -> WorkoutSessionModel?
 
     // MARK: - Rest & Notifications

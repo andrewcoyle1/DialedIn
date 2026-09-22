@@ -78,14 +78,38 @@ struct WorkoutTrackerRestFeedbackTests {
         )
     }
 
-    private func session(exercises: [WorkoutExerciseModel], templateId: String? = nil) -> WorkoutSessionModel {
+    private func session(
+        exercises: [WorkoutExerciseModel],
+        templateId: String? = nil,
+        programId: String? = nil
+    ) -> WorkoutSessionModel {
         WorkoutSessionModel(
             id: "session-1",
             authorId: "author-1",
             name: "Push Day",
             workoutTemplateId: templateId,
+            trainingProgramId: programId,
             dateCreated: start,
             exercises: exercises
+        )
+    }
+
+    /// A finished session the previous-values lookup can find.
+    private func completed(
+        id: String,
+        templateId: String,
+        programId: String?,
+        endedAt: Date
+    ) -> WorkoutSessionModel {
+        WorkoutSessionModel(
+            id: id,
+            authorId: "author-1",
+            name: "Push Day",
+            workoutTemplateId: templateId,
+            trainingProgramId: programId,
+            dateCreated: start,
+            endedAt: endedAt,
+            exercises: []
         )
     }
 
@@ -94,10 +118,11 @@ struct WorkoutTrackerRestFeedbackTests {
     private func makeScreen(
         exercises: [WorkoutExerciseModel],
         settings: (inout WorkoutSettings) -> Void = { _ in },
-        templateId: String? = nil
+        templateId: String? = nil,
+        programId: String? = nil
     ) throws -> Screen {
         let interactor = WorkoutTrackerInteractorDouble()
-        interactor.activeSession = session(exercises: exercises, templateId: templateId)
+        interactor.activeSession = session(exercises: exercises, templateId: templateId, programId: programId)
         settings(&interactor.workoutSettings)
         let router = WorkoutTrackerRouterDouble()
         return Screen(
@@ -134,6 +159,71 @@ struct WorkoutTrackerRestFeedbackTests {
         await settle()
 
         #expect(screen.presenter.previousWorkoutSession != nil)
+    }
+
+    /// The default. Nothing is filtered, so the previous column shows the last time this workout
+    /// was done however it was reached — which is what every user has today.
+    @Test("Test Any-Workout Reference Searches Every Session")
+    func testAnyWorkoutReferenceSearchesEverySession() async throws {
+        let screen = try makeScreen(
+            exercises: [exercise(id: "e1", index: 1, sets: [set(1)])],
+            templateId: "template-1",
+            programId: "program-1"
+        )
+        #expect(screen.interactor.workoutSettings.previousWorkoutReference == .anyWorkout)
+        screen.interactor.completedSessions = [
+            completed(id: "old-in-program", templateId: "template-1", programId: "program-1", endedAt: start),
+            completed(id: "recent-freehand", templateId: "template-1", programId: nil, endedAt: start.addingTimeInterval(60))
+        ]
+
+        screen.presenter.loadPreviousWorkoutSession()
+        await settle()
+
+        #expect(screen.interactor.lastCompletedSessionLookups == [nil])
+        #expect(screen.presenter.previousWorkoutSession?.id == "recent-freehand")
+    }
+
+    /// Turned on, the same lookup skips the more recent session logged outside the program and
+    /// reaches back to the last one done within it.
+    @Test("Test In-Program Reference Skips Sessions From Outside The Program")
+    func testInProgramReferenceSkipsSessionsFromOutsideTheProgram() async throws {
+        let screen = try makeScreen(
+            exercises: [exercise(id: "e1", index: 1, sets: [set(1)])],
+            settings: { $0.previousWorkoutReference = .workoutsInProgram },
+            templateId: "template-1",
+            programId: "program-1"
+        )
+        screen.interactor.completedSessions = [
+            completed(id: "old-in-program", templateId: "template-1", programId: "program-1", endedAt: start),
+            completed(id: "recent-freehand", templateId: "template-1", programId: nil, endedAt: start.addingTimeInterval(60)),
+            completed(id: "other-program", templateId: "template-1", programId: "program-2", endedAt: start.addingTimeInterval(120))
+        ]
+
+        screen.presenter.loadPreviousWorkoutSession()
+        await settle()
+
+        #expect(screen.interactor.lastCompletedSessionLookups == ["program-1"])
+        #expect(screen.presenter.previousWorkoutSession?.id == "old-in-program")
+    }
+
+    /// A one-off workout is in no program, so there is no program for it to be "within". Filtering
+    /// on nothing would blank the previous column instead of narrowing it.
+    @Test("Test In-Program Reference Does Not Filter A Workout Outside Any Program")
+    func testInProgramReferenceDoesNotFilterAWorkoutOutsideAnyProgram() async throws {
+        let screen = try makeScreen(
+            exercises: [exercise(id: "e1", index: 1, sets: [set(1)])],
+            settings: { $0.previousWorkoutReference = .workoutsInProgram },
+            templateId: "template-1"
+        )
+        screen.interactor.completedSessions = [
+            completed(id: "in-program", templateId: "template-1", programId: "program-1", endedAt: start)
+        ]
+
+        screen.presenter.loadPreviousWorkoutSession()
+        await settle()
+
+        #expect(screen.interactor.lastCompletedSessionLookups == [nil])
+        #expect(screen.presenter.previousWorkoutSession?.id == "in-program")
     }
 
     // MARK: - Announcing the end of a rest
