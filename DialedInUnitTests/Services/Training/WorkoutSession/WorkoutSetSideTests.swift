@@ -348,15 +348,96 @@ struct WorkoutSetSideTests {
 
     @Test("Test A Side Survives A Round Trip")
     func testASideSurvivesARoundTrip() throws {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .millisecondsSince1970
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .millisecondsSince1970
-
-        let data = try encoder.encode(set(index: 1, side: .right))
-        let decoded = try decoder.decode(WorkoutSetModel.self, from: data)
+        let data = try Self.encoder.encode(set(index: 1, side: .right))
+        let decoded = try Self.decoder.decode(WorkoutSetModel.self, from: data)
 
         #expect(decoded.side == .right)
+    }
+
+    /// Both sides go out under the key they came in under, so a set written by this build is still
+    /// readable by every build that came before it.
+    @Test("Test Both Sides Round Trip Under The Stored Key")
+    func testBothSidesRoundTripUnderTheStoredKey() throws {
+        for side in SetSide.allCases {
+            let data = try Self.encoder.encode(set(index: 1, side: side))
+            let stored = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+            #expect(stored["side"] as? String == side.rawValue)
+            #expect(try Self.decoder.decode(WorkoutSetModel.self, from: data).side == side)
+        }
+    }
+
+    /// A side this build does not know — written by a later one, or corrupted — must read as no
+    /// side rather than throwing. The set is stored as its raw string precisely so the enum never
+    /// gets to veto the decode.
+    @Test("Test An Unrecognised Stored Side Decodes As Sideless")
+    func testAnUnrecognisedStoredSideDecodesAsSideless() throws {
+        let data = try JSONSerialization.data(withJSONObject: Self.storedSet(side: "both"))
+
+        let decoded = try Self.decoder.decode(WorkoutSetModel.self, from: data)
+
+        #expect(decoded.side == nil)
+        #expect(decoded.reps == 8)
+    }
+
+    /// The reason any of this matters: sets are nested inside the session, so a throw on one
+    /// field would take the entire logged workout down with it. One unreadable side costs that
+    /// side and nothing else.
+    @Test("Test A Session Survives A Set With An Unreadable Side")
+    func testASessionSurvivesASetWithAnUnreadableSide() throws {
+        let session = WorkoutSessionModel(
+            id: "session-1",
+            authorId: "author-1",
+            name: "Pull",
+            dateCreated: date,
+            exercises: [exercise(sets: [set(index: 1, side: .left), set(index: 2, side: .right)])]
+        )
+        var raw = try #require(
+            try JSONSerialization.jsonObject(with: Self.encoder.encode(session)) as? [String: Any]
+        )
+        var exercises = try #require(raw["exercises"] as? [[String: Any]])
+        var sets = try #require(exercises[0]["sets"] as? [[String: Any]])
+        sets[0]["side"] = "both"
+        exercises[0]["sets"] = sets
+        raw["exercises"] = exercises
+
+        let decoded = try Self.decoder.decode(
+            WorkoutSessionModel.self,
+            from: try JSONSerialization.data(withJSONObject: raw)
+        )
+
+        let decodedSets = try #require(decoded.exercises.first?.sets)
+        #expect(decodedSets.count == 2)
+        #expect(decodedSets.map(\.side) == [nil, .right])
+        #expect(decodedSets.map(\.reps) == [10, 10])
+    }
+
+    // MARK: - Coding helpers
+
+    private static var encoder: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        return encoder
+    }
+
+    private static var decoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        return decoder
+    }
+
+    private static func storedSet(side: String?) -> [String: Any] {
+        var json: [String: Any] = [
+            "id": "set-1",
+            "author_id": "author-1",
+            "index": 1,
+            "reps": 8,
+            "weight_kg": 60,
+            "isWarmup": false,
+            "date_created": 1_000_000_000
+        ]
+        json["side"] = side
+        return json
     }
 
     /// A side written by some later build is not worth failing a decode over — a set whose side

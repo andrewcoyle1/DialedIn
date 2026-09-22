@@ -16,9 +16,18 @@ struct WorkoutSetModel: Identifiable, Codable, Hashable {
     var durationSec: Int?
     var distanceMeters: Double?
     var rpe: Double?
+    /// Stored as the raw string rather than the enum so an unrecognised side — written by a later
+    /// build, or corrupted — decodes as `nil` instead of throwing and taking the whole
+    /// `WorkoutSessionModel` down with it. One unreadable field must not cost a logged session.
+    private var sideRawValue: String?
+
     /// Which limb this set was worked with, for exercises done one side at a time. `nil` for every
     /// two-sided exercise, and for every set logged before sides existed.
-    var side: SetSide?
+    var side: SetSide? {
+        get { SetSide(storedValue: sideRawValue) }
+        set { sideRawValue = newValue?.rawValue }
+    }
+
     var isWarmup: Bool
     var completedAt: Date?
     var dateCreated: Date
@@ -45,7 +54,7 @@ struct WorkoutSetModel: Identifiable, Codable, Hashable {
         self.durationSec = durationSec
         self.distanceMeters = distanceMeters
         self.rpe = rpe
-        self.side = side
+        self.sideRawValue = side?.rawValue
         self.isWarmup = isWarmup
         self.completedAt = completedAt
         self.dateCreated = dateCreated
@@ -60,7 +69,7 @@ struct WorkoutSetModel: Identifiable, Codable, Hashable {
         case durationSec = "duration_sec"
         case distanceMeters = "distance_meters"
         case rpe
-        case side
+        case sideRawValue = "side"
         case isWarmup
         case completedAt = "completed_at"
         case dateCreated = "date_created"
