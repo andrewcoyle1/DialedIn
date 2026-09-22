@@ -232,6 +232,17 @@ struct AnalyticsNutritionOverviewTests {
         #expect(screen.presenter.formatBreakdown(0, unit: "mg") == "--")
     }
 
+    /// An amount of 100 or more is printed through `Int(_:)`, which traps on an infinity — and a
+    /// meal logged before the amount screens sanitised what was typed can still hold one.
+    @Test("Test A Micronutrient That Is Not A Number Reads As Missing")
+    func testAMicronutrientThatIsNotANumberReadsAsMissing() {
+        let screen = makeScreen()
+
+        #expect(screen.presenter.formatBreakdown(.nan, unit: "mg") == "--")
+        #expect(screen.presenter.formatBreakdown(.infinity, unit: "mg") == "--")
+        #expect(screen.presenter.formatBreakdown(-.infinity, unit: "mg") == "--")
+    }
+
     /// Small amounts keep a decimal, large ones do not — a 0.7mg of B6 rounded to 1 is a 40%
     /// overstatement, while 2,400mg of sodium gains nothing from ".0".
     @Test("Test Small Amounts Keep A Decimal")

@@ -77,20 +77,13 @@ class ExpenditurePresenter {
         return min(120, max(14, years))
     }
 
-    /// Holds a user-supplied number inside a range the arithmetic can survive.
-    ///
-    /// `bmrInt`, `tdeeInt` and `breakdownItems` are all read from the view body, so their `Int(_:)`
-    /// conversions run while drawing — and `Int(_:)` traps on a value that is not finite or that
-    /// overflows. A one-sided `max(_:_:)` is not enough to prevent that: it propagates NaN rather
-    /// than filtering it, and it leaves the top open. Anything that is not a number is treated as
-    /// missing and falls back to `lower`.
-    private func clamped(_ value: Double, from lower: Double, through upper: Double) -> Double {
-        guard value.isFinite else { return lower }
-        return min(max(value, lower), upper)
-    }
-
-    private func weightKg(weight: Double) -> Double { clamped(weight, from: 30, through: 500) }
-    private func heightCm(height: Double) -> Double { clamped(height, from: 120, through: 260) }
+    // `bmrInt`, `tdeeInt` and `breakdownItems` are all read from the view body, so their `Int(_:)`
+    // conversions run while drawing — and `Int(_:)` traps on a value that is not finite or that
+    // overflows. A one-sided `max(_:_:)` is not enough to prevent that; `Double.clamped(to:
+    // whenNotFinite:)` says why. Anything unusable falls back to the bottom of the range, which is
+    // where a missing figure already sat.
+    private func weightKg(weight: Double) -> Double { weight.clamped(to: 30...500, whenNotFinite: 30) }
+    private func heightCm(height: Double) -> Double { height.clamped(to: 120...260, whenNotFinite: 120) }
     private func mifflinGenderCoefficient(gender: Gender) -> Double { (gender == .male) ? 5 : -161 }
     
     private func bmr(weight: Double, height: Double, dateOfBirth: Date, gender: Gender) -> Double { (10 * weightKg(weight: weight)) + (6.25 * heightCm(height: height)) - (5 * Double(ageYears(dateOfBirth: dateOfBirth))) + mifflinGenderCoefficient(gender: gender) }

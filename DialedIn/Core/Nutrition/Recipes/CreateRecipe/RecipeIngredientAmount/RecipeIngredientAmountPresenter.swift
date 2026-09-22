@@ -8,8 +8,11 @@ class RecipeIngredientAmountPresenter {
 
     var amountText: String = "100"
 
-    var amountValue: Double { Double(amountText) ?? 0 }
-    var scale: Double { max(amountValue, 0) / 100.0 }
+    /// How much of the food goes into the recipe. Sanitised for the reason given on
+    /// `IngredientAmountPresenter.amountValue`: this screen prints `calories * scale` through
+    /// `Int(_:)` from the view body, and the amount is stored on the recipe besides.
+    var amountValue: Double { .enteredAmount(amountText) }
+    var scale: Double { amountValue / 100.0 }
 
     init(interactor: RecipeIngredientAmountInteractor, router: RecipeIngredientAmountRouter) {
         self.interactor = interactor

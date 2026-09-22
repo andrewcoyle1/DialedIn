@@ -132,33 +132,19 @@ class NutritionManager {
 
     // MARK: - Profile figures
 
-    /// Holds a stored body figure inside a range the arithmetic can survive.
-    ///
-    /// Weight and height arrive as plain `Double`s off a Firestore document, so a corrupt or
-    /// half-written profile can carry a NaN or an infinity. A one-sided `max(value, floor)` does
-    /// not filter either: `max` is `y >= x ? y : x` and every comparison against NaN is false, so
-    /// the NaN is returned rather than the floor, and an infinity is above the floor to begin with.
-    /// From `computeDietPlan` those flow straight into the protein grams and macro splits, which
-    /// `DietPlanView` prints through `Int(_:)` — and `Int(_:)` traps on anything not finite. This
-    /// is the same shape as the crashes already fixed on the goal summary and expenditure screens.
-    ///
-    /// Anything that is not a usable number is treated as missing and falls back to `fallback`.
-    private static func clamped(
-        _ value: Double?,
-        fallback: Double,
-        from lower: Double,
-        through upper: Double
-    ) -> Double {
-        guard let value, value.isFinite else { return fallback }
-        return min(max(value, lower), upper)
-    }
+    // Weight and height arrive as plain `Double`s off a Firestore document, so a corrupt or
+    // half-written profile can carry a NaN or an infinity. From `computeDietPlan` those flow
+    // straight into the protein grams and macro splits, which `DietPlanView` prints through
+    // `Int(_:)` — and `Int(_:)` traps on anything not finite. A one-sided `max(value, floor)`
+    // catches neither; `Double.clamped(to:whenNotFinite:)` says why. A figure that is not usable
+    // falls back to the same default a missing one already used.
 
     private static func clampedWeightKilograms(_ weight: Double?) -> Double {
-        clamped(weight, fallback: 70, from: 30, through: 500)
+        (weight ?? 70).clamped(to: 30...500, whenNotFinite: 70)
     }
 
     private static func clampedHeightCentimeters(_ height: Double?) -> Double {
-        clamped(height, fallback: 175, from: 120, through: 260)
+        (height ?? 175).clamped(to: 120...260, whenNotFinite: 175)
     }
 
     private func calculateProteinGrams(user: UserModel?, proteinIntake: ProteinIntake) -> Double {

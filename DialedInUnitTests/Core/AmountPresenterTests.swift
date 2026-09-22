@@ -259,6 +259,26 @@ struct MealItemAmountPresenterTests {
 
     // MARK: - Adding a food
 
+    /// `Double("nan")` and `Double("inf")` both parse, so a text field is a few letters away from
+    /// a figure that is not a number — and this screen writes both the amount and the nutrients
+    /// scaled from it straight onto the meal item, where the meal-log rows later print them
+    /// through `Int(_:)`. There was no floor here at all to be fooled by NaN; the parse simply
+    /// took whatever came back.
+    @Test("Test An Amount That Is Not A Number Confirms Finite Figures")
+    func testAnAmountThatIsNotANumberConfirmsFiniteFigures() {
+        for typed in ["nan", "inf", "-inf", "1e400"] {
+            let screen = makeScreen(mode: .addFood(food()))
+            screen.presenter.amountText = typed
+
+            #expect(screen.presenter.calories.isFinite, "\(typed) should not survive as an amount")
+
+            screen.presenter.onConfirmPressed(delegate: screen.delegate)
+
+            #expect(screen.box.item?.amount.isFinite == true)
+            #expect(screen.box.item?.nutrients.allSatisfy { $0.value.isFinite } == true)
+        }
+    }
+
     /// Per-100g figures against a typed amount: 200g of a 380/100g food is 760.
     @Test("Test Adding Scales From Per 100g")
     func testAddingScalesFromPer100g() {
@@ -565,5 +585,68 @@ struct IngredientAmountPresenterTests {
         presenter.amountText = "50"
 
         #expect(presenter.calories(food: food()) == 190)
+    }
+
+    // MARK: - Amounts that are not numbers
+
+    /// The unparseable text that does parse. `Double("nan")`, `Double("inf")` and `Double("-inf")`
+    /// all succeed, and `Double("1e400")` overflows to infinity, so a text field is a few letters
+    /// away from a value that is not a number. The `max(amountValue, 0)` that used to floor
+    /// `scale` caught none of them: `max` is `y >= x ? y : x`, every comparison against NaN is
+    /// false so the NaN came back instead of the floor, and an infinity was above the floor
+    /// already. Both screens then print `calories * scale` through `Int(_:)` from the view body,
+    /// which traps rather than showing a wrong number.
+    @Test("Test An Ingredient Amount That Is Not A Number Scales To Nothing")
+    func testAnIngredientAmountThatIsNotANumberScalesToNothing() {
+        for typed in ["nan", "NaN", "inf", "-inf", "infinity", "1e400"] {
+            let presenter = ingredientPresenter()
+            presenter.amountText = typed
+
+            #expect(presenter.scale == 0, "\(typed) should not survive as an amount")
+            #expect(presenter.calories(ingredient: food()) == 0)
+        }
+    }
+
+    @Test("Test A Recipe Ingredient Amount That Is Not A Number Scales To Nothing")
+    func testARecipeIngredientAmountThatIsNotANumberScalesToNothing() {
+        for typed in ["nan", "inf", "-inf", "1e400"] {
+            let presenter = recipePresenter()
+            presenter.amountText = typed
+
+            #expect(presenter.scale == 0, "\(typed) should not survive as an amount")
+            #expect(presenter.calories(food: food()) == 0)
+        }
+    }
+
+    /// What is stored matters as much as what is drawn: the amount goes onto the recipe, and a
+    /// non-finite one would come back out of the document at every later read.
+    @Test("Test A Recipe Ingredient Is Stored With A Finite Amount")
+    func testARecipeIngredientIsStoredWithAFiniteAmount() {
+        for typed in ["nan", "inf", "1e400"] {
+            let presenter = recipePresenter()
+            presenter.amountText = typed
+            let box = ItemBox()
+            let delegate = RecipeIngredientAmountDelegate(food: food(), onConfirm: { box.ingredient = $0 })
+
+            presenter.confirm(delegate: delegate)
+
+            #expect(box.ingredient?.amount.isFinite == true)
+        }
+    }
+
+    /// The same for the plate: a NaN calorie figure logged here is printed through `Int(_:)` by
+    /// the meal-log rows long after the screen that made it has gone.
+    @Test("Test An Ingredient Is Logged With Finite Nutrients")
+    func testAnIngredientIsLoggedWithFiniteNutrients() {
+        for typed in ["nan", "inf", "1e400"] {
+            let presenter = ingredientPresenter()
+            presenter.amountText = typed
+            let box = ItemBox()
+
+            presenter.add(ingredient: food()) { box.item = $0 }
+
+            #expect(box.item?.amount.isFinite == true)
+            #expect(box.item?.nutrients.allSatisfy { $0.value.isFinite } == true)
+        }
     }
 }

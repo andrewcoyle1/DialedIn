@@ -15,7 +15,13 @@ class RecipeAmountPresenter {
 
     var servingsText: String = "1"
 
-    var servings: Double { max(Double(servingsText) ?? 0, 0) }
+    /// How many servings were eaten.
+    ///
+    /// `servingsText` is a text field, so `"nan"` and `"inf"` are three and three letters away.
+    /// The `max(parsed, 0)` this used to be filtered neither — see `Double.enteredAmount` — and
+    /// from here the figure multiplies into every nutrient logged for the meal, which the meal-log
+    /// rows print through `Int(_:)` and which is written to the meal document besides.
+    var servings: Double { .enteredAmount(servingsText) }
 
     init(
         interactor: RecipeAmountInteractor,
