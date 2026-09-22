@@ -21,10 +21,6 @@ class CustomisingDietProgramPresenter {
         self.router = router
     }
     
-    func navigateToTrainingExperience() {
-        interactor.trackEvent(event: Event.navigate)
-    }
-    
     func navigateToPreferredDiet() {
         interactor.trackEvent(event: Event.navigate)
         router.showPreferredDietView()

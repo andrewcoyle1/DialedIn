@@ -27,7 +27,7 @@ xcodebuild test -project DialedIn.xcodeproj -scheme 'DialedIn - Development' \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
-The tests compile and pass (735 tests). Treat a `TEST FAILED` as a regression from your
+The tests compile and pass (2,216 tests). Treat a `TEST FAILED` as a regression from your
 change.
 
 `-only-testing:DialedInTests` is rejected — the unit-test target's productName is `DialedInTests`
@@ -75,8 +75,8 @@ SwiftLint config (`.swiftlint.yml`): line limit 300, type body 500 lines, file l
 Copy example files and fill in credentials. All three destinations are gitignored, and the app
 will not build or sign in without them:
 
-- `DialedIn/Utilities/Keys.swift.example` → `DialedIn/Utilities/Keys.swift` — 27 constants:
-  OpenAI, Mixpanel, RevenueCat, the two Strava values, and 22 `*ManagerKey` strings used as
+- `DialedIn/Utilities/Keys.swift.example` → `DialedIn/Utilities/Keys.swift` — 30 constants:
+  OpenAI, Mixpanel, RevenueCat, the two Strava values, and 25 `*ManagerKey` strings used as
   local-persistence path names. The manager keys are arbitrary but must stay stable: changing
   one orphans data already persisted under the old name.
 - `DialedIn/Info.plist.example` → `DialedIn/Info.plist` — already contains the real reversed
@@ -198,7 +198,7 @@ packages directly:
 | `Managers/Routing/SwiftfulRouting+Alias.swift` | `AnyRouter`, `RouterView`, `ResizableSheetConfig` |
 | `Managers/DataManagers/SwiftfulDataManagers+Alias.swift` | `CollectionSyncEngine`, `DocumentSyncEngine`, `DataSyncModelProtocol`, the persistence types |
 | `Managers/Gamification/SwiftfulGamification+Alias.swift` | `StreakManager`, `ProgressManager`, `ExperiencePointsManager` |
-| `Managers/Haptics`, `SoundEffects`, `Utilities` | `HapticManager`, `SoundEffectManager`, `Utilities` |
+| `Managers/Haptics`, `Managers/SoundEffects`, `Utilities/SwiftfulUtilities+Alias.swift` | `HapticManager`, `SoundEffectManager`, `Utilities` |
 | `Components/Views/Charts/QuickCharts+Alias.swift` | `TimeSeries`, `TimeSeriesDatapoint`, `ChartScreen`, `LineChart`, `BarChart`, `StackedBarChart`, `ComboChart`, `ChartConfiguration`, `ContributionChart` and its pieces (`ContributionGrid`, `ContributionGridView`, `ContributionLegend`, `ContributionStyle`, `ContributionLayout`, `ContributionCell`) (from `andrewcoyle1/QuickCharts`) |
 
 So when a symbol like `AuthManager` or `CollectionSyncEngine` cannot be found in this
@@ -330,11 +330,16 @@ under `functions/` have no effect until deployed.
 ## Code Health Baseline
 
 As of the latest commit on `development`, all three schemes build with **zero warnings** and
-`swiftlint` reports **zero violations** across 1,201 files. Treat any new warning as something to
+`swiftlint` reports **zero violations** across 1,252 files. Treat any new warning as something to
 fix rather than accumulate.
 
-Two deliberate suppressions exist, each documented at the site:
+Two file-wide suppressions exist, each documented at the site:
 - `Dependencies.swift` disables `type_body_length`/`file_length` — it is one long DI root whose
   switch arms bind ~32 locals that a shared registration block consumes.
-- `StravaManager.swift` scopes an iOS 26 deprecation on `presentationAnchor(for:)`, because every
-  spelling of a scene-less `UIWindow` is deprecated and Swift has no per-call suppression.
+- `StravaManager.swift` scopes an iOS 26 deprecation on `presentationAnchor(for:)` with
+  `@available(iOS, deprecated: 26.0)` — not a SwiftLint rule — because every spelling of a
+  scene-less `UIWindow` is deprecated and Swift has no per-call suppression.
+
+Six single-line `swiftlint:disable:next` comments also exist, in `Dependencies.swift`,
+`DevPreview.swift`, `CoreInteractor.swift`, `WorkoutSessionModel.swift`, `PushManager.swift` and
+`NutritionOverviewPresenter.swift`, each for `function_body_length` or `large_tuple`.
