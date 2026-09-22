@@ -13,7 +13,11 @@ class ABTestManager {
     
     private let service: ABTestService
     private let logger: LogManager?
-    
+
+    /// Set once a dev-tools override has been applied, so the fetch `init` started cannot land
+    /// afterwards and quietly reset it. The override is the more recent intent of the two.
+    private var hasOverridden = false
+
     var activeTests: ActiveABTests
     
     init(service: ABTestService, logger: LogManager? = nil) {
@@ -26,8 +30,14 @@ class ABTestManager {
     private func configure() {
         Task {
             do {
-                activeTests = try await service.fetchUpdatedConfig()
+                let fetched = try await service.fetchUpdatedConfig()
                 logger?.trackEvent(event: Event.fetchRemoteConfigSuccess)
+
+                // An override applied while this was in flight wins: it is both newer and the
+                // only one of the two the user asked for.
+                guard !hasOverridden else { return }
+
+                activeTests = fetched
                 logger?.addUserProperties(dict: activeTests.eventParameters, isHighPriority: false)
             } catch {
                 logger?.trackEvent(event: Event.fetchRemoteConfigFail(error: error))
@@ -39,7 +49,15 @@ class ABTestManager {
     
     func override(updatedTests: ActiveABTests) throws {
         try service.saveUpdatedConfig(updatedTests: updatedTests)
-        configure()
+        hasOverridden = true
+
+        // Deliberately not `configure()`. That fires a fresh remote fetch whose result is assigned
+        // to `activeTests` when it lands, silently rolling the override back — Remote Config never
+        // accepts a client save, so the fetch returns the server's values, not the override. Two
+        // overrides in quick succession would also leave two racing tasks deciding the final value
+        // by completion order.
+        activeTests = service.activeTests
+        logger?.addUserProperties(dict: activeTests.eventParameters, isHighPriority: false)
     }
     
     enum Event: LoggableEvent {

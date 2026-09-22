@@ -109,6 +109,43 @@ enum TestManagers {
         GymProfileManager(gymProfileSyncEngine: collectionEngine(profiles, key: "gym-profiles"))
     }
 
+    /// A gym profile manager already listening, so `gymProfiles` holds `profiles`.
+    static func signedInGymProfileManager(profiles: [GymProfileModel] = []) async -> GymProfileManager {
+        let manager = gymProfileManager(profiles: profiles)
+        await manager.signIn()
+        await eventually { manager.gymProfiles.count == profiles.count }
+        return manager
+    }
+
+    static func goalManager(goal: WeightGoal? = nil) -> GoalManager {
+        GoalManager(userGoalSyncEngine: documentEngine(goal, key: "user-goal"))
+    }
+
+    /// A goal manager already listening on `userId`, so `currentGoal` holds `goal`.
+    ///
+    /// `WeightGoal.id` is the user id, so the id listened to and the goal's own id have to be the
+    /// same string — otherwise every status change resolves to a document that is not there.
+    static func signedInGoalManager(
+        goal: WeightGoal?,
+        userId: String = "user-1"
+    ) async throws -> GoalManager {
+        let manager = goalManager(goal: goal)
+        try await manager.signIn(userId: userId)
+        if goal != nil {
+            await eventually { manager.currentGoal != nil }
+        }
+        return manager
+    }
+
+    /// Passing `comments: nil` leaves the mock service on `WorkoutSessionComment.mocks`, which sits
+    /// on `session-1`; every other session then reads as empty.
+    static func commentsManager(
+        comments: [WorkoutSessionComment]? = nil,
+        showError: Bool = false
+    ) -> CommentsManager {
+        CommentsManager(service: MockCommentsService(comments: comments, showError: showError))
+    }
+
     static func workoutSessionManager(
         sessions: [WorkoutSessionModel] = [],
         following: [WorkoutSessionModel] = []
@@ -314,5 +351,32 @@ extension TestManagers {
         NutritionStrategySettingsManager(
             settingsSyncEngine: documentEngine(stored, key: "nutrition-strategy-settings")
         )
+    }
+
+    static func nutritionManager(plan: DietPlan? = nil) -> NutritionManager {
+        NutritionManager(dietPlanSyncEngine: documentEngine(plan, key: "diet-plan"))
+    }
+
+    /// A nutrition manager already listening, so `currentDietPlan` holds `plan`.
+    ///
+    /// The document id is the plan's own id, which is what `deleteDietPlan` later resolves against
+    /// — the engine deletes whatever id it was told to listen to. Signing in under an unrelated id
+    /// leaves a delete pointing at a document that is not there.
+    static func signedInNutritionManager(plan: DietPlan?) async throws -> NutritionManager {
+        let manager = nutritionManager(plan: plan)
+        try await manager.signIn(dietPlanId: plan?.id ?? "diet-plan-1")
+        if plan != nil {
+            // Named here rather than left to whichever assertion reads `currentDietPlan` next, so
+            // a listener that never emitted does not look like a wrong plan.
+            let listening = await eventually { manager.currentDietPlan != nil }
+            if !listening {
+                Issue.record("The diet plan sync engine never emitted, so the manager has no plan.")
+            }
+        }
+        return manager
+    }
+
+    static func pushManager(logManager: LogManager? = nil) -> PushManager {
+        PushManager(logManager: logManager)
     }
 }
