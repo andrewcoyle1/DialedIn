@@ -37,7 +37,7 @@ struct ShortcutSettingsManagerTests {
     func testSigningInExposesTheChosenActionsInOrder() async throws {
         let manager = TestManagers.shortcutSettingsManager(stored: storedSettings)
 
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
 
         #expect(await TestManagers.eventually { manager.shortcutSettings.quickActions.count == 2 })
         #expect(manager.shortcutSettings.quickActions == [.browseRecipes, .logMeal])
@@ -47,7 +47,7 @@ struct ShortcutSettingsManagerTests {
     func testANewUserGetsTheDefaultActions() async throws {
         let manager = TestManagers.shortcutSettingsManager(stored: nil)
 
-        try await manager.signIn(userId: "user-2")
+        try await manager.signIn(userId: "user-2", isNewUser: true)
 
         #expect(manager.shortcutSettings.authorId == "user-2")
         #expect(manager.shortcutSettings.quickActionIds == nil)
@@ -57,7 +57,7 @@ struct ShortcutSettingsManagerTests {
     @Test("Test Signing Out Returns To The Default Actions")
     func testSigningOutReturnsToTheDefaultActions() async throws {
         let manager = TestManagers.shortcutSettingsManager(stored: storedSettings)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
         #expect(await TestManagers.eventually { manager.shortcutSettings.quickActions.count == 2 })
 
         manager.signOut()
@@ -70,7 +70,7 @@ struct ShortcutSettingsManagerTests {
     @Test("Test A Reordered List Is Saved In That Order")
     func testAReorderedListIsSavedInThatOrder() async throws {
         let manager = TestManagers.shortcutSettingsManager(stored: nil)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: true)
 
         var settings = manager.shortcutSettings
         settings.setQuickActions([.logWeight, .startWorkout, .browseExercises])
@@ -85,7 +85,7 @@ struct ShortcutSettingsManagerTests {
     @Test("Test An Empty Chosen List Stays Empty")
     func testAnEmptyChosenListStaysEmpty() async throws {
         let manager = TestManagers.shortcutSettingsManager(stored: nil)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: true)
 
         var settings = manager.shortcutSettings
         settings.setQuickActions([])
@@ -103,7 +103,7 @@ struct ShortcutSettingsManagerTests {
         stored.quickActionIds = ["log_meal", "retired_action", "log_weight"]
         let manager = TestManagers.shortcutSettingsManager(stored: stored)
 
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
 
         #expect(await TestManagers.eventually { manager.shortcutSettings.quickActions.count == 2 })
         #expect(manager.shortcutSettings.quickActions == [.logMeal, .logWeight])
@@ -116,7 +116,7 @@ struct ShortcutSettingsManagerTests {
         var stored = ShortcutSettings(authorId: "user-1")
         stored.setQuickActions(QuickAction.defaultActions)
         let manager = TestManagers.shortcutSettingsManager(stored: stored)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
         #expect(await TestManagers.eventually { manager.shortcutSettings.quickActionIds != nil })
 
         let staleCopy = manager.shortcutSettings

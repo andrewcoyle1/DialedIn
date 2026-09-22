@@ -22,21 +22,17 @@ class ShortcutSettingsManager {
 
     // MARK: - Public Methods
 
-    func signIn(userId: String) async throws {
+    /// `isNewUser` — not a fetch-and-check — is what decides whether a default document gets
+    /// created, matching `UserManager.signIn(auth:isNewUser:)`. See `FoodLogSettingsManager.signIn`
+    /// for why: `startListening` does not wait for its listener's first emission, so reading
+    /// `currentDocument` right after it returns races the listener, and `RemoteDocumentService`
+    /// gives no way to catch "not found" separately from any other fetch failure.
+    func signIn(userId: String, isNewUser: Bool) async throws {
         self.userId = userId
-        try await settingsSyncEngine.startListening(documentId: "shortcut_settings")
-
-        // `startListening` does not wait for its listener's first emission, so `currentDocument`
-        // is not a reliable answer to "does this user already have a document" immediately after
-        // it returns — reading it here raced the listener and could overwrite an existing
-        // document (a curated shortcut order included) with a blank one. `getDocumentAsync`
-        // performs a real fetch when nothing is cached yet, so it reflects what is actually
-        // stored.
-        do {
-            _ = try await settingsSyncEngine.getDocumentAsync()
-        } catch {
+        if isNewUser {
             try await settingsSyncEngine.saveDocument(ShortcutSettings(authorId: userId))
         }
+        try await settingsSyncEngine.startListening(documentId: "shortcut_settings")
     }
 
     func signOut() {

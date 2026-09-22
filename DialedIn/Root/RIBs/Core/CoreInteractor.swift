@@ -115,10 +115,12 @@ struct CoreInteractor: GlobalInteractor {
     func logIn(user: UserAuthInfo, isNewUser: Bool) async throws {
         try await userManager.signIn(auth: user, isNewUser: isNewUser)
         async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: user.uid)
-        async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: user.uid)
-        async let nutritionStrategySignIn: () = nutritionStrategySettingsManager.signIn(userId: user.uid)
-        async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: user.uid)
-        async let shortcutSettingsSignIn: () = shortcutSettingsManager.signIn(userId: user.uid)
+        async let foodLogSettingsSignIn: () = foodLogSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
+        async let nutritionStrategySignIn: () = nutritionStrategySettingsManager.signIn(
+            userId: user.uid, isNewUser: isNewUser
+        )
+        async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
+        async let shortcutSettingsSignIn: () = shortcutSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
         async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: user.uid)
         async let stepsSignIn: () = stepsManager.signIn()
         async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()

@@ -34,7 +34,7 @@ struct AnalyticsSettingsManagerTests {
     func testSigningInExposesTheHiddenSections() async throws {
         let manager = TestManagers.analyticsSettingsManager(stored: storedSettings)
 
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
 
         #expect(await TestManagers.eventually { manager.analyticsSettings.hiddenSectionIds.count == 2 })
         #expect(manager.analyticsSettings.isVisible(.habits) == false)
@@ -45,7 +45,7 @@ struct AnalyticsSettingsManagerTests {
     func testANewUserHidesNothing() async throws {
         let manager = TestManagers.analyticsSettingsManager(stored: nil)
 
-        try await manager.signIn(userId: "user-2")
+        try await manager.signIn(userId: "user-2", isNewUser: true)
 
         #expect(manager.analyticsSettings.authorId == "user-2")
         #expect(manager.analyticsSettings.hiddenSectionIds.isEmpty)
@@ -54,7 +54,7 @@ struct AnalyticsSettingsManagerTests {
     @Test("Test Signing Out Returns To Everything Visible")
     func testSigningOutReturnsToEverythingVisible() async throws {
         let manager = TestManagers.analyticsSettingsManager(stored: storedSettings)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
         #expect(await TestManagers.eventually { manager.analyticsSettings.hiddenSectionIds.count == 2 })
 
         manager.signOut()
@@ -67,7 +67,7 @@ struct AnalyticsSettingsManagerTests {
     @Test("Test Hiding A Section Is Saved")
     func testHidingASectionIsSaved() async throws {
         let manager = TestManagers.analyticsSettingsManager(stored: nil)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: true)
 
         var settings = manager.analyticsSettings
         settings.setVisible(false, for: .muscleGroups)
@@ -80,7 +80,7 @@ struct AnalyticsSettingsManagerTests {
     @Test("Test Showing A Hidden Section Again Is Saved")
     func testShowingAHiddenSectionAgainIsSaved() async throws {
         let manager = TestManagers.analyticsSettingsManager(stored: storedSettings)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
         #expect(await TestManagers.eventually { manager.analyticsSettings.isVisible(.habits) == false })
 
         var settings = manager.analyticsSettings
@@ -98,7 +98,7 @@ struct AnalyticsSettingsManagerTests {
         let stored = AnalyticsSettings(authorId: "user-1", hiddenSectionIds: ["retired_section"])
         let manager = TestManagers.analyticsSettingsManager(stored: stored)
 
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
 
         #expect(await TestManagers.eventually { manager.analyticsSettings.hiddenSectionIds == ["retired_section"] })
         #expect(AnalyticsSection.allCases.allSatisfy { manager.analyticsSettings.isVisible($0) })
@@ -111,7 +111,7 @@ struct AnalyticsSettingsManagerTests {
         // fallback document the manager serves before the listener emits.
         let stored = AnalyticsSettings(authorId: "user-1", hiddenSectionIds: ["body_metrics"])
         let manager = TestManagers.analyticsSettingsManager(stored: stored)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
         #expect(await TestManagers.eventually { manager.analyticsSettings.isVisible(.bodyMetrics) == false })
 
         let staleCopy = manager.analyticsSettings

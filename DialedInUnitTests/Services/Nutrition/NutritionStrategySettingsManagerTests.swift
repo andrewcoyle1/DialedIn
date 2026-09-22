@@ -43,7 +43,7 @@ struct NutritionStrategySettingsManagerTests {
     func testSigningInExposesTheStoredStrategy() async throws {
         let manager = TestManagers.nutritionStrategySettingsManager(stored: storedSettings)
 
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
 
         #expect(await TestManagers.eventually { manager.nutritionStrategySettings.checkInWeekday == 6 })
         #expect(manager.nutritionStrategySettings.bmrEquation == .harrisBenedict)
@@ -56,7 +56,7 @@ struct NutritionStrategySettingsManagerTests {
     func testANewUserReadsTheDefaultStrategyUnderTheirOwnId() async throws {
         let manager = TestManagers.nutritionStrategySettingsManager(stored: nil)
 
-        try await manager.signIn(userId: "user-2")
+        try await manager.signIn(userId: "user-2", isNewUser: true)
 
         #expect(manager.nutritionStrategySettings.authorId == "user-2")
         #expect(manager.nutritionStrategySettings.bmrEquation == .mifflinStJeor)
@@ -65,7 +65,7 @@ struct NutritionStrategySettingsManagerTests {
     @Test("Test Signing Out Returns To The Default Strategy")
     func testSigningOutReturnsToTheDefaultStrategy() async throws {
         let manager = TestManagers.nutritionStrategySettingsManager(stored: storedSettings)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
         #expect(await TestManagers.eventually { manager.nutritionStrategySettings.checkInWeekday == 6 })
 
         manager.signOut()
@@ -79,7 +79,7 @@ struct NutritionStrategySettingsManagerTests {
     @Test("Test A Chosen BMR Equation Is Saved")
     func testAChosenBMREquationIsSaved() async throws {
         let manager = TestManagers.nutritionStrategySettingsManager(stored: nil)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: true)
 
         var settings = manager.nutritionStrategySettings
         settings.bmrEquation = .katchMcArdle
@@ -93,7 +93,7 @@ struct NutritionStrategySettingsManagerTests {
     @Test("Test A Calculation Start Date Survives A Round Trip")
     func testACalculationStartDateSurvivesARoundTrip() async throws {
         let manager = TestManagers.nutritionStrategySettingsManager(stored: nil)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: true)
         let startDate = Date(timeIntervalSince1970: 1_750_000_000)
 
         var settings = manager.nutritionStrategySettings
@@ -106,7 +106,7 @@ struct NutritionStrategySettingsManagerTests {
     @Test("Test Turning Off Every Strategy Toggle Is Saved")
     func testTurningOffEveryStrategyToggleIsSaved() async throws {
         let manager = TestManagers.nutritionStrategySettingsManager(stored: nil)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: true)
 
         // All four default to true, so saving false is the direction that a "save only what is
         // set" bug would silently drop.
@@ -128,7 +128,7 @@ struct NutritionStrategySettingsManagerTests {
     @Test("Test The Saved Pair Still Resolves To Katch McArdle")
     func testTheSavedPairStillResolvesToKatchMcArdle() async throws {
         let manager = TestManagers.nutritionStrategySettingsManager(stored: nil)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: true)
 
         var settings = manager.nutritionStrategySettings
         settings.estimationMethod = .bodyFatAware
@@ -147,7 +147,7 @@ struct NutritionStrategySettingsManagerTests {
         var stored = NutritionStrategySettings(authorId: "user-1")
         stored.checkInWeekday = 5
         let manager = TestManagers.nutritionStrategySettingsManager(stored: stored)
-        try await manager.signIn(userId: "user-1")
+        try await manager.signIn(userId: "user-1", isNewUser: false)
         #expect(await TestManagers.eventually { manager.nutritionStrategySettings.checkInWeekday == 5 })
 
         // The Expenditure screen's copy, taken before the Strategy screen saves.
