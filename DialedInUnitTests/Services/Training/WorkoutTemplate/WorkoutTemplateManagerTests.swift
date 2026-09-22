@@ -97,13 +97,15 @@ struct WorkoutTemplateManagerTests {
 
         #expect(manager.getWorkoutTemplate(id: "w1")?.name == "Push")
         // The synchronous read only sees the synced library — a seeded template is not in it.
-        // Pinned to the sync, optional-returning overload: an unannotated `== nil` comparison
-        // gives the type checker nothing to disambiguate on, and it prefers the `async throws`
-        // overload of the same name, which has a different contract (throws rather than nil).
-        let seededLookup: WorkoutTemplateModel? = manager.getWorkoutTemplate(id: "s1")
-        #expect(seededLookup == nil)
-        let missingLookup: WorkoutTemplateModel? = manager.getWorkoutTemplate(id: "nope")
-        #expect(missingLookup == nil)
+        //
+        // getWorkoutTemplate(id:) is overloaded: a sync one returning an optional, and an
+        // `async throws` one returning non-optional. Inside an async body Swift prefers the
+        // async overload, and annotating the *result* does not help, because the non-optional
+        // return converts implicitly to the optional and so both stay viable. Pinning the
+        // function's type is what actually selects the sync overload.
+        let readTemplate = manager.getWorkoutTemplate(id:) as (String) -> WorkoutTemplateModel?
+        #expect(readTemplate("s1") == nil)
+        #expect(readTemplate("nope") == nil)
     }
 
     @Test("Test Deleting A Template Removes It From The User's Library")
