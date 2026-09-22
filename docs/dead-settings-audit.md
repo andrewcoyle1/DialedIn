@@ -148,11 +148,11 @@ document per exercise template.
 | `favouriteFoodIds` | `FoodLogSettings` | `CoreInteractor.setFavouriteFood(id:isFavourite:)` | `FoodLibraryPresenter` | live |
 | `favouriteRecipeIds` | `FoodLogSettings` | `CoreInteractor.setFavouriteRecipe(id:isFavourite:)` | `FoodLibraryPresenter` | live |
 
-### Optimisation — **wholly inert**
+### Optimisation
 
 | Setting | Defined in | Written by | Read by | Verdict |
 |---|---|---|---|---|
-| **`quickAddEnabled`** | `FoodLogSettings` | `OptimisationPresenter.quickAddEnabled` | **nothing** | `decide` — there is no quick-add path in the food logger for it to enable. Wiring it means building the feature, not reading the flag. |
+| `quickAddEnabled` | `FoodLogSettings` | `OptimisationPresenter.quickAddEnabled` | `NutritionLibraryPickerPresenter.navToIngredientAmount(_:onPick:)`, `FoodLibraryPresenter.onFavouriteFoodPressed(_:onPick:)` | live — **wired**. The audit read this as needing a quick-add feature built. It did not: the toggle's own subtitle says "use default portion and skip the amount entry screen", and both halves already existed — `FoodModel.portionGramsCalculated` / `portionMillilitersCalculated` for the portion, and the item construction in `IngredientAmountPresenter.add`, now shared as `FoodModel.mealItem(amount:)`. Default `false`, so the amount step still shows for everyone who has not asked otherwise. |
 
 ## Nutrition Strategy Settings
 
