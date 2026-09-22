@@ -112,7 +112,9 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                 perSide: WorkoutSessionModel.isPerSide(exerciseModel.exercise)
             )
             
-            // Populate working sets with values from previous workout (smart progression)
+            // Populate working sets with exactly what was logged last time. No progression is
+            // applied — this is `InitialLogFillOption.previousValues`, not `.smartProgression`,
+            // whatever the setting says; there is no progression engine yet.
             if let prevSets = previousSets {
                 // Match working sets with previous workout sets by index (skip warmup sets)
                 let previousWorkingSets = prevSets.filter { !$0.isWarmup }
