@@ -221,6 +221,7 @@ struct ExpenditureDetailPresenterTests {
     private final class Interactor: SpyGlobalInteractor, ExpenditureDetailInteractor {
         var currentUser: UserModel?
         var tdee: Double = 2500
+        var expenditureHistory: [ExpenditureEstimate] = []
         private(set) var estimateCallCount = 0
 
         func estimateTDEE(user: UserModel?) -> Double {
@@ -292,6 +293,36 @@ struct ExpenditureDetailPresenterTests {
         await presenter.onAppear()
 
         #expect(Set(presenter.entries.map(\.id)).count == 90)
+    }
+
+    /// The flat line above is the fallback for an account that has logged nothing. Once there is
+    /// an adaptive history the chart plots that instead, which is the whole point of the engine.
+    @Test("Test The Chart Follows The Adaptive History Where There Is One")
+    func testTheChartFollowsTheAdaptiveHistoryWhereThereIsOne() async throws {
+        let interactor = Interactor()
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: Date())
+        interactor.expenditureHistory = (0..<30).map { offset in
+            ExpenditureEstimate(
+                day: calendar.date(byAdding: .day, value: offset - 29, to: startOfToday) ?? startOfToday,
+                kcal: 2400 + Double(offset),
+                source: .adaptive,
+                isProvisional: false,
+                trendWeightKg: 80,
+                weeklyTrendChangeKg: 0,
+                loggedDays: 28,
+                weighInCount: 20,
+                windowDays: 28,
+                stepAdjustmentKcal: 0
+            )
+        }
+        let presenter = ExpenditureDetailPresenter(interactor: interactor, router: Router())
+
+        await presenter.onAppear()
+
+        #expect(presenter.entries.count == 30)
+        #expect(presenter.entries.first?.expenditure == 2429)
+        #expect(try #require(presenter.timeSeries.first).data.count == 30)
     }
 }
 

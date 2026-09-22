@@ -70,12 +70,32 @@ class NutritionManager {
     }
 
     // MARK: - Core logic
-    func computeDietPlan(user: UserModel?, delegate: DietPlanDelegate, trainingProgram: TrainingProgram? = nil) -> DietPlan {
+    /// `expenditureKcal` is what the body spends; `targetKcal` is what the plan asks the user to
+    /// eat. They are two different numbers and the plan records both.
+    ///
+    /// Nil for both keeps the behaviour every existing caller already has: one formula figure
+    /// serving as expenditure and as target at once. `expenditureKcal` alone replaces the formula
+    /// outright rather than being blended with it — `ExpenditureEngine` has already blended,
+    /// against a month of logs the formula cannot see.
+    ///
+    /// They are separate because a target carries the goal's rate and a floor, and expenditure
+    /// carries neither. Folding the target into `tdeeEstimate` would leave the plan unable to say
+    /// what expenditure it was built on, which is the one thing the next check-in needs to know to
+    /// tell a drifting estimate from a drifting adherence.
+    func computeDietPlan(
+        user: UserModel?,
+        delegate: DietPlanDelegate,
+        trainingProgram: TrainingProgram? = nil,
+        expenditureKcal: Double? = nil,
+        targetKcal: Double? = nil
+    ) -> DietPlan {
         let now = Date()
         let userId = user?.userId
-        let tdee = estimateTDEE(user: user)
+        let tdee = expenditureKcal ?? estimateTDEE(user: user)
         let minimumCalories = delegate.calorieFloor.minimumValue
-        let targetCalories = max(tdee, minimumCalories)
+        // The floor applies to the target whichever way it arrived: an engine that has watched
+        // someone eat 900 kcal a day for a month must not be allowed to write that down.
+        let targetCalories = max(targetKcal ?? tdee, minimumCalories)
 
         let proteinGrams = calculateProteinGrams(user: user, proteinIntake: delegate.proteinIntake)
         let macroPercentages = calculateMacroPercentages(
@@ -362,6 +382,22 @@ extension CoreInteractor {
 
     func computeDietPlan(user: UserModel?, delegate: DietPlanDelegate) -> DietPlan {
         nutritionManager.computeDietPlan(user: user, delegate: delegate, trainingProgram: activeTrainingProgram)
+    }
+
+    /// The same plan built on a supplied expenditure and target rather than the formula estimate.
+    func computeDietPlan(
+        user: UserModel?,
+        delegate: DietPlanDelegate,
+        expenditureKcal: Double?,
+        targetKcal: Double? = nil
+    ) -> DietPlan {
+        nutritionManager.computeDietPlan(
+            user: user,
+            delegate: delegate,
+            trainingProgram: activeTrainingProgram,
+            expenditureKcal: expenditureKcal,
+            targetKcal: targetKcal
+        )
     }
 
     func saveDietPlan(_ plan: DietPlan) async throws {

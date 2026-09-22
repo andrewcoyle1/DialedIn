@@ -11,6 +11,8 @@ struct ExpenditureSettingsView: View {
     
     var body: some View {
         List {
+            estimateSection
+
             Section {
                 CustomLabelButtonView(
                     title: "Estimation Method",
@@ -67,7 +69,7 @@ struct ExpenditureSettingsView: View {
             } header: {
                 Text("Expenditure Calculation")
             } footer: {
-                Text("Your choice is saved, but the expenditure figure does not adapt day to day yet — the chart shows one estimate until that is built.")
+                Text("Dynamic reads your logged intake against your weight trend over the last four weeks. Fixed holds the figure where it is.")
             }
 
             Section {
@@ -101,6 +103,29 @@ struct ExpenditureSettingsView: View {
         }
         .onDisappear {
             presenter.onViewDisappear()
+        }
+    }
+
+    /// Today's figure and one line saying where it came from. The controls below all change this
+    /// number, so it belongs above them rather than on another screen.
+    private var estimateSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(presenter.expenditureValueText)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Text(presenter.expenditureStatusText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                if let stepText = presenter.stepAdjustmentText {
+                    Text(stepText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Today's Expenditure")
         }
     }
 

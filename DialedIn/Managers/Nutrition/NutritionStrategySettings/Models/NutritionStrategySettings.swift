@@ -8,10 +8,13 @@ import Foundation
 /// Backs both the Strategy and Expenditure settings screens. They were previously mockups whose
 /// controls discarded every change.
 ///
-/// The expenditure fields record what the user has chosen; only `bmrEquation` changes any number
-/// today. A genuinely adaptive expenditure engine — one that moves `calculationMode` beyond a
-/// label by reading intake and weight trend — is separate, still-unwritten work, so the
-/// expenditure chart shows one flat figure until then.
+/// The expenditure fields are read by `ExpenditureEngine`: `calculationMode`,
+/// `calculationStartDate`, `algorithmVersion` and `stepInformedUpdates` shape the estimate, and
+/// `predictiveGoalAdjustments` shapes the `TargetProposal` built on it. `estimationMethod` and
+/// `bmrEquation` still shape the prior through `resolvedBMREquation`. The strategy fields above
+/// them — the check-in cadence, partial logging, fasting and logging breaks — remain inert; they
+/// wait on the weekly check-in flow, which is not this engine. See
+/// `docs/specs/adaptive-expenditure.md`.
 struct NutritionStrategySettings: DataSyncModelProtocol {
 
     var id: String = "nutrition_strategy_settings"

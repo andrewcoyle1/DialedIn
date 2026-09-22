@@ -8,6 +8,7 @@ class ExpenditureSettingsPresenter {
     private let router: ExpenditureSettingsRouter
     
     private var settings: NutritionStrategySettings
+    private var estimate: ExpenditureEstimate
 
     /// Presents the calculation start date picker.
     var isChoosingStartDate: Bool = false
@@ -16,6 +17,35 @@ class ExpenditureSettingsPresenter {
         self.interactor = interactor
         self.router = router
         self.settings = interactor.nutritionStrategySettings
+        self.estimate = interactor.currentExpenditure
+    }
+
+    // MARK: - Today's estimate
+
+    var expenditureValueText: String {
+        "\(Int(estimate.kcal.rounded())) kcal"
+    }
+
+    /// One line saying where the figure above came from, because "2,480 kcal" on its own cannot
+    /// tell a month of logging apart from a guess off the user's height.
+    var expenditureStatusText: String {
+        switch estimate.source {
+        case .fixed:
+            return "Fixed"
+        case .prior:
+            return "Estimated from your profile until \(ExpenditureEngine.Constants.minWindowDays) days are logged"
+        case .adaptive:
+            return "Adaptive \u{00B7} \(estimate.loggedDays) of \(estimate.windowDays) days logged"
+        }
+    }
+
+    /// The step nowcast, when one applied, shown separately so the adjustment is never mistaken
+    /// for the measurement.
+    var stepAdjustmentText: String? {
+        let adjustment = estimate.stepAdjustmentKcal.rounded()
+        guard adjustment != 0 else { return nil }
+        let sign = adjustment > 0 ? "+" : "\u{2212}"
+        return "Includes \(sign)\(Int(abs(adjustment))) kcal from your recent step count"
     }
 
     let estimationMethods = ExpenditureEstimationMethod.allCases
@@ -74,8 +104,13 @@ class ExpenditureSettingsPresenter {
         save()
     }
 
+    /// Saving changes the estimate — the mode and the modifiers all feed the engine — so the
+    /// figure on screen is re-read rather than left showing what the old settings produced.
     private func save() {
-        Task { try? await interactor.saveNutritionStrategySettings(settings) }
+        Task {
+            try? await interactor.saveNutritionStrategySettings(settings)
+            estimate = interactor.currentExpenditure
+        }
     }
     
     /// Re-read rather than trusting the snapshot taken at init: `save()` writes the whole
@@ -83,6 +118,7 @@ class ExpenditureSettingsPresenter {
     /// would revert whatever was saved over there.
     func onViewAppear() {
         settings = interactor.nutritionStrategySettings
+        estimate = interactor.currentExpenditure
         interactor.trackScreenEvent(event: Event.onAppear)
     }
     

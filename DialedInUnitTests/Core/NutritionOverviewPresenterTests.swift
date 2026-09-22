@@ -48,15 +48,41 @@ struct NutritionOverviewPresenterTests {
         func getMeals(for dayKey: String) throws -> [MealLogModel] {
             mealsByDayKey[dayKey] ?? []
         }
+
+        var targetProposal: TargetProposal?
+        /// Set to make the save fail, which is the case the card has to survive.
+        var acceptError: Error?
+        private(set) var acceptCount = 0
+        private(set) var dismissCount = 0
+
+        func acceptTargetProposal() async throws {
+            acceptCount += 1
+            if let acceptError { throw acceptError }
+            targetProposal = nil
+        }
+
+        func dismissTargetProposal() {
+            dismissCount += 1
+            targetProposal = nil
+        }
     }
 
     private final class Router: NutritionOverviewRouter {
         let router: AnyRouter = TestRouting.anyRouter
+
+        /// `showAlert(error:)` is a `GlobalRouter` requirement with a default implementation, so
+        /// unlike the button-carrying overload it can be intercepted here.
+        private(set) var shownErrors: [Error] = []
+
+        func showAlert(error: Error) {
+            shownErrors.append(error)
+        }
     }
 
     private struct Screen {
         let presenter: NutritionOverviewPresenter
         let interactor: Interactor
+        let router: Router
         let delegate: NutritionOverviewDelegate
     }
 
@@ -99,9 +125,11 @@ struct NutritionOverviewPresenterTests {
         interactor.mealsByDayKey[dayKey] = meals
         interactor.target = target
 
+        let router = Router()
         return Screen(
-            presenter: NutritionOverviewPresenter(interactor: interactor, router: Router()),
+            presenter: NutritionOverviewPresenter(interactor: interactor, router: router),
             interactor: interactor,
+            router: router,
             delegate: NutritionOverviewDelegate(dayKey: dayKey)
         )
     }
@@ -327,6 +355,113 @@ struct NutritionOverviewPresenterTests {
 
         #expect(screen.presenter.topContributors.isEmpty)
     }
+
+    // MARK: - Target proposal
+
+    private func proposal(current: Double = 2000, proposed: Double = 2250) -> TargetProposal {
+        TargetProposal(
+            expenditureKcal: 2800,
+            currentTargetKcal: current,
+            proposedTargetKcal: proposed,
+            weeklyTrendChangeKg: -0.4,
+            goalWeeklyChangeKg: -0.5,
+            reason: .expenditureMoved
+        )
+    }
+
+    @Test("Test No Card Without A Proposal")
+    func testNoCardWithoutAProposal() {
+        let screen = makeScreen(totals: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        #expect(screen.presenter.proposal == nil)
+        #expect(screen.presenter.proposalSummary == nil)
+    }
+
+    @Test("Test The Card Says Which Way The Target Moves")
+    func testTheCardSaysWhichWayTheTargetMoves() {
+        let screen = makeScreen(totals: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+        screen.interactor.targetProposal = proposal(current: 2000, proposed: 2250)
+
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        #expect(screen.presenter.proposalSummary == "2250 kcal a day, up from 2000.")
+    }
+
+    @Test("Test A Lower Proposal Reads As A Cut")
+    func testALowerProposalReadsAsACut() {
+        let screen = makeScreen(totals: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+        screen.interactor.targetProposal = proposal(current: 2400, proposed: 2150)
+
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        #expect(screen.presenter.proposalSummary == "2150 kcal a day, down from 2400.")
+    }
+
+    /// Accepting takes the card off the screen straight away rather than waiting for the rewritten
+    /// plan to come back from Firestore.
+    @Test("Test Accepting Applies The Proposal And Clears The Card")
+    func testAcceptingAppliesTheProposalAndClearsTheCard() async {
+        let screen = makeScreen(totals: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+        screen.interactor.targetProposal = proposal()
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        screen.presenter.onAcceptProposalPressed()
+
+        #expect(screen.presenter.proposal == nil)
+        #expect(await TestManagers.eventually { screen.interactor.acceptCount == 1 })
+        #expect(screen.interactor.trackedEventNames.contains("NutritionOverviewView_Proposal_Accept"))
+    }
+
+    /// A swallowed save failure is the one outcome that looks exactly like success and is not:
+    /// no card, and a plan that never changed. The card comes back so the accept can be retried.
+    @Test("Test A Failed Accept Puts The Card Back And Says So")
+    func testAFailedAcceptPutsTheCardBackAndSaysSo() async {
+        let screen = makeScreen(totals: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+        let offered = proposal()
+        screen.interactor.targetProposal = offered
+        screen.interactor.acceptError = URLError(.notConnectedToInternet)
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        screen.presenter.onAcceptProposalPressed()
+
+        #expect(await TestManagers.eventually { screen.presenter.proposal == offered })
+        #expect(screen.router.shownErrors.count == 1)
+        #expect(screen.interactor.trackedEventNames.contains("NutritionOverviewView_Proposal_Accept_Fail"))
+    }
+
+    /// And the retry has to be possible: the in-flight guard must not latch after a failure.
+    @Test("Test A Failed Accept Can Be Retried")
+    func testAFailedAcceptCanBeRetried() async {
+        let screen = makeScreen(totals: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+        screen.interactor.targetProposal = proposal()
+        screen.interactor.acceptError = URLError(.notConnectedToInternet)
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        screen.presenter.onAcceptProposalPressed()
+        #expect(await TestManagers.eventually { screen.presenter.proposal != nil })
+
+        screen.interactor.acceptError = nil
+        screen.presenter.onAcceptProposalPressed()
+
+        #expect(await TestManagers.eventually { screen.interactor.acceptCount == 2 })
+        #expect(screen.presenter.proposal == nil)
+    }
+
+    @Test("Test Not Now Records The Dismissal And Clears The Card")
+    func testNotNowRecordsTheDismissalAndClearsTheCard() {
+        let screen = makeScreen(totals: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+        screen.interactor.targetProposal = proposal()
+        screen.presenter.onViewAppear(delegate: screen.delegate)
+
+        screen.presenter.onDismissProposalPressed()
+
+        #expect(screen.presenter.proposal == nil)
+        #expect(screen.interactor.dismissCount == 1)
+        #expect(screen.interactor.trackedEventNames.contains("NutritionOverviewView_Proposal_Dismiss"))
+    }
+
 }
 
 /// The detail behind one logged meal.

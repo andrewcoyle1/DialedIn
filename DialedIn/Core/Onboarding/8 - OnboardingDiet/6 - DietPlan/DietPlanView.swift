@@ -14,6 +14,20 @@ struct DietPlanDelegate {
     let proteinIntake: ProteinIntake
     var isFromSettings: Bool
 
+    init(
+        preferredDiet: PreferredDiet,
+        calorieFloor: CalorieFloor,
+        calorieDistribution: CalorieDistribution,
+        proteinIntake: ProteinIntake,
+        isFromSettings: Bool
+    ) {
+        self.preferredDiet = preferredDiet
+        self.calorieFloor = calorieFloor
+        self.calorieDistribution = calorieDistribution
+        self.proteinIntake = proteinIntake
+        self.isFromSettings = isFromSettings
+    }
+
     init(oldDelegate delegate: ProteinIntakeDelegate, proteinIntake: ProteinIntake) {
         self.preferredDiet = delegate.preferredDiet
         self.calorieFloor = delegate.calorieFloor
