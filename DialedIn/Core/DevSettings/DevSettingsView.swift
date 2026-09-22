@@ -14,6 +14,9 @@ struct DevSettingsView: View {
 
     var body: some View {
         List {
+#if DEV || MOCK
+            premiumSection
+#endif
             abTestSection
             debugActionsSection
             authSection
@@ -41,6 +44,9 @@ struct DevSettingsView: View {
         }
         .onFirstAppear {
             presenter.loadABTests()
+#if DEV || MOCK
+            presenter.loadPremiumOverride()
+#endif
         }
     }
         
@@ -73,6 +79,21 @@ struct DevSettingsView: View {
         }
     }
     
+#if DEV || MOCK
+    private var premiumSection: some View {
+        Section {
+            Toggle("Simulate Premium", isOn: $presenter.simulatePremium)
+                .onChange(of: presenter.simulatePremium, presenter.handleSimulatePremiumChange)
+                .font(.caption)
+        } header: {
+            Text("Subscription")
+        } footer: {
+            Text("Treats this device as a subscriber without a purchase. Debug and Mock builds only — it does not exist in a release build.")
+                .font(.caption2)
+        }
+    }
+#endif
+
     private var abTestSection: some View {
         Section {
             Group {

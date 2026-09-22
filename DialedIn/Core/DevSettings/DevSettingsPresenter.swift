@@ -25,6 +25,20 @@ class DevSettingsPresenter {
     var isInNotificationsABTest: Bool = false
     var paywallTest: PaywallTestOption = .default
 
+#if DEV || MOCK
+    /// Mirror of ``PremiumOverride/isEnabled`` for the "Simulate Premium" toggle. Guarded the
+    /// same way the override itself is, so no part of the escape hatch reaches a release build.
+    var simulatePremium: Bool = false
+
+    func loadPremiumOverride() {
+        simulatePremium = PremiumOverride.isEnabled
+    }
+
+    func handleSimulatePremiumChange(oldValue: Bool, newValue: Bool) {
+        PremiumOverride.isEnabled = newValue
+    }
+#endif
+
     var workoutSessions: [WorkoutSessionModel] {
         interactor.workoutSessions
     }
