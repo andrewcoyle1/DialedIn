@@ -326,7 +326,7 @@ struct PaywallPurchasePresenterTests {
                 submittedExerciseFrequency: .threeToFour,
                 submittedDailyActivityLevel: .moderate,
                 submittedCardioFitnessLevel: .intermediate,
-                acceptedHealthDisclaimerVersion: "1.0"
+                acceptedHealthDisclaimerVersion: UserModel.currentHealthDisclaimerVersion
             )
         )
 
@@ -354,7 +354,7 @@ struct PaywallPurchasePresenterTests {
                 submittedActiveTrainingProgramId: "program-1",
                 submittedFavouriteGymProfileId: "gym-1",
                 didCompleteOnboarding: true,
-                acceptedHealthDisclaimerVersion: "1.0"
+                acceptedHealthDisclaimerVersion: UserModel.currentHealthDisclaimerVersion
             )
         )
 

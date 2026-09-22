@@ -57,8 +57,9 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     /// The health notices the app currently presents, and the versions an acceptance is recorded
     /// against. `HealthDisclaimerPresenter` stamps these onto the profile when the user confirms.
     ///
-    /// Note that `inferredOnboardingStep` only checks that *some* version was accepted, so bumping
-    /// either string does not currently send existing users back through the disclaimer.
+    /// Bumping either string sends every user who accepted an earlier one back through the
+    /// disclaimer on their next launch, which is the point: `inferredOnboardingStep` compares
+    /// against these rather than checking that some version was accepted.
     static let currentHealthDisclaimerVersion = "2025.10.05"
     static let currentHealthPrivacyPolicyVersion = "2025.10.05"
 
@@ -326,7 +327,15 @@ struct UserModel: DataSyncModelProtocol, Equatable {
               submittedCardioFitnessLevel != nil else {
             return .completeAccountSetup
         }
-        guard acceptedHealthDisclaimerVersion != nil else { return .healthDisclaimer }
+        // Compared against the current version, not merely checked for presence. A health notice
+        // is only consent to the wording the user actually read, so a reissued disclaimer has to
+        // be accepted again — accepting the 2025 text cannot stand in for agreeing to a later one.
+        //
+        // Only the disclaimer version is compared, because the one screen that records consent
+        // stamps both it and the privacy policy together, so they cannot drift apart in practice.
+        guard acceptedHealthDisclaimerVersion == Self.currentHealthDisclaimerVersion else {
+            return .healthDisclaimer
+        }
         guard submittedCurrentGoalId != nil else { return .goalSetting }
         guard submittedFavouriteGymProfileId != nil else { return .gymProfileSetup }
         guard submittedActiveTrainingProgramId != nil else { return .trainingProgramSetup }

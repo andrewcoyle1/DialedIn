@@ -90,7 +90,7 @@ struct OnboardingGoalSummaryPresenterTests {
             submittedWeightUnitPreference: weightUnit,
             submittedCurrentGoalId: goalId,
             submittedFavouriteGymProfileId: gymProfileId,
-            acceptedHealthDisclaimerVersion: "1.0"
+            acceptedHealthDisclaimerVersion: UserModel.currentHealthDisclaimerVersion
         )
     }
 

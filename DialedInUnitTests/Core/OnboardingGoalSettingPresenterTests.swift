@@ -32,7 +32,7 @@ private func goalUser(
         submittedDailyActivityLevel: .moderate,
         submittedCardioFitnessLevel: .intermediate,
         submittedWeightUnitPreference: weightUnit,
-        acceptedHealthDisclaimerVersion: "1.0"
+        acceptedHealthDisclaimerVersion: UserModel.currentHealthDisclaimerVersion
     )
 }
 

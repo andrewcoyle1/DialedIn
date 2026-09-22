@@ -56,7 +56,7 @@ func onboardingStageUser(
         submittedActiveTrainingProgramId: answered(.trainingProgramSetup) ? "program-1" : nil,
         submittedFavouriteGymProfileId: answered(.gymProfileSetup) ? "gym-1" : nil,
         didCompleteOnboarding: step == .complete,
-        acceptedHealthDisclaimerVersion: answered(.healthDisclaimer) ? "2025.10.05" : nil
+        acceptedHealthDisclaimerVersion: answered(.healthDisclaimer) ? UserModel.currentHealthDisclaimerVersion : nil
     )
 }
 

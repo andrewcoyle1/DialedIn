@@ -30,7 +30,7 @@ struct OnboardingStepInferenceTests {
         exerciseFrequency: ExerciseFrequency? = .daily,
         activityLevel: ActivityLevel? = .active,
         cardioFitness: CardioFitnessLevel? = .intermediate,
-        disclaimerVersion: String? = "2025.10.05",
+        disclaimerVersion: String? = UserModel.currentHealthDisclaimerVersion,
         goalId: String? = "goal-1",
         gymProfileId: String? = "gym-1",
         programId: String? = "program-1",
@@ -69,6 +69,19 @@ struct OnboardingStepInferenceTests {
     @Test("Test An Unaccepted Disclaimer Resumes At The Disclaimer")
     func testAnUnacceptedDisclaimerResumesAtTheDisclaimer() {
         #expect(user(disclaimerVersion: nil).inferredOnboardingStep == .healthDisclaimer)
+    }
+
+    /// A reissued disclaimer has to be read again. Accepting the previous wording is consent to
+    /// that wording and nothing else, so a stale version is treated the same as never having
+    /// accepted at all rather than as a permanent pass.
+    @Test("Test A Superseded Disclaimer Resumes At The Disclaimer")
+    func testASupersededDisclaimerResumesAtTheDisclaimer() {
+        #expect(user(disclaimerVersion: "2024.01.01").inferredOnboardingStep == .healthDisclaimer)
+    }
+
+    @Test("Test The Current Disclaimer Is Accepted")
+    func testTheCurrentDisclaimerIsAccepted() {
+        #expect(user(disclaimerVersion: UserModel.currentHealthDisclaimerVersion).inferredOnboardingStep == .complete)
     }
 
     @Test("Test No Goal Resumes At Goal Setting")

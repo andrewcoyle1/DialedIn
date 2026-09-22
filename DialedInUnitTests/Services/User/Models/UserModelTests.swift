@@ -134,7 +134,7 @@ struct UserModelTests {
             blockedUserIds: [data.user1],
             fcmToken: String.random,
             didCompleteOnboarding: true,
-            acceptedHealthDisclaimerVersion: String.random,
+            acceptedHealthDisclaimerVersion: UserModel.currentHealthDisclaimerVersion,
             acceptedHealthDisclaimerDate: Date.random,
             acceptedHealthPrivacyPolicyVersion: String.random,
             acceptedHealthPrivacyPolicyDate: Date.random
