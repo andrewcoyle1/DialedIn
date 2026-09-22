@@ -141,7 +141,7 @@ Only when `stepInformedUpdates` is on **and** steps exist for at least half the 
 
 ```
 recentSteps  = mean(steps over the last 7 days that have steps)
-windowSteps  = mean(steps over the window days that have steps)
+windowSteps  = mean(steps over the window days that have steps)   // all of them, the last 7 included
 nowcast      = clamp((recentSteps − windowSteps) · kcalPerStepPerKg · trendWeightKg, −maxStepNowcastKcal, +maxStepNowcastKcal)
 kcal         = running + nowcast
 ```
@@ -259,9 +259,12 @@ Build samples with a helper `days(_ n: Int, intake: (Int) -> Double?, weight: (I
 11. **Start date**: case 4 data, but `calculationStartDate` set to day 50 → the estimate on
     the last day is provisional (only 10 days after the start).
 12. **Fixed mode** → every day's `kcal == prior`, `.fixed`, not provisional, trend still populated.
-13. **Step nowcast on**: case 3 plus steps 8000 for the window and 12000 for the last 7 days,
-    weight 80 → `stepAdjustmentKcal ≈ 4000 · 0.0005 · 80 = 160`, and `kcal` includes it. Off →
-    0.
+13. **Step nowcast on**: case 3 plus steps 8000 for the earlier window days and 12000 for the
+    last 7, weight 80 → `stepAdjustmentKcal = 3000 · 0.0005 · 80 = 120`, and `kcal` includes it.
+    Off → 0. `windowSteps` in §3.6 is the mean over **all** the window's days, the trailing week
+    included, so the baseline here is (21 · 8000 + 7 · 12000) / 28 = 9000 rather than 8000 — the
+    recent week is compared against a window it is part of, which is what stops the nowcast
+    double-counting a change the energy balance has already absorbed.
 14. **Today excluded**: a sample dated `today` must be ignored (assert via a huge intake on
     today not moving the estimate).
 15. **Determinism**: same inputs twice → identical arrays.
