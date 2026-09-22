@@ -34,7 +34,7 @@ struct ExpenditureWindowStats {
         self.window = window
         self.trendByDay = trend
         self.calendar = calendar
-        self.loggedDays = window.filter { $0.intakeKcal != nil }.count
+        self.loggedDays = window.filter { $0.intakeKcal != nil && !$0.isExcluded }.count
         self.weighInCount = window.filter { $0.weightKg != nil }.count
         self.daysPresent = window.count
         self.trendWeightKg = window.last.flatMap { trend[$0.day] }
@@ -67,7 +67,7 @@ struct ExpenditureWindowStats {
     /// Unlogged days are assumed to look like the logged ones; that assumption is exactly what
     /// `minLoggedFraction` is guarding, and v1 does not try to impute them any other way.
     func energyBalance() -> EnergyBalance? {
-        let intakes = window.compactMap(\.intakeKcal)
+        let intakes = window.filter { !$0.isExcluded }.compactMap(\.intakeKcal)
         guard !intakes.isEmpty else { return nil }
         let meanIntake = intakes.reduce(0, +) / Double(intakes.count)
 

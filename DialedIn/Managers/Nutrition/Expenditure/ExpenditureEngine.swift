@@ -202,7 +202,15 @@ struct ExpenditureEngine {
     ) -> [DailySample] {
         let startDate = settings.calculationStartDate.map { calendar.startOfDay(for: $0) }
         return samples
-            .map { DailySample(day: calendar.startOfDay(for: $0.day), intakeKcal: $0.intakeKcal, weightKg: $0.weightKg, steps: $0.steps) }
+            .map { sample in
+                DailySample(
+                    day: calendar.startOfDay(for: sample.day),
+                    intakeKcal: sample.intakeKcal,
+                    weightKg: sample.weightKg,
+                    steps: sample.steps,
+                    isExcluded: sample.isExcluded
+                )
+            }
             .filter { $0.day < today }
             .filter { sample in startDate.map { sample.day >= $0 } ?? true }
             .sorted { $0.day < $1.day }
