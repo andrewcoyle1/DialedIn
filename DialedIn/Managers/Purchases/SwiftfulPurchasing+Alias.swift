@@ -49,8 +49,7 @@ extension CoreInteractor {
     }
     
     var isPremium: Bool {
-        true
-//        entitlements.hasActiveEntitlement
+        PremiumAccess.isPremium(entitlements: entitlements, developmentOverride: PremiumOverride.isEnabled)
     }
     
     func getProducts(productIds: [String]) async throws -> [AnyProduct] {
