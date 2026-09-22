@@ -62,16 +62,22 @@ struct ProfileAccountPresenterTests {
         }
     }
 
-    /// `switchToOnboardingModule()` is the only method `AccountRouter` requires, so it is the only
-    /// one a double sees. `dismissScreen`, `dismissEnvironment` and `showAlert(error:)` are
+    /// `switchToOnboardingModule()` and `showAuthView()` are the only methods `AccountRouter`
+    /// requires, so they are the only ones a double sees. `dismissScreen`, `dismissEnvironment` and
+    /// `showAlert(error:)` are
     /// `GlobalRouter` extensions, dispatched statically, and never reach here — which is why the
     /// failure tests below assert on "did not switch to onboarding" rather than "showed an alert".
     private final class Router: AccountRouter {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var didSwitchToOnboarding = false
+        private(set) var authViewShownCount = 0
 
         func switchToOnboardingModule() {
             didSwitchToOnboarding = true
+        }
+
+        func showAuthView() {
+            authViewShownCount += 1
         }
     }
 
@@ -82,9 +88,10 @@ struct ProfileAccountPresenterTests {
         let delegate = AccountDelegate()
     }
 
-    private func makeScreen(user: UserModel? = UserModel(userId: "user-1")) -> Screen {
+    private func makeScreen(user: UserModel? = UserModel(userId: "user-1"), isAnonymous: Bool = false) -> Screen {
         let interactor = Interactor()
         interactor.currentUser = user
+        interactor.auth = UserAuthInfo(uid: user?.userId ?? "user-1", isAnonymous: isAnonymous)
         let router = Router()
         return Screen(
             presenter: AccountPresenter(interactor: interactor, router: router),
@@ -329,6 +336,30 @@ struct ProfileAccountPresenterTests {
         screen.presenter.presentImagePicker()
 
         #expect(screen.presenter.isImagePickerPresented)
+    }
+
+    // MARK: - Upgrading an anonymous account
+
+    /// Signing an anonymous account out is irreversible — there is no credential to sign back in
+    /// with — so that account is offered the upgrade in place of Log Out. This was the only screen
+    /// in the app offering it, and it was on SettingsView, which nothing navigates to.
+    @Test("Test An Anonymous Account Is Offered The Upgrade Instead Of Log Out")
+    func testAnAnonymousAccountIsOfferedTheUpgradeInsteadOfLogOut() {
+        #expect(makeScreen(isAnonymous: true).presenter.isAnonymousUser)
+        #expect(!makeScreen(isAnonymous: false).presenter.isAnonymousUser)
+    }
+
+    /// The upgrade goes to the same `AuthView` onboarding uses, which links a credential to the
+    /// signed-in anonymous user rather than replacing it, so the data logged so far survives.
+    @Test("Test Saving An Anonymous Account Opens Sign In")
+    func testSavingAnAnonymousAccountOpensSignIn() {
+        let screen = makeScreen(isAnonymous: true)
+
+        screen.presenter.onSaveAccountPressed()
+
+        #expect(screen.router.authViewShownCount == 1)
+        #expect(!screen.interactor.didSignOut)
+        #expect(screen.interactor.trackedEventNames == ["Settings_SaveAccount_Press"])
     }
 
     // MARK: - Sign out

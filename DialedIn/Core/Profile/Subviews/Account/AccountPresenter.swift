@@ -141,6 +141,23 @@ class AccountPresenter {
     /// Google or anonymous (`SignInOption` has no email case), so the address belongs to the identity
     /// provider and there is no password in the first place.
 
+    /// An anonymous account has no credential behind it, so signing out of one destroys everything
+    /// logged against it with no way back in. Those users are offered the upgrade instead.
+    var isAnonymousUser: Bool {
+        interactor.auth?.isAnonymous == true
+    }
+
+    /// An anonymous account's only route to keeping its data.
+    ///
+    /// Routes to the existing `AuthView` rather than reimplementing sign-in: `FirebaseAuthService`
+    /// already links an Apple or Google credential to the signed-in anonymous user, and
+    /// `CoreInteractor.logIn` already handles the migration and cleanup around it, so the upgrade
+    /// keeps the account rather than replacing it.
+    func onSaveAccountPressed() {
+        interactor.trackEvent(event: Event.saveAccountPressed)
+        router.showAuthView()
+    }
+
     func onSignOutPressed() {
         interactor.trackEvent(event: Event.signOutStart)
 
@@ -212,6 +229,7 @@ extension AccountPresenter {
         case deleteAccountStartConfirm
         case deleteAccountSuccess
         case deleteAccountFail(error: Error)
+        case saveAccountPressed
         case onAppear(delegate: AccountDelegate)
         case onDisappear(delegate: AccountDelegate)
 
@@ -224,6 +242,7 @@ extension AccountPresenter {
             case .deleteAccountStartConfirm:    return "Settings_DeleteAccount_StartConfirm"
             case .deleteAccountSuccess:         return "Settings_DeleteAccount_Success"
             case .deleteAccountFail:            return "Settings_DeleteAccount_Fail"
+            case .saveAccountPressed:           return "Settings_SaveAccount_Press"
             case .onAppear:                 return "AccountView_Appear"
             case .onDisappear:              return "AccountView_Disappear"
             }
