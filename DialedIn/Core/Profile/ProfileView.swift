@@ -148,6 +148,12 @@ struct ProfileView: View {
                     .anyButton {
                         presenter.onStrategySettingsPressed()
                     }
+                Label("Nutrition Plan", systemImage: "fork.knife")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
+                    .anyButton {
+                        presenter.onNutritionPlanPressed()
+                    }
             }
             .foregroundStyle(.primary)
             //            .removeListRowFormatting()

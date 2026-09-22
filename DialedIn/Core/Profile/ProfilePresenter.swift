@@ -162,6 +162,14 @@ class ProfilePresenter {
     func onStrategySettingsPressed() {
         router.showStrategySettingsView(delegate: StrategySettingsDelegate())
     }
+
+    /// `isFromSettings` tells the diet flow it was entered from settings rather than onboarding, so
+    /// it saves the chosen plan and returns instead of advancing to the next onboarding step.
+    func onNutritionPlanPressed() {
+        interactor.trackEvent(eventName: "ProfileView_NutritionPlan_Press", parameters: nil, type: .analytic)
+        router.showPreferredDietView(isFromSettings: true)
+    }
+
     func onAppIconPressed() {
         router.showAppIconView(delegate: AppIconDelegate())
     }
