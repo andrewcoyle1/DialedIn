@@ -170,7 +170,14 @@ struct WorkoutTrackerFinishTests {
 
         screen.presenter.finishWorkout()
 
-        #expect(await TestManagers.eventually { screen.interactor.shownToasts.last?.style == .failure })
+        // The whole retry schedule runs inside this task, so awaiting it is the signal that the
+        // loop has given up — the same trick as the cancellation test below, and nothing here has
+        // to guess how long four attempts take. Polling for the toast with a 20s `eventually`
+        // instead timed out on GitHub Actions run 35778253166: the runner was slow enough that
+        // only three of the four attempts had been made and the last toast still read "Retrying…".
+        await screen.presenter.pendingFinishTask?.value
+
+        #expect(screen.interactor.shownToasts.last?.style == .failure)
         #expect(screen.interactor.endWorkoutSessionAttempts == RetryBackoff.testImmediate.maxAttempts)
         #expect(screen.interactor.shownToasts.last?.message == Self.failedMessage)
         // Nothing claimed failure while a retry was still pending.
