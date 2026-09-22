@@ -150,6 +150,12 @@ Belt and braces, `SourcePackages` is also in the `excluded:` list in `.swiftlint
 `.gitignore` (along with `TestResults.xcresult/`), so resolving into the repo locally is safe too.
 Keep both: the exclusion alone would still leave the checkouts inside the tree for every other tool.
 
+Code signing is left **enabled** in the test step. A simulator build needs no provisioning profile
+and signs ad-hoc, as it does locally. `CODE_SIGNING_ALLOWED=NO` looks like a harmless CI tidy-up but
+skips entitlement processing, which costs the test host its keychain access and fails the eight
+`StravaManagerTests` that read and write Strava tokens (`.notConnected`, and a
+`KeychainHelper.read` returning nil).
+
 `concurrency` cancels superseded runs per ref; `timeout-minutes: 60`.
 
 **SwiftLint is pinned to a single `SWIFTLINT_VERSION` env var at the top of the workflow**

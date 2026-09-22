@@ -172,6 +172,13 @@ jobs:
       # UI tests are skipped: three tests, one chronically flaky in the
       # simulator, and they need their own simulator clone. They are the bulk
       # of the wall-clock cost and the usual cause of a spurious TEST FAILED.
+      #
+      # Signing is deliberately left enabled. A simulator build needs no
+      # provisioning profile and signs itself ad-hoc ("Sign to Run Locally"),
+      # exactly as it does on a developer machine. Passing
+      # CODE_SIGNING_ALLOWED=NO skips entitlement processing altogether, which
+      # leaves the test host without keychain access and fails the eight
+      # StravaManagerTests that read and write tokens.
       - name: Build and run unit tests
         run: |
           xcodebuild test \
@@ -180,8 +187,7 @@ jobs:
             -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }},OS=${{ steps.sim.outputs.os }}" \
             -skip-testing:DialedInUITests \
             -clonedSourcePackagesDirPath "$HOME/SourcePackages" \
-            -resultBundlePath TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO
+            -resultBundlePath TestResults.xcresult
 
       - name: Upload test results
         if: failure()
