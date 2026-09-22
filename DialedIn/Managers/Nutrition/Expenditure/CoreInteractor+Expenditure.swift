@@ -61,16 +61,18 @@ extension CoreInteractor {
 
     /// Recomputes the plan at the proposed target and saves it.
     ///
-    /// `computeDietPlan` takes one number and spreads it across the week, so the figure handed to
-    /// it is the proposed target — expenditure with the goal's rate already in it — not the bare
-    /// expenditure. Passing the expenditure would quietly put everyone on maintenance.
+    /// Both figures go in, because they are not the same number: the target carries the goal's
+    /// rate and the floor, the expenditure carries neither. The plan keeps the expenditure in
+    /// `tdeeEstimate` so a later check-in can tell an estimate that has drifted from adherence
+    /// that has.
     func acceptTargetProposal() async throws {
         guard let proposal = targetProposal, let plan = currentDietPlan else { return }
         let updated = nutritionManager.computeDietPlan(
             user: currentUser,
             delegate: DietPlanDelegate(plan: plan),
             trainingProgram: activeTrainingProgram,
-            expenditureKcal: proposal.proposedTargetKcal
+            expenditureKcal: proposal.expenditureKcal,
+            targetKcal: proposal.proposedTargetKcal
         )
         try await saveDietPlan(updated)
         clearDismissedTargetProposal()
@@ -79,16 +81,21 @@ extension CoreInteractor {
     /// Remembers the figure waved away, so the same card does not come back tomorrow.
     func dismissTargetProposal() {
         guard let proposal = targetProposal else { return }
-        UserDefaults.standard.set(proposal.proposedTargetKcal, forKey: TargetProposal.dismissedDefaultsKey)
+        UserDefaults.standard.set(proposal.proposedTargetKcal, forKey: dismissedTargetProposalKey)
+    }
+
+    private var dismissedTargetProposalKey: String {
+        TargetProposal.dismissedDefaultsKey(userId: userId)
     }
 
     private var dismissedTargetProposalKcal: Double? {
-        guard UserDefaults.standard.object(forKey: TargetProposal.dismissedDefaultsKey) != nil else { return nil }
-        return UserDefaults.standard.double(forKey: TargetProposal.dismissedDefaultsKey)
+        let key = dismissedTargetProposalKey
+        guard UserDefaults.standard.object(forKey: key) != nil else { return nil }
+        return UserDefaults.standard.double(forKey: key)
     }
 
     private func clearDismissedTargetProposal() {
-        UserDefaults.standard.removeObject(forKey: TargetProposal.dismissedDefaultsKey)
+        UserDefaults.standard.removeObject(forKey: dismissedTargetProposalKey)
     }
 }
 
