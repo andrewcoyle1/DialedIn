@@ -45,6 +45,7 @@ class DevPreview {
         container.register(LiveActivityManager.self, service: liveActivityManager)
         #endif
         container.register(AppState.self, service: appState)
+        container.register(PremiumEntitlementResolution.self, service: premiumEntitlementResolution)
         container.register(ImageUploadManager.self, service: imageUploadManager)
         container.register(SoundEffectManager.self, service: soundEffectManager)
         container.register(HapticManager.self, service: hapticManager)
@@ -90,6 +91,7 @@ class DevPreview {
     let liveActivityManager: LiveActivityManager
     #endif
     let appState: AppState
+    let premiumEntitlementResolution = PremiumEntitlementResolution()
 
     let hapticManager: HapticManager
     let soundEffectManager: SoundEffectManager

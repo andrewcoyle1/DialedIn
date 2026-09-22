@@ -116,4 +116,109 @@ struct PremiumAccessTests {
         UserDefaults.standard.set(false, forKey: key)
         #expect(PremiumAccess.isPremium(entitlements: [], developmentOverride: PremiumOverride.isEnabled) == false)
     }
+
+    // MARK: - Optimistic access until resolution
+
+    /// The window between cold launch and RevenueCat/StoreKit answering: `entitlements` reads `[]`
+    /// during it, identically to a real non-subscriber. This is a premium app — non-subscribers
+    /// are always routed to the paywall — but routing a paying subscriber there because the
+    /// network was slow is unacceptable, so the unresolved answer is always "let them in".
+    @Test("An unresolved answer grants access even with no entitlements")
+    func unresolvedAnswerGrantsAccess() {
+        let result = PremiumAccess.isPremium(
+            entitlements: [],
+            entitlementsAreResolved: false,
+            developmentOverride: false
+        )
+
+        #expect(result == true)
+    }
+
+    @Test("A resolved entitled user is granted access")
+    func resolvedEntitledUserIsGrantedAccess() {
+        let result = PremiumAccess.isPremium(
+            entitlements: [entitlement(isActive: true)],
+            entitlementsAreResolved: true,
+            developmentOverride: false
+        )
+
+        #expect(result == true)
+    }
+
+    /// The gate the whole feature exists for: once the store has genuinely answered "no
+    /// subscription", the user is routed to the paywall — optimism is a grace window, not a
+    /// permanent bypass.
+    @Test("A resolved non-entitled user is sent to the paywall")
+    func resolvedNonEntitledUserIsSentToPaywall() {
+        let result = PremiumAccess.isPremium(
+            entitlements: [],
+            entitlementsAreResolved: true,
+            developmentOverride: false
+        )
+
+        #expect(result == false)
+    }
+
+    @Test("A resolved lapsed subscriber is sent to the paywall")
+    func resolvedLapsedSubscriberIsSentToPaywall() {
+        let result = PremiumAccess.isPremium(
+            entitlements: [entitlement(isActive: false)],
+            entitlementsAreResolved: true,
+            developmentOverride: false
+        )
+
+        #expect(result == false)
+    }
+
+    /// Existing call sites and tests never pass `entitlementsAreResolved`, and the default must
+    /// keep reading `entitlements` at face value rather than silently going optimistic.
+    @Test("Omitting entitlementsAreResolved reads entitlements at face value")
+    func omittingEntitlementsAreResolvedReadsEntitlementsAtFaceValue() {
+        #expect(PremiumAccess.isPremium(entitlements: [], developmentOverride: false) == false)
+        #expect(PremiumAccess.isPremium(entitlements: [entitlement(isActive: true)], developmentOverride: false) == true)
+    }
+
+    /// The override wins regardless of resolution state — a developer build must never be blocked
+    /// by the store not having answered, any more than by a real lack of entitlement.
+    @Test("The development override grants access whether or not entitlements are resolved")
+    func developmentOverrideGrantsAccessRegardlessOfResolution() {
+        #expect(PremiumAccess.isPremium(entitlements: [], entitlementsAreResolved: false, developmentOverride: true) == true)
+        #expect(PremiumAccess.isPremium(entitlements: [], entitlementsAreResolved: true, developmentOverride: true) == true)
+    }
+}
+
+/// The runtime signal `PremiumAccess.isPremium` needs and `PurchaseManager` does not expose:
+/// whether the store has answered at all for the signed-in user. Genuinely distinguishable from
+/// "false" — a separate boolean the app sets once it has heard back — rather than inferred from
+/// elapsed time.
+@MainActor
+struct PremiumEntitlementResolutionTests {
+
+    @Test("A fresh resolution starts unresolved")
+    func freshResolutionStartsUnresolved() {
+        let resolution = PremiumEntitlementResolution()
+
+        #expect(resolution.isResolved == false)
+    }
+
+    @Test("Marking resolved flips it to resolved")
+    func markingResolvedFlipsItToResolved() {
+        let resolution = PremiumEntitlementResolution()
+
+        resolution.markResolved()
+
+        #expect(resolution.isResolved == true)
+    }
+
+    /// Signing out hands the app to a user whose entitlements are unknown again, so the next
+    /// session starts optimistic rather than inheriting this one's answer.
+    @Test("Resetting returns it to unresolved")
+    func resettingReturnsItToUnresolved() {
+        let resolution = PremiumEntitlementResolution()
+
+        resolution.markResolved()
+        resolution.reset()
+
+        #expect(resolution.isResolved == false)
+    }
 }
