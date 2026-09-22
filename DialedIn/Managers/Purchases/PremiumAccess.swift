@@ -80,7 +80,7 @@ final class PremiumEntitlementResolution {
     }
 }
 
-/// The development-only input to ``PremiumAccess/isPremium(entitlements:developmentOverride:)``,
+/// The development-only input to ``PremiumAccess/isPremium(entitlements:entitlementsAreResolved:developmentOverride:)``,
 /// flipped from the "Simulate Premium" toggle in Developer Settings.
 ///
 /// `DEV` arrives through `OTHER_SWIFT_FLAGS` on the app target's Debug configuration and `MOCK`
