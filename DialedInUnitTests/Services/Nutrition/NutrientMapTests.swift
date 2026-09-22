@@ -215,6 +215,97 @@ struct NutrientMapTests {
         #expect(Array(decoded).count == 1)
     }
 
+    // MARK: - Stored bad data
+
+    /// Firestore hands non-finite doubles back verbatim, so the JSON stand-in has to be told to
+    /// read them too — by default `JSONDecoder` refuses the document outright and the hole this
+    /// covers would never be reached.
+    private var lenientDecoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.nonConformingFloatDecodingStrategy = .convertFromString(
+            positiveInfinity: "inf",
+            negativeInfinity: "-inf",
+            nan: "nan"
+        )
+        return decoder
+    }
+
+    /// A meal written by a build predating the input sanitising can carry a NaN, and around fifteen
+    /// screens print nutrients through `Int(_:)`, which traps on one while drawing.
+    @Test("Test A Stored NaN Nutrient Is Dropped")
+    func testAStoredNaNNutrientIsDropped() throws {
+        let json = Data(#"{"calories":"nan","protein":13.2}"#.utf8)
+
+        let decoded = try lenientDecoder.decode(NutrientMap.self, from: json)
+
+        #expect(decoded[.calories] == nil)
+        #expect(decoded[.protein] == 13.2)
+    }
+
+    @Test("Test A Stored Infinite Nutrient Is Dropped")
+    func testAStoredInfiniteNutrientIsDropped() throws {
+        let json = Data(#"{"calories":"inf","fiber":"-inf","protein":13.2}"#.utf8)
+
+        let decoded = try lenientDecoder.decode(NutrientMap.self, from: json)
+
+        #expect(decoded[.calories] == nil)
+        #expect(decoded[.fiber] == nil)
+        #expect(decoded[.protein] == 13.2)
+    }
+
+    /// Dropped, not zeroed: absent means "not recorded", which is what a corrupt figure amounts to,
+    /// while a zero would assert the food contains none of the nutrient and put a `0` row in the
+    /// breakdown.
+    @Test("Test A Dropped Nutrient Is Absent Rather Than Zero")
+    func testADroppedNutrientIsAbsentRatherThanZero() throws {
+        let json = Data(#"{"selenium_mcg":"nan"}"#.utf8)
+
+        let decoded = try lenientDecoder.decode(NutrientMap.self, from: json)
+
+        #expect(decoded[.seleniumMcg] == nil)
+        #expect(decoded.recordedKeys(in: .minerals).isEmpty)
+    }
+
+    /// Only the bad figure goes; the rest of the food is still the food it was.
+    @Test("Test The Rest Of A Document Survives A Bad Nutrient")
+    func testTheRestOfADocumentSurvivesABadNutrient() throws {
+        let json = Data(#"{"calories":379,"protein":"nan","carbs":67.7,"fat_total":6.5,"fiber":10.1}"#.utf8)
+
+        let decoded = try lenientDecoder.decode(NutrientMap.self, from: json)
+
+        #expect(decoded[.protein] == nil)
+        #expect(Array(decoded).count == 4)
+        for key in [NutrientKey.calories, .carbs, .fatTotal, .fiber] {
+            #expect(decoded[key] == oats[key])
+        }
+    }
+
+    /// Every ordinary food must decode exactly as before, zeroes and all.
+    @Test("Test A Well Formed Document Is Untouched")
+    func testAWellFormedDocumentIsUntouched() throws {
+        let stored: NutrientMap = [.calories: 0, .protein: 13.2, .sodiumMg: -1]
+        let data = try JSONEncoder().encode(stored)
+
+        let decoded = try lenientDecoder.decode(NutrientMap.self, from: data)
+
+        #expect(decoded == stored)
+        #expect(decoded[.calories] == 0)
+        #expect(decoded[.sodiumMg] == -1)
+    }
+
+    /// A NaN reaching the encoder fails the whole document rather than the one figure, so it is
+    /// dropped on the way out as well as on the way in.
+    @Test("Test A Non Finite Nutrient Is Not Written Back Out")
+    func testANonFiniteNutrientIsNotWrittenBackOut() throws {
+        let corrupt: NutrientMap = [.calories: .nan, .protein: .infinity, .carbs: 67.7]
+
+        let data = try JSONEncoder().encode(corrupt)
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Double]
+
+        #expect(json?.keys.sorted() == ["carbs"])
+        #expect(json?["carbs"] == 67.7)
+    }
+
     // MARK: - Macro keys
 
     /// The four headline macros map to the nutrients the rings and charts read.

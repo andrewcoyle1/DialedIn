@@ -36,6 +36,30 @@ struct RecipeIngredientModel: DataSyncModelProtocol {
             }
         }
     }
+    enum CodingKeys: String, CodingKey {
+        case ingredient
+        case amount
+        case unit
+    }
+
+    /// The stored amount is read back defensively for the same reason a stored nutrient is: both
+    /// `RecipeDetailView` and `RecipeStartView` print it through `Int(_:)` from a view body, which
+    /// traps on a value that is not finite or that overflows `Int` rather than printing something
+    /// odd. Recipes written before the entry fields were sanitised can carry one. See
+    /// `Double+EXT.swift`.
+    ///
+    /// An unusable amount reads as zero rather than being dropped, since unlike a nutrient the
+    /// ingredient has to have some amount, and zero is what an emptied field already means.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        ingredient = try container.decode(FoodModel.self, forKey: .ingredient)
+        amount = try container.decode(Double.self, forKey: .amount).clamped(to: 0...Self.maximumAmount, whenNotFinite: 0)
+        unit = try container.decode(IngredientAmountUnit.self, forKey: .unit)
+    }
+
+    /// One tonne of one ingredient, matching the ceiling the entry fields already impose.
+    private static let maximumAmount: Double = 1_000_000
+
     static var mock: RecipeIngredientModel {
         mocks[0]
     }
