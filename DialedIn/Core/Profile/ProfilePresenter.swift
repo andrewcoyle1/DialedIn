@@ -72,9 +72,8 @@ class ProfilePresenter {
     
     /// What the user is paying for, shown on the Subscription row.
     ///
-    /// The only place the app stated this was SettingsView, on a screen nothing navigates to, and
-    /// there it read from a stored property nothing ever assigned — so it said FREE to everyone,
-    /// premium subscribers included. It reads the entitlement directly here.
+    /// The screen that used to state this read a stored property nothing ever assigned, so it said
+    /// FREE to everyone, premium subscribers included. This reads the entitlement directly.
     var subscriptionStatus: String {
         interactor.isPremium ? "PREMIUM" : "FREE"
     }
@@ -88,15 +87,11 @@ class ProfilePresenter {
         router.showExercisesView()
     }
 
-    func navToSettingsView() {
-        interactor.trackEvent(event: Event.navigate)
-        router.showSettingsView()
-    }
-    
     // MARK: - Community & Support
 
-    /// Opens the same mailto: `SettingsPresenter.onContactUsPressed` uses. Support was an empty
-    /// closure, and email is support that exists today — no hosted help desk needed.
+    /// Support was an empty closure, and email is support that exists today — no hosted help desk
+    /// needed. This is now the app's only way to contact us: the "Contact us" row that opened the
+    /// same mailto: sat on a screen nothing navigated to.
     func onSupportPressed() {
         interactor.trackEvent(eventName: "ProfileView_Support_Press", parameters: nil, type: .analytic)
         let emailString = "mailto:\(Constants.supportEmail)"
@@ -206,14 +201,12 @@ class ProfilePresenter {
     }
 
     enum Event: LoggableEvent {
-        case navigate
         case ratingsPressed
         case ratingsYesPressed
         case ratingsNoPressed
 
         var eventName: String {
             switch self {
-            case .navigate:     return "Fail"
             case .ratingsPressed:               return "SettingsView_Ratings_Pressed"
             case .ratingsYesPressed:            return "SettingsView_RatingsYes_Pressed"
             case .ratingsNoPressed:             return "SettingsView_RatingsNo_Pressed"
@@ -231,8 +224,6 @@ class ProfilePresenter {
             switch self {
             case .ratingsPressed, .ratingsYesPressed, .ratingsNoPressed:
                 return .analytic
-            case .navigate:
-                return .info
             }
         }
     }

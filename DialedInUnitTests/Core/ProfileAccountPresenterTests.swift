@@ -342,7 +342,7 @@ struct ProfileAccountPresenterTests {
 
     /// Signing an anonymous account out is irreversible — there is no credential to sign back in
     /// with — so that account is offered the upgrade in place of Log Out. This was the only screen
-    /// in the app offering it, and it was on SettingsView, which nothing navigates to.
+    /// in the app offering it, and it was on a screen nothing navigated to.
     @Test("Test An Anonymous Account Is Offered The Upgrade Instead Of Log Out")
     func testAnAnonymousAccountIsOfferedTheUpgradeInsteadOfLogOut() {
         #expect(makeScreen(isAnonymous: true).presenter.isAnonymousUser)

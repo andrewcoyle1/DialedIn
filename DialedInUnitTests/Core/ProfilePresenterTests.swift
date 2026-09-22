@@ -32,7 +32,6 @@ struct ProfilePresenterTests {
         private(set) var shown: [String] = []
 
         func showAccountView(delegate: AccountDelegate) { shown.append("account") }
-        func showSettingsView() { shown.append("settings") }
         func showNotificationsView() { shown.append("notifications") }
         func showExercisesView() { shown.append("exercises") }
         func showWorkoutSettingsView(delegate: WorkoutSettingsDelegate) { shown.append("workoutSettings") }
