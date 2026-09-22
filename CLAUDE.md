@@ -138,14 +138,17 @@ runtime and the first available iPhone on it, and fails if that runtime is below
 replace this with a fixed device name — the lineup differs between runner images, and older
 runtimes that cannot run an iOS 26 deployment target are usually installed alongside the new one.
 
-SwiftPM checkouts are cached, keyed on `Package.resolved`, at `~/spm-source-packages` via
+SwiftPM checkouts are cached, keyed on `Package.resolved`, at `~/SourcePackages` via
 `-clonedSourcePackagesDirPath`. That path is **outside the repository on purpose**: the app's
-`Run Script` build phase runs bare `swiftlint` from the project root on every build, and
-`.swiftlint.yml` excludes only `.git`, `.claude/worktrees`, `Pods` and `Carthage`. Checking
-dependencies out inside the working directory makes that phase lint RevenueCat, promises and the
-rest, failing the build on their `force_cast`, `large_tuple` and `identifier_name` violations.
-Locally the equivalent sources sit in DerivedData, well away from the linted tree. Do not move this
-back in-tree without also excluding it in `.swiftlint.yml`.
+`Run Script` build phase runs bare `swiftlint` from the project root on every build. Checking
+dependencies out inside the working directory made that phase lint RevenueCat, promises,
+mixpanel-swift and the rest, failing the build on their `force_cast`, `large_tuple` and
+`identifier_name` violations. Locally the equivalent sources sit in DerivedData, well away from the
+linted tree, which is why this only ever appeared on CI.
+
+Belt and braces, `SourcePackages` is also in the `excluded:` list in `.swiftlint.yml` and in
+`.gitignore` (along with `TestResults.xcresult/`), so resolving into the repo locally is safe too.
+Keep both: the exclusion alone would still leave the checkouts inside the tree for every other tool.
 
 `concurrency` cancels superseded runs per ref; `timeout-minutes: 60`.
 
