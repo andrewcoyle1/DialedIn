@@ -11,6 +11,9 @@ xcuserdata/
 # SwiftPM
 .build/
 
+# Graphify
+graphify-out/
+
 # Carthage (safe if unused)
 Carthage/Build/
 
