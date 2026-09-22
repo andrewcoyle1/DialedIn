@@ -19,6 +19,8 @@ enum ExpenditureSampleBuilder {
         mealLogs: [MealLogModel],
         measurements: [BodyMeasurementEntry],
         steps: [StepsModel],
+        annotations: [NutritionDayAnnotation] = [],
+        loggingBreak: LoggingBreak? = nil,
         today: Date,
         calendar: Calendar = .current
     ) -> [DailySample] {
@@ -26,6 +28,7 @@ enum ExpenditureSampleBuilder {
         let intake = intakeByDay(mealLogs, calendar: calendar)
         let weights = weightByDay(measurements, calendar: calendar)
         let stepCounts = stepsByDay(steps, calendar: calendar)
+        let annotationsByDay = annotationByDay(annotations, calendar: calendar)
 
         let allDays = Set(intake.keys).union(weights.keys).union(stepCounts.keys)
             .filter { $0 < startOfToday }
@@ -36,11 +39,37 @@ enum ExpenditureSampleBuilder {
         var result: [DailySample] = []
         var day = first
         while day <= last {
+            let annotation = annotationsByDay[day]
+            // A fasting day with nothing logged really is zero. Left as nil it would be one more
+            // unlogged day, and the mean would quietly assume the user ate like every other day —
+            // the opposite of what they said happened.
+            let isFastingWithNoLogs = (annotation?.isFastingDay ?? false) && intake[day] == nil
+            let isInBreak = loggingBreak?.contains(day) ?? false
             result.append(
-                DailySample(day: day, intakeKcal: intake[day], weightKg: weights[day], steps: stepCounts[day])
+                DailySample(
+                    day: day,
+                    intakeKcal: isFastingWithNoLogs ? 0 : intake[day],
+                    weightKg: weights[day],
+                    steps: stepCounts[day],
+                    isExcluded: (annotation?.isPartiallyLogged ?? false) || isInBreak
+                )
             )
             guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
             day = next
+        }
+        return result
+    }
+
+    /// Annotations keyed by the day they describe; an unparseable `dayKey` is dropped rather than
+    /// guessed at.
+    private static func annotationByDay(
+        _ annotations: [NutritionDayAnnotation],
+        calendar: Calendar
+    ) -> [Date: NutritionDayAnnotation] {
+        var result: [Date: NutritionDayAnnotation] = [:]
+        for annotation in annotations {
+            guard let date = Date(dayKey: annotation.dayKey) else { continue }
+            result[calendar.startOfDay(for: date)] = annotation
         }
         return result
     }

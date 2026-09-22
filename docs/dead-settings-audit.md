@@ -184,20 +184,19 @@ document per exercise template.
 `DialedIn/Managers/Nutrition/NutritionStrategySettings/Models/NutritionStrategySettings.swift` —
 document `nutrition_strategy_settings`. Two screens write it.
 
-### Strategy Settings — inert
+### Strategy Settings — live in full
 
-All six configure a weekly check-in. Searching the app for one finds nothing: no check-in screen,
-no fasting state, no logging break, no notion of a partial day. Every row here is `feature`, and
-they are one feature rather than six.
+All six configure the weekly check-in, which now exists. See
+`docs/specs/weekly-check-in.md`. They are one feature rather than six, and were built as one.
 
 | Setting | Defined in | Written by | Read by | Verdict |
 |---|---|---|---|---|
-| **`checkInWeekday`** | `NutritionStrategySettings` | `StrategySettingsPresenter.checkInWeekday` | **nothing** | `feature` — no weekly check-in exists to happen on that day. |
-| **`fastCheckIn`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastCheckInEnabled` | **nothing** | `feature` — same; there is no check-in to make fast. |
-| **`partialLoggingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.partialLoggingEnabled` | **nothing** | `feature` — nothing distinguishes a partly logged day from a fully logged one. |
-| **`weighInEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.weighInEnabled` | **nothing** | `feature` — weight is logged from the Analytics tab whatever this says; there is no check-in to include it in. |
-| **`fastingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastingEnabled` | **nothing** | `feature` — the word "fasting" appears nowhere else in the app. |
-| **`loggingBreakEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.loggingBreakEnabled` | **nothing** | `feature` — there is no such thing as a break from logging to enable. |
+| **`checkInWeekday`** | `NutritionStrategySettings` | `StrategySettingsPresenter.checkInWeekday` | `CheckInSchedule.state` | live — the day the card comes due, and it stays due for the rest of that week. |
+| **`fastCheckIn`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastCheckInEnabled` | `CheckInPresenter.buildSteps` | live — drops the introduction and collapses the two lists to the suspicious days. |
+| **`partialLoggingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.partialLoggingEnabled` | `CheckInPresenter.buildSteps` | live — the step that writes `NutritionDayAnnotation.isPartiallyLogged`, which the engine reads as an excluded day. |
+| **`weighInEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.weighInEnabled` | `CheckInPresenter.buildSteps` | live — the check-in asks for a weigh-in when the last is more than three days old. |
+| **`fastingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastingEnabled` | `CheckInPresenter.buildSteps` | live — a fasting day is a logged zero rather than a day that went missing. |
+| **`loggingBreakEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.loggingBreakEnabled` | `CheckInPresenter.buildSteps` | live — starts and ends `LoggingBreak`, which freezes the estimate and the card. |
 
 ### Expenditure Settings — live in full
 
@@ -258,13 +257,13 @@ rather than left with the audit.
 
 ## What is left
 
-Every setting whose behaviour already existed has been wired. What remains is eleven settings
-across three unbuilt features, and they should be tracked as features rather than as plumbing:
+Every setting whose behaviour already existed has been wired. What remains is four settings
+across two unbuilt features, and they should be tracked as features rather than as plumbing:
 
 1. **A smart-progression engine** — `smartProgressionApplyInSession`,
    `smartProgressionInitialLogFill`, `smartProgressionAdjustmentMode`.
-2. **A weekly check-in** — `checkInWeekday`, `fastCheckIn`, `partialLoggingEnabled`,
-   `weighInEnabled`, `fastingEnabled`, `loggingBreakEnabled`.
+2. ~~**A weekly check-in**~~ — built. `CheckInSchedule` and the `CheckIn` module;
+   see `docs/specs/weekly-check-in.md`.
 3. ~~**An adaptive expenditure engine**~~ — built. `ExpenditureEngine` and `TargetProposal`;
    see `docs/specs/adaptive-expenditure.md`.
 4. **A unit choice in the food logger** — `favouriteMeasurements`.

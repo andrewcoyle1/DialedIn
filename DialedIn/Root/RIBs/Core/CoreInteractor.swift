@@ -26,6 +26,7 @@ struct CoreInteractor: GlobalInteractor {
     let workoutSettingsManager: WorkoutSettingsManager
     let foodLogSettingsManager: FoodLogSettingsManager
     let nutritionStrategySettingsManager: NutritionStrategySettingsManager
+    let nutritionStrategyManager: NutritionStrategyManager
     let analyticsSettingsManager: AnalyticsSettingsManager
     let shortcutSettingsManager: ShortcutSettingsManager
     let exerciseSettingsManager: ExerciseSettingsManager
@@ -70,6 +71,7 @@ struct CoreInteractor: GlobalInteractor {
         self.workoutSettingsManager = container.resolve(WorkoutSettingsManager.self)!
         self.foodLogSettingsManager = container.resolve(FoodLogSettingsManager.self)!
         self.nutritionStrategySettingsManager = container.resolve(NutritionStrategySettingsManager.self)!
+        self.nutritionStrategyManager = container.resolve(NutritionStrategyManager.self)!
         self.analyticsSettingsManager = container.resolve(AnalyticsSettingsManager.self)!
         self.shortcutSettingsManager = container.resolve(ShortcutSettingsManager.self)!
         self.exerciseSettingsManager = container.resolve(ExerciseSettingsManager.self)!
@@ -121,6 +123,7 @@ struct CoreInteractor: GlobalInteractor {
         async let nutritionStrategySignIn: () = nutritionStrategySettingsManager.signIn(
             userId: user.uid, isNewUser: isNewUser
         )
+        async let nutritionStrategyDataSignIn: () = nutritionStrategyManager.signIn(userId: user.uid)
         async let analyticsSettingsSignIn: () = analyticsSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
         async let shortcutSettingsSignIn: () = shortcutSettingsManager.signIn(userId: user.uid, isNewUser: isNewUser)
         async let exerciseSettingsSignIn: () = exerciseSettingsManager.signIn(userId: user.uid)
@@ -143,6 +146,7 @@ struct CoreInteractor: GlobalInteractor {
         try await workoutSettingsSignIn
         try await foodLogSettingsSignIn
         try await nutritionStrategySignIn
+        try await nutritionStrategyDataSignIn
         try await analyticsSettingsSignIn
         try await shortcutSettingsSignIn
         await exerciseSettingsSignIn
@@ -199,6 +203,7 @@ struct CoreInteractor: GlobalInteractor {
         workoutSettingsManager.signOut()
         foodLogSettingsManager.signOut()
         nutritionStrategySettingsManager.signOut()
+        nutritionStrategyManager.signOut()
         analyticsSettingsManager.signOut()
         shortcutSettingsManager.signOut()
         exerciseSettingsManager.signOut()

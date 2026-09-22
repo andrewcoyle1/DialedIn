@@ -71,12 +71,12 @@ See [CLAUDE.md](CLAUDE.md) for the full architecture reference.
 
 3. **Configure API Keys**
    - Copy `DialedIn/Utilities/Keys.swift.example` to `DialedIn/Utilities/Keys.swift`
-   - Fill in the 30 constants:
+   - Fill in the 33 constants:
      - OpenAI API key (if using AI features)
      - Mixpanel token
      - RevenueCat API key
      - Strava client ID and secret
-     - 25 `*ManagerKey` strings — arbitrary names used as local-persistence paths. Keep them
+     - 28 `*ManagerKey` strings — arbitrary names used as local-persistence paths. Keep them
        stable once chosen; renaming one orphans data already stored under the old name.
    - **Note**: `Keys.swift` is gitignored. You must create it locally for the app to build.
 

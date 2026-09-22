@@ -15,8 +15,11 @@ struct LogWeightView: View {
         List {
             dateSection
                 .removeListRowFormatting()
-            unitPickerSection
-            weightPickerSection
+            WeightPickerInput(
+                unit: $presenter.unit,
+                selectedKilograms: $presenter.selectedKilograms,
+                selectedPounds: $presenter.selectedPounds
+            )
         }
         .navigationTitle("Log Weight")
         .navigationBarTitleDisplayMode(.inline)
@@ -42,52 +45,6 @@ struct LogWeightView: View {
         } footer: {
             Text("Select the date for this weight entry")
         }
-    }
-    
-    private var unitPickerSection: some View {
-        Section {
-            Picker("Units", selection: $presenter.unit) {
-                Text("Metric (kg)").tag(UnitOfWeight.kilograms)
-                Text("Imperial (lbs)").tag(UnitOfWeight.pounds)
-            }
-            .pickerStyle(.segmented)
-        }
-        .removeListRowFormatting()
-    }
-    
-    private var weightPickerSection: some View {
-        Section {
-            if presenter.unit == .kilograms {
-                Picker("Weight", selection: $presenter.selectedKilograms) {
-                    ForEach((30...200).reversed(), id: \.self) { value in
-                        Text("\(value) kg").tag(value)
-                    }
-                }
-                .pickerStyle(.wheel)
-                .frame(height: 150)
-                .clipped()
-                .onChange(of: presenter.selectedKilograms) { _, newValue in
-                    // Update pounds to match
-                    presenter.selectedPounds = Int(UnitConversion.kgToLbs(Double(newValue)))
-                }
-            } else {
-                Picker("Weight", selection: $presenter.selectedPounds) {
-                    ForEach((66...440).reversed(), id: \.self) { value in
-                        Text("\(value) lbs").tag(value)
-                    }
-                }
-                .pickerStyle(.wheel)
-                .frame(height: 150)
-                .clipped()
-                .onChange(of: presenter.selectedPounds) { _, newValue in
-                    // Update kilograms to match
-                    presenter.selectedKilograms = Int(Double(newValue) * 0.453592)
-                }
-            }
-        } header: {
-            Text("Weight")
-        }
-        .removeListRowFormatting()
     }
     
     @ToolbarContentBuilder

@@ -11,6 +11,8 @@ protocol NutritionOverviewInteractor: GlobalInteractor {
     var targetProposal: TargetProposal? { get }
     func acceptTargetProposal() async throws
     func dismissTargetProposal()
+    var checkInState: CheckInState { get }
+    func markCheckInSkipped(weekStart: Date) async throws
 }
 
 extension CoreInteractor: NutritionOverviewInteractor { }

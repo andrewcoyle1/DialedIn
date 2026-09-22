@@ -175,8 +175,8 @@ CI reports violations you cannot reproduce, compare `swiftlint version` first.
 Copy example files and fill in credentials. All three destinations are gitignored, and the app
 will not build or sign in without them:
 
-- `DialedIn/Utilities/Keys.swift.example` → `DialedIn/Utilities/Keys.swift` — 30 constants:
-  OpenAI, Mixpanel, RevenueCat, the two Strava values, and 25 `*ManagerKey` strings used as
+- `DialedIn/Utilities/Keys.swift.example` → `DialedIn/Utilities/Keys.swift` — 33 constants:
+  OpenAI, Mixpanel, RevenueCat, the two Strava values, and 28 `*ManagerKey` strings used as
   local-persistence path names. The manager keys are arbitrary but must stay stable: changing
   one orphans data already persisted under the old name.
 - `DialedIn/Info.plist.example` → `DialedIn/Info.plist` — already contains the real reversed

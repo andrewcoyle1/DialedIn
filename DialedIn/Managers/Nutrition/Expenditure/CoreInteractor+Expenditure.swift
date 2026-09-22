@@ -20,7 +20,7 @@ extension CoreInteractor {
             samples: expenditureSamples,
             priorKcal: estimateTDEE(user: currentUser),
             settings: nutritionStrategySettings,
-            today: Date(),
+            today: expenditureToday,
             calendar: .current
         )
     }
@@ -31,9 +31,19 @@ extension CoreInteractor {
             samples: expenditureSamples,
             priorKcal: estimateTDEE(user: currentUser),
             settings: nutritionStrategySettings,
-            today: Date(),
+            today: expenditureToday,
             calendar: .current
         )
+    }
+
+    /// The day the estimate is for — which during an open logging break is the day the break
+    /// began.
+    ///
+    /// Freezing the estimate there is the honest reading of a break: the history stops where the
+    /// data stopped. Letting it run on would show a number sliding towards the prior every day,
+    /// which looks like the algorithm learning something when in fact nobody told it anything.
+    private var expenditureToday: Date {
+        openLoggingBreak?.startDate ?? Date()
     }
 
     private var expenditureSamples: [DailySample] {
@@ -41,7 +51,9 @@ extension CoreInteractor {
             mealLogs: userMeals,
             measurements: bodyMeasurements,
             steps: stepsHistory,
-            today: Date()
+            annotations: nutritionDayAnnotations,
+            loggingBreak: loggingBreak,
+            today: expenditureToday
         )
     }
 
@@ -50,7 +62,10 @@ extension CoreInteractor {
     /// The pending suggestion that the calorie target should move, or nil when there is nothing
     /// worth saying.
     var targetProposal: TargetProposal? {
-        TargetProposal.make(
+        // A break is a break. Proposing new targets to somebody who has explicitly stopped
+        // logging is the one moment the propose-and-confirm contract turns into nagging.
+        guard openLoggingBreak == nil else { return nil }
+        return TargetProposal.make(
             estimate: currentExpenditure,
             plan: currentDietPlan,
             goal: currentGoal,
@@ -96,6 +111,19 @@ extension CoreInteractor {
 
     private func clearDismissedTargetProposal() {
         UserDefaults.standard.removeObject(forKey: dismissedTargetProposalKey)
+    }
+
+    // MARK: - Check-in
+
+    /// Whether the weekly check-in is waiting, and for which week.
+    var checkInState: CheckInState {
+        CheckInSchedule.state(
+            today: Date(),
+            settings: nutritionStrategySettings,
+            record: checkInRecord,
+            break: loggingBreak,
+            calendar: .current
+        )
     }
 }
 

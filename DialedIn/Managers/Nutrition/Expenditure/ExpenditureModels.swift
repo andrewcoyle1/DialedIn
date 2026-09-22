@@ -16,12 +16,23 @@ struct DailySample: Equatable, Sendable {
     let intakeKcal: Double?
     let weightKg: Double?
     let steps: Int?
+    /// The day's intake is not to be read as a measurement: partially logged, or inside a logging
+    /// break. It counts as unlogged for the mean and for the logged-fraction guard, but its
+    /// weigh-in still feeds the trend — the scale did not stop being true because the food log did.
+    let isExcluded: Bool
 
-    init(day: Date, intakeKcal: Double? = nil, weightKg: Double? = nil, steps: Int? = nil) {
+    init(
+        day: Date,
+        intakeKcal: Double? = nil,
+        weightKg: Double? = nil,
+        steps: Int? = nil,
+        isExcluded: Bool = false
+    ) {
         self.day = day
         self.intakeKcal = intakeKcal
         self.weightKg = weightKg
         self.steps = steps
+        self.isExcluded = isExcluded
     }
 }
 

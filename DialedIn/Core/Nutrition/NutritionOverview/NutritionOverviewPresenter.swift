@@ -31,6 +31,12 @@ class NutritionOverviewPresenter {
     private(set) var proposal: TargetProposal?
     private(set) var isApplyingProposal: Bool = false
 
+    /// Whether this week's check-in is waiting, and for which week.
+    ///
+    /// Held for the same reason as `proposal`: starting or skipping has to take the card off the
+    /// screen now, not once Firestore has agreed.
+    private(set) var checkInState: CheckInState = .notDue
+
     init(interactor: NutritionOverviewInteractor, router: NutritionOverviewRouter) {
         self.interactor = interactor
         self.router = router
@@ -49,12 +55,48 @@ class NutritionOverviewPresenter {
         let dayKey = delegate.dayKey
         self.dayKey = dayKey
         proposal = interactor.targetProposal
+        checkInState = interactor.checkInState
         totals = (try? interactor.getDailyTotals(dayKey: dayKey)) ?? totals
         breakdown = (try? interactor.getDailyNutritionBreakdown(dayKey: dayKey)) ?? .empty
         guard let userId = interactor.userId else { return }
         let date = Date(dayKey: dayKey) ?? Date()
         Task {
             target = try? await interactor.getDailyTarget(for: date, userId: userId)
+        }
+    }
+
+    // MARK: Weekly check-in
+
+    /// The week the card is offering, or nil when no check-in is due.
+    ///
+    /// The card takes the proposal card's place while it is showing rather than sitting above it:
+    /// the proposal is the last step of the check-in, and offering it twice on one screen invites
+    /// the user to accept it outside the flow that was meant to explain it.
+    var dueCheckInWeekStart: Date? {
+        guard case .due(let weekStart) = checkInState else { return nil }
+        return weekStart
+    }
+
+    func onStartCheckInPressed() {
+        guard let weekStart = dueCheckInWeekStart else { return }
+        interactor.trackEvent(event: Event.checkInStarted(weekStart: weekStart))
+        router.showCheckInView(delegate: CheckInDelegate(weekStart: weekStart))
+    }
+
+    /// Skipping is optimistic, and puts the card back if the write does not land — the same shape
+    /// as accepting a proposal, and for the same reason: a card that vanished on a failed write
+    /// would look exactly like a week that had been dealt with.
+    func onSkipCheckInPressed() {
+        guard let weekStart = dueCheckInWeekStart else { return }
+        interactor.trackEvent(event: Event.checkInSkipped(weekStart: weekStart))
+        checkInState = .notDue
+        Task {
+            do {
+                try await interactor.markCheckInSkipped(weekStart: weekStart)
+            } catch {
+                checkInState = .due(weekStart: weekStart)
+                router.showAlert(error: error)
+            }
         }
     }
 
@@ -152,6 +194,8 @@ extension NutritionOverviewPresenter {
         case proposalAccepted(proposal: TargetProposal)
         case proposalDismissed(proposal: TargetProposal)
         case proposalAcceptFailed(error: Error)
+        case checkInStarted(weekStart: Date)
+        case checkInSkipped(weekStart: Date)
 
         var eventName: String {
             switch self {
@@ -160,6 +204,8 @@ extension NutritionOverviewPresenter {
             case .proposalAccepted:    return "NutritionOverviewView_Proposal_Accept"
             case .proposalDismissed:   return "NutritionOverviewView_Proposal_Dismiss"
             case .proposalAcceptFailed: return "NutritionOverviewView_Proposal_Accept_Fail"
+            case .checkInStarted:      return "NutritionOverviewView_CheckIn_Start"
+            case .checkInSkipped:      return "NutritionOverviewView_CheckIn_Skip"
             }
         }
 
@@ -176,6 +222,8 @@ extension NutritionOverviewPresenter {
                 ]
             case .proposalAcceptFailed(let error):
                 return ["error": error.localizedDescription]
+            case .checkInStarted(let weekStart), .checkInSkipped(let weekStart):
+                return ["check_in_week_start": weekStart]
             }
         }
 
