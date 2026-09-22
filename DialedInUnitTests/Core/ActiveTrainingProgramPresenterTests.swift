@@ -368,6 +368,20 @@ struct ActiveTrainingProgramPresenterTests {
         #expect(screen.router.shown.isEmpty)
     }
 
+    /// Nothing opening is a failure, not a non-event. Returning silently after the Start left a
+    /// half-funnel: a tap that looked exactly like a screen nobody opened.
+    @Test("Test Opening A Session That Is Gone Reports The Failure")
+    func testOpeningASessionThatIsGoneReportsTheFailure() {
+        let screen = makeScreen()
+
+        screen.presenter.openCompletedSession(sessionId: "missing")
+
+        #expect(screen.interactor.trackedEventNames == [
+            "ActiveTrainingProgramView_OpenCompletedSession_Start",
+            "ActiveTrainingProgramView_OpenCompletedSession_Fail"
+        ])
+    }
+
     @Test("Test Pressing The Program Opens It For Editing")
     func testPressingTheProgramOpensItForEditing() {
         let screen = makeScreen()

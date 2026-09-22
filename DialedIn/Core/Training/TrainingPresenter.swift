@@ -168,7 +168,13 @@ class TrainingPresenter {
     
     private func openCompletedSession(sessionId: String) {
         interactor.trackEvent(event: Event.openCompletedSessionStart)
-        guard let session = workoutSessions.first(where: { $0.id == sessionId }) else { return }
+        guard let session = workoutSessions.first(where: { $0.id == sessionId }) else {
+            // The id came from a session this screen was holding a moment ago, so losing it means
+            // the sync engine dropped it mid-tap. Returning silently left a Start with no terminal
+            // event: the tap looked like a screen nobody opened.
+            interactor.trackEvent(event: Event.openCompletedSessionFail(error: TrainingError.sessionNotFound))
+            return
+        }
         router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
         interactor.trackEvent(event: Event.openCompletedSessionSuccess)
     }
@@ -218,6 +224,17 @@ class TrainingPresenter {
     #endif
 }
 
+enum TrainingError: LocalizedError {
+    case sessionNotFound
+
+    var errorDescription: String? {
+        switch self {
+        case .sessionNotFound:
+            return "The workout session is no longer available"
+        }
+    }
+}
+
 extension TrainingPresenter {
     enum Event: LoggableEvent {
         case onAppear(delegate: TrainingDelegate)
@@ -225,10 +242,6 @@ extension TrainingPresenter {
         case openCompletedSessionStart
         case openCompletedSessionSuccess
         case openCompletedSessionFail(error: Error)
-        case loadDataStart
-        case loadDataSuccess
-        case loadDataFail(error: Error)
-        case getWeeklyProgress
 
         var eventName: String {
             switch self {
@@ -237,10 +250,6 @@ extension TrainingPresenter {
             case .openCompletedSessionStart:     return "TrainingView_OpenCompletedSession_Start"
             case .openCompletedSessionSuccess:   return "TrainingView_OpenCompletedSession_Success"
             case .openCompletedSessionFail:      return "TrainingView_OpenCompletedSession_Fail"
-            case .loadDataStart:                 return "TrainingView_LoadData_Start"
-            case .loadDataSuccess:               return "TrainingView_LoadData_Success"
-            case .loadDataFail:                  return "TrainingView_LoadData_Fail"
-            case .getWeeklyProgress:             return "TrainingView_GetWeeklyProgress"
             }
         }
 
@@ -248,7 +257,7 @@ extension TrainingPresenter {
             switch self {
             case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
                 return delegate.eventParameters
-            case .loadDataFail(error: let error), .openCompletedSessionFail(error: let error):
+            case .openCompletedSessionFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -257,7 +266,7 @@ extension TrainingPresenter {
 
         var type: LogType {
             switch self {
-            case .loadDataFail, .openCompletedSessionFail:
+            case .openCompletedSessionFail:
                 return .severe
             default:
                 return .analytic

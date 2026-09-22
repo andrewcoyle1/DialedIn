@@ -554,6 +554,44 @@ struct ExerciseSavePresenterTests {
         #expect(screen.interactor.saved.isEmpty)
     }
 
+    // MARK: - The create funnel
+
+    /// This is where the whole wizard lands, so it is the only place that can say whether an
+    /// exercise was actually created. It used to report neither the attempt nor the outcome.
+    @Test("Test Creating An Exercise Reports Start Then Success")
+    func testCreatingAnExerciseReportsStartThenSuccess() async {
+        let screen = makeScreen()
+
+        screen.presenter.onCreatePressed(delegate: delegate())
+        _ = await TestManagers.eventually { screen.interactor.trackedEventNames.count == 2 }
+
+        #expect(screen.interactor.trackedEventNames == ["CreateExercise_Start", "CreateExercise_Success"])
+    }
+
+    /// The alert told the user; nothing told us, so a backend outage here was indistinguishable
+    /// from nobody reaching the last step of the wizard.
+    @Test("Test A Failed Save Reports The Failure")
+    func testAFailedSaveReportsTheFailure() async {
+        let screen = makeScreen()
+        screen.interactor.saveError = SaveFailure()
+
+        screen.presenter.onCreatePressed(delegate: delegate())
+        _ = await TestManagers.eventually { screen.interactor.trackedEventNames.count == 2 }
+
+        #expect(screen.interactor.trackedEventNames == ["CreateExercise_Start", "CreateExercise_Fail"])
+    }
+
+    /// The signed-out branch returned before anything was tracked, so it lost the attempt as well
+    /// as the exercise.
+    @Test("Test No Signed In User Reports The Failure")
+    func testNoSignedInUserReportsTheFailure() {
+        let screen = makeScreen(user: nil)
+
+        screen.presenter.onCreatePressed(delegate: delegate())
+
+        #expect(screen.interactor.trackedEventNames == ["CreateExercise_Start", "CreateExercise_Fail"])
+    }
+
     @Test("Test Appearing Is Tracked As A Screen View")
     func testAppearingIsTrackedAsAScreenView() {
         let screen = makeScreen()

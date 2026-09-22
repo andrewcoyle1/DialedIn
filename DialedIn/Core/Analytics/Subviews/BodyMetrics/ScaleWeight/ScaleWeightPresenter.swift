@@ -105,7 +105,9 @@ extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
             try await interactor.saveBodyMeasurement(bodyMeasurement: updatedEntry)
         } catch {
             // Was `try?`. The refresh below re-reads unchanged data, so a failed delete put the row
-            // straight back with nothing said about why.
+            // straight back with nothing said about why. The alert told the user; nothing told us,
+            // so a backend outage here looked like nobody deleting anything.
+            interactor.trackEvent(event: Event.deleteEntryFail(error: error))
             router.showSimpleAlert(title: "Unable to Delete Entry", subtitle: "Please try again.")
             return
         }
@@ -115,38 +117,25 @@ extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
 
 extension ScaleWeightPresenter {
     enum Event: LoggableEvent {
-        case loadRemoteEntriesStart
-        case loadRemoteEntriesSuccess
-        case loadRemoteEntriesFail(error: Error)
-        case dedupeWeightEntriesFail(error: Error)
+        case deleteEntryFail(error: Error)
 
         var eventName: String {
             switch self {
-            case .loadRemoteEntriesStart:   return "ScaleWeightView_LoadRemoteEntries_Start"
-            case .loadRemoteEntriesSuccess: return "ScaleWeightView_LoadRemoteEntries_Success"
-            case .loadRemoteEntriesFail:    return "ScaleWeightView_LoadRemoteEntries_Fail"
-            case .dedupeWeightEntriesFail:  return "ScaleWeightView_DedupeWeightEntries_Fail"
+            case .deleteEntryFail: return "ScaleWeightView_DeleteEntry_Fail"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
-            case .loadRemoteEntriesFail(error: let error),
-                 .dedupeWeightEntriesFail(error: let error):
+            case .deleteEntryFail(error: let error):
                 return error.eventParameters
-            default:
-                return nil
             }
         }
-        
+
         var type: LogType {
             switch self {
-            case .loadRemoteEntriesFail,
-                 .dedupeWeightEntriesFail:
+            case .deleteEntryFail:
                 return .severe
-            default:
-                return .analytic
-                
             }
         }
     }

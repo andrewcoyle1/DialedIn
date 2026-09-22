@@ -81,7 +81,8 @@ class LiveActivityManager: LiveActivityUpdating {
     ///   - totalVolumeKg: Double?
     ///   - elapsedTime: TimeInterval?
     func updateLiveActivity(params: LiveActivityUpdateParams) {
-        logger.trackEvent(event: Event.updateLiveActivityStart)
+        // No Start here: this only builds the content state and hands it to the private overload,
+        // which logs the attempt. Tracking in both counted every update twice.
         let updatedState = makeContentState(
             params: MakeContentStateParams(
                 session: params.session,
@@ -217,21 +218,28 @@ class LiveActivityManager: LiveActivityUpdating {
     }
     
     private func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
-        logger.trackEvent(event: Event.updateLiveActivityStart)
-        // Only update if meaningful changes occurred
+        // Only update if meaningful changes occurred. A skipped no-op is not an attempt, so the
+        // Start belongs below the guard — logging it above gave every unchanged tick a Start with
+        // no terminal event and buried the real failures.
         guard shouldUpdateLiveActivity(contentState: contentState) else { return }
-        
+
+        logger.trackEvent(event: Event.updateLiveActivityStart)
         self.lastContentState = contentState
 
         // Guard activity existence and acceptable state to avoid runtime errors
-        if let activity = self.currentActivity,
-           activity.activityState == .active ||
-            activity.activityState == .stale {
-            let sendableActivity = SendableActivity(activity: activity)
-            Task {
-                await sendableActivity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
-                logger.trackEvent(event: Event.updateLiveActivitySuccess)
-            }
+        guard let activity = self.currentActivity,
+              activity.activityState == .active ||
+                activity.activityState == .stale else {
+            // The activity was dismissed or ended under us. This used to fall out of the `if` with
+            // nothing logged, so a Live Activity that stopped updating mid-workout was invisible.
+            logger.trackEvent(event: Event.updateLiveActivityFail(error: LiveActivityError.noUpdatableActivity))
+            return
+        }
+
+        let sendableActivity = SendableActivity(activity: activity)
+        Task {
+            await sendableActivity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
+            logger.trackEvent(event: Event.updateLiveActivitySuccess)
         }
     }
         

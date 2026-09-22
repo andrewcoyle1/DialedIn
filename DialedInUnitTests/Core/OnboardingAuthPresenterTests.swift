@@ -319,6 +319,24 @@ struct OnboardingAuthPresenterTests {
         #expect(!screen.interactor.trackedEventNames.contains("Auth_UserLogin_Success"))
     }
 
+    /// The worst shape of all: login *succeeded* and the profile still was not there, so the
+    /// presenter returned and the user sat on the sign-in screen behind a Success event with no
+    /// destination and no alert. The profile arrives when the sync engine's listener next emits,
+    /// so this is a race rather than a theoretical branch — it has to be visible in the numbers.
+    @Test("A login that succeeds without a profile is recorded rather than swallowed")
+    func testALoginWithoutAProfileIsRecorded() async {
+        let screen = makeScreen()
+        screen.interactor.isPremium = true
+        screen.interactor.userAfterLogin = nil
+
+        screen.presenter.handleOnAuthSuccess(user: UserAuthInfo(uid: "user-1"), isNewUser: false)
+
+        #expect(await TestManagers.eventually {
+            screen.interactor.trackedEventNames.contains("Auth_UserLogin_NoCurrentUser")
+        })
+        #expect(screen.router.shown.isEmpty)
+    }
+
     // MARK: - Leaving the screen
 
     /// The screen is left behind the moment auth succeeds, and `cleanUp` runs on the way out. It

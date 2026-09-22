@@ -8,6 +8,17 @@
 import Foundation
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 
+enum LiveActivityError: LocalizedError {
+    case noUpdatableActivity
+
+    var errorDescription: String? {
+        switch self {
+        case .noUpdatableActivity:
+            return "No active or stale Live Activity to update"
+        }
+    }
+}
+
 // MARK: Events
 extension LiveActivityManager {
     enum Event: LoggableEvent {
