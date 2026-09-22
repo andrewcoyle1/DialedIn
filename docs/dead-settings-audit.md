@@ -8,14 +8,19 @@ that writes it ever reads it.
 - **69 stored settings** across six documents: `WorkoutSettings` (23), `FoodLogSettings` (29),
   `NutritionStrategySettings` (13), `ExerciseSettingsModel` (2), `AnalyticsSettings` (1),
   `ShortcutSettings` (1).
-- **26 are dead** — saved to Firestore and read by nothing outside the screen that writes them.
-  That is a little more than the twenty-five this audit set out to confirm.
-- **43 are live.**
-- **Three screens are wholly inert**: Time Selection, Favourite Measurements and Optimisation.
-  Every control on them writes a field no other code reads. Two more, **Strategy Settings** and
-  **Expenditure Settings**, are inert but for one field: `bmrEquation`, which `NutritionManager`
-  does read. And **Smart Progression Settings** is inert in full — there is no smart-progression
-  engine in the app for its three fields to steer.
+- **26 were dead** when this audit was written — saved to Firestore and read by nothing outside
+  the screen that writes them.
+- **Ten have since been wired** and are live: `restDurationOverride`, `restTimerPlaySound`,
+  `restTimerVibrate`, `previousWorkoutReference`, `autoSetCurrentTime`, `quickAddEnabled`,
+  `supersetAutoScroll`, `note`, `showOverages`, `estimationMethod`.
+- **Sixteen remain dead, and every one of them needs a feature built first**, not a line of
+  plumbing. They are listed as `feature` below, each with what is missing.
+- **53 are live.**
+- Time Selection and Optimisation are no longer inert. **Favourite Measurements** still is: its
+  list of nine units has no picker anywhere in the app to order. **Strategy Settings** is inert
+  in full, **Expenditure Settings** but for `bmrEquation` and `estimationMethod`, and **Smart
+  Progression Settings** in full — there is no smart-progression engine for its three fields to
+  steer.
 
 ### What "read by" means here
 
@@ -27,10 +32,14 @@ Where a setting is surfaced through a helper (`AnalyticsSettings.isVisible(_:)`,
 
 ### Verdicts
 
-- `wire` — there is an obvious place it should take effect, named in the row.
-- `remove` — nothing in the app plausibly consumes it.
-- `decide` — genuinely ambiguous; it needs the feature it describes to exist first, or the product
-  owner to say what it should mean.
+- `live` — production code outside the writing screen reads it.
+- `feature` — the behaviour it describes does not exist. Reading the flag would change nothing;
+  honouring it means building the thing it names. The row says what is missing.
+- `decide` — the product owner has to say what it should mean before either is possible.
+
+Nothing here is marked `remove`. The instruction standing over this work is that no setting,
+control or screen is to be deleted however dead — including `algorithmVersion`, whose single case
+cannot change anything even once there is an engine to change.
 
 ---
 
@@ -50,9 +59,23 @@ Where a setting is surfaced through a helper (`AnalyticsSettings.isVisible(_:)`,
 | `addSmartWarmUps` | `WorkoutSettings` | `WorkoutSettingsPresenter.addSmartWarmUps` | `WorkoutTrackerPresenter` (warm-up seeding guard) | live |
 | `supersetAutoScroll` | `WorkoutSettings` | `WorkoutSettingsPresenter.supersetAutoScroll` | `WorkoutTrackerPresenter.advanceWithinSuperset(exerciseIndex:in:)` | live — **wired**. Not at `advanceAfterExerciseCompletion` as the audit guessed: the toggle says *after set completion*, which is the round-robin step between two members, not finishing an exercise. New rule in `WorkoutTrackerPresenter+Superset`. **Default `true`, so this changes behaviour for every existing user** — a release note, not a silent improvement. |
 | **`previousWorkoutReference`** | `WorkoutSettings` | `PrevWORefSettingsPresenter.previousWorkoutReference` | **nothing** — only its own screen | `wire` — `WorkoutTrackerPresenter.loadPreviousWorkoutSession()`, which calls `getLastCompletedSessionForTemplate(templateId:authorId:)` unconditionally. `.workoutsInProgram` means filtering that lookup by `trainingProgramId`. |
-| **`smartProgressionApplyInSession`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.applyInSession` | **nothing** | `decide` — there is no smart-progression engine in the app; the whole feature is three settings and a screen. |
-| **`smartProgressionInitialLogFill`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.initialLogFill` | **nothing** | `decide` — sets are prefilled unconditionally in `WorkoutSessionModel.init(template:…)`, which has no notion of the three options. |
-| **`smartProgressionAdjustmentMode`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.adjustmentMode` | **nothing** | `decide` — nothing applies progression, so weight-first vs reps-first has nothing to choose between. |
+| **`smartProgressionApplyInSession`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.applyInSession` | **nothing** | `feature` — there is no smart-progression engine in the app; the whole feature is three settings and a screen. Missing: an engine that proposes a next-session load from logged history. |
+| **`smartProgressionInitialLogFill`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.initialLogFill` | **nothing** | `feature` — see the note below; two of its three options are buildable today but the **default one is not**, so wiring it would leave the control lying in the position most users are in. |
+| **`smartProgressionAdjustmentMode`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.adjustmentMode` | **nothing** | `feature` — nothing applies progression, so weight-first vs reps-first has nothing to choose between. |
+
+### What `smartProgressionInitialLogFill` would take
+
+Worth writing down, because it is the one dead setting whose wiring looks like plumbing and is not.
+
+Its three options are `.smartProgression` (the default), `.previousValues` and `.empty`.
+`WorkoutSessionModel.init(template:previousWorkoutSession:…)` already prefills each working set
+from the matching set of the previous session, rounded to the gym's increments — that is exactly
+`.previousValues`, and an inline comment there mislabels it "smart progression". `.empty` is a
+few lines away.
+
+But `.smartProgression` is the default, and it is the one that needs the engine. Wiring the other
+two would make the screen *look* finished while the option most users are sitting on quietly meant
+something else. That is worse than leaving all three honest, so all three wait for the engine.
 | `useRestTimers` | `WorkoutSettings` | `RestTimerSettingsPresenter.useRestTimers` | `SetTrackerRowPresenter` (set-completion handler) | live |
 | `restAfterLastWarmUp` | `WorkoutSettings` | `RestTimerSettingsPresenter.restAfterLastWarmUp` | `SetTrackerRowPresenter.restAfterCompleting(_:in:)` | live |
 | `restBetweenExercises` | `WorkoutSettings` | `RestTimerSettingsPresenter.restBetweenExercises` | `SetTrackerRowPresenter.restAfterCompleting(_:in:)` | live |
@@ -88,7 +111,7 @@ document per exercise template.
 | `showsFoodTimestamps` | `FoodLogSettings` | `FoodLogSettingsPresenter.showsFoodTimestamps` | `NutritionPresenter.showsFoodTimestamps` → `MealItemRowStyle` | live |
 | `showHourlyMacroTotals` | `FoodLogSettings` | `FoodLogSettingsPresenter.showHourlyMacroTotals` | `MealHourHeaderPresenter.showHourlyMacroTotals` | live |
 | `showCalendarWeekBanner` | `FoodLogSettings` | `FoodLogSettingsPresenter.showCalendarWeekBanner` | `NutritionPresenter` → `NutritionView` | live |
-| **`premove`** | `FoodLogSettings` | `FoodLogSettingsPresenter.premove` | **nothing** | `decide` — the name says nothing about what it should do, and no code or comment explains it. Needs the product owner before it can be either wired or dropped. |
+| **`premove`** | `FoodLogSettings` | `FoodLogSettingsPresenter.premove` | **nothing** | `decide` — unchanged. The name says nothing about what it should do, and no code or comment explains it. The product owner has to say what it means before anyone can wire it. |
 | `timestampSide` | `FoodLogSettings` | `FoodLogSettingsPresenter.timestampSide` | `NutritionPresenter.timestampSide` → `MealItemRowStyle` | live |
 | `showAddFoodsButton` | `FoodLogSettings` | `FoodLogSettingsPresenter.showAddFoodsButton` | `MealHourHeaderPresenter.showAddFoodsButton` | live |
 | `startHour` | `FoodLogSettings` | `FoodLogSettingsPresenter.startHour` | `NutritionPresenter` (timeline range) | live |
@@ -139,7 +162,7 @@ document per exercise template.
 
 | Setting | Defined in | Written by | Read by | Verdict |
 |---|---|---|---|---|
-| **`favouriteMeasurements`** | `FoodLogSettings` | `FavouriteMeasurementsPresenter.toggleMeasurement(_:)` | **nothing** | `wire` — the serving-unit picker in the food logger, where the chosen units would sort to the top. Nothing reads the list today, so the screen's only effect is on itself. |
+| **`favouriteMeasurements`** | `FoodLogSettings` | `FavouriteMeasurementsPresenter.toggleMeasurement(_:)` | **nothing** | `feature` — corrected from `wire`. **The serving-unit picker this was to order does not exist.** A food is logged in one unit fixed by its `measurementMethod` (`IngredientAmountPresenter.unitLabel(ingredient:)` returns "g" or "ml" and nothing else offers a choice), and of the nine units on the screen only `g` and `ml` appear anywhere. Missing: a unit choice in the logger, plus the conversions behind `oz`, `cup`, `tbsp`, `tsp` and `serving`. |
 
 ### Favourites (written from the nutrition tab, not a settings screen)
 
@@ -161,14 +184,18 @@ document `nutrition_strategy_settings`. Two screens write it.
 
 ### Strategy Settings — inert
 
+All six configure a weekly check-in. Searching the app for one finds nothing: no check-in screen,
+no fasting state, no logging break, no notion of a partial day. Every row here is `feature`, and
+they are one feature rather than six.
+
 | Setting | Defined in | Written by | Read by | Verdict |
 |---|---|---|---|---|
-| **`checkInWeekday`** | `NutritionStrategySettings` | `StrategySettingsPresenter.checkInWeekday` | **nothing** | `decide` — no weekly check-in exists to happen on that day. |
-| **`fastCheckIn`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastCheckInEnabled` | **nothing** | `decide` — same; there is no check-in to make fast. |
-| **`partialLoggingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.partialLoggingEnabled` | **nothing** | `decide` |
-| **`weighInEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.weighInEnabled` | **nothing** | `decide` |
-| **`fastingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastingEnabled` | **nothing** | `decide` |
-| **`loggingBreakEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.loggingBreakEnabled` | **nothing** | `decide` |
+| **`checkInWeekday`** | `NutritionStrategySettings` | `StrategySettingsPresenter.checkInWeekday` | **nothing** | `feature` — no weekly check-in exists to happen on that day. |
+| **`fastCheckIn`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastCheckInEnabled` | **nothing** | `feature` — same; there is no check-in to make fast. |
+| **`partialLoggingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.partialLoggingEnabled` | **nothing** | `feature` — nothing distinguishes a partly logged day from a fully logged one. |
+| **`weighInEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.weighInEnabled` | **nothing** | `feature` — weight is logged from the Analytics tab whatever this says; there is no check-in to include it in. |
+| **`fastingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastingEnabled` | **nothing** | `feature` — the word "fasting" appears nowhere else in the app. |
+| **`loggingBreakEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.loggingBreakEnabled` | **nothing** | `feature` — there is no such thing as a break from logging to enable. |
 
 ### Expenditure Settings — inert but for one field
 
@@ -176,11 +203,11 @@ document `nutrition_strategy_settings`. Two screens write it.
 |---|---|---|---|---|
 | `bmrEquation` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.bmrEquation` | `NutritionManager` (BMR calculation) | live |
 | `estimationMethod` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.estimationMethod` | `NutritionStrategySettings.resolvedBMREquation(bodyFatPercentage:)` → `CoreInteractor.estimateTDEE(user:)` | live — **wired**, as the audit guessed. `.bodyFatAware` runs Katch-McArdle, the one equation in the app that reads body fat, when a usable percentage is logged. `.standard`, the default, leaves `bmrEquation` alone. |
-| **`calculationStartDate`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationStartDate` | **nothing** | `decide` — expenditure is a single static figure; there is no window for a start date to bound. |
-| **`calculationMode`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationMode` | **nothing** | `decide` — the model's own comment says an adaptive engine is unwritten work. Dynamic vs fixed has nothing to switch between. |
-| **`algorithmVersion`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.algorithmVersion` | **nothing** | `remove` — one case, `v1`, so the control cannot change anything even once an engine exists. |
-| **`stepInformedUpdates`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.stepInformedUpdates` | **nothing** | `decide` — `StepsManager` has the data, but nothing feeds it into expenditure. |
-| **`predictiveGoalAdjustments`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.predictiveGoalAdjustments` | **nothing** | `decide` |
+| **`calculationStartDate`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationStartDate` | **nothing** | `feature` — `estimateTDEE(user:)` returns one figure from the profile and reads no history at all, so there is no window for a start date to bound. |
+| **`calculationMode`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationMode` | **nothing** | `feature` — the model's own comment says the adaptive engine is unwritten work, and the screen's own footer tells the user so. Dynamic vs fixed has nothing to switch between until it exists. |
+| **`algorithmVersion`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.algorithmVersion` | **nothing** | `feature` — one case, `v1`, so the control cannot change anything even once an engine exists. **Kept deliberately**: it is the seam a second version would arrive through. Not to be removed. |
+| **`stepInformedUpdates`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.stepInformedUpdates` | **nothing** | `feature` — `StepsManager` has the step history, but expenditure never reads a day of anything. It speeds up an update process that does not run. |
+| **`predictiveGoalAdjustments`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.predictiveGoalAdjustments` | **nothing** | `feature` — same engine. There is no adjustment to make predictive. |
 
 ## Analytics Settings
 
@@ -227,16 +254,21 @@ rather than left with the audit.
      revert them, but a change arriving from another device while the screen sits open still can.
      `CustomiseAnalyticsPresenter` and `ShortcutsPresenter` were given the same re-read.
 
-## If told to wire only a few
+## What is left
 
-In order:
+Every setting whose behaviour already existed has been wired. What remains is sixteen settings
+across four unbuilt features, and they should be tracked as features rather than as plumbing:
 
-1. **`ExerciseSettingsModel.restDurationOverride`** — two screens already collect it and a third
-   already resolves rest durations. `SetTrackerRowPresenter.baseRestDuration(for:)` is one `if` away
-   from honouring it, and a per-exercise rest is the most concrete promise on this list.
-2. **`restTimerPlaySound` / `restTimerVibrate`** — the rest timer is live and heavily used; these
-   two are the difference between noticing a rest ending and not. Both land in the same place.
-3. **`previousWorkoutReference`** — the lookup it should filter already exists and already has the
-   `trainingProgramId` it would filter on.
-4. **`autoSetCurrentTime`** — it is a whole screen's only control, and the food logger already has
-   the time field it would preset.
+1. **A smart-progression engine** — `smartProgressionApplyInSession`,
+   `smartProgressionInitialLogFill`, `smartProgressionAdjustmentMode`.
+2. **A weekly check-in** — `checkInWeekday`, `fastCheckIn`, `partialLoggingEnabled`,
+   `weighInEnabled`, `fastingEnabled`, `loggingBreakEnabled`.
+3. **An adaptive expenditure engine** — `calculationStartDate`, `calculationMode`,
+   `algorithmVersion`, `stepInformedUpdates`, `predictiveGoalAdjustments`.
+4. **A unit choice in the food logger** — `favouriteMeasurements`.
+
+Plus `premove`, which needs the product owner to say what it is before it can be sorted into any
+of these.
+
+A thin implementation of any of them would be worse than the honest gap: a control that half
+works reads as finished.
