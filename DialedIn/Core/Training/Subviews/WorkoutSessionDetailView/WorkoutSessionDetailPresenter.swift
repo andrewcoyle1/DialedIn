@@ -14,6 +14,11 @@ class WorkoutSessionDetailPresenter {
     private let router: WorkoutSessionDetailRouter
 
     private(set) var isEditMode = false
+
+    /// Who logged this workout, once it is known. The header used to be handed `UserModel.mock`,
+    /// so every session — including a stranger's from the feed — was shown as written by a
+    /// fictional user, whose profile it opened on a tap.
+    private(set) var author: UserModel?
     private(set) var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
         
     var isSaving: Bool = false
@@ -44,6 +49,16 @@ class WorkoutSessionDetailPresenter {
         self.router = router
     }
     
+    func loadAuthor(for session: WorkoutSessionModel) async {
+        let authorId = session.authorId
+        if let currentUser = interactor.currentUser, currentUser.userId == authorId {
+            author = currentUser
+            return
+        }
+        // An author who cannot be read stays unknown: no header is better than someone else's name.
+        author = try? await interactor.getUser(userId: authorId)
+    }
+
     func totalSets(session: WorkoutSessionModel) -> Int {
         session
             .exercises
