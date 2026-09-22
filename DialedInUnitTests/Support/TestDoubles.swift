@@ -64,6 +64,23 @@ class SpyOnboardingRouter: OnboardingStepRouter {
     let router: AnyRouter = TestRouting.anyRouter
     private(set) var shown: [String] = []
 
+    /// The alerts, recorded here rather than in each subclass.
+    ///
+    /// The conformance to `GlobalRouter` is declared on *this* class, so the witness for the three
+    /// alert methods is bound here once. A subclass that declares its own `showAlert` does not
+    /// replace that witness — the protocol's default implementation still runs, and the alert
+    /// escapes to the real router unseen. Intercepting them has to happen on this class.
+    private(set) var alertTitles: [String] = []
+    private(set) var alertedErrors: [Error] = []
+
+    func showAlert(error: Error) { alertedErrors.append(error) }
+
+    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+        alertTitles.append(title)
+    }
+
+    func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
+
     /// Records a destination. Subclasses call this from their own navigation methods so every
     /// screen a test drives through lands in one list, in order.
     func record(_ destination: String) {
