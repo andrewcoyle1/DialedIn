@@ -130,11 +130,16 @@ class TimerDurationPresenter {
         editingExerciseId = override.id
     }
 
+    /// Zero clears the override rather than storing a zero-second rest, which is what the same
+    /// picker on the exercise's own settings screen already does. Stored, a zero would show up
+    /// here as an override reading "0:00" that no screen offers a way to interpret, and the two
+    /// screens writing one field would disagree about what an empty picker means.
     func saveExerciseEdit() {
         guard let exerciseId = editingExerciseId else { return }
         let total = editMinutes * 60 + editSeconds
+        let seconds = total > 0 ? total : nil
         editingExerciseId = nil
-        Task { try? await interactor.setExerciseRestOverride(total, for: exerciseId) }
+        Task { try? await interactor.setExerciseRestOverride(seconds, for: exerciseId) }
     }
 
     func removeExerciseOverride(_ override: ExerciseOverride) {

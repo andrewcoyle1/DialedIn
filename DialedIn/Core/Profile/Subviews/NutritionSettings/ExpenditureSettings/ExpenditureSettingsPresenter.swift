@@ -78,7 +78,11 @@ class ExpenditureSettingsPresenter {
         Task { try? await interactor.saveNutritionStrategySettings(settings) }
     }
     
+    /// Re-read rather than trusting the snapshot taken at init: `save()` writes the whole
+    /// `NutritionStrategySettings` document, which the Strategy screen edits too, so a stale copy
+    /// would revert whatever was saved over there.
     func onViewAppear() {
+        settings = interactor.nutritionStrategySettings
         interactor.trackScreenEvent(event: Event.onAppear)
     }
     

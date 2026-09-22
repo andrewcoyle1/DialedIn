@@ -39,7 +39,11 @@ class LoggerBannerPresenter {
         Task { try? await interactor.saveFoodLogSettings(settings) }
     }
 
+    /// Re-read rather than trusting the snapshot taken at init: `save()` writes the whole
+    /// `FoodLogSettings` document, so a stale copy would revert whatever a sibling screen — or the
+    /// favourite food and recipe ids written from the nutrition tab — saved in the meantime.
     func onViewAppear() {
+        settings = interactor.foodLogSettings
         interactor.trackScreenEvent(event: Event.onAppear)
     }
 }

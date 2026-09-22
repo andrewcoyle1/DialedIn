@@ -54,7 +54,11 @@ class CustomiseAnalyticsPresenter {
         Task { try? await interactor.saveAnalyticsSettings(settings) }
     }
     
+    /// Re-read rather than trusting the snapshot taken at init: `save()` writes the whole
+    /// `AnalyticsSettings` document, so a copy taken when this screen was first pushed would
+    /// revert a change made on another device while it sat there.
     func onViewAppear() {
+        settings = interactor.analyticsSettings
         interactor.trackScreenEvent(event: Event.onAppear)
     }
     
