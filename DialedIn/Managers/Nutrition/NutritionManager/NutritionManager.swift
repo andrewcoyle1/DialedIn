@@ -213,6 +213,17 @@ class NutritionManager {
         return [high, low, high, low, high, low, low].map { max($0, minimumCalories) }
     }
 
+    /// Splits each day's non-protein calories between fat and carbs.
+    ///
+    /// `calculateMacroPercentages` returns shares of the day's *total* calories, so applying
+    /// `fatPercent` straight to the post-protein remainder understated fat — balanced came out at
+    /// 23% of the day rather than 30% — and `carbPercent` was not read at all, which left keto at
+    /// roughly 150g of carbs, about 21% of calories and ketogenic by no definition.
+    ///
+    /// Protein is a fixed number of grams and the day's calories vary, so the two shares cannot
+    /// both be applied to the total and still sum to it. Splitting the remainder by the fat:carb
+    /// ratio honours the diet's intent exactly on a day at the target, keeps every day summing to
+    /// its own calories, and degrades sensibly on the high and low days of a varied week.
     private func computeDailyMacros(
         dailyCalories: [Double],
         proteinGrams: Double,
@@ -220,9 +231,17 @@ class NutritionManager {
     ) -> [DailyMacroTarget] {
         let proteinCalories = proteinGrams * 4
 
+        // A protein target large enough to swallow the day can drive either share negative.
+        // Clamping first keeps the ratio inside 0...1; an even split is the neutral fallback when
+        // protein has claimed everything and there is nothing left to divide anyway.
+        let fatShare = max(macroPercentages.fatPercent, 0)
+        let carbShare = max(macroPercentages.carbPercent, 0)
+        let totalShare = fatShare + carbShare
+        let fatRatio = totalShare > 0 ? fatShare / totalShare : 0.5
+
         return dailyCalories.map { cals in
             let remainingCalories = max(cals - proteinCalories, 0)
-            let fatCalories = max(remainingCalories * macroPercentages.fatPercent, 0)
+            let fatCalories = max(remainingCalories * fatRatio, 0)
             let carbCalories = max(remainingCalories - fatCalories, 0)
             let fatGrams = fatCalories / 9
             let carbGrams = carbCalories / 4

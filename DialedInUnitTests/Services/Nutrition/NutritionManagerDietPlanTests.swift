@@ -101,7 +101,7 @@ struct NutritionManagerDietPlanTests {
 
     /// The exact numbers for the reference profile, so a change to any coefficient is visible
     /// rather than absorbed by a tolerance. 2800 calories, 2g of protein per kilogram, and the
-    /// balanced diet's 30% fat share.
+    /// balanced diet's 30% fat share — which is 30% of the whole day, 840 calories, 93g.
     @Test("Test The Balanced Split Produces The Expected Grams")
     func testTheBalancedSplitProducesTheExpectedGrams() throws {
         let plan = manager().computeDietPlan(user: profile(), delegate: delegate())
@@ -109,23 +109,68 @@ struct NutritionManagerDietPlanTests {
         let day = try #require(plan.days.first)
         #expect(abs(day.calories - 2800) < 0.01)
         #expect(abs(day.proteinGrams - 160) < 0.01)
-        #expect(abs(day.fatGrams - 72) < 0.01)
-        #expect(abs(day.carbGrams - 378) < 0.01)
+        #expect(abs(day.fatGrams - 93) < 0.01)
+        #expect(abs(day.carbGrams - 330) < 0.01)
     }
 
-    /// The named percentage is applied to what protein leaves, not to the whole target: 30% fat on
-    /// a 2800 calorie day with 640 calories of protein is 648 fat calories, which is 23% of the
-    /// day rather than 30%. Worth pinning because the four diets are presented to the user as
-    /// shares of the day, and this is the arithmetic behind that claim.
-    @Test("Test The Fat Share Is Taken From What Protein Leaves")
-    func testTheFatShareIsTakenFromWhatProteinLeaves() throws {
-        let plan = manager().computeDietPlan(user: profile(), delegate: delegate(preferredDiet: .balanced))
+    /// One diet's promise: the macro it is named for, and the share of the day it claims.
+    private struct NamedShare {
+        let diet: PreferredDiet
+        let macro: KeyPath<DailyMacroTarget, Double>
+        let caloriesPerGram: Double
+        let share: Double
+    }
+
+    /// The four diets are presented to the user as shares of the day, so the arithmetic behind
+    /// that claim has to agree: each diet's named percentage is a share of total calories, not of
+    /// what protein leaves. On a day sitting at the calorie target both named shares land exactly.
+    @Test("Test Each Diet's Named Share Is A Share Of The Whole Day")
+    func testEachDietsNamedShareIsAShareOfTheWholeDay() throws {
+        let cases: [NamedShare] = [
+            NamedShare(diet: .balanced, macro: \.fatGrams, caloriesPerGram: 9, share: 0.30),
+            NamedShare(diet: .lowFat, macro: \.fatGrams, caloriesPerGram: 9, share: 0.20),
+            NamedShare(diet: .lowCarb, macro: \.carbGrams, caloriesPerGram: 4, share: 0.20),
+            NamedShare(diet: .keto, macro: \.carbGrams, caloriesPerGram: 4, share: 0.05)
+        ]
+
+        for expectation in cases {
+            let plan = manager().computeDietPlan(
+                user: profile(),
+                delegate: delegate(preferredDiet: expectation.diet)
+            )
+            let day = try #require(plan.days.first)
+
+            let macroCalories = day[keyPath: expectation.macro] * expectation.caloriesPerGram
+            #expect(
+                abs(macroCalories - (day.calories * expectation.share)) < 5,
+                "\(expectation.diet) should put \(expectation.share) of the day into that macro"
+            )
+        }
+    }
+
+    /// The headline of the fix: keto used to discard its 5% carbohydrate share entirely and let
+    /// carbs fall out as whatever was left, landing near 150g — about 21% of calories, and
+    /// ketogenic by no definition, while the screen promised carbs would be very restricted.
+    @Test("Test Keto Actually Restricts Carbohydrates")
+    func testKetoActuallyRestrictsCarbohydrates() throws {
+        let plan = manager().computeDietPlan(user: profile(), delegate: delegate(preferredDiet: .keto))
 
         let day = try #require(plan.days.first)
-        let afterProtein = day.calories - (day.proteinGrams * 4)
-        #expect(abs((day.fatGrams * 9) - (afterProtein * 0.30)) < 5)
-        // And the rest of that remainder is carbohydrate, to the gram.
-        #expect(abs((day.carbGrams * 4) - (afterProtein * 0.70)) < 5)
+        #expect(abs(day.carbGrams - 35) < 1)
+        #expect(abs(day.fatGrams - 224) < 1)
+    }
+
+    /// Whatever the split, a day still has to add up to its own calories — the remainder is
+    /// divided between fat and carbs, never rounded away or double counted.
+    @Test("Test Every Diet's Day Still Sums To Its Calories")
+    func testEveryDietsDayStillSumsToItsCalories() throws {
+        for diet in [PreferredDiet.keto, .lowCarb, .balanced, .lowFat] {
+            let plan = manager().computeDietPlan(user: profile(), delegate: delegate(preferredDiet: diet))
+            let day = try #require(plan.days.first)
+
+            let fromMacros = (day.proteinGrams * 4) + (day.carbGrams * 4) + (day.fatGrams * 9)
+            #expect(abs(fromMacros - day.calories) < 10, "\(diet) should sum to its calories")
+        }
     }
 
     /// The four diets have to be ordered by the thing they are named for, or the choice is
