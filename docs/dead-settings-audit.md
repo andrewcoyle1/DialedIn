@@ -10,17 +10,19 @@ that writes it ever reads it.
   `ShortcutSettings` (1).
 - **26 were dead** when this audit was written — saved to Firestore and read by nothing outside
   the screen that writes them.
-- **Ten have since been wired** and are live: `restDurationOverride`, `restTimerPlaySound`,
+- **Fifteen have since been wired** and are live: `restDurationOverride`, `restTimerPlaySound`,
   `restTimerVibrate`, `previousWorkoutReference`, `autoSetCurrentTime`, `quickAddEnabled`,
-  `supersetAutoScroll`, `note`, `showOverages`, `estimationMethod`.
-- **Sixteen remain dead, and every one of them needs a feature built first**, not a line of
+  `supersetAutoScroll`, `note`, `showOverages`, `estimationMethod`, and the five the adaptive
+  expenditure engine brought with it: `calculationMode`, `calculationStartDate`,
+  `algorithmVersion`, `stepInformedUpdates` and `predictiveGoalAdjustments`.
+- **Eleven remain dead, and every one of them needs a feature built first**, not a line of
   plumbing. They are listed as `feature` below, each with what is missing.
-- **53 are live.**
-- Time Selection and Optimisation are no longer inert. **Favourite Measurements** still is: its
-  list of nine units has no picker anywhere in the app to order. **Strategy Settings** is inert
-  in full, **Expenditure Settings** but for `bmrEquation` and `estimationMethod`, and **Smart
-  Progression Settings** in full — there is no smart-progression engine for its three fields to
-  steer.
+- **58 are live.**
+- Time Selection and Optimisation are no longer inert, and neither is **Expenditure Settings**:
+  `ExpenditureEngine` reads every field on it. **Favourite Measurements** still is: its list of
+  nine units has no picker anywhere in the app to order. **Strategy Settings** is inert in full,
+  and **Smart Progression Settings** in full — there is no smart-progression engine for its three
+  fields to steer.
 
 ### What "read by" means here
 
@@ -197,17 +199,17 @@ they are one feature rather than six.
 | **`fastingEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.fastingEnabled` | **nothing** | `feature` — the word "fasting" appears nowhere else in the app. |
 | **`loggingBreakEnabled`** | `NutritionStrategySettings` | `StrategySettingsPresenter.loggingBreakEnabled` | **nothing** | `feature` — there is no such thing as a break from logging to enable. |
 
-### Expenditure Settings — inert but for one field
+### Expenditure Settings — live in full
 
 | Setting | Defined in | Written by | Read by | Verdict |
 |---|---|---|---|---|
 | `bmrEquation` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.bmrEquation` | `NutritionManager` (BMR calculation) | live |
 | `estimationMethod` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.estimationMethod` | `NutritionStrategySettings.resolvedBMREquation(bodyFatPercentage:)` → `CoreInteractor.estimateTDEE(user:)` | live — **wired**, as the audit guessed. `.bodyFatAware` runs Katch-McArdle, the one equation in the app that reads body fat, when a usable percentage is logged. `.standard`, the default, leaves `bmrEquation` alone. |
-| **`calculationStartDate`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationStartDate` | **nothing** | `feature` — `estimateTDEE(user:)` returns one figure from the profile and reads no history at all, so there is no window for a start date to bound. |
-| **`calculationMode`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationMode` | **nothing** | `feature` — the model's own comment says the adaptive engine is unwritten work, and the screen's own footer tells the user so. Dynamic vs fixed has nothing to switch between until it exists. |
-| **`algorithmVersion`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.algorithmVersion` | **nothing** | `feature` — one case, `v1`, so the control cannot change anything even once an engine exists. **Kept deliberately**: it is the seam a second version would arrive through. Not to be removed. |
-| **`stepInformedUpdates`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.stepInformedUpdates` | **nothing** | `feature` — `StepsManager` has the step history, but expenditure never reads a day of anything. It speeds up an update process that does not run. |
-| **`predictiveGoalAdjustments`** | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.predictiveGoalAdjustments` | **nothing** | `feature` — same engine. There is no adjustment to make predictive. |
+| `calculationStartDate` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationStartDate` | `ExpenditureEngine` (samples before it are discarded and the replay restarts) | live — **wired** |
+| `calculationMode` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.calculationMode` | `ExpenditureEngine`, `TargetProposal.make(...)` | live — **wired**. `.fixed` holds every day at the prior and suppresses the proposal; `.dynamic` runs the algorithm. |
+| `algorithmVersion` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.algorithmVersion` | `ExpenditureEngine.history(...)` (the version `switch`) | live — **wired**, and still one case. It selects v1 rather than changing it, which is the seam a v2 arrives through. Not to be removed. |
+| `stepInformedUpdates` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.stepInformedUpdates` | `ExpenditureEngine` (the step nowcast) | live — **wired**. Off by default, so this changes nothing for an existing user until they turn it on. |
+| `predictiveGoalAdjustments` | `NutritionStrategySettings` | `ExpenditureSettingsPresenter.predictiveGoalAdjustments` | `TargetProposal.make(...)` (the rate correction) | live — **wired**. **Default `true`**, so it is on for every existing user the first time a proposal appears. |
 
 ## Analytics Settings
 
@@ -256,15 +258,15 @@ rather than left with the audit.
 
 ## What is left
 
-Every setting whose behaviour already existed has been wired. What remains is sixteen settings
-across four unbuilt features, and they should be tracked as features rather than as plumbing:
+Every setting whose behaviour already existed has been wired. What remains is eleven settings
+across three unbuilt features, and they should be tracked as features rather than as plumbing:
 
 1. **A smart-progression engine** — `smartProgressionApplyInSession`,
    `smartProgressionInitialLogFill`, `smartProgressionAdjustmentMode`.
 2. **A weekly check-in** — `checkInWeekday`, `fastCheckIn`, `partialLoggingEnabled`,
    `weighInEnabled`, `fastingEnabled`, `loggingBreakEnabled`.
-3. **An adaptive expenditure engine** — `calculationStartDate`, `calculationMode`,
-   `algorithmVersion`, `stepInformedUpdates`, `predictiveGoalAdjustments`.
+3. ~~**An adaptive expenditure engine**~~ — built. `ExpenditureEngine` and `TargetProposal`;
+   see `docs/specs/adaptive-expenditure.md`.
 4. **A unit choice in the food logger** — `favouriteMeasurements`.
 
 Plus `premove`, which needs the product owner to say what it is before it can be sorted into any
