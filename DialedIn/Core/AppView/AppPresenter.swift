@@ -22,6 +22,15 @@ class AppPresenter {
     }
 
     var activityBanner: ActivityNotificationModel?
+
+    /// The app-level toast, raised from anywhere via `.appToast` so it can outlive the screen that
+    /// asked for it.
+    var toast: AppToast?
+
+    /// The toast's auto-dismiss is keyed on a generation rather than the toast's id, because one
+    /// piece of work deliberately re-raises under the same id as it progresses. An id-keyed timer
+    /// from "retrying" would pull the "saved" that replaced it straight back off the screen.
+    private var toastGeneration = 0
     
     init(interactor: AppInteractor) {
         self.interactor = interactor
@@ -93,6 +102,17 @@ class AppPresenter {
         Task {
             try? await Task.sleep(for: .seconds(4))
             if activityBanner?.id == id { activityBanner = nil }
+        }
+    }
+
+    func onAppToast(notification: Notification) {
+        guard let toast = notification.object as? AppToast else { return }
+        self.toast = toast
+        toastGeneration += 1
+        let generation = toastGeneration
+        Task {
+            try? await Task.sleep(for: toast.duration)
+            if toastGeneration == generation { self.toast = nil }
         }
     }
 

@@ -55,6 +55,17 @@ struct AppView<Content: View>: View {
         .onNotificationReceived(name: .newActivityNotification) { notification in
             presenter.onNewActivityNotification(notification: notification)
         }
+        .onNotificationReceived(name: .appToast) { notification in
+            presenter.onAppToast(notification: notification)
+        }
+        .overlay(alignment: .top) {
+            if let toast = presenter.toast {
+                AppToastView(toast: toast)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.spring, value: presenter.toast?.id)
+                    .padding(.top, 8)
+            }
+        }
         .overlay(alignment: .top) {
             if let banner = presenter.activityBanner {
                 ActivityNotificationBannerView(notification: banner)

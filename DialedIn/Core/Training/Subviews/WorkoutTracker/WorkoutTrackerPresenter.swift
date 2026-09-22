@@ -15,6 +15,15 @@ class WorkoutTrackerPresenter {
     let interactor: WorkoutTrackerInteractor
     let router: WorkoutTrackerRouter
 
+    /// How a failed save is retried. Injected so tests drive a schedule of milliseconds rather than
+    /// waiting out the real one.
+    let saveRetryBackoff: RetryBackoff
+
+    /// The finishing work, kept so a retry still waiting its turn can be called off. It deliberately
+    /// outlives this screen — the screen is dismissed before the save is even attempted — so
+    /// something has to be able to stop it.
+    var pendingFinishTask: Task<Void, Never>?
+
     // MARK: - State Properties
     var workoutSession: WorkoutSessionModel {
         didSet {
@@ -81,10 +90,12 @@ class WorkoutTrackerPresenter {
     
     init(
         interactor: WorkoutTrackerInteractor,
-        router: WorkoutTrackerRouter
+        router: WorkoutTrackerRouter,
+        saveRetryBackoff: RetryBackoff = .workoutSave
     ) throws {
         self.interactor = interactor
         self.router = router
+        self.saveRetryBackoff = saveRetryBackoff
         
         guard let session = interactor.activeSession else {
             throw WorkoutTrackerError.noActiveWorkout
@@ -552,58 +563,5 @@ class WorkoutTrackerPresenter {
         guard let gymProfile = favouriteGymProfile else { return }
         let delegate = GymProfileDelegate(gymProfile: gymProfile)
         router.showGymProfileView(delegate: delegate)
-    }
-
-    func finishWorkout() {
-        interactor.setActiveWorkoutGymProfile(nil)
-        workoutSession.endSession(at: Date())
-        UIApplication.shared.isIdleTimerDisabled = false
-        SharedWorkoutStorage.clearHKStartedSessionId()
-        router.dismissScreen()
-
-        let sessionSnapshot = workoutSession
-        Task {
-            interactor.trackEvent(
-                eventName: "finish_workout_debug",
-                parameters: [
-                    "session_id": sessionSnapshot.id,
-                    "template_id": sessionSnapshot.workoutTemplateId ?? "nil",
-                    "plan_id": sessionSnapshot.trainingProgramId ?? "nil"
-                ],
-                type: .info
-            )
-            #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            interactor.endWorkout()
-            #endif
-
-            var didSave = true
-            do {
-                try await interactor.endWorkoutSession(sessionSnapshot)
-            } catch {
-                didSave = false
-                interactor.trackEvent(eventName: "finish_workout_save_error", parameters: ["error": error.localizedDescription], type: .severe)
-            }
-
-            // The streak is a side effect of finishing, not part of it. Sharing a `do` with the
-            // save let a failed streak write skip everything below, and the Live Activity was the
-            // worst of it: the screen was already gone, so nothing else would ever end it and the
-            // Dynamic Island kept showing a workout in progress.
-            do {
-                try await interactor.addWorkoutStreakEvent()
-            } catch {
-                interactor.trackEvent(eventName: "finish_workout_streak_error", parameters: ["error": error.localizedDescription], type: .warning)
-            }
-
-            await interactor.preCompleteConsecutiveRestDays(after: sessionSnapshot)
-            await interactor.uploadToStravaIfConnected(sessionSnapshot)
-
-            #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            interactor.endLiveActivity(
-                session: sessionSnapshot,
-                isCompleted: didSave,
-                statusMessage: didSave ? "Workout ended & saved." : "Workout ended, but could not be saved."
-            )
-            #endif
-        }
     }
 }
