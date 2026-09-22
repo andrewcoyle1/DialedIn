@@ -6,6 +6,9 @@
 //
 
 @MainActor
-protocol ExerciseTrackerInteractor: GlobalInteractor { }
+protocol ExerciseTrackerInteractor: GlobalInteractor {
+    /// The note kept on this exercise's own settings screen, if any.
+    func exerciseNote(for exerciseId: String) -> String?
+}
 
 extension CoreInteractor: ExerciseTrackerInteractor { }

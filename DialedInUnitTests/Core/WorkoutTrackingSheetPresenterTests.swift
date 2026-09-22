@@ -424,16 +424,33 @@ struct SwapExercisePickerPresenterTests {
 
 /// The exercise card in the tracker — the header, the set list and the menu behind it.
 ///
-/// Its presenter is a shell: the view drives everything through the delegate, and nothing here
-/// reads or writes the session. The one thing worth holding is that constructing a card is free
-/// of side effects, because one is built per exercise every time the workout list redraws.
+/// The view drives almost everything through the delegate; the presenter's one piece of state is
+/// the note kept on the exercise's settings screen, which the header now shows.
 @MainActor
 struct ExerciseTrackerPresenterTests {
 
-    private final class Interactor: SpyGlobalInteractor, ExerciseTrackerInteractor { }
+    private final class Interactor: SpyGlobalInteractor, ExerciseTrackerInteractor {
+        var notes: [String: String] = [:]
+
+        func exerciseNote(for exerciseId: String) -> String? {
+            notes[exerciseId]
+        }
+    }
 
     private final class Router: ExerciseTrackerRouter {
         let router: AnyRouter = TestRouting.anyRouter
+    }
+
+    private func exercise(templateId: String = "template-1") -> WorkoutExerciseModel {
+        WorkoutExerciseModel(
+            id: "e1",
+            authorId: "author-1",
+            templateId: templateId,
+            name: "Bench Press",
+            trackingMode: .weightReps,
+            index: 1,
+            sets: []
+        )
     }
 
     @Test("Test Building An Exercise Card Has No Side Effects")
@@ -445,6 +462,58 @@ struct ExerciseTrackerPresenterTests {
         #expect(interactor.trackedEventNames.isEmpty)
         #expect(interactor.trackedScreenEventNames.isEmpty)
         #expect(interactor.playedHaptics.isEmpty)
+    }
+
+    // MARK: - The exercise note
+
+    /// The state every user is in until they write one: the header draws exactly what it drew
+    /// before.
+    @Test("Test An Exercise With No Note Shows Nothing")
+    func testAnExerciseWithNoNoteShowsNothing() {
+        let presenter = ExerciseTrackerPresenter(interactor: Interactor(), router: Router())
+
+        #expect(presenter.note(for: exercise()) == nil)
+    }
+
+    /// The note the settings screen saved, readable while the lift is being done rather than only
+    /// back on the screen that wrote it.
+    @Test("Test A Saved Note Is Shown On The Exercise")
+    func testASavedNoteIsShownOnTheExercise() {
+        let interactor = Interactor()
+        interactor.notes = ["template-1": "Bench at 30 degrees"]
+        let presenter = ExerciseTrackerPresenter(interactor: interactor, router: Router())
+
+        #expect(presenter.note(for: exercise()) == "Bench at 30 degrees")
+    }
+
+    /// A note belongs to an exercise template, not to whichever card is on screen.
+    @Test("Test Another Exercises Note Is Not Shown")
+    func testAnotherExercisesNoteIsNotShown() {
+        let interactor = Interactor()
+        interactor.notes = ["template-2": "Bench at 30 degrees"]
+        let presenter = ExerciseTrackerPresenter(interactor: interactor, router: Router())
+
+        #expect(presenter.note(for: exercise()) == nil)
+    }
+
+    /// A note saved as whitespace is a note the user cleared, and must not push a blank line into
+    /// the header.
+    @Test("Test A Whitespace Note Counts As No Note")
+    func testAWhitespaceNoteCountsAsNoNote() {
+        let interactor = Interactor()
+        interactor.notes = ["template-1": "  \n "]
+        let presenter = ExerciseTrackerPresenter(interactor: interactor, router: Router())
+
+        #expect(presenter.note(for: exercise()) == nil)
+    }
+
+    @Test("Test A Note Is Trimmed")
+    func testANoteIsTrimmed() {
+        let interactor = Interactor()
+        interactor.notes = ["template-1": "  Go slow on the eccentric\n"]
+        let presenter = ExerciseTrackerPresenter(interactor: interactor, router: Router())
+
+        #expect(presenter.note(for: exercise()) == "Go slow on the eccentric")
     }
 }
 

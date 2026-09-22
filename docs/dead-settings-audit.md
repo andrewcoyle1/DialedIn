@@ -72,7 +72,7 @@ document per exercise template.
 
 | Setting | Defined in | Written by | Read by | Verdict |
 |---|---|---|---|---|
-| **`note`** | `ExerciseSettingsModel` | `ExerciseSettingsPresenter.onNotePressed()` | **nothing** — only its own screen's `noteSubtitle` | `wire` — `ExerciseTracker`, which is where an exercise note would be worth reading. The tracker's own notes screen writes `WorkoutSessionModel.notes`, a different field, so the two never meet. |
+| `note` | `ExerciseSettingsModel` | `ExerciseSettingsPresenter.onNotePressed()` | `ExerciseTrackerPresenter.note(for:)` → the card header | live — **wired**. No note is still no note, so a user who never wrote one sees the header unchanged. |
 | **`restDurationOverride`** | `ExerciseSettingsModel` | `ExerciseSettingsPresenter.onRestTimerPressed()` **and** `TimerDurationPresenter.saveExerciseEdit()` | **nothing** — both screens only read back their own writes | `wire` — `SetTrackerRowPresenter.baseRestDuration(for:)`, which today falls straight from the per-type override to the global default and never consults the per-exercise one. This is the setting with the most obvious missing line in the app. |
 
 ## Food Log Settings
