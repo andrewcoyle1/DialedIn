@@ -12,6 +12,7 @@ struct NutritionOverviewView: View {
 
     var body: some View {
         List {
+            checkInSection
             proposalSection
             caloriesSection
             contributorsSection
@@ -32,6 +33,37 @@ struct NutritionOverviewView: View {
         }
     }
 
+    // MARK: - Weekly check-in
+
+    /// Takes the proposal card's place while a check-in is due, because the proposal is the
+    /// check-in's last step: two cards offering the same decision, one of them without the week's
+    /// context, is how a considered change turns into a stray tap.
+    @ViewBuilder
+    private var checkInSection: some View {
+        if presenter.dueCheckInWeekStart != nil {
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Weekly check-in ready")
+                        .font(.headline)
+                    Text("Review the week and update your program.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    HStack(spacing: 12) {
+                        Button("Start") {
+                            presenter.onStartCheckInPressed()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        Button("Skip this week") {
+                            presenter.onSkipCheckInPressed()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
+
     // MARK: - Target proposal
 
     /// Deliberately plain. The weekly check-in flow will give this a proper home and a proper
@@ -39,7 +71,7 @@ struct NutritionOverviewView: View {
     /// output actionable without pretending to be the finished feature.
     @ViewBuilder
     private var proposalSection: some View {
-        if let summary = presenter.proposalSummary {
+        if let summary = presenter.proposalSummary, presenter.dueCheckInWeekStart == nil {
             Section {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("New targets suggested")
