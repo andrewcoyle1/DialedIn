@@ -38,22 +38,29 @@ class TargetWeightPresenter {
 
     // MARK: - Ranges
     func kilogramRange(delegate: TargetWeightDelegate) -> ClosedRange<Int> {
-        let base = Int((interactor.currentUser?.submittedWeightKilograms ?? 0).rounded())
+        let weight = interactor.currentUser?.submittedWeightKilograms ?? 0
+        // The bound that faces the user's own weight rounds *away* from the objective, so a whole
+        // number on the wheel is never on the wrong side of a fractional weight. Rounding both
+        // ways alike offered someone at 72.6 kg who chose "lose weight" a target of 73 — a goal
+        // to gain, which every calorie target downstream would have honoured as written.
+        let floorKg = Int(weight.rounded(.down))
+        let ceilKg = Int(weight.rounded(.up))
         // Provide sensible global bounds
         let minKg = 30
         let maxKg = 200
         switch delegate.overarchingObjective {
         case .gainWeight:
-            let lower = max(minKg, base > 0 ? base : minKg)
-            return lower...maxKg
+            let lower = max(minKg, ceilKg > 0 ? ceilKg : minKg)
+            return min(lower, maxKg)...maxKg
         case .loseWeight:
-            let upper = min(maxKg, base > 0 ? base : maxKg)
+            let upper = min(maxKg, floorKg > 0 ? floorKg : maxKg)
             return minKg...max(upper, minKg)
         case .maintain:
             // allow +/- 10kg window
+            let base = Int(weight.rounded())
             let lower = max(minKg, (base > 0 ? base - 10 : 70))
             let upper = min(maxKg, (base > 0 ? base + 10 : 90))
-            return lower...upper
+            return lower...max(upper, lower)
         }
     }
 
@@ -61,18 +68,24 @@ class TargetWeightPresenter {
         // Convert kg range to lb bounds for parity
         let minLb = 66
         let maxLb = 440
-        let baseLb = Int(UnitConversion.kgToLbs(interactor.currentUser?.submittedWeightKilograms ?? 0).rounded())
+        let weightLb = UnitConversion.kgToLbs(interactor.currentUser?.submittedWeightKilograms ?? 0)
+        // Rounded away from the objective, for the reason given on `kilogramRange` — and the
+        // conversion makes a fractional pound figure out of almost every stored weight, so this
+        // wheel is where a whole-number bound lands on the wrong side most often.
+        let floorLb = Int(weightLb.rounded(.down))
+        let ceilLb = Int(weightLb.rounded(.up))
         switch delegate.overarchingObjective {
         case .gainWeight:
-            let lower = max(minLb, baseLb > 0 ? baseLb : minLb)
-            return lower...maxLb
+            let lower = max(minLb, ceilLb > 0 ? ceilLb : minLb)
+            return min(lower, maxLb)...maxLb
         case .loseWeight:
-            let upper = min(maxLb, baseLb > 0 ? baseLb : maxLb)
+            let upper = min(maxLb, floorLb > 0 ? floorLb : maxLb)
             return minLb...max(upper, minLb)
         case .maintain:
+            let baseLb = Int(weightLb.rounded())
             let lower = max(minLb, (baseLb > 0 ? baseLb - 22 : 154 - 22)) // ~10kg
             let upper = min(maxLb, (baseLb > 0 ? baseLb + 22 : 154 + 22))
-            return lower...upper
+            return lower...max(upper, lower)
         }
     }
 

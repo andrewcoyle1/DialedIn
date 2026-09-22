@@ -247,6 +247,48 @@ struct OnboardingTargetWeightPresenterTests {
         #expect(range.upperBound == 90)
     }
 
+    /// Almost nobody weighs a whole number of kilograms, and the wheel only offers whole ones. The
+    /// bound facing the user's weight has to round away from the objective, or the closest target
+    /// on offer is on the wrong side of it: at 72.6 kg, a "lose weight" wheel reaching 73 is a
+    /// wheel whose nearest option is to gain.
+    @Test("A fractional weight never puts the nearest target on the wrong side")
+    func testAFractionalWeightIsRoundedAwayFromTheObjective() {
+        let screen = makeScreen(user: goalUser(weightKg: 72.6))
+
+        let losing = screen.presenter.kilogramRange(delegate: TargetWeightDelegate(overarchingObjective: .loseWeight))
+        #expect(losing.upperBound == 72)
+
+        let gaining = screen.presenter.kilogramRange(delegate: TargetWeightDelegate(overarchingObjective: .gainWeight))
+        #expect(gaining.lowerBound == 73)
+    }
+
+    /// The pound wheel is where this bites hardest: converting kilograms leaves a fraction for
+    /// nearly every stored weight. 80 kg is 176.37 lb, so the bounds are 176 and 177.
+    @Test("The pound wheel is rounded away from the objective too")
+    func testThePoundWheelIsRoundedAwayFromTheObjective() {
+        let screen = makeScreen(user: goalUser(weightKg: 80, weightUnit: .pounds))
+
+        let losing = screen.presenter.poundRange(delegate: TargetWeightDelegate(overarchingObjective: .loseWeight))
+        #expect(losing.upperBound == 176)
+
+        let gaining = screen.presenter.poundRange(delegate: TargetWeightDelegate(overarchingObjective: .gainWeight))
+        #expect(gaining.lowerBound == 177)
+    }
+
+    /// Someone already past the top of the wheel still has to get a range rather than an inverted
+    /// one, which `ClosedRange` traps on constructing.
+    @Test("A weight beyond the top of the wheel still gives a valid range")
+    func testAWeightBeyondTheWheelStillGivesAValidRange() {
+        let screen = makeScreen(user: goalUser(weightKg: 230))
+
+        for objective in OverarchingObjective.allCases {
+            let kgRange = screen.presenter.kilogramRange(delegate: TargetWeightDelegate(overarchingObjective: objective))
+            let lbRange = screen.presenter.poundRange(delegate: TargetWeightDelegate(overarchingObjective: objective))
+            #expect(kgRange.lowerBound <= kgRange.upperBound)
+            #expect(lbRange.lowerBound <= lbRange.upperBound)
+        }
+    }
+
     /// A profile with no weight still has to produce a usable wheel rather than an empty or
     /// inverted range, which `ClosedRange` traps on constructing.
     @Test("A missing current weight still gives a valid range in both units")
