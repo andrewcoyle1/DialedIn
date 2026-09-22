@@ -65,7 +65,9 @@ struct ExerciseUnitPreferenceManagerTests {
     
     @Test("Test Initialization With Custom User Defaults")
     func testInitializationWithCustomUserDefaults() async throws {
-        let customDefaults = UserDefaults(suiteName: "test_custom")!
+        // A suite of its own: a fixed name is a file on the simulator that outlives the run and is
+        // shared with anything else building against the same simulator.
+        let customDefaults = UserDefaults(suiteName: "test_\(UUID().uuidString)")!
         let manager = try await reopenManager(userDefaults: customDefaults, user: UserModel.mock)
         
         let preference = manager.getPreference(for: "test-template")
