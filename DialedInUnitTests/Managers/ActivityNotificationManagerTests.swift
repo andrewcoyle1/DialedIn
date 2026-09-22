@@ -261,7 +261,12 @@ struct ActivityNotificationManagerTests {
 
         service.emit(notification(id: "incoming"))
 
-        #expect(await TestManagers.eventually(timeout: .seconds(15)) { manager.pendingBanner == nil })
+        // The manager dismisses the banner from a detached task it does not keep a handle to, so
+        // there is nothing to await and this has to be polled. The ceiling is generous rather than
+        // tight to the four seconds: on GitHub Actions run 35781891366, sharing ~3 cores with the
+        // rest of the suite, 15s expired before the timer fired. A ceiling costs nothing when the
+        // condition holds — `eventually` returns the moment it does.
+        #expect(await TestManagers.eventually(timeout: .seconds(60)) { manager.pendingBanner == nil })
     }
 
     @Test("Test Stop Listening Unsubscribes")
