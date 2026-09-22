@@ -249,6 +249,26 @@ struct OnboardingWeightRatePresenterTests {
 
     // MARK: - Leaving the screen
 
+    /// A rate of zero divides the distance by nothing — infinite, or NaN when the target is
+    /// already the current weight — and `Int` traps on both. The line is drawn with the rest of
+    /// the screen, so the trap would take the app down rather than show a wrong date.
+    @Test("A zero rate says there is no end date rather than trapping")
+    func testAZeroRateHasNoEndDateRatherThanTrapping() {
+        let screen = makeScreen()
+        screen.presenter.onAppear(delegate: delegate(.loseWeight, target: 70))
+        screen.presenter.weightChangeRate = 0
+
+        #expect(
+            screen.presenter.estimatedEndDateText(delegate: delegate(.loseWeight, target: 70))
+                == "No approximate end date at this rate"
+        )
+        // 0 / 0 is NaN rather than infinity, and traps the same way.
+        #expect(
+            screen.presenter.estimatedEndDateText(delegate: delegate(.maintain, target: 80))
+                == "No approximate end date at this rate"
+        )
+    }
+
     /// A rate of zero is a goal that never finishes, so Continue is gated on it.
     @Test("A rate of zero cannot be continued with")
     func testARateOfZeroCannotBeContinuedWith() {

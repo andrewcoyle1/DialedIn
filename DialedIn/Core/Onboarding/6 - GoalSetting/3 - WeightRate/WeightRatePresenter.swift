@@ -128,7 +128,14 @@ class WeightRatePresenter {
         let totalWeightChange = abs(target - currentWeight)
         let weeklyChangeInKg = weightChangeRate
         let weeksToGoal = totalWeightChange / weeklyChangeInKg
-        
+
+        // `Int` traps on a Double that is not finite, and this runs while the screen is drawing.
+        // A rate of zero makes the division infinite — or NaN, when the target is already the
+        // current weight — which is exactly what took the goal summary down before it was
+        // guarded. Only losing and gaining reach this screen today, so the rate is never zero
+        // through the router; a maintain goal arriving here would crash on the first draw.
+        guard weeksToGoal.isFinite else { return "No approximate end date at this rate" }
+
         let endDate = Calendar.current.date(byAdding: .weekOfYear, value: Int(weeksToGoal), to: Date()) ?? Date()
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
