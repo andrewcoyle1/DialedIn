@@ -77,13 +77,20 @@ struct WorkoutSessionDetailPresenterTests {
         }
     }
 
-    private func set(_ index: Int, reps: Int? = 8, weightKg: Double? = 80, isWarmup: Bool = false) -> WorkoutSetModel {
+    private func set(
+        _ index: Int,
+        reps: Int? = 8,
+        weightKg: Double? = 80,
+        side: SetSide? = nil,
+        isWarmup: Bool = false
+    ) -> WorkoutSetModel {
         WorkoutSetModel(
             id: "set-\(index)",
             authorId: "author-1",
             index: index,
             reps: reps,
             weightKg: weightKg,
+            side: side,
             isWarmup: isWarmup,
             dateCreated: start
         )
@@ -109,6 +116,25 @@ struct WorkoutSessionDetailPresenterTests {
             dateCreated: start,
             endedAt: duration.map { start.addingTimeInterval($0) },
             exercises: exercises
+        )
+    }
+
+    /// `repsPerSide` is one of the three metrics that genuinely mean one limb at a time — see
+    /// `WorkoutSessionModel.isPerSide`.
+    private var perSideExerciseModel: ExerciseModel {
+        ExerciseModel(
+            id: "exercise-model-1",
+            authorId: "author-1",
+            name: "Single Arm Row",
+            trackableMetrics: [.repsPerSide, .weight],
+            type: .compoundUpper,
+            laterality: nil,
+            muscleGroups: [:],
+            isBodyweight: false,
+            rangeOfMotion: 1,
+            stability: 1,
+            bodyWeightContribution: 0,
+            alternateNames: []
         )
     }
 
@@ -297,6 +323,101 @@ struct WorkoutSessionDetailPresenterTests {
         screen.presenter.deleteSet(session: workout.binding, "missing", from: "e1")
 
         #expect(workout.value.exercises.first?.sets.count == 1)
+    }
+
+    // MARK: - Sets worked a side at a time
+
+    /// Three sets of a single-arm row, logged as the six rows they take: left then right, each row
+    /// numbered for itself.
+    private var threeSetsPerSide: [WorkoutSetModel] {
+        [
+            set(1, reps: 10, weightKg: 20, side: .left), set(2, reps: 9, weightKg: 22, side: .right),
+            set(3, reps: 10, weightKg: 20, side: .left), set(4, reps: 8, weightKg: 22, side: .right)
+        ]
+    }
+
+    /// A fourth set of a single-arm row is two efforts, so adding one has to hand the user both.
+    @Test("Test Adding A Set To A Per-Side Exercise Adds A Pair")
+    func testAddingASetToAPerSideExerciseAddsAPair() {
+        let screen = makeScreen()
+        let workout = MutableSession(session(exercises: [exercise(id: "e1", index: 1, sets: threeSetsPerSide)]))
+
+        screen.presenter.addSet(session: workout.binding, to: "e1")
+
+        let sets = workout.value.exercises.first?.sets ?? []
+        #expect(sets.count == 6)
+        #expect(sets.suffix(2).map(\.side) == [.left, .right])
+    }
+
+    /// The arms lift different weights, so the new left copies the last left and the new right the
+    /// last right — copying whichever row happened to be last would show one arm the other's work.
+    @Test("Test Each Half Of A New Pair Copies Its Own Side")
+    func testEachHalfOfANewPairCopiesItsOwnSide() throws {
+        let screen = makeScreen()
+        let workout = MutableSession(session(exercises: [exercise(id: "e1", index: 1, sets: threeSetsPerSide)]))
+
+        screen.presenter.addSet(session: workout.binding, to: "e1")
+
+        let added = Array((workout.value.exercises.first?.sets ?? []).suffix(2))
+        let left = try #require(added.first)
+        let right = try #require(added.last)
+        #expect(left.weightKg == 20)
+        #expect(left.reps == 10)
+        #expect(right.weightKg == 22)
+        #expect(right.reps == 8)
+    }
+
+    /// Sides are told apart by `side`, never by sharing a number, so each new row takes the next
+    /// free index.
+    @Test("Test Both Halves Of A New Pair Get Their Own Index")
+    func testBothHalvesOfANewPairGetTheirOwnIndex() {
+        let screen = makeScreen()
+        let workout = MutableSession(session(exercises: [exercise(id: "e1", index: 1, sets: threeSetsPerSide)]))
+
+        screen.presenter.addSet(session: workout.binding, to: "e1")
+
+        #expect(workout.value.exercises.first?.sets.map(\.index) == [1, 2, 3, 4, 5, 6])
+    }
+
+    /// A two-sided exercise gains one row with no side at all, as it always did.
+    @Test("Test Adding A Set To A Two-Sided Exercise Adds One Sideless Row")
+    func testAddingASetToATwoSidedExerciseAddsOneSidelessRow() {
+        let screen = makeScreen()
+        let workout = MutableSession(session(exercises: [exercise(id: "e1", index: 1, sets: [set(1)])]))
+
+        screen.presenter.addSet(session: workout.binding, to: "e1")
+
+        let sets = workout.value.exercises.first?.sets ?? []
+        #expect(sets.count == 2)
+        #expect(sets.last?.side == nil)
+    }
+
+    /// A stranded limb numbers, counts and rests as a set of its own, claiming work that was never
+    /// done — so removing either half removes the pair.
+    @Test("Test Deleting One Half Of A Pair Removes Both")
+    func testDeletingOneHalfOfAPairRemovesBoth() {
+        let screen = makeScreen()
+        let fromLeft = MutableSession(session(exercises: [exercise(id: "e1", index: 1, sets: threeSetsPerSide)]))
+        let fromRight = MutableSession(session(exercises: [exercise(id: "e1", index: 1, sets: threeSetsPerSide)]))
+
+        screen.presenter.deleteSet(session: fromLeft.binding, "set-1", from: "e1")
+        screen.presenter.deleteSet(session: fromRight.binding, "set-2", from: "e1")
+
+        #expect(fromLeft.value.exercises.first?.sets.map(\.id) == ["set-3", "set-4"])
+        #expect(fromRight.value.exercises.first?.sets.map(\.id) == ["set-3", "set-4"])
+    }
+
+    /// Renumbering after a pair goes still has to leave one index per row, or the next set added
+    /// lands on a number already taken.
+    @Test("Test Deleting A Pair Leaves The Rest Uniquely Numbered")
+    func testDeletingAPairLeavesTheRestUniquelyNumbered() {
+        let screen = makeScreen()
+        let workout = MutableSession(session(exercises: [exercise(id: "e1", index: 1, sets: threeSetsPerSide)]))
+
+        screen.presenter.deleteSet(session: workout.binding, "set-3", from: "e1")
+
+        #expect(workout.value.exercises.first?.sets.map(\.index) == [1, 2])
+        #expect(workout.value.exercises.first?.sets.map(\.side) == [.left, .right])
     }
 
     // MARK: - Removing an exercise
@@ -538,6 +659,33 @@ struct WorkoutSessionDetailPresenterTests {
         #expect(workout.value.exercises.count == 2)
         #expect(workout.value.exercises.map(\.index) == [1, 2])
         #expect(screen.presenter.selectedExerciseModels.isEmpty)
+    }
+
+    /// A single-arm exercise added to a finished session has no rows yet to read a side off, so the
+    /// exercise decides. Joining as sideless rows would leave it unable to gain a side at all.
+    @Test("Test A Picked Per-Side Exercise Joins With Sided Sets")
+    func testAPickedPerSideExerciseJoinsWithSidedSets() {
+        let screen = makeScreen()
+        let workout = MutableSession(session())
+        screen.presenter.selectedExerciseModels = [
+            WorkoutTemplateExercise(exercise: perSideExerciseModel, setRestTimers: false)
+        ]
+
+        screen.presenter.addSelectedExercises(session: workout.binding)
+
+        #expect(workout.value.exercises.first?.sets.map(\.side) == [.left, .right])
+    }
+
+    /// A two-sided exercise still joins with one row per set.
+    @Test("Test A Picked Two-Sided Exercise Joins With Sideless Sets")
+    func testAPickedTwoSidedExerciseJoinsWithSidelessSets() {
+        let screen = makeScreen()
+        let workout = MutableSession(session())
+        screen.presenter.selectedExerciseModels = [WorkoutTemplateExercise(exercise: .mock, setRestTimers: false)]
+
+        screen.presenter.addSelectedExercises(session: workout.binding)
+
+        #expect(workout.value.exercises.first?.sets.allSatisfy { $0.side == nil } == true)
     }
 
     @Test("Test Adding Nothing Changes Nothing")

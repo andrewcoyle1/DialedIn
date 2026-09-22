@@ -156,8 +156,7 @@ class SetTrackerPresenter {
         // and this handed the new set an index another set already held. Warmup sets share the
         // same numbering, which makes it easier still to hit.
         var nextIndex = (existingSets.map(\.index).max() ?? 0) + 1
-        let isPerSide = existingSets.contains { !$0.isWarmup && $0.side != nil }
-        let sides: [SetSide?] = isPerSide ? SetSide.ordered.map { $0 } : [nil]
+        let sides: [SetSide?] = exercise.wrappedValue.isPerSide ? SetSide.ordered.map { $0 } : [nil]
 
         for side in sides {
             // Carry forward the figures of the last set on the same side, so a left set copies the

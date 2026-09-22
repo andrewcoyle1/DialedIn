@@ -71,6 +71,15 @@ extension WorkoutExerciseModel {
         sets.filter { !$0.isWarmup }
     }
 
+    /// Whether this exercise is worked one limb at a time, read off the rows it already carries.
+    ///
+    /// `WorkoutSessionModel.isPerSide` answers the same question from the `ExerciseModel`, which a
+    /// logged session does not keep — its sets are the only surviving record of how it was tracked,
+    /// so a set added afterwards follows them rather than guessing.
+    var isPerSide: Bool {
+        sets.contains { !$0.isWarmup && $0.side != nil }
+    }
+
     /// How many working sets this exercise asks for, pairs counted once.
     var workingSetCount: Int {
         workingSets.pairedSetCount
