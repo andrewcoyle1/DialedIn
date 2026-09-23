@@ -29,8 +29,6 @@ class WorkoutSessionManager {
         followingWorkoutSessionSyncEngine.currentCollection
     }
 
-    var restEndTime: Date?
-
     // MARK: - Init
 
     init(
@@ -234,7 +232,7 @@ extension CoreInteractor {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         return hkWorkoutManager.restEndTime
         #else
-        return workoutSessionManager.restEndTime
+        return nil
         #endif
     }
 
