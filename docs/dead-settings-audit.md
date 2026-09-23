@@ -10,19 +10,22 @@ that writes it ever reads it.
   `ShortcutSettings` (1).
 - **26 were dead** when this audit was written — saved to Firestore and read by nothing outside
   the screen that writes them.
-- **Fifteen have since been wired** and are live: `restDurationOverride`, `restTimerPlaySound`,
-  `restTimerVibrate`, `previousWorkoutReference`, `autoSetCurrentTime`, `quickAddEnabled`,
-  `supersetAutoScroll`, `note`, `showOverages`, `estimationMethod`, and the five the adaptive
-  expenditure engine brought with it: `calculationMode`, `calculationStartDate`,
-  `algorithmVersion`, `stepInformedUpdates` and `predictiveGoalAdjustments`.
-- **Eleven remain dead, and every one of them needs a feature built first**, not a line of
-  plumbing. They are listed as `feature` below, each with what is missing.
-- **58 are live.**
-- Time Selection and Optimisation are no longer inert, and neither is **Expenditure Settings**:
-  `ExpenditureEngine` reads every field on it. **Favourite Measurements** still is: its list of
-  nine units has no picker anywhere in the app to order. **Strategy Settings** is inert in full,
-  and **Smart Progression Settings** in full — there is no smart-progression engine for its three
-  fields to steer.
+- **Twenty-four have since been wired** and are live: `restDurationOverride`,
+  `restTimerPlaySound`, `restTimerVibrate`, `previousWorkoutReference`, `autoSetCurrentTime`,
+  `quickAddEnabled`, `supersetAutoScroll`, `note`, `showOverages`, `estimationMethod`; the five
+  the adaptive expenditure engine brought with it: `calculationMode`, `calculationStartDate`,
+  `algorithmVersion`, `stepInformedUpdates` and `predictiveGoalAdjustments`; the three the
+  smart-progression engine reads: `smartProgressionApplyInSession`,
+  `smartProgressionInitialLogFill` and `smartProgressionAdjustmentMode`; and the six the weekly
+  check-in reads: `checkInWeekday`, `fastCheckIn`, `partialLoggingEnabled`, `weighInEnabled`,
+  `fastingEnabled` and `loggingBreakEnabled`.
+- **Two remain dead.** `favouriteMeasurements` needs a feature built first and `premove` needs a
+  decision. Both are listed below with what is missing.
+- **67 are live.**
+- Time Selection, Optimisation, **Expenditure Settings**, **Strategy Settings** and **Smart
+  Progression Settings** are all live in full: `ExpenditureEngine`, the check-in flow and
+  `ProgressionEngine` read every field on them. **Favourite Measurements** still is inert: its
+  list of nine units has no picker anywhere in the app to order.
 
 ### What "read by" means here
 
@@ -61,11 +64,11 @@ cannot change anything even once there is an engine to change.
 | `addSmartWarmUps` | `WorkoutSettings` | `WorkoutSettingsPresenter.addSmartWarmUps` | `WorkoutTrackerPresenter` (warm-up seeding guard) | live |
 | `supersetAutoScroll` | `WorkoutSettings` | `WorkoutSettingsPresenter.supersetAutoScroll` | `WorkoutTrackerPresenter.advanceWithinSuperset(exerciseIndex:in:)` | live — **wired**. Not at `advanceAfterExerciseCompletion` as the audit guessed: the toggle says *after set completion*, which is the round-robin step between two members, not finishing an exercise. New rule in `WorkoutTrackerPresenter+Superset`. **Default `true`, so this changes behaviour for every existing user** — a release note, not a silent improvement. |
 | **`previousWorkoutReference`** | `WorkoutSettings` | `PrevWORefSettingsPresenter.previousWorkoutReference` | `CoreInteractor.previousSessions(forExerciseTemplateId:…)`, read by `WorkoutTrackerPresenter.loadPreviousWorkoutSession()` and by smart progression | live — **wired**, and now three scopes rather than two: `.anyExercise` (the last time the exercise was performed in any workout), `.sameWorkout` (the last completed session of this template, in any program — the default, and still the stored raw value `"anyWorkout"`) and `.workoutsInProgram` (the same, restricted to this workout's program). The two template scopes fall back to the any-exercise lookup when this template has no history for an exercise, so a new template built from long-trained exercises still shows their figures. |
-| **`smartProgressionApplyInSession`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.applyInSession` | **nothing** | `feature` — there is no smart-progression engine in the app; the whole feature is three settings and a screen. Missing: an engine that proposes a next-session load from logged history. |
-| **`smartProgressionInitialLogFill`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.initialLogFill` | **nothing** | `feature` — see the note below; two of its three options are buildable today but the **default one is not**, so wiring it would leave the control lying in the position most users are in. |
-| **`smartProgressionAdjustmentMode`** | `WorkoutSettings` | `SmartProgressionSettingsPresenter.adjustmentMode` | **nothing** | `feature` — nothing applies progression, so weight-first vs reps-first has nothing to choose between. |
+| `smartProgressionApplyInSession` | `WorkoutSettings` | `SmartProgressionSettingsPresenter.applyInSession` | `SetTrackerRowPresenter.onSetComplete` → `WorkoutTrackerPresenter.applyLiveProgression` | live — **wired** by the smart-progression engine (`docs/specs/smart-progression.md` §4): live set-to-set re-suggestion. |
+| `smartProgressionInitialLogFill` | `WorkoutSettings` | `SmartProgressionSettingsPresenter.initialLogFill` | `CoreInteractor.sessionPrefill(for:…)` | live — **wired**; all three options, including the default, once the engine existed (§5). |
+| `smartProgressionAdjustmentMode` | `WorkoutSettings` | `SmartProgressionSettingsPresenter.adjustmentMode` | `ProgressionEngine.classify` via `ProgressionPlanner` | live — **wired**; weight-first needs a majority of sets at the top of the range, reps-first needs all of them (§3.2). |
 
-### What `smartProgressionInitialLogFill` would take
+### What `smartProgressionInitialLogFill` took (historical)
 
 Worth writing down, because it is the one dead setting whose wiring looks like plumbing and is not.
 
@@ -257,11 +260,12 @@ rather than left with the audit.
 
 ## What is left
 
-Every setting whose behaviour already existed has been wired. What remains is four settings
-across two unbuilt features, and they should be tracked as features rather than as plumbing:
+Every setting whose behaviour already existed has been wired, and the three features the audit
+called for have been built. What remains is one setting behind one unbuilt feature, and it should
+be tracked as a feature rather than as plumbing:
 
-1. **A smart-progression engine** — `smartProgressionApplyInSession`,
-   `smartProgressionInitialLogFill`, `smartProgressionAdjustmentMode`.
+1. ~~**A smart-progression engine**~~ — built. `ProgressionEngine` and `ProgressionPlanner`;
+   see `docs/specs/smart-progression.md`.
 2. ~~**A weekly check-in**~~ — built. `CheckInSchedule` and the `CheckIn` module;
    see `docs/specs/weekly-check-in.md`.
 3. ~~**An adaptive expenditure engine**~~ — built. `ExpenditureEngine` and `TargetProposal`;
