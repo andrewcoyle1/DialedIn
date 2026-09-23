@@ -110,7 +110,7 @@ struct SetPosition: Equatable, Hashable, Sendable {
     }
 
     var label: String {
-        "\(isWarmup ? "Warmup set" : "Set") \(index) of \(total)"
+        "\(isWarmup ? "Warmup" : "Set") \(index) of \(total)"
     }
 }
 
