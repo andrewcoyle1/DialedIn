@@ -22,9 +22,11 @@ struct WorkoutActivityAttributes: ActivityAttributes {
         var currentExerciseImageName: String?
         var currentExerciseIndex: Int
         var totalExercisesCount: Int
-        // Per-exercise set counts for more contextual display
+        // Per-exercise set counts, within the group the target set belongs to: warm-ups while a
+        // warm-up is next, working sets after that. "Warmup 1 of 2", then "Set 1 of 4".
         var currentExerciseCompletedSetsCount: Int
         var currentExerciseTotalSetsCount: Int
+        var targetIsWarmup: Bool = false
         // Current set target values (for widget display and completion)
         var targetSetId: String?
         var targetWeightKg: Double?

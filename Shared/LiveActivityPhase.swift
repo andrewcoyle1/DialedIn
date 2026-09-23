@@ -96,18 +96,21 @@ struct LiveActivitySetTarget: Equatable, Hashable, Sendable {
     }
 }
 
-/// "Set 2 of 4". `index` is 1-based.
+/// "Set 2 of 4", or "Warmup 1 of 2" while the warm-ups are still going. `index` is 1-based and
+/// counts within its own group, so the working sets start again from 1.
 struct SetPosition: Equatable, Hashable, Sendable {
     var index: Int
     var total: Int
+    var isWarmup: Bool
 
-    init(index: Int, total: Int) {
+    init(index: Int, total: Int, isWarmup: Bool = false) {
         self.index = index
         self.total = total
+        self.isWarmup = isWarmup
     }
 
     var label: String {
-        "Set \(index) of \(total)"
+        "\(isWarmup ? "Warmup set" : "Set") \(index) of \(total)"
     }
 }
 
@@ -289,7 +292,8 @@ extension LiveActivityPhase {
                 target: target,
                 position: SetPosition(
                     index: state.currentExerciseCompletedSetsCount + 1,
-                    total: state.currentExerciseTotalSetsCount
+                    total: state.currentExerciseTotalSetsCount,
+                    isWarmup: state.targetIsWarmup
                 )
             )
         }

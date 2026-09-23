@@ -310,6 +310,35 @@ struct LiveActivityManagerTests {
         #expect(LiveActivityManager.fullyCompletedRows(in: [left, right, second]).pairedSetCount == 1)
     }
 
+    /// Two warm-ups then four working sets read as "Warmup 1 of 2" ... "Set 1 of 4", never as six.
+    @Test("Test The Position Counts Warm Ups And Working Sets Separately")
+    func testThePositionCountsWarmUpsAndWorkingSetsSeparately() {
+        let logged = Date()
+        func row(_ id: String, index: Int, warmup: Bool, done: Bool) -> WorkoutSetModel {
+            WorkoutSetModel(
+                id: id, authorId: "author-1", index: index, reps: 8, weightKg: 20,
+                isWarmup: warmup, completedAt: done ? logged : nil, dateCreated: logged
+            )
+        }
+        func sets(warmupsDone: Int, workingDone: Int) -> [WorkoutSetModel] {
+            (1...2).map { row("w\($0)", index: $0, warmup: true, done: $0 <= warmupsDone) }
+                + (1...4).map { row("s\($0)", index: $0 + 2, warmup: false, done: $0 <= workingDone) }
+        }
+        typealias Position = LiveActivityManager.ExercisePosition
+
+        #expect(LiveActivityManager.exercisePosition(in: sets(warmupsDone: 0, workingDone: 0))
+            == Position(completed: 0, total: 2, isWarmup: true))
+        #expect(LiveActivityManager.exercisePosition(in: sets(warmupsDone: 1, workingDone: 0))
+            == Position(completed: 1, total: 2, isWarmup: true))
+        #expect(LiveActivityManager.exercisePosition(in: sets(warmupsDone: 2, workingDone: 0))
+            == Position(completed: 0, total: 4, isWarmup: false))
+        #expect(LiveActivityManager.exercisePosition(in: sets(warmupsDone: 2, workingDone: 3))
+            == Position(completed: 3, total: 4, isWarmup: false))
+        // Finished: the working sets are all counted, which is what the exercise-done phase needs.
+        #expect(LiveActivityManager.exercisePosition(in: sets(warmupsDone: 2, workingDone: 4))
+            == Position(completed: 4, total: 4, isWarmup: false))
+    }
+
     /// The tracker does not order the two sides, so a right row ticked first is just as half done.
     @Test("Test A Right Row Ticked Before Its Left Partner Does Not Count Either")
     func testARightRowTickedBeforeItsLeftPartnerDoesNotCountEither() {

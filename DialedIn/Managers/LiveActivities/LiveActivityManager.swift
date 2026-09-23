@@ -390,8 +390,9 @@ class LiveActivityManager: LiveActivityUpdating {
             currentExerciseImageName: current.imageName,
             currentExerciseIndex: currentExerciseIndex,
             totalExercisesCount: params.session.exercises.count,
-            currentExerciseCompletedSetsCount: current.currentExerciseCompletedSetsCount,
-            currentExerciseTotalSetsCount: current.currentExerciseTotalSetsCount,
+            currentExerciseCompletedSetsCount: current.position.completed,
+            currentExerciseTotalSetsCount: current.position.total,
+            targetIsWarmup: current.position.isWarmup,
             targetSetId: current.targetSet?.id,
             targetWeightKg: current.targetSet?.weightKg,
             targetReps: current.targetSet?.reps,
@@ -456,6 +457,7 @@ class LiveActivityManager: LiveActivityUpdating {
                 totalExercisesCount: previous?.totalExercisesCount ?? 0,
                 currentExerciseCompletedSetsCount: previous?.currentExerciseCompletedSetsCount ?? 0,
                 currentExerciseTotalSetsCount: previous?.currentExerciseTotalSetsCount ?? 0,
+                targetIsWarmup: previous?.targetIsWarmup ?? false,
                 targetSetId: previous?.targetSetId,
                 targetWeightKg: previous?.targetWeightKg,
                 targetReps: previous?.targetReps,
@@ -550,9 +552,28 @@ class LiveActivityManager: LiveActivityUpdating {
     private struct CurrentExerciseData {
         let name: String?
         let imageName: String?
-        let currentExerciseCompletedSetsCount: Int
-        let currentExerciseTotalSetsCount: Int
+        let position: ExercisePosition
         let targetSet: WorkoutSetModel?
+    }
+
+    /// Where the user is in an exercise, counted within the group the next set belongs to.
+    struct ExercisePosition: Equatable {
+        let completed: Int
+        let total: Int
+        let isWarmup: Bool
+    }
+
+    /// "Warmup 1 of 2" while a warm-up is next, "Set 1 of 4" once the working sets start: the
+    /// warm-ups are their own short count rather than the first two of six. With nothing left the
+    /// working sets are counted, so a finished exercise reads as all of them done.
+    static func exercisePosition(in sets: [WorkoutSetModel]) -> ExercisePosition {
+        let isWarmup = sets.first { $0.completedAt == nil }?.isWarmup ?? false
+        let group = sets.filter { $0.isWarmup == isWarmup }
+        return ExercisePosition(
+            completed: fullyCompletedRows(in: group).pairedSetCount,
+            total: group.pairedSetCount,
+            isWarmup: isWarmup
+        )
     }
 
     /// The index the activity should describe: `requested`, unless that exercise is finished and a
@@ -599,15 +620,12 @@ class LiveActivityManager: LiveActivityUpdating {
         // are. `pairedSetCount` alone reads a lone left row as a finished set, which puts the banner
         // on "Set 2 of 4" while the right arm of set 1 is still to come, and on "Set 5 of 4" at the
         // end. The whole-workout totals keep the plain count on purpose; see WorkoutSetPairing.
-        let currentExerciseCompletedSetsCount = Self.fullyCompletedRows(in: currentExerciseSets).pairedSetCount
-        let currentExerciseTotalSetsCount = currentExerciseSets.pairedSetCount
-        let targetSet = currentExercise?.sets.first { $0.completedAt == nil }
+        let targetSet = currentExerciseSets.first { $0.completedAt == nil }
 
         return CurrentExerciseData(
             name: currentExerciseName,
             imageName: currentExerciseImageName,
-            currentExerciseCompletedSetsCount: currentExerciseCompletedSetsCount,
-            currentExerciseTotalSetsCount: currentExerciseTotalSetsCount,
+            position: Self.exercisePosition(in: currentExerciseSets),
             targetSet: targetSet
         )
     }

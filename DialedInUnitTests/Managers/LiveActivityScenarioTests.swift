@@ -170,7 +170,7 @@ struct LiveActivityScenarioTests {
         guard case .ready(_, let position) = try phase(rig) else {
             Issue.record("expected .ready at the start, got \(try phase(rig))"); return
         }
-        #expect(position.index == 1)
+        #expect(position.label == "Warmup 1 of 2")
 
         var completed: [String] = []
         var exerciseIndexAfterEachSet: [Int] = []
@@ -178,6 +178,13 @@ struct LiveActivityScenarioTests {
             let step = try await tapComplete(rig, tapNumber: tap, isLast: tap == Self.rowsToTap)
             completed.append(step.setId)
             exerciseIndexAfterEachSet.append(step.exerciseIndex)
+            if tap == 2 {
+                // Both warm-ups done: the working sets start their own count.
+                guard case .ready(_, let position) = try phase(rig) else {
+                    Issue.record("expected .ready after the warm-ups, got \(try phase(rig))"); return
+                }
+                #expect(position.label == "Set 1 of 4")
+            }
         }
 
         #expect(Set(completed).count == Self.rowsToTap, "a row was completed twice")

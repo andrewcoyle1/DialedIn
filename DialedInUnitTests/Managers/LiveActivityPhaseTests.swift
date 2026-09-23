@@ -32,6 +32,7 @@ struct LiveActivityPhaseTests {
         totalExercisesCount: Int = 3,
         currentExerciseCompletedSetsCount: Int = 1,
         currentExerciseTotalSetsCount: Int = 4,
+        targetIsWarmup: Bool = false,
         targetSetId: String? = "set-1",
         targetWeightKg: Double? = 60,
         targetReps: Int? = 8,
@@ -61,6 +62,7 @@ struct LiveActivityPhaseTests {
             totalExercisesCount: totalExercisesCount,
             currentExerciseCompletedSetsCount: currentExerciseCompletedSetsCount,
             currentExerciseTotalSetsCount: currentExerciseTotalSetsCount,
+            targetIsWarmup: targetIsWarmup,
             targetSetId: targetSetId,
             targetWeightKg: targetWeightKg,
             targetReps: targetReps,
@@ -242,6 +244,22 @@ struct LiveActivityPhaseTests {
         )
         // The position is what the banner shows as "Set 2 of 4".
         #expect(SetPosition(index: 2, total: 4).label == "Set 2 of 4")
+    }
+
+    /// Warm-ups are counted on their own, so the banner says which kind of set is next.
+    @Test("Test A Warm Up Target Derives A Warm Up Position")
+    func testAWarmUpTargetDerivesAWarmUpPosition() {
+        let state = makeState(
+            currentExerciseCompletedSetsCount: 0,
+            currentExerciseTotalSetsCount: 2,
+            targetIsWarmup: true
+        )
+
+        guard case .ready(_, let position) = phase(state) else {
+            Issue.record("expected .ready, got \(phase(state))"); return
+        }
+        #expect(position == SetPosition(index: 1, total: 2, isWarmup: true))
+        #expect(position.label == "Warmup 1 of 2")
     }
 
     // MARK: - Row 8

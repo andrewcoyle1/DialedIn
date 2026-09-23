@@ -89,7 +89,8 @@ struct LiveActivityPhaseContent: View {
     private var currentPositionLabel: String {
         SetPosition(
             index: state.currentExerciseCompletedSetsCount + 1,
-            total: state.currentExerciseTotalSetsCount
+            total: state.currentExerciseTotalSetsCount,
+            isWarmup: state.targetIsWarmup
         ).label
     }
 
@@ -192,10 +193,10 @@ struct LiveActivityPhaseContent: View {
     private func restingTimerRow(until: Date, next: LiveActivitySetTarget?) -> some View {
         HStack(spacing: 8) {
             RestRing(until: until)
-            Text(timerInterval: Date()...until, countsDown: true)
-                .monospacedDigit()
-                .lineLimit(1)
-                .frame(width: 44)
+//            Text(timerInterval: Date()...until, countsDown: true)
+//                .monospacedDigit()
+//                .lineLimit(1)
+//                .frame(width: 44)
             if let label = next?.label(weightUnit: LiveActivityLayout.weightUnit) {
                 Text("Next \(label)")
                     .foregroundStyle(.secondary)

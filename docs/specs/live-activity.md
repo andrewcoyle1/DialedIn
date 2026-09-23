@@ -52,7 +52,8 @@ enum LiveActivityPhase: Equatable {
 
 `SetTarget` here is a display value: `weightKg`, `reps`, `durationSec`, `distanceMeters`, formatted
 by one `label` in the same shape the tracker's Prev column uses (`60 kg × 8`, `12`, `1:30`,
-`400 m 10:00`). `SetPosition` is `(index, total)` for "Set 2 of 4".
+`400 m 10:00`). `SetPosition` is `(index, total, isWarmup)` for "Set 2 of 4", counted within the
+group the next set belongs to: "Warmup 1 of 2" through the warm-ups, then "Set 1 of 4".
 
 ## 3. Lock-screen banner
 
