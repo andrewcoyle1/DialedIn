@@ -29,10 +29,14 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
     private let exerciseSettingsManager: ExerciseSettingsManager
     private let exerciseModelManager: ExerciseModelManager
 
-    /// The two side effects of finishing that are not the workout itself. Optional so a test can
-    /// build the handler without them.
+    /// What finishing needs beyond the session: see `WorkoutFinishManagers`. The streak and
+    /// Strava are optional so a test can build the handler without them.
+    private let gymProfileManager: GymProfileManager
+    private let trainingProgramManager: TrainingProgramManager
+    private let userManager: UserManager
     private let streakManager: StreakManager?
     private let stravaManager: StravaManager?
+    private let logManager: LogManager
 
     init(
         workoutSessionManager: WorkoutSessionManager,
@@ -41,8 +45,12 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
         workoutSettingsManager: WorkoutSettingsManager,
         exerciseSettingsManager: ExerciseSettingsManager,
         exerciseModelManager: ExerciseModelManager,
+        gymProfileManager: GymProfileManager,
+        trainingProgramManager: TrainingProgramManager,
+        userManager: UserManager,
         streakManager: StreakManager? = nil,
-        stravaManager: StravaManager? = nil
+        stravaManager: StravaManager? = nil,
+        logManager: LogManager = LogManager(services: [])
     ) {
         self.workoutSessionManager = workoutSessionManager
         self.hkWorkoutManager = hkWorkoutManager
@@ -50,8 +58,12 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
         self.workoutSettingsManager = workoutSettingsManager
         self.exerciseSettingsManager = exerciseSettingsManager
         self.exerciseModelManager = exerciseModelManager
+        self.gymProfileManager = gymProfileManager
+        self.trainingProgramManager = trainingProgramManager
+        self.userManager = userManager
         self.streakManager = streakManager
         self.stravaManager = stravaManager
+        self.logManager = logManager
     }
 
     // MARK: - LiveActivityIntentHandling
@@ -127,31 +139,24 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
         push(session, exerciseIndex: currentExerciseIndex(in: session))
     }
 
-    /// Finish the workout: HealthKit, the session and the activity all end as they do from the
-    /// tracker's Finish button.
+    /// Finish the workout through the same routine as the tracker's Finish button. There is no
+    /// screen here to retry through, so the first answer is the answer; a failed save leaves the
+    /// active session in place for Training to offer again.
     func completeWorkout() async {
         guard var session = workoutSessionManager.activeSession else { return }
-
-        hkWorkoutManager.cancelRest()
         session.endSession(at: Date())
-        SharedWorkoutStorage.clearHKStartedSessionId()
-        hkWorkoutManager.endWorkout()
 
-        var saved = true
-        do {
-            try await workoutSessionManager.endWorkoutSession(session)
-        } catch {
-            saved = false
-        }
-
-        liveActivityUpdater.endLiveActivity(session: session, isCompleted: saved)
-
-        if let streakManager {
-            _ = try? await streakManager.addStreakEvent()
-        }
-        if let stravaManager, stravaManager.isConnected, session.endedAt != nil {
-            try? await stravaManager.uploadWorkout(session)
-        }
+        _ = await finishWorkout(session, using: WorkoutFinishManagers(
+            sessions: workoutSessionManager,
+            hkWorkout: hkWorkoutManager,
+            liveActivity: liveActivityUpdater,
+            gymProfiles: gymProfileManager,
+            programs: trainingProgramManager,
+            users: userManager,
+            streak: streakManager,
+            strava: stravaManager,
+            logger: logManager
+        ))
     }
 
     // MARK: - Helpers

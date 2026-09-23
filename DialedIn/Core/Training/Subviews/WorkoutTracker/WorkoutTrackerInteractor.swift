@@ -64,8 +64,10 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
 
     func endWorkoutSession(_ session: WorkoutSessionModel) async throws
     func deleteActiveSession() throws 
-    /// End the current workout and persist/close resources as needed.
-    func endWorkout()
+
+    /// The whole finish — HealthKit, the save, the Live Activity and the side effects — for a
+    /// session already stamped with `endedAt`. Answers how the save went so it can be retried.
+    func finishWorkout(_ session: WorkoutSessionModel) async -> WorkoutSaveOutcome
 
     /// Discard the current workout without saving to HealthKit.
     func discardWorkout()
@@ -141,30 +143,28 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
 
     /// The current workout settings.
     var workoutSettings: WorkoutSettings { get }
-    
-    func addWorkoutStreakEvent() async throws
 
     /// Load unit preferences for an exercise template.
     func getPreference(templateId: String) -> ExerciseUnitPreference
-
-    /// Pre-create rest-day sessions for any consecutive rest days that follow the given session in the active training program.
-    func preCompleteConsecutiveRestDays(after session: WorkoutSessionModel) async
-
-    /// Upload a completed workout to Strava if the user is connected. Silently ignores errors.
-    func uploadToStravaIfConnected(_ session: WorkoutSessionModel) async
 }
 
 extension CoreInteractor: WorkoutTrackerInteractor {
-    func uploadToStravaIfConnected(_ session: WorkoutSessionModel) async {
-        guard stravaManager.isConnected, session.endedAt != nil else { return }
-        do {
-            try await stravaManager.uploadWorkout(session)
-        } catch {
-            trackEvent(
-                eventName: "strava_upload_error",
-                parameters: ["error": error.localizedDescription],
-                type: .warning
-            )
-        }
+    func finishWorkout(_ session: WorkoutSessionModel) async -> WorkoutSaveOutcome {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        await DialedIn.finishWorkout(session, using: WorkoutFinishManagers(
+            sessions: workoutSessionManager,
+            hkWorkout: hkWorkoutManager,
+            liveActivity: liveActivityManager,
+            gymProfiles: gymProfileManager,
+            programs: trainingProgramManager,
+            users: userManager,
+            streak: streakManager,
+            strava: stravaManager,
+            logger: logManager
+        ))
+        #else
+        gymProfileManager.activeWorkoutGymProfile = nil
+        return await saveFinishedWorkout(session, sessions: workoutSessionManager, logger: logManager)
+        #endif
     }
 }

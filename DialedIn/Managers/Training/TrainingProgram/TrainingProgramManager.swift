@@ -39,6 +39,12 @@ class TrainingProgramManager {
         trainingProgramSyncEngine.stopListening()
     }
 
+    /// The program the user has chosen to follow, if it is one of theirs.
+    func activeProgram(for user: UserModel?) -> TrainingProgram? {
+        guard let activeId = user?.submittedActiveTrainingProgramId else { return nil }
+        return trainingPrograms.first { $0.id == activeId }
+    }
+
     func saveTrainingProgram(trainingProgram: TrainingProgram) async throws {
         do {
             try await trainingProgramSyncEngine.saveDocument(trainingProgram)
@@ -115,10 +121,7 @@ extension CoreInteractor {
     // MARK: TrainingProgramManager
 
     var activeTrainingProgram: TrainingProgram? {
-        guard let activeTrainingProgramId = currentUser?.submittedActiveTrainingProgramId else { return nil }
-        return trainingPrograms.first { program in
-            program.id == activeTrainingProgramId
-        }
+        trainingProgramManager.activeProgram(for: currentUser)
     }
 
     var trainingPrograms: [TrainingProgram] {

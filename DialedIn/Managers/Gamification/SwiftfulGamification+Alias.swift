@@ -62,8 +62,4 @@ extension CoreInteractor {
     var currentStreakData: CurrentStreakData {
         streakManager.currentStreakData
     }
-
-    func addWorkoutStreakEvent() async throws {
-        try await streakManager.addStreakEvent()
-    }
 }

@@ -136,7 +136,10 @@ struct LiveActivityScenarioTests {
             liveActivityUpdater: activity,
             workoutSettingsManager: try await TestManagers.signedInWorkoutSettingsManager(settings),
             exerciseSettingsManager: TestManagers.exerciseSettingsManager(),
-            exerciseModelManager: TestManagers.exerciseModelManager()
+            exerciseModelManager: TestManagers.exerciseModelManager(),
+            gymProfileManager: TestManagers.gymProfileManager(),
+            trainingProgramManager: TestManagers.trainingProgramManager(),
+            userManager: TestManagers.userManager(user: nil)
         )
         return Rig(
             handler: handler, sessions: sessions, hkWorkoutManager: hkWorkoutManager,

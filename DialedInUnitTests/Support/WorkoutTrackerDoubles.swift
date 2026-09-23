@@ -39,7 +39,6 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     /// point of the retry. Falls back to `endWorkoutSessionError` once it runs dry.
     var endWorkoutSessionErrors: [Error?] = []
     private(set) var endWorkoutSessionAttempts = 0
-    var streakError: Error?
     private(set) var stravaUploads: [String] = []
     private(set) var preparedSounds: [SoundEffectFile] = []
     private(set) var playedSounds: [SoundEffectFile] = []
@@ -70,7 +69,23 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
         endedSessions.append(session)
     }
     func deleteActiveSession() throws { activeSession = nil }
-    func endWorkout() { }
+
+    /// The shared finish, as far as this double can stand in for it: the save is the one attempt
+    /// the retry tests count, and the rest records that it ran. The real sequencing is pinned
+    /// through the intent handler on real managers.
+    func finishWorkout(_ session: WorkoutSessionModel) async -> WorkoutSaveOutcome {
+        let outcome: WorkoutSaveOutcome
+        do {
+            try await endWorkoutSession(session)
+            outcome = .saved
+        } catch {
+            outcome = error.isTransientWriteFailure ? .failedTransiently : .failedPermanently
+        }
+        endedLiveActivities.append(outcome == .saved)
+        didAddStreakEvent = true
+        stravaUploads.append(session.id)
+        return outcome
+    }
     func discardWorkout() { }
 
     func ensureLiveActivity(
@@ -192,16 +207,8 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     func playSoundEffect(sound: SoundEffectFile) {
         playedSounds.append(sound)
     }
-    func addWorkoutStreakEvent() async throws {
-        if let streakError { throw streakError }
-        didAddStreakEvent = true
-    }
     func getPreference(templateId: String) -> ExerciseUnitPreference {
         preferences[templateId] ?? ExerciseUnitPreference(exerciseModelId: templateId)
-    }
-    func preCompleteConsecutiveRestDays(after session: WorkoutSessionModel) async { }
-    func uploadToStravaIfConnected(_ session: WorkoutSessionModel) async {
-        stravaUploads.append(session.id)
     }
 }
 
@@ -213,6 +220,7 @@ final class WorkoutTrackerRouterDouble: WorkoutTrackerRouter {
     func showWorkoutNotesView(delegate: WorkoutNotesDelegate) { shown.append("workoutNotes") }
     func showWorkoutSettingsView(delegate: WorkoutSettingsDelegate) { shown.append("workoutSettings") }
     func showGymProfileView(delegate: GymProfileDelegate) { shown.append("gymProfile") }
+    func dismissScreen() { shown.append("dismiss") }
 }
 
 extension RetryBackoff {

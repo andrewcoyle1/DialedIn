@@ -62,8 +62,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             workoutSettingsManager: container.resolve(WorkoutSettingsManager.self)!,
             exerciseSettingsManager: container.resolve(ExerciseSettingsManager.self)!,
             exerciseModelManager: container.resolve(ExerciseModelManager.self)!,
+            gymProfileManager: container.resolve(GymProfileManager.self)!,
+            trainingProgramManager: container.resolve(TrainingProgramManager.self)!,
+            userManager: container.resolve(UserManager.self)!,
             streakManager: container.resolve(StreakManager.self),
-            stravaManager: container.resolve(StravaManager.self)
+            stravaManager: container.resolve(StravaManager.self),
+            logManager: container.resolve(LogManager.self)!
         )
         liveActivityIntentHandler = handler
         LiveActivityIntentHandler.current = handler

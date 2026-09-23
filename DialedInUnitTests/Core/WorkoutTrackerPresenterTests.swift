@@ -592,6 +592,23 @@ struct WorkoutTrackerPresenterTests {
         #expect(screen.presenter.workoutSession.id == ownId)
     }
 
+    /// Finish tapped on the Live Activity while this screen sat in the background clears the
+    /// active session under it. The screen has to go: left in place, its next edit would write the
+    /// ended workout back as the active one.
+    @Test("Test A Workout Finished Elsewhere Dismisses The Screen And Stops Its Writes")
+    func testAWorkoutFinishedElsewhereDismissesTheScreenAndStopsItsWrites() throws {
+        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1)])])
+        screen.interactor.activeSession = nil
+
+        screen.presenter.adoptSavedSessionIfChanged()
+        let writesAtDismiss = screen.interactor.savedActiveSessions.count
+        screen.presenter.updateExerciseNotes("Felt heavy", exerciseId: "e1")
+
+        #expect(screen.router.shown == ["dismiss"])
+        #expect(screen.interactor.savedActiveSessions.count == writesAtDismiss)
+        #expect(screen.interactor.activeSession == nil)
+    }
+
     // MARK: - Persistence
 
     /// Every change to the session is written through, so closing the app mid-workout loses

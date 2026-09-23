@@ -79,6 +79,10 @@ class WorkoutTrackerPresenter {
 
     // Prevents handleWorkoutSessionChange from double-processing when updateSet() is the caller
     private var isProcessingUpdateSet = false
+
+    /// Set once this screen has left — finished, discarded, or told the workout ended elsewhere.
+    /// A write after that would put an ended session back as the active one.
+    var isDone = false
     
     // Notification identifier for rest timer
     let restTimerNotificationId = "workout-rest-timer"
@@ -255,6 +259,7 @@ class WorkoutTrackerPresenter {
     // MARK: - Workout Actions
     
     private func discardWorkout() {
+        isDone = true
         interactor.setActiveWorkoutGymProfile(nil)
         try? interactor.deleteActiveSession()
         UIApplication.shared.isIdleTimerDisabled = false
@@ -301,6 +306,7 @@ class WorkoutTrackerPresenter {
     // MARK: - Persistence
     
     func saveWorkoutProgress() {
+        guard !isDone else { return }
         do {
             try interactor.updateActiveSession(workoutSession)
         } catch {
@@ -404,7 +410,16 @@ class WorkoutTrackerPresenter {
     /// manager, and adopting it back would fight the edit the user is making.
     func adoptSavedSessionIfChanged() {
         guard !isProcessingUpdateSet else { return }
-        guard let saved = interactor.activeSession, saved.id == workoutSession.id else { return }
+        guard let saved = interactor.activeSession else {
+            // Finished from the Live Activity while this screen sat in the background. There is
+            // nothing left to track, and the next edit here would resurrect the ended session.
+            guard !isDone else { return }
+            isDone = true
+            UIApplication.shared.isIdleTimerDisabled = false
+            router.dismissScreen()
+            return
+        }
+        guard saved.id == workoutSession.id else { return }
         guard saved != workoutSession else { return }
 
         workoutSession = saved

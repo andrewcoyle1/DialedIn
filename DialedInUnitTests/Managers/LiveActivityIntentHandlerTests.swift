@@ -54,11 +54,13 @@ struct LiveActivityIntentHandlerTests {
         )
     }
 
-    private func session(exercises: [WorkoutExerciseModel]) -> WorkoutSessionModel {
+    private func session(exercises: [WorkoutExerciseModel], program: TrainingProgram? = nil) -> WorkoutSessionModel {
         WorkoutSessionModel(
             id: "session-1",
             authorId: "author-1",
             name: "Push Day",
+            workoutTemplateId: program?.workoutTemplates.first?.id,
+            trainingProgramId: program?.id,
             dateCreated: Self.start,
             exercises: exercises
         )
@@ -78,8 +80,11 @@ struct LiveActivityIntentHandlerTests {
         try await makeRig(exercises: [exercise(sets: sets)], settings: settings)
     }
 
+    /// `program`, when given, is the user's active program and the session is its first workout;
+    /// the session and program managers are then signed in so what finishing writes can be read.
     private func makeRig(
         exercises: [WorkoutExerciseModel],
+        program: TrainingProgram? = nil,
         settings: (inout WorkoutSettings) -> Void = { _ in }
     ) async throws -> Rig {
         // A rest left behind by an earlier run would otherwise read back as one in progress.
@@ -89,8 +94,14 @@ struct LiveActivityIntentHandlerTests {
         workoutSettings.defaultRestDurationSeconds = 75
         settings(&workoutSettings)
 
-        let sessions = TestManagers.workoutSessionManager()
-        try sessions.updateActiveSession(session(exercises: exercises))
+        let sessions = program == nil
+            ? TestManagers.workoutSessionManager()
+            : await TestManagers.signedInWorkoutSessionManager(sessions: [])
+        try sessions.updateActiveSession(session(exercises: exercises, program: program))
+        let programs = await TestManagers.signedInTrainingProgramManager(programs: [program].compactMap { $0 })
+        let users = try await TestManagers.signedInUserManager(
+            UserModel(userId: "author-1", submittedActiveTrainingProgramId: program?.id)
+        )
 
         let settingsManager = try await TestManagers.signedInWorkoutSettingsManager(workoutSettings)
         let activity = LiveActivityUpdaterSpy()
@@ -102,7 +113,10 @@ struct LiveActivityIntentHandlerTests {
             liveActivityUpdater: activity,
             workoutSettingsManager: settingsManager,
             exerciseSettingsManager: TestManagers.exerciseSettingsManager(),
-            exerciseModelManager: TestManagers.exerciseModelManager()
+            exerciseModelManager: TestManagers.exerciseModelManager(),
+            gymProfileManager: TestManagers.gymProfileManager(),
+            trainingProgramManager: programs,
+            userManager: users
         )
 
         return Rig(handler: handler, sessions: sessions, hkWorkoutManager: hkWorkoutManager, activity: activity)
@@ -349,6 +363,32 @@ struct LiveActivityIntentHandlerTests {
 
         #expect(rig.sessions.activeSession == nil)
         #expect(rig.activity.ended.contains("session-1"))
+    }
+
+    /// The finish here is the tracker's finish, side effects included. The rest days that follow
+    /// the workout in its program are pre-completed, which the handler's own copy of the finish
+    /// used to skip.
+    @Test("Test Completing The Workout Pre-Completes The Rest Days That Follow It")
+    func testCompletingTheWorkoutPreCompletesTheRestDaysThatFollowIt() async throws {
+        let program = TrainingProgram(
+            id: "program-1",
+            authorId: "author-1",
+            name: "Push Pull",
+            icon: "dumbbell",
+            colour: "red",
+            workoutTemplates: [
+                WorkoutTemplateModel(id: "template-push", authorId: "author-1", name: "Push"),
+                WorkoutTemplateModel(id: "template-rest-1", authorId: "author-1", name: "Rest"),
+                WorkoutTemplateModel(id: "template-rest-2", authorId: "author-1", name: "Rest")
+            ]
+        )
+        let rig = try await makeRig(exercises: [exercise(sets: [set("s1", index: 1, done: true)])], program: program)
+
+        await rig.handler.completeWorkout()
+
+        #expect(await TestManagers.eventually { rig.sessions.workoutSessions.filter(\.isRestDay).count == 2 })
+        #expect(rig.sessions.activeSession == nil)
+        #expect(Set(rig.sessions.workoutSessions.filter(\.isRestDay).map(\.workoutTemplateId)) == ["template-rest-1", "template-rest-2"])
     }
 
     /// Nothing to finish is not an error; the handler simply has no session to end.
