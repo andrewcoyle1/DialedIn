@@ -185,7 +185,7 @@ struct LiveActivityScenarioTests {
 
         let after = try #require(rig.activity.lastContentState)
         switch try phase(rig) {
-        case .resting(let until, let next, let logged):
+        case .resting(let until, let next, let logged, _):
             #expect(logged?.setId == targetId)
             if !isLast {
                 #expect(next != nil, "resting after set \(tapNumber) shows no next target")
@@ -314,7 +314,7 @@ struct LiveActivityScenarioTests {
                 rig.hkWorkoutManager.endRest()
             }
         }
-        guard case .resting(_, _, let logged) = try phase(rig) else {
+        guard case .resting(_, _, let logged, _) = try phase(rig) else {
             Issue.record("expected to be resting after the first working set, got \(try phase(rig))"); return
         }
         #expect(logged?.setId == "e1-s3")
@@ -322,7 +322,7 @@ struct LiveActivityScenarioTests {
 
         await rig.handler.adjustLastSetReps(id: "e1-s3", delta: -2)
 
-        guard case .resting(_, _, let corrected) = try phase(rig) else {
+        guard case .resting(_, _, let corrected, _) = try phase(rig) else {
             Issue.record("the correction changed the phase to \(try phase(rig))"); return
         }
         #expect(corrected?.reps == 6, "the activity still shows the uncorrected reps")
@@ -353,10 +353,11 @@ struct LiveActivityScenarioTests {
         #expect(state.currentExerciseName == "Exercise 2")
         #expect(state.targetSetId == "e2-s1")
 
-        guard case .resting(let until, let next, _) = try phase(rig) else {
+        guard case .resting(let until, let next, _, let nextExerciseName) = try phase(rig) else {
             Issue.record("expected a rest before exercise 2, got \(try phase(rig))"); return
         }
         #expect(next != nil)
+        #expect(nextExerciseName == "Exercise 2", "the rest into exercise 2 does not name it")
         guard case .restOver(let over) = try phase(rig, now: until.addingTimeInterval(1), isStale: true) else {
             Issue.record("the stale rest is not .restOver"); return
         }
@@ -371,14 +372,17 @@ struct LiveActivityScenarioTests {
         let rig = try await makeRig { $0 == "template-1" ? .pounds : .kilograms }
         rig.hkWorkoutManager.startWorkout(workout: try #require(rig.sessions.activeSession))
 
+        // Warm-ups do not rest between themselves; the rest after the last one is the first push
+        // that carries a next target.
         await rig.handler.completeSet(id: "e1-s1")
+        await rig.handler.completeSet(id: "e1-s2")
 
         let state = try #require(rig.activity.lastContentState)
         #expect(state.weightUnit == .pounds)
-        guard case .resting(_, let next, _) = try phase(rig) else {
-            Issue.record("expected a rest after the first warm-up, got \(try phase(rig))"); return
+        guard case .resting(_, let next, _, _) = try phase(rig) else {
+            Issue.record("expected a rest after the last warm-up, got \(try phase(rig))"); return
         }
-        #expect(next?.label(weightUnit: state.weightUnit)?.hasSuffix("lb × 10") == true)
+        #expect(next?.label(weightUnit: state.weightUnit)?.hasSuffix("lb × 8") == true)
         await expectEveryPushReachedTheActivity(rig)
     }
 }

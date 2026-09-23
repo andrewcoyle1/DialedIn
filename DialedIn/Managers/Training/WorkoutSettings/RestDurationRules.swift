@@ -52,10 +52,11 @@ enum RestDurationRules {
     ///
     /// A rest set by hand on the set wins outright and unscaled: the user typed that number for
     /// that set and meant it. Everything else starts from the base above and is then scaled by
-    /// where the set sits in the exercise, because the four moments are not the same rest — a
-    /// warm-up is a ramp, the gap between the two limbs of one set is the time it takes to swap
-    /// hands, the gap after the last set is the walk to the next exercise, and the gap between
-    /// sets is the one that actually needs to be long.
+    /// where the set sits in the exercise, because the moments are not the same rest — warm-ups
+    /// are a ramp with no rest between them and one scaled rest after the last, the gap between
+    /// the two limbs of one set is the time it takes to swap hands, the gap after the last set is
+    /// the walk to the next exercise, and the gap between sets is the one that actually needs to
+    /// be long.
     static func restAfterCompleting(
         _ set: WorkoutSetModel,
         in exercise: WorkoutExerciseModel,
@@ -70,11 +71,10 @@ enum RestDurationRules {
         let base = baseRestDuration(settings: settings, context: context)
 
         if set.isWarmup {
-            // The last warm-up runs straight into the first working set unless asked otherwise,
-            // which is the whole point of warming up.
-            if isLastWarmup(set, in: exercise), !settings.restAfterLastWarmUp {
-                return nil
-            }
+            // Warm-ups run straight into each other: they are a ramp, not work. The one rest a
+            // warm-up can earn is after the last one, before the first working set, and that is
+            // what `warmUpRestScaling` sizes.
+            guard isLastWarmup(set, in: exercise), settings.restAfterLastWarmUp else { return nil }
             return scale(base, by: settings.warmUpRestScaling)
         }
 

@@ -382,9 +382,9 @@ struct SetTrackerRowPresenterTests {
 
     // MARK: - Where the set sits changes the rest
 
-    /// A warm-up is a ramp, not work, so its rest is a fraction of the real one.
-    @Test("Test A Warm-Up Rests For A Fraction Of The Working Rest")
-    func testAWarmUpRestsForAFractionOfTheWorkingRest() {
+    /// Warm-ups are a ramp, not work: nothing rests between them, whatever the scaling.
+    @Test("Test Warm-Ups Never Rest Between Themselves")
+    func testWarmUpsNeverRestBetweenThemselves() {
         let screen = makeScreen()
         let warmup = set(id: "w1", index: 1, isWarmup: true)
         let box = Box(warmup)
@@ -396,15 +396,32 @@ struct SetTrackerRowPresenterTests {
             box.binding
         )
 
-        // 90 at the default scaling of 0.75.
+        #expect(box.value.completedAt != nil)
+        #expect(started.isEmpty)
+    }
+
+    /// The one warm-up rest is after the last one, before the first working set, and it is on by
+    /// default at the warm-up scaling: 90 at 0.75.
+    @Test("Test The Last Warm-Up Rests For A Fraction Of The Working Rest By Default")
+    func testTheLastWarmUpRestsForAFractionOfTheWorkingRestByDefault() {
+        let screen = makeScreen()
+        let last = set(id: "w2", index: 2, isWarmup: true)
+        let box = Box(last)
+        var started: [Int] = []
+        screen.presenter.onStartRest = { started.append($0) }
+
+        screen.presenter.onSetComplete(
+            exercise(sets: [set(id: "w1", index: 1, isWarmup: true), last, set(id: "s1", index: 3)]),
+            box.binding
+        )
+
         #expect(started == [68])
     }
 
-    /// The point of the last warm-up is to run straight into the first working set, so by default
-    /// no rest follows it at all.
-    @Test("Test The Last Warm-Up Rests Not At All By Default")
-    func testTheLastWarmUpRestsNotAtAllByDefault() {
+    @Test("Test The Last Warm-Up Rests Not At All When Turned Off")
+    func testTheLastWarmUpRestsNotAtAllWhenTurnedOff() {
         let screen = makeScreen()
+        screen.interactor.workoutSettings.restAfterLastWarmUp = false
         let last = set(id: "w2", index: 2, isWarmup: true)
         let box = Box(last)
         var started: [Int] = []
@@ -417,23 +434,6 @@ struct SetTrackerRowPresenterTests {
 
         #expect(box.value.completedAt != nil)
         #expect(started.isEmpty)
-    }
-
-    @Test("Test The Last Warm-Up Rests When Asked To")
-    func testTheLastWarmUpRestsWhenAskedTo() {
-        let screen = makeScreen()
-        screen.interactor.workoutSettings.restAfterLastWarmUp = true
-        let last = set(id: "w2", index: 2, isWarmup: true)
-        let box = Box(last)
-        var started: [Int] = []
-        screen.presenter.onStartRest = { started.append($0) }
-
-        screen.presenter.onSetComplete(
-            exercise(sets: [set(id: "w1", index: 1, isWarmup: true), last, set(id: "s1", index: 3)]),
-            box.binding
-        )
-
-        #expect(started == [68])
     }
 
     /// The gap after the last set is the walk to the next exercise, which is its own setting.
@@ -506,13 +506,13 @@ struct SetTrackerRowPresenterTests {
     func testScalingToZeroMeansNoRest() {
         let screen = makeScreen()
         screen.interactor.workoutSettings.warmUpRestScaling = 0
-        let warmup = set(id: "w1", index: 1, isWarmup: true)
-        let box = Box(warmup)
+        let last = set(id: "w2", index: 2, isWarmup: true)
+        let box = Box(last)
         var started: [Int] = []
         screen.presenter.onStartRest = { started.append($0) }
 
         screen.presenter.onSetComplete(
-            exercise(sets: [warmup, set(id: "w2", index: 2, isWarmup: true), set(id: "s1", index: 3)]),
+            exercise(sets: [set(id: "w1", index: 1, isWarmup: true), last, set(id: "s1", index: 3)]),
             box.binding
         )
 

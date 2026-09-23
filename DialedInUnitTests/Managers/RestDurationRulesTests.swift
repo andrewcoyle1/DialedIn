@@ -58,14 +58,17 @@ struct RestDurationRulesTests {
         #expect(rest(after: warmup, in: exercise([warmup, set("x1")]), custom: 45) == 45)
     }
 
-    @Test("Test A Warm-Up Rest Is Scaled")
-    func testAWarmUpRestIsScaled() {
+    /// Warm-ups are a ramp: nothing between them, whatever the scaling says.
+    @Test("Test There Is Never A Rest Between Warm-Ups")
+    func testThereIsNeverARestBetweenWarmUps() {
         let warmup = set("w1", warmup: true)
-        #expect(rest(after: warmup, in: exercise([warmup, set("w2", warmup: true), set("x1")])) == 50)
+        #expect(rest(after: warmup, in: exercise([warmup, set("w2", warmup: true), set("x1")])) == nil)
     }
 
-    @Test("Test The Last Warm-Up Rests Only When Asked")
-    func testTheLastWarmUpRestsOnlyWhenAsked() {
+    /// The one warm-up rest is after the last one, before the first working set, scaled by the
+    /// warm-up factor; off means none at all.
+    @Test("Test The Last Warm-Up Rests Scaled And Only When Asked")
+    func testTheLastWarmUpRestsScaledAndOnlyWhenAsked() {
         let last = set("w2", warmup: true)
         let exercise = exercise([set("w1", warmup: true), last, set("x1")])
         var off = settings
@@ -73,6 +76,7 @@ struct RestDurationRulesTests {
 
         #expect(rest(after: last, in: exercise) == 50)
         #expect(rest(after: last, in: exercise, settings: off) == nil)
+        #expect(WorkoutSettings(authorId: "author-1").restAfterLastWarmUp, "the last warm-up rests by default")
     }
 
     @Test("Test The Left Half Of A Pair Rests Like A Side Swap")
@@ -112,10 +116,10 @@ struct RestDurationRulesTests {
 
     @Test("Test Scaling To Nothing Means No Rest")
     func testScalingToNothingMeansNoRest() {
-        let warmup = set("w1", warmup: true)
+        let last = set("w2", warmup: true)
         var zeroed = settings
         zeroed.warmUpRestScaling = 0
-        #expect(rest(after: warmup, in: exercise([warmup, set("w2", warmup: true), set("x1")]), settings: zeroed) == nil)
+        #expect(rest(after: last, in: exercise([set("w1", warmup: true), last, set("x1")]), settings: zeroed) == nil)
     }
 
     @Test("Test The Base Is The Narrowest Setting And A Zero Override Is None")

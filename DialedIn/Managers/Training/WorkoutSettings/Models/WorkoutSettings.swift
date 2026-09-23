@@ -27,7 +27,7 @@ struct WorkoutSettings: DataSyncModelProtocol {
 
     // MARK: - Rest Timer: Behaviour
     var useRestTimers: Bool = true
-    var restAfterLastWarmUp: Bool = false
+    var restAfterLastWarmUp: Bool = true
     var restBetweenExercises: Bool = true
     var restBetweenSideSets: Bool = false
 
