@@ -609,6 +609,22 @@ struct WorkoutTrackerPresenterTests {
         #expect(screen.interactor.activeSession == nil)
     }
 
+    /// iOS foregrounds through `.inactive`, never straight from `.background`, so the re-read on
+    /// return has to key off arriving at `.active` alone.
+    @Test("Test Coming To The Foreground Adopts A Session Saved Elsewhere")
+    func testComingToTheForegroundAdoptsASessionSavedElsewhere() throws {
+        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1)])])
+        var saved = try #require(screen.interactor.activeSession)
+        var exercises = saved.exercises
+        exercises[0].sets[0].completedAt = start
+        saved.updateExercises(exercises)
+        screen.interactor.activeSession = saved
+
+        screen.presenter.onScenePhaseChange(oldPhase: .inactive, newPhase: .active)
+
+        #expect(screen.presenter.workoutSession == saved)
+    }
+
     // MARK: - Persistence
 
     /// Every change to the session is written through, so closing the app mid-workout loses

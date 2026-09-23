@@ -232,7 +232,8 @@ class WorkoutTrackerPresenter {
     }
 
     func onScenePhaseChange(oldPhase: ScenePhase, newPhase: ScenePhase) {
-        if newPhase == .active && oldPhase == .background {
+        // iOS foregrounds through `.inactive`, so `oldPhase` is never `.background` here.
+        if newPhase == .active {
             // A set logged from the Live Activity while the app was in the background was saved by
             // the intent handler, not by this screen, so re-read it rather than waiting for the
             // observation to fire.
