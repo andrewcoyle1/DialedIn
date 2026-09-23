@@ -83,7 +83,6 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
         endedLiveActivities.append((isCompleted: isCompleted, statusMessage: statusMessage))
     }
     func updateLiveActivity(params: LiveActivityUpdateParams) { }
-    func discardLiveActivity() async { }
 
     /// Records the program filter the presenter asked for, and honours it against
     /// `completedSessions` when that is set — so a test can assert both the request and the result.

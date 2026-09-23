@@ -8,16 +8,9 @@
 //
 
 import Foundation
-#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-import ActivityKit
-#endif
 
 extension CoreInteractor {
     // MARK: LiveActivityManager
-    
-    var liveActivityViewState: ActivityViewState? {
-        liveActivityManager.activityViewState
-    }
     
     /// Ensure a Workout Live Activity using data from the given session
     /// - Parameters:
@@ -50,11 +43,6 @@ extension CoreInteractor {
         liveActivityManager.updateLiveActivity(params: params)
     }
     
-    /// Discard the currently active Live Activity
-    func discardLiveActivity() async {
-        await liveActivityManager.discardLiveActivity()
-    }
-
     /// Ensure a Workout Live Activity using data from the given session
     /// - Parameters:
     ///   - session: WorkoutSessionModel
@@ -66,26 +54,5 @@ extension CoreInteractor {
         statusMessage: String? = nil
     ) {
         liveActivityManager.endLiveActivity(session: session, isCompleted: isCompleted, statusMessage: statusMessage)
-    }
-    
-    /// End the live activity using a final content state and dismissal policy
-    /// - Parameters:
-    ///   - finalState: WorkoutActivityAttributes.ContentState
-    ///   - dismissalPolicy: ActivityUIDismissalPolicy
-    func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
-        await liveActivityManager.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
-    }
-    
-    /// Update only isActive/rest/status from current content state to avoid recomputing set counts
-    /// - Parameters:
-    ///   - isActive: Bool
-    ///   - restEndsAt: Date?
-    ///   - statusMessage: String?
-    func updateRestAndActive(
-        isActive: Bool,
-        restEndsAt: Date?,
-        statusMessage: String? = nil
-    ) {
-        liveActivityManager.updateRestAndActive(isActive: isActive, restEndsAt: restEndsAt, statusMessage: statusMessage)
     }
 }

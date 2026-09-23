@@ -20,8 +20,6 @@ class LiveActivityManager: LiveActivityUpdating {
         self.logger = logger
     }
     
-    var activityViewState: ActivityViewState?
-    
 	// The currently active Workout Live Activity
 	private var currentActivity: Activity<WorkoutActivityAttributes>?
 	
@@ -98,12 +96,6 @@ class LiveActivityManager: LiveActivityUpdating {
         self.updateLiveActivity(contentState: updatedState)
     }
     
-    /// Discard the currently active Live Activity
-    func discardLiveActivity() async {
-        guard let activity = currentActivity else { return }
-        await SendableActivity(activity: activity).end(nil, dismissalPolicy: .immediate)
-    }
-
     /// Ensure a Workout Live Activity using data from the given session
     /// - Parameters:
     ///   - session: WorkoutSessionModel
@@ -156,15 +148,13 @@ class LiveActivityManager: LiveActivityUpdating {
         }
     }
     
-    func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
+    private func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
         guard let activity = currentActivity else {
             return
         }
         
-        let sendableActivity = SendableActivity(activity: activity)
-
         Task {
-            await sendableActivity.end(
+            await activity.end(
                 ActivityContent(
                     state: finalState,
                     staleDate: nil
@@ -198,7 +188,7 @@ class LiveActivityManager: LiveActivityUpdating {
         // Reuse an existing activity if present (e.g. after app launch)
         if let existing = firstExistingActivity() {
             self.currentActivity = existing
-            self.setup(withActivity: existing)
+            observeActivity(activity: existing)
             return
         }
 
@@ -236,9 +226,8 @@ class LiveActivityManager: LiveActivityUpdating {
             return
         }
 
-        let sendableActivity = SendableActivity(activity: activity)
         Task {
-            await sendableActivity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
+            await activity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
             logger.trackEvent(event: Event.updateLiveActivitySuccess)
         }
     }
@@ -251,40 +240,18 @@ class LiveActivityManager: LiveActivityUpdating {
         lastContentState != contentState
     }
     
-    private func setup(withActivity activity: Activity<WorkoutActivityAttributes>) {
-        self.activityViewState = .init(
-            activityState: activity.activityState,
-            contentState: activity.content.state,
-            pushToken: activity.pushToken?.hexadecimalString
-        )
-        observeActivity(activity: activity)
-    }
-    
+    /// Forget the activity once the user has dismissed it, so a later update does not talk to a
+    /// handle that is gone.
     private func observeActivity(activity: Activity<WorkoutActivityAttributes>) {
-        Task {
-            await withTaskGroup(of: Void.self) { group in
-                group.addTask { @MainActor @Sendable in
-                    for await activityState in activity.activityStateUpdates {
-                        if activityState == .dismissed {
-                            self.cleanupDismissedActivity()
-                        } else {
-                            self.activityViewState?.activityState = activityState
-                        }
-                    }
-                }
-                
-                group.addTask { @MainActor @Sendable in
-                    for await contentState in activity.contentUpdates {
-                        self.activityViewState?.contentState = contentState.state
-                    }
-                }
+        Task { @MainActor in
+            for await activityState in activity.activityStateUpdates where activityState == .dismissed {
+                self.cleanupDismissedActivity()
             }
         }
     }
         
     private func cleanupDismissedActivity() {
         self.currentActivity = nil
-        self.activityViewState = nil
         self.lastContentState = nil
     }
     
@@ -326,10 +293,10 @@ class LiveActivityManager: LiveActivityUpdating {
         let activity = try Activity.request(
             attributes: attributes,
             content: ActivityContent(state: initialState, staleDate: nil),
-            pushType: .token
+            pushType: nil
         )
         self.currentActivity = activity
-        self.setup(withActivity: activity)
+        observeActivity(activity: activity)
     }
 
     private func firstExistingActivity() -> Activity<WorkoutActivityAttributes>? {
@@ -446,7 +413,7 @@ class LiveActivityManager: LiveActivityUpdating {
         Task { @MainActor in
             guard let activity = self.currentActivity else { return }
             // Start from existing content state to preserve counts and progress
-            let previous = self.activityViewState?.contentState
+            let previous = self.lastContentState
             let newState = WorkoutActivityAttributes.ContentState(
                 isActive: isActive,
                 completedSetsCount: previous?.completedSetsCount ?? 0,
@@ -486,8 +453,8 @@ class LiveActivityManager: LiveActivityUpdating {
                 nextExerciseFirstTargetDurationSec: previous?.nextExerciseFirstTargetDurationSec
             )
             // Reflect locally and push update with staleDate aligned to rest end
-            self.activityViewState?.contentState = newState
-            await SendableActivity(activity: activity).update(
+            self.lastContentState = newState
+            await activity.update(
                 ActivityContent(
                     state: newState,
                     staleDate: restEndsAt,
@@ -632,27 +599,6 @@ class LiveActivityManager: LiveActivityUpdating {
 
 }
 
-/// `ActivityKit.Activity` is a framework-managed reference type that is safe to use from any
-/// concurrency domain, but Apple does not annotate it as `Sendable`, and its `update`/`end` methods
-/// are `@concurrent`. Handing a main actor-isolated activity to them therefore trips region-based
-/// isolation. This box carries the activity across that one boundary without loosening isolation
-/// anywhere else in the manager.
-private struct SendableActivity<Attributes: ActivityAttributes>: @unchecked Sendable {
-
-    let activity: Activity<Attributes>
-
-    func update(_ content: ActivityContent<Attributes.ContentState>) async {
-        await activity.update(content)
-    }
-
-    func end(
-        _ content: ActivityContent<Attributes.ContentState>?,
-        dismissalPolicy: ActivityUIDismissalPolicy
-    ) async {
-        await activity.end(content, dismissalPolicy: dismissalPolicy)
-    }
-}
-
 #else
 @Observable
 class LiveActivityManager: LiveActivityUpdating {
@@ -698,44 +644,3 @@ class LiveActivityManager: LiveActivityUpdating {
 }
 
 #endif
-
-private extension Data {
-    var hexadecimalString: String {
-        self.reduce("") {
-            $0 + String(format: "%02x", $1)
-        }
-    }
-}
-
-// The state model for keeping track of the widget's current state
-struct ActivityViewState: Sendable {
-    var activityState: ActivityState
-    var contentState: WorkoutActivityAttributes.ContentState
-    var pushToken: String?
-    
-    // End the widget state controls.
-    var shouldShowEndControls: Bool {
-        switch activityState {
-        case .active, .stale:
-            return true
-        default:
-            return false
-        }
-    }
-    
-    var updateControlDisabled: Bool = false
-    
-    // Update the widget state controls
-    var shouldShowUpdateControls: Bool {
-        switch activityState {
-        case .active, .stale:
-            return true
-        default:
-            return false
-        }
-    }
-    
-    var isStale: Bool {
-        return activityState == .stale
-    }
-}

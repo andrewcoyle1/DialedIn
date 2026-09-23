@@ -266,7 +266,6 @@ class WorkoutTrackerPresenter {
         Task {
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             interactor.discardWorkout()
-            await interactor.discardLiveActivity()
             interactor.endLiveActivity(session: sessionSnapshot, isCompleted: false, statusMessage: "Workout Discarded")
             #endif
         }
