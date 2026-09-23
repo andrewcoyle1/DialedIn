@@ -54,9 +54,13 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
 
     func startWorkout(workout: WorkoutSessionModel) { }
     func saveWorkoutSession(_ session: WorkoutSessionModel) async throws { }
+    /// Runs after each save lands, so a test can stand in for the observation firing mid-write.
+    var onUpdateActiveSession: (() -> Void)?
+
     func updateActiveSession(_ session: WorkoutSessionModel) throws {
         savedActiveSessions.append(session)
         activeSession = session
+        onUpdateActiveSession?()
     }
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel {
         guard let activeSession else { throw WorkoutTrackerPresenter.WorkoutTrackerError.noActiveWorkout }

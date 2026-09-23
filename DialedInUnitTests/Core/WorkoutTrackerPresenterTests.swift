@@ -625,6 +625,36 @@ struct WorkoutTrackerPresenterTests {
         #expect(screen.presenter.workoutSession == saved)
     }
 
+    /// The screen's own `updateSet` reaches the manager through `didSet`, and the observation can
+    /// fire before it returns. Whatever it reports then is not adopted: adopting it would fight the
+    /// edit the user is making.
+    @Test("Test A Session Arriving Mid-Update Is Not Adopted")
+    func testASessionArrivingMidUpdateIsNotAdopted() throws {
+        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1), set(2)])])
+        let own = try #require(screen.presenter.workoutSession.exercises.first).sets[0]
+        var other = try #require(screen.interactor.activeSession)
+        var exercises = other.exercises
+        exercises[0].sets[1].reps = 3
+        other.updateExercises(exercises)
+
+        var adoptedMidUpdate: WorkoutSessionModel?
+        screen.interactor.onUpdateActiveSession = { [interactor = screen.interactor, presenter = screen.presenter] in
+            interactor.onUpdateActiveSession = nil
+            interactor.activeSession = other
+            presenter.adoptSavedSessionIfChanged()
+            adoptedMidUpdate = presenter.workoutSession
+        }
+
+        var edited = own
+        edited.reps = 12
+        screen.presenter.updateSet(edited, in: "e1")
+
+        let sets = try #require(screen.presenter.workoutSession.exercises.first).sets
+        #expect(sets[0].reps == 12)
+        #expect(sets[1].reps == 8)
+        #expect(adoptedMidUpdate?.exercises.first?.sets[1].reps == 8)
+    }
+
     // MARK: - Persistence
 
     /// Every change to the session is written through, so closing the app mid-workout loses
