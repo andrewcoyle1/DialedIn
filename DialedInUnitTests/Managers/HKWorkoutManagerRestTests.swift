@@ -16,7 +16,7 @@ import Foundation
 /// No `HKWorkoutSession` can be started in a test process, so everything here is the half of the
 /// manager that does not need one: the rest timer, the shared storage it writes for the widget, and
 /// the announcement the tracker screen listens for. `state` therefore stays `.notStarted`
-/// throughout, which is why every Live Activity update below carries `isActive == false`.
+/// throughout, which the manager reports as active: only a paused HealthKit session reads as not.
 ///
 /// Serialized because the three things under test — `NotificationCenter.default`, the app group's
 /// `UserDefaults`, and the process-wide dispatch queues the rest timer fires on — are all shared,

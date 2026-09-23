@@ -309,6 +309,25 @@ struct LiveActivityManagerTests {
         right.completedAt = logged
         #expect(LiveActivityManager.fullyCompletedRows(in: [left, right, second]).pairedSetCount == 1)
     }
+
+    /// The tracker does not order the two sides, so a right row ticked first is just as half done.
+    @Test("Test A Right Row Ticked Before Its Left Partner Does Not Count Either")
+    func testARightRowTickedBeforeItsLeftPartnerDoesNotCountEither() {
+        let logged = Date()
+        var left = WorkoutSetModel(
+            id: "s1-left", authorId: "author-1", index: 1, reps: 8, weightKg: 20,
+            side: .left, isWarmup: false, completedAt: nil, dateCreated: logged
+        )
+        let right = WorkoutSetModel(
+            id: "s1-right", authorId: "author-1", index: 1, reps: 8, weightKg: 20,
+            side: .right, isWarmup: false, completedAt: logged, dateCreated: logged
+        )
+
+        #expect(LiveActivityManager.fullyCompletedRows(in: [left, right]).pairedSetCount == 0)
+
+        left.completedAt = logged
+        #expect(LiveActivityManager.fullyCompletedRows(in: [left, right]).pairedSetCount == 1)
+    }
 }
 
 #endif

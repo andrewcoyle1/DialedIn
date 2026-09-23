@@ -25,6 +25,13 @@ class HKWorkoutManager: NSObject {
     private var restTimer: DispatchSourceTimer?
     private(set) var restEndTime: Date?
 
+    /// What the Live Activity's `isActive` means from here: the workout is not paused. The
+    /// tracker treats a workout as active from the moment it opens, whether or not a HealthKit
+    /// session ever got going, so `state == .running` was the wrong test: with HealthKit declined
+    /// the state stays `.notStarted` and every rest push showed the banner as paused, until the
+    /// next push from the tracker or the intent handler put it back.
+    var isWorkoutActive: Bool { state != .paused }
+
     private var isDiscarding = false
     private var workout: HKWorkout?
     private var activeSessionModel: WorkoutSessionModel?
@@ -319,7 +326,7 @@ extension HKWorkoutManager {
                 // Push an immediate Live Activity update so UI reflects changes without 1s delay
                 if activeSessionModel != nil {
                     liveActivityUpdater?.updateRestAndActive(
-                        isActive: state == .running,
+                        isActive: isWorkoutActive,
                         restEndsAt: restEndTime,
                         statusMessage: "Resting"
                     )
@@ -334,7 +341,7 @@ extension HKWorkoutManager {
             // Push an immediate Live Activity update to clear UI
             if activeSessionModel != nil {
                 liveActivityUpdater?.updateRestAndActive(
-                    isActive: state == .running,
+                    isActive: isWorkoutActive,
                     restEndsAt: nil,
                     statusMessage: nil
                 )
@@ -372,7 +379,7 @@ extension HKWorkoutManager {
         // Update Live Activity immediately to show Resting countdown
         liveActivityUpdater?.updateLiveActivity(params: LiveActivityUpdateParams(
             session: session,
-            isActive: state == .running,
+            isActive: isWorkoutActive,
             currentExerciseIndex: currentExerciseIndex,
             restEndsAt: restEndTime,
             statusMessage: "Resting",
@@ -398,7 +405,7 @@ extension HKWorkoutManager {
 
         // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
         liveActivityUpdater?.updateRestAndActive(
-            isActive: state == .running,
+            isActive: isWorkoutActive,
             restEndsAt: nil,
             statusMessage: nil
         )
@@ -431,7 +438,7 @@ extension HKWorkoutManager {
         
         // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
         liveActivityUpdater?.updateRestAndActive(
-            isActive: state == .running,
+            isActive: isWorkoutActive,
             restEndsAt: nil,
             statusMessage: nil
         )

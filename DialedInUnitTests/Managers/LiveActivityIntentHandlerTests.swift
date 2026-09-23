@@ -249,7 +249,42 @@ struct LiveActivityIntentHandlerTests {
         rig.hkWorkoutManager.cancelRest()
     }
 
+    /// The rest outlives the process that started it. iOS can drop the app between two taps on
+    /// the Lock Screen, and the next intent launches a fresh `HKWorkoutManager` whose own
+    /// `restEndTime` is nil; the rest is still on in the app group, and the correction must
+    /// still land.
+    @Test("Test A Correction After A Cold Launch Still Finds The Rest")
+    func testACorrectionAfterAColdLaunchStillFindsTheRest() async throws {
+        let rig = try await makeRig(sets: [set("s1", index: 1, done: true), set("s2", index: 2)])
+        SharedWorkoutStorage.restEndTime = Date().addingTimeInterval(60)
+        defer { SharedWorkoutStorage.clearRestEndTime() }
+        #expect(rig.hkWorkoutManager.restEndTime == nil)
+
+        await rig.handler.adjustLastSetReps(id: "s1", delta: -1)
+
+        let corrected = try savedSets(rig)[0]
+        #expect(corrected.reps == 7)
+    }
+
     // MARK: - The rest buttons
+
+    /// Same cold launch as above, for "+15s": the rest from before the launch is the one extended,
+    /// and the fresh manager takes it over from there.
+    @Test("Test Adjusting The Rest After A Cold Launch Extends The Stored One")
+    func testAdjustingTheRestAfterAColdLaunchExtendsTheStoredOne() async throws {
+        let rig = try await makeRig(sets: [set("s1", index: 1, done: true), set("s2", index: 2)])
+        let storedEnd = Date().addingTimeInterval(60)
+        SharedWorkoutStorage.restEndTime = storedEnd
+        #expect(rig.hkWorkoutManager.restEndTime == nil)
+
+        await rig.handler.adjustRest(by: 15)
+
+        let after = try #require(rig.hkWorkoutManager.restEndTime)
+        #expect(after.timeIntervalSince(storedEnd) > 13)
+        #expect(after.timeIntervalSince(storedEnd) < 17)
+
+        rig.hkWorkoutManager.cancelRest()
+    }
 
     @Test("Test Adjusting The Rest Moves Its End Time")
     func testAdjustingTheRestMovesItsEndTime() async throws {

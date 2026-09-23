@@ -90,7 +90,7 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
     /// Reps and nothing else: the correction is about what was lifted, not when, so `completedAt`
     /// stays as it was logged. Outside the rest there is no set to correct and the tap is dropped.
     func adjustLastSetReps(id: String, delta: Int) async {
-        guard let restEndTime = hkWorkoutManager.restEndTime, restEndTime > Date() else { return }
+        guard runningRestEndTime != nil else { return }
         guard let session = workoutSessionManager.activeSession,
               let location = locate(setId: id, in: session) else { return }
 
@@ -155,7 +155,7 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
 
     /// Lengthen (or shorten) the running rest, never past now.
     func adjustRest(by seconds: Int) async {
-        guard let restEndTime = hkWorkoutManager.restEndTime,
+        guard let restEndTime = runningRestEndTime,
               let session = workoutSessionManager.activeSession else { return }
 
         let proposed = restEndTime.addingTimeInterval(TimeInterval(seconds))
@@ -270,17 +270,29 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
     /// has not paused is under way whether or not HealthKit ever started collecting, and reading
     /// the state would show the banner as paused on every phone that declined HealthKit.
     private func push(_ session: WorkoutSessionModel, exerciseIndex: Int) {
-        let restEndsAt = hkWorkoutManager.restEndTime
-        let isResting = restEndsAt.map { $0 > Date() } ?? false
+        let restEndsAt = runningRestEndTime
         liveActivityUpdater.updateLiveActivity(params: LiveActivityUpdateParams(
             session: session,
             isActive: true,
             currentExerciseIndex: exerciseIndex,
-            restEndsAt: isResting ? restEndsAt : nil,
-            statusMessage: isResting ? "Resting" : nil,
+            restEndsAt: restEndsAt,
+            statusMessage: restEndsAt == nil ? nil : "Resting",
             totalVolumeKg: nil,
             elapsedTime: nil
         ))
+    }
+
+    /// The end of the rest that is running, or nil when none is.
+    ///
+    /// The HealthKit manager's own `restEndTime` is the first word, but it starts nil in every new
+    /// process. An intent tapped after iOS has dropped the app from memory launches a fresh one, so
+    /// the rest that started before the launch is only known through the app group, where
+    /// `startRest` wrote it. Without the fallback a "+15s" or a reps correction after a cold launch
+    /// found no rest and did nothing.
+    private var runningRestEndTime: Date? {
+        let endTime = hkWorkoutManager.restEndTime ?? SharedWorkoutStorage.restEndTime
+        guard let endTime, endTime > Date() else { return nil }
+        return endTime
     }
 
     /// The exercise the user is on: the first with a set still to log, or the last one when there

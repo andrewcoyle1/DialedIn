@@ -473,7 +473,15 @@ class LiveActivityManager: LiveActivityUpdating {
                 finalTotalExercisesCount: nil,
                 isProcessingIntent: false,
                 lastIntentTimestamp: nil,
-                isAllSetsComplete: previous?.isAllSetsComplete ?? false
+                isAllSetsComplete: previous?.isAllSetsComplete ?? false,
+                lastLoggedSetId: previous?.lastLoggedSetId,
+                lastLoggedReps: previous?.lastLoggedReps,
+                lastLoggedWeightKg: previous?.lastLoggedWeightKg,
+                nextExerciseName: previous?.nextExerciseName,
+                nextExerciseFirstTargetWeightKg: previous?.nextExerciseFirstTargetWeightKg,
+                nextExerciseFirstTargetReps: previous?.nextExerciseFirstTargetReps,
+                nextExerciseFirstTargetDistanceMeters: previous?.nextExerciseFirstTargetDistanceMeters,
+                nextExerciseFirstTargetDurationSec: previous?.nextExerciseFirstTargetDurationSec
             )
             // Reflect locally and push update with staleDate aligned to rest end
             self.activityViewState?.contentState = newState
@@ -563,13 +571,15 @@ class LiveActivityManager: LiveActivityUpdating {
         return exercises.indices.dropFirst(requested + 1).first { hasWorkLeft(exercises[$0]) } ?? requested
     }
 
-    /// The completed rows of an exercise, leaving out a left row whose right partner is not done.
+    /// The completed rows of an exercise, leaving out either half of a pair whose other half is
+    /// not done. The tracker lets the user tick the right side first, so both sides are checked.
     static func fullyCompletedRows(in sets: [WorkoutSetModel]) -> [WorkoutSetModel] {
         sets.filter { row in
             guard row.completedAt != nil else { return false }
-            guard row.side == .left else { return true }
             let pair = sets.pairedSetIds(for: row.id)
-            guard pair.count == 2, let partner = sets.first(where: { $0.id == pair[1] }) else { return true }
+            guard pair.count == 2,
+                  let partnerId = pair.first(where: { $0 != row.id }),
+                  let partner = sets.first(where: { $0.id == partnerId }) else { return true }
             return partner.completedAt != nil
         }
     }
