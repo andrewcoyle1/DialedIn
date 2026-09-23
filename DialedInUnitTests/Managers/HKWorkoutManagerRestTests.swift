@@ -138,7 +138,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test A Rest That Runs Out Announces Itself")
     func testARestThatRunsOutAnnouncesItself() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
 
         manager.startRest(duration: Self.briefRest, session: session)
 
@@ -153,7 +153,7 @@ struct HKWorkoutManagerRestTests {
     func testARestAnnouncesItselfWithNoLiveActivityUpdater() async {
         SharedWorkoutStorage.clearRestEndTime()
         let manager = HKWorkoutManager(logger: LogManager(), liveActivityUpdater: nil)
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
 
         manager.startRest(duration: Self.briefRest, session: session)
 
@@ -176,7 +176,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test A Cancelled Rest Announces Nothing")
     func testACancelledRestAnnouncesNothing() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
 
         manager.startRest(duration: Self.briefRest, session: session)
         manager.cancelRest()
@@ -216,7 +216,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test Starting A Second Rest Replaces The First Rather Than Running Both")
     func testStartingASecondRestReplacesTheFirst() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
 
         manager.startRest(duration: Self.briefRest, session: session)
         manager.startRest(durationSeconds: 90, session: session)
@@ -255,7 +255,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test Ending The Workout Cancels The Rest Without Announcing It")
     func testEndingTheWorkoutCancelsTheRestWithoutAnnouncingIt() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
         manager.startRest(duration: Self.briefRest, session: session)
 
         manager.endWorkout()
@@ -268,7 +268,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test Discarding The Workout Cancels The Rest And Clears The Metrics")
     func testDiscardingTheWorkoutCancelsTheRestAndClearsTheMetrics() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
         manager.startRest(duration: Self.briefRest, session: session)
         manager.metrics.elapsedTime = 120
         manager.metrics.heartRate = 140

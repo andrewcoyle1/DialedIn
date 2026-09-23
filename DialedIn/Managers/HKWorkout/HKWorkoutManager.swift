@@ -364,8 +364,9 @@ extension HKWorkoutManager {
 
         // Announced before the Live Activity guards below: a rest that has run out is over whether
         // or not there is an activity left to redraw, and the screen that tells the user is not
-        // this manager's business.
-        NotificationCenter.default.post(name: Constants.workoutRestDidComplete, object: nil)
+        // this manager's business. Posted as `self` so a listener can tell one manager's rest
+        // from another's; the tracker listens by name alone.
+        NotificationCenter.default.post(name: Constants.workoutRestDidComplete, object: self)
 
         guard activeSessionModel != nil else {
             logger.trackEvent(event: Event.endRestNoSession)
