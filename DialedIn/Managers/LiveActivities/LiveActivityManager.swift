@@ -47,13 +47,11 @@ class LiveActivityManager: LiveActivityUpdating {
     ///   - isActive: Whether the workout timer is running
     ///   - currentExerciseIndex: Index of the currently focused exercise in the session
     ///   - restEndsAt: Optional rest countdown end time
-    ///   - statusMessage: Optional status string (e.g. "Resting", "Ready")
     func ensureLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool = true,
         currentExerciseIndex: Int = 0,
-        restEndsAt: Date? = nil,
-        statusMessage: String? = nil
+        restEndsAt: Date? = nil
     ) {
         // Attempt to find an existing activity for this session
         if let existing = resolveActivity(sessionId: session.id), Self.isUpdatable(existing) {
@@ -62,10 +60,7 @@ class LiveActivityManager: LiveActivityUpdating {
                     session: session,
                     isActive: isActive,
                     currentExerciseIndex: currentExerciseIndex,
-                    restEndsAt: restEndsAt,
-                    statusMessage: statusMessage,
-                    totalVolumeKg: nil,
-                    elapsedTime: nil
+                    restEndsAt: restEndsAt
                 )
             )
             return
@@ -76,59 +71,31 @@ class LiveActivityManager: LiveActivityUpdating {
             session: session,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: restEndsAt,
-            statusMessage: statusMessage
+            restEndsAt: restEndsAt
         )
     }
 
-    /// Ensure a Workout Live Activity using data from the given session
-    /// - Parameters:
-    ///   - session: WorkoutSessionModel
-    ///   - isActive: Bool
-    ///   - currentExerciseIndex: Int
-    ///   - restEndsAt: Date?
-    ///   - statusMessage: String?
-    ///   - totalVolumeKg: Double?
-    ///   - elapsedTime: TimeInterval?
+    /// Push the session's current state to the Live Activity.
     func updateLiveActivity(params: LiveActivityUpdateParams) {
         // No Start here: this only builds the content state and hands it to the private overload,
         // which logs the attempt. Tracking in both counted every update twice.
         let updatedState = makeContentState(
-            params: MakeContentStateParams(
-                session: params.session,
-                isActive: params.isActive,
-                currentExerciseIndex: params.currentExerciseIndex,
-                restEndsAt: params.restEndsAt,
-                statusMessage: params.statusMessage,
-                totalVolumeKgOverride: params.totalVolumeKg,
-                elapsedTimeOverride: params.elapsedTime
-            )
+            session: params.session,
+            isActive: params.isActive,
+            currentExerciseIndex: params.currentExerciseIndex,
+            restEndsAt: params.restEndsAt
         )
         
         self.updateLiveActivity(sessionId: params.session.id, contentState: updatedState)
     }
     
-    /// Ensure a Workout Live Activity using data from the given session
-    /// - Parameters:
-    ///   - session: WorkoutSessionModel
-    ///   - isCompleted: Bool
-    ///   - statusMessage: String?
-    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool = true, statusMessage: String? = nil) {
+    /// End the session's Live Activity, with the summary when the workout completed.
+    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool = true) {
         logger.trackEvent(event: Event.endLiveActivityStart)
-        let message = statusMessage ?? (isCompleted ? "Workout completed" : "Workout ended")
         
         // Build final state with summary metrics if completed
-        var finalState = makeContentState(
-            params: MakeContentStateParams(
-                session: session,
-                statusMessage: message,
-                elapsedTimeOverride: Date().timeIntervalSince(session.dateCreated)
-            )
-        )
-        
-        // Update ended flags
+        var finalState = makeContentState(session: session, isActive: false, currentExerciseIndex: 0, restEndsAt: nil)
         finalState.isWorkoutEnded = true
-        finalState.endedSuccessfully = isCompleted
         
         // Add summary metrics for completed workouts
         if isCompleted {
@@ -144,7 +111,6 @@ class LiveActivityManager: LiveActivityUpdating {
             finalState.finalDurationSeconds = elapsedTime
             finalState.finalVolumeKg = totalVolume > 0 ? totalVolume : nil
             finalState.finalCompletedSetsCount = completedSetsCount
-            finalState.finalTotalExercisesCount = session.exercises.count
         }
         
         lastContentState = finalState
@@ -184,13 +150,11 @@ class LiveActivityManager: LiveActivityUpdating {
     ///   - isActive: Whether the workout timer is running
     ///   - currentExerciseIndex: Index of the currently focused exercise in the session
     ///   - restEndsAt: Optional rest countdown end time
-    ///   - statusMessage: Optional status string (e.g. "Resting", "Ready")
     private func startLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool = true,
         currentExerciseIndex: Int = 0,
-        restEndsAt: Date? = nil,
-        statusMessage: String? = nil
+        restEndsAt: Date? = nil
     ) {
         logger.trackEvent(event: Event.startLiveActivityStart)
 
@@ -210,8 +174,7 @@ class LiveActivityManager: LiveActivityUpdating {
                 session: session,
                 isActive: isActive,
                 currentExerciseIndex: currentExerciseIndex,
-                restEndsAt: restEndsAt,
-                statusMessage: statusMessage
+                restEndsAt: restEndsAt
             )
             try requestAndSetupActivity(attributes: attributes, initialState: initialState)
             logger.trackEvent(event: Event.startLiveActivitySuccess)
@@ -284,25 +247,14 @@ class LiveActivityManager: LiveActivityUpdating {
         session: WorkoutSessionModel,
         isActive: Bool,
         currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?
+        restEndsAt: Date?
     ) -> (WorkoutActivityAttributes, WorkoutActivityAttributes.ContentState) {
-        let attributes = WorkoutActivityAttributes(
-            sessionId: session.id,
-            workoutName: session.name,
-            startedAt: session.dateCreated,
-            workoutTemplateId: session.workoutTemplateId
-        )
+        let attributes = WorkoutActivityAttributes(sessionId: session.id, workoutName: session.name)
         let initialState = makeContentState(
-            params: MakeContentStateParams(
-                session: session,
-                isActive: isActive,
-                currentExerciseIndex: currentExerciseIndex,
-                restEndsAt: restEndsAt,
-                statusMessage: statusMessage,
-                totalVolumeKgOverride: nil,
-                elapsedTimeOverride: nil
-            )
+            session: session,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndsAt
         )
         return (attributes, initialState)
     }
@@ -321,53 +273,29 @@ class LiveActivityManager: LiveActivityUpdating {
         observeActivity(activity: activity)
     }
 
-    struct MakeContentStateParams {
-        let session: WorkoutSessionModel
-        let isActive: Bool
-        let currentExerciseIndex: Int
-        let restEndsAt: Date?
-        let statusMessage: String?
-        let totalVolumeKgOverride: Double?
-        let elapsedTimeOverride: TimeInterval?
-        
-        init(
-            session: WorkoutSessionModel,
-            isActive: Bool = false,
-            currentExerciseIndex: Int = 0,
-            restEndsAt: Date? = nil,
-            statusMessage: String? = nil,
-            totalVolumeKgOverride: Double? = nil,
-            elapsedTimeOverride: TimeInterval? = nil
-        ) {
-            self.session = session
-            self.isActive = isActive
-            self.currentExerciseIndex = currentExerciseIndex
-            self.restEndsAt = restEndsAt
-            self.statusMessage = statusMessage
-            self.totalVolumeKgOverride = totalVolumeKgOverride
-            self.elapsedTimeOverride = elapsedTimeOverride
-        }
-    }
-
-    func makeContentState(params: MakeContentStateParams) -> WorkoutActivityAttributes.ContentState {
-        
-        let totals = computeTotals(session: params.session, totalVolumeKgOverride: params.totalVolumeKgOverride)
-        let currentExerciseIndex = Self.exerciseIndexWithWorkLeft(from: params.currentExerciseIndex, in: params.session)
-        let current = deriveCurrentExerciseData(session: params.session, index: currentExerciseIndex)
-        let next = deriveNextExerciseData(session: params.session, index: currentExerciseIndex)
+    func makeContentState(
+        session: WorkoutSessionModel,
+        isActive: Bool,
+        currentExerciseIndex: Int,
+        restEndsAt: Date?
+    ) -> WorkoutActivityAttributes.ContentState {
+        let totals = computeTotals(session: session)
+        let currentExerciseIndex = Self.exerciseIndexWithWorkLeft(from: currentExerciseIndex, in: session)
+        let current = deriveCurrentExerciseData(session: session, index: currentExerciseIndex)
+        let next = deriveNextExerciseData(session: session, index: currentExerciseIndex)
         // The correction window is exactly the rest that follows a logged set (spec §4). Deriving
         // it from the rest rather than storing it is what clears it when the rest ends: the state
         // is rebuilt on every update, so there is no bookkeeping to get wrong.
-        let lastLogged = isResting(restEndsAt: params.restEndsAt) ? lastCompletedSet(session: params.session) : nil
+        let lastLogged = isResting(restEndsAt: restEndsAt) ? lastCompletedSet(session: session) : nil
 
         return WorkoutActivityAttributes.ContentState(
-            isActive: params.isActive,
+            isActive: isActive,
             completedSetsCount: totals.completedSetsCount,
             totalSetsCount: totals.totalSetsCount,
             currentExerciseName: current.name,
             currentExerciseImageName: current.imageName,
             currentExerciseIndex: currentExerciseIndex,
-            totalExercisesCount: params.session.exercises.count,
+            totalExercisesCount: session.exercises.count,
             currentExerciseCompletedSetsCount: current.position.completed,
             currentExerciseTotalSetsCount: current.position.total,
             targetIsWarmup: current.position.isWarmup,
@@ -376,18 +304,13 @@ class LiveActivityManager: LiveActivityUpdating {
             targetReps: current.targetSet?.reps,
             targetDistanceMeters: current.targetSet?.distanceMeters,
             targetDurationSec: current.targetSet?.durationSec,
-            restEndsAt: params.restEndsAt,
-            statusMessage: params.statusMessage,
-            totalVolumeKg: totals.totalVolumeKg,
+            restEndsAt: restEndsAt,
             progress: totals.progress,
             isWorkoutEnded: false,
-            endedSuccessfully: nil,
             finalDurationSeconds: nil,
             finalVolumeKg: nil,
             finalCompletedSetsCount: nil,
-            finalTotalExercisesCount: nil,
             isProcessingIntent: false,
-            lastIntentTimestamp: nil,
             isAllSetsComplete: totals.isAllSetsComplete,
             lastLoggedSetId: lastLogged?.id,
             lastLoggedReps: lastLogged?.reps,
@@ -415,19 +338,14 @@ class LiveActivityManager: LiveActivityUpdating {
             .max { ($0.completedAt ?? .distantPast) < ($1.completedAt ?? .distantPast) }
     }
 
-    /// Only isActive/rest/status change; everything else is carried over from the last push, so the
+    /// Only isActive and rest change; everything else is carried over from the last push, so the
     /// exercise the activity is showing survives a rest ending. The same door as every other push:
     /// logged, gated on equality, remembered. Nothing to carry over means nothing has reached an
     /// activity yet, and there is no exercise to preserve.
-    func updateRestAndActive(
-        isActive: Bool,
-        restEndsAt: Date?,
-        statusMessage: String? = nil
-    ) {
+    func updateRestAndActive(isActive: Bool, restEndsAt: Date?) {
         guard var state = lastContentState, let sessionId = currentActivity?.attributes.sessionId else { return }
         state.isActive = isActive
         state.restEndsAt = restEndsAt
-        state.statusMessage = statusMessage ?? state.statusMessage
         updateLiveActivity(sessionId: sessionId, contentState: state)
     }
 
@@ -435,31 +353,19 @@ class LiveActivityManager: LiveActivityUpdating {
     private struct Totals {
         let totalSetsCount: Int
         let completedSetsCount: Int
-        let totalVolumeKg: Double?
         let progress: Double
         let isAllSetsComplete: Bool
     }
 
-    private func computeTotals(session: WorkoutSessionModel, totalVolumeKgOverride: Double?) -> Totals {
-        let allSets = session.exercises.flatMap { $0.sets }
-        // Sets pair; volume does not — both sides of a set are real work lifted.
+    private func computeTotals(session: WorkoutSessionModel) -> Totals {
         let totalSetsCount = session.exercises.reduce(0) { $0 + $1.sets.pairedSetCount }
         let completedSetsCount = session.exercises.reduce(0) { $0 + $1.sets.fullyCompletedPairedSetCount }
         let progress = totalSetsCount > 0 ? Double(completedSetsCount) / Double(totalSetsCount) : 0
-
-        let computedVolume = allSets
-            .compactMap { set -> Double? in
-                guard let weight = set.weightKg, let reps = set.reps else { return nil }
-                return weight * Double(reps)
-            }
-            .reduce(0.0, +)
-        let totalVolumeKg = totalVolumeKgOverride ?? (computedVolume > 0 ? computedVolume : nil)
         let isAllSetsComplete = totalSetsCount > 0 && completedSetsCount == totalSetsCount
 
         return Totals(
             totalSetsCount: totalSetsCount,
             completedSetsCount: completedSetsCount,
-            totalVolumeKg: totalVolumeKg,
             progress: progress,
             isAllSetsComplete: isAllSetsComplete
         )
@@ -554,43 +460,18 @@ class LiveActivityManager: LiveActivityUpdating {
 class LiveActivityManager: LiveActivityUpdating {
     private(set) var isLiveActivityActive: Bool = false
     
-    func startLiveActivity(
-        session: WorkoutSessionModel,
-        isActive: Bool = true,
-        currentExerciseIndex: Int = 0,
-        restEndsAt: Date? = nil,
-        statusMessage: String? = nil
-    ) { }
+    func updateLiveActivity(params: LiveActivityUpdateParams) { }
 
-    func updateLiveActivity(
-        session: WorkoutSessionModel,
-        isActive: Bool,
-        currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String? = nil,
-        totalVolumeKg: Double? = nil,
-        elapsedTime: TimeInterval? = nil
-    ) { }
-
-    func endLiveActivity(
-        session: WorkoutSessionModel,
-        isCompleted: Bool = true,
-        statusMessage: String? = nil
-    ) { }
+    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool = true) { }
 
     func ensureLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool = true,
         currentExerciseIndex: Int = 0,
-        restEndsAt: Date? = nil,
-        statusMessage: String? = nil
+        restEndsAt: Date? = nil
     ) { }
 
-    func updateRestAndActive(
-        isActive: Bool,
-        restEndsAt: Date?,
-        statusMessage: String? = nil
-    ) { }
+    func updateRestAndActive(isActive: Bool, restEndsAt: Date?) { }
 }
 
 #endif

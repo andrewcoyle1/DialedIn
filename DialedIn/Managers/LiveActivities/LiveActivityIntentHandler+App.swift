@@ -144,11 +144,7 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
             saved = false
         }
 
-        liveActivityUpdater.endLiveActivity(
-            session: session,
-            isCompleted: saved,
-            statusMessage: saved ? "Workout ended & saved." : "Workout ended, but could not be saved."
-        )
+        liveActivityUpdater.endLiveActivity(session: session, isCompleted: saved)
 
         if let streakManager {
             _ = try? await streakManager.addStreakEvent()
@@ -234,15 +230,11 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
     /// has not paused is under way whether or not HealthKit ever started collecting, and reading
     /// the state would show the banner as paused on every phone that declined HealthKit.
     private func push(_ session: WorkoutSessionModel, exerciseIndex: Int) {
-        let restEndsAt = runningRestEndTime
         liveActivityUpdater.updateLiveActivity(params: LiveActivityUpdateParams(
             session: session,
             isActive: true,
             currentExerciseIndex: exerciseIndex,
-            restEndsAt: restEndsAt,
-            statusMessage: restEndsAt == nil ? nil : "Resting",
-            totalVolumeKg: nil,
-            elapsedTime: nil
+            restEndsAt: runningRestEndTime
         ))
     }
 

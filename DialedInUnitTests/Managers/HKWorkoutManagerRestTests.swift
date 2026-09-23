@@ -95,7 +95,7 @@ struct HKWorkoutManagerRestTests {
 
         let update = try #require(spy.fullUpdates.last)
         #expect(update.restEndsAt == manager.restEndTime)
-        #expect(update.statusMessage == "Resting")
+        #expect(update.restEndsAt != nil)
         #expect(update.currentExerciseIndex == 3)
     }
 
@@ -207,7 +207,6 @@ struct HKWorkoutManagerRestTests {
         manager.cancelRest()
 
         #expect(spy.restAndActiveUpdates.last?.restEndsAt == nil)
-        #expect(spy.restAndActiveUpdates.last?.statusMessage == nil)
         #expect(spy.fullUpdates.count == updatesBefore)
     }
 

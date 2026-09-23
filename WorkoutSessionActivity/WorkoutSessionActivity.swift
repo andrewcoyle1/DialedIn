@@ -120,18 +120,14 @@ extension WorkoutActivityAttributes {
     static var preview: WorkoutActivityAttributes {
         WorkoutActivityAttributes(
             sessionId: UUID().uuidString,
-            workoutName: "Chest Workout",
-            startedAt: Date(),
-            workoutTemplateId: UUID().uuidString
+            workoutName: "Chest Workout"
         )
     }
     
     static var previewOld: WorkoutActivityAttributes {
         WorkoutActivityAttributes(
             sessionId: UUID().uuidString,
-            workoutName: "Chest Workout",
-            startedAt: Date().addingTimeInterval(-3600*1.5),
-            workoutTemplateId: UUID().uuidString
+            workoutName: "Chest Workout"
         )
     }
 }
@@ -154,17 +150,12 @@ extension WorkoutActivityAttributes.ContentState {
             targetDistanceMeters: nil,
             targetDurationSec: nil,
             restEndsAt: Date().addingTimeInterval(45), // 45 seconds from now
-            statusMessage: "Resting",
-            totalVolumeKg: 3250,
             progress: 0.42,
             isWorkoutEnded: false,
-            endedSuccessfully: nil,
             finalDurationSeconds: nil,
             finalVolumeKg: nil,
             finalCompletedSetsCount: nil,
-            finalTotalExercisesCount: nil,
             isProcessingIntent: false,
-            lastIntentTimestamp: nil,
             isAllSetsComplete: false
         )
     }
@@ -186,17 +177,12 @@ extension WorkoutActivityAttributes.ContentState {
             targetDistanceMeters: nil,
             targetDurationSec: nil,
             restEndsAt: nil,
-            statusMessage: "Paused",
-            totalVolumeKg: 3250,
             progress: 1, // 0.42
             isWorkoutEnded: true,
-            endedSuccessfully: nil,
             finalDurationSeconds: nil,
             finalVolumeKg: nil,
             finalCompletedSetsCount: nil,
-            finalTotalExercisesCount: nil,
             isProcessingIntent: false,
-            lastIntentTimestamp: nil,
             isAllSetsComplete: false
         )
     }
@@ -218,17 +204,12 @@ extension WorkoutActivityAttributes.ContentState {
             targetDistanceMeters: nil,
             targetDurationSec: nil,
             restEndsAt: nil,
-            statusMessage: "In progress",
-            totalVolumeKg: 4800,
             progress: 0.83,
             isWorkoutEnded: false,
-            endedSuccessfully: nil,
             finalDurationSeconds: nil,
             finalVolumeKg: nil,
             finalCompletedSetsCount: nil,
-            finalTotalExercisesCount: nil,
             isProcessingIntent: true,
-            lastIntentTimestamp: Date(),
             isAllSetsComplete: true
         )
     }

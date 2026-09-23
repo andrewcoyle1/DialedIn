@@ -31,7 +31,8 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     private(set) var startedRests: [Int] = []
     private(set) var didCancelRest = false
     private(set) var didAddStreakEvent = false
-    private(set) var endedLiveActivities: [(isCompleted: Bool, statusMessage: String?)] = []
+    /// `isCompleted` of each `endLiveActivity` call.
+    private(set) var endedLiveActivities: [Bool] = []
     var endWorkoutSessionError: Error?
 
     /// Consumed one per call, so a test can say "fails twice, then works" — which is the whole
@@ -76,11 +77,10 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
         session: WorkoutSessionModel,
         isActive: Bool,
         currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?
+        restEndsAt: Date?
     ) { }
-    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool, statusMessage: String?) {
-        endedLiveActivities.append((isCompleted: isCompleted, statusMessage: statusMessage))
+    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool) {
+        endedLiveActivities.append(isCompleted)
     }
     func updateLiveActivity(params: LiveActivityUpdateParams) { }
 

@@ -35,10 +35,7 @@ struct LiveActivityManagerTests {
             ),
             isActive: isActive,
             currentExerciseIndex: 0,
-            restEndsAt: nil,
-            statusMessage: nil,
-            totalVolumeKg: nil,
-            elapsedTime: nil
+            restEndsAt: nil
         )
     }
 
@@ -99,8 +96,8 @@ struct LiveActivityManagerTests {
         var activity: Activity<WorkoutActivityAttributes>?
         let manager = LiveActivityManager(logger: LogManager(services: [spy])) { _ in activity }
         activity = try Activity.request(
-            attributes: WorkoutActivityAttributes(sessionId: "s1", workoutName: "Upper", startedAt: .now, workoutTemplateId: nil),
-            content: ActivityContent(state: manager.makeContentState(params: .init(session: params().session)), staleDate: nil),
+            attributes: WorkoutActivityAttributes(sessionId: "s1", workoutName: "Upper"),
+            content: ActivityContent(state: manager.makeContentState(session: params().session, isActive: false, currentExerciseIndex: 0, restEndsAt: nil), staleDate: nil),
             pushType: nil
         )
         defer { Task { await activity?.end(nil, dismissalPolicy: .immediate) } }
@@ -121,8 +118,8 @@ struct LiveActivityManagerTests {
         var activity: Activity<WorkoutActivityAttributes>?
         let manager = LiveActivityManager(logger: LogManager(services: [spy])) { _ in activity }
         activity = try Activity.request(
-            attributes: WorkoutActivityAttributes(sessionId: "s1", workoutName: "Upper", startedAt: .now, workoutTemplateId: nil),
-            content: ActivityContent(state: manager.makeContentState(params: .init(session: params().session)), staleDate: nil),
+            attributes: WorkoutActivityAttributes(sessionId: "s1", workoutName: "Upper"),
+            content: ActivityContent(state: manager.makeContentState(session: params().session, isActive: false, currentExerciseIndex: 0, restEndsAt: nil), staleDate: nil),
             pushType: nil
         )
         defer { Task { await activity?.end(nil, dismissalPolicy: .immediate) } }
@@ -145,23 +142,22 @@ struct LiveActivityManagerTests {
         var activity: Activity<WorkoutActivityAttributes>?
         let manager = LiveActivityManager(logger: LogManager(services: [spy])) { _ in activity }
         activity = try Activity.request(
-            attributes: WorkoutActivityAttributes(sessionId: "s1", workoutName: "Upper", startedAt: .now, workoutTemplateId: nil),
-            content: ActivityContent(state: manager.makeContentState(params: .init(session: params().session)), staleDate: nil),
+            attributes: WorkoutActivityAttributes(sessionId: "s1", workoutName: "Upper"),
+            content: ActivityContent(state: manager.makeContentState(session: params().session, isActive: false, currentExerciseIndex: 0, restEndsAt: nil), staleDate: nil),
             pushType: nil
         )
         defer { Task { await activity?.end(nil, dismissalPolicy: .immediate) } }
         manager.updateLiveActivity(params: params())
         let startsAfterFirstPush = spy.trackedEventNames.filter { $0 == "LiveActivityMan_UpdateLiveActivity_Start" }.count
 
-        manager.updateRestAndActive(isActive: true, restEndsAt: nil, statusMessage: nil)
+        manager.updateRestAndActive(isActive: true, restEndsAt: nil)
         #expect(spy.trackedEventNames.filter { $0 == "LiveActivityMan_UpdateLiveActivity_Start" }.count == startsAfterFirstPush)
 
         let restEndsAt = Date().addingTimeInterval(90)
-        manager.updateRestAndActive(isActive: true, restEndsAt: restEndsAt, statusMessage: "Resting")
+        manager.updateRestAndActive(isActive: true, restEndsAt: restEndsAt)
         #expect(spy.trackedEventNames.filter { $0 == "LiveActivityMan_UpdateLiveActivity_Start" }.count == startsAfterFirstPush + 1)
         #expect(!spy.trackedEventNames.contains("LiveActivityMan_UpdateLiveActivity_Fail"))
         #expect(manager.lastContentState?.restEndsAt == restEndsAt)
-        #expect(manager.lastContentState?.statusMessage == "Resting")
     }
 
     /// With nothing pushed yet there is no exercise to carry over, so the rest push has nothing
@@ -170,7 +166,7 @@ struct LiveActivityManagerTests {
     func testARestUpdateBeforeAnyPushIsDroppedQuietly() {
         let (manager, spy) = makeManager()
 
-        manager.updateRestAndActive(isActive: true, restEndsAt: Date().addingTimeInterval(90), statusMessage: "Resting")
+        manager.updateRestAndActive(isActive: true, restEndsAt: Date().addingTimeInterval(90))
 
         #expect(spy.trackedEventNames.isEmpty)
         #expect(manager.lastContentState == nil)
@@ -235,12 +231,7 @@ struct LiveActivityManagerTests {
     private func contentState(restEndsAt: Date?) -> WorkoutActivityAttributes.ContentState {
         let (manager, _) = makeManager()
         return manager.makeContentState(
-            params: LiveActivityManager.MakeContentStateParams(
-                session: twoExerciseSession(),
-                isActive: true,
-                currentExerciseIndex: 0,
-                restEndsAt: restEndsAt
-            )
+            session: twoExerciseSession(), isActive: true, currentExerciseIndex: 0, restEndsAt: restEndsAt
         )
     }
 
@@ -287,12 +278,7 @@ struct LiveActivityManagerTests {
     func testTheLastExerciseHasNoNextExercise() {
         let (manager, _) = makeManager()
         let state = manager.makeContentState(
-            params: LiveActivityManager.MakeContentStateParams(
-                session: twoExerciseSession(),
-                isActive: true,
-                currentExerciseIndex: 1,
-                restEndsAt: nil
-            )
+            session: twoExerciseSession(), isActive: true, currentExerciseIndex: 1, restEndsAt: nil
         )
 
         #expect(state.nextExerciseName == nil)
@@ -325,14 +311,7 @@ struct LiveActivityManagerTests {
         #expect(LiveActivityManager.exerciseIndexWithWorkLeft(from: 1, in: session) == 1)
 
         let (manager, _) = makeManager()
-        let state = manager.makeContentState(
-            params: LiveActivityManager.MakeContentStateParams(
-                session: session,
-                isActive: true,
-                currentExerciseIndex: 0,
-                restEndsAt: nil
-            )
-        )
+        let state = manager.makeContentState(session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: nil)
         #expect(state.currentExerciseIndex == 1)
         #expect(state.currentExerciseName == "Incline press")
         #expect(state.targetSetId == "set-2")
@@ -412,11 +391,7 @@ struct LiveActivityManagerTests {
         )
 
         let (manager, _) = makeManager()
-        let state = manager.makeContentState(
-            params: LiveActivityManager.MakeContentStateParams(
-                session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: nil
-            )
-        )
+        let state = manager.makeContentState(session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: nil)
 
         #expect(state.targetSetId == "2R")
         #expect(state.isAllSetsComplete == false)

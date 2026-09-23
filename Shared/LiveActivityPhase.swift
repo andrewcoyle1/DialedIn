@@ -136,18 +136,15 @@ struct LoggedSet: Equatable, Hashable, Sendable {
 struct Summary: Equatable, Hashable, Sendable {
     var durationSeconds: TimeInterval?
     var completedSetsCount: Int?
-    var totalExercisesCount: Int?
     var volumeKg: Double?
 
     init(
         durationSeconds: TimeInterval? = nil,
         completedSetsCount: Int? = nil,
-        totalExercisesCount: Int? = nil,
         volumeKg: Double? = nil
     ) {
         self.durationSeconds = durationSeconds
         self.completedSetsCount = completedSetsCount
-        self.totalExercisesCount = totalExercisesCount
         self.volumeKg = volumeKg
     }
 }
@@ -221,7 +218,6 @@ extension LiveActivityPhase {
                 Summary(
                     durationSeconds: state.finalDurationSeconds,
                     completedSetsCount: state.finalCompletedSetsCount,
-                    totalExercisesCount: state.finalTotalExercisesCount,
                     volumeKg: state.finalVolumeKg
                 )
             )

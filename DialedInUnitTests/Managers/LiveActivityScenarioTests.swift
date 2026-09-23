@@ -101,9 +101,7 @@ struct LiveActivityScenarioTests {
             askedFor.append(sessionId)
             if activity == nil, let initialState {
                 activity = try? Activity.request(
-                    attributes: WorkoutActivityAttributes(
-                        sessionId: sessionId, workoutName: "Full Body", startedAt: .now, workoutTemplateId: nil
-                    ),
+                    attributes: WorkoutActivityAttributes(sessionId: sessionId, workoutName: "Full Body"),
                     content: ActivityContent(state: initialState, staleDate: nil),
                     pushType: nil
                 )
@@ -130,7 +128,7 @@ struct LiveActivityScenarioTests {
         let log = SpyLogService()
         let system = SystemActivity()
         let activity = LiveActivityManager(logger: LogManager(services: [log]), activityLookup: system.lookup)
-        system.initialState = activity.makeContentState(params: .init(session: session))
+        system.initialState = activity.makeContentState(session: session, isActive: false, currentExerciseIndex: 0, restEndsAt: nil)
         let hkWorkoutManager = HKWorkoutManager(logger: LogManager(), liveActivityUpdater: activity)
         let handler = AppLiveActivityIntentHandler(
             workoutSessionManager: sessions,
@@ -214,8 +212,7 @@ struct LiveActivityScenarioTests {
 
         // The app pushes on the first action; seed the activity the way the tracker does on appear.
         rig.activity.updateLiveActivity(params: LiveActivityUpdateParams(
-            session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: nil,
-            statusMessage: nil, totalVolumeKg: nil, elapsedTime: 0
+            session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: nil
         ))
         guard case .ready(_, let position) = try phase(rig) else {
             Issue.record("expected .ready at the start, got \(try phase(rig))"); return
@@ -254,7 +251,6 @@ struct LiveActivityScenarioTests {
             Issue.record("after Finish the activity shows \(try phase(rig)) instead of .ended"); return
         }
         #expect(summary.completedSetsCount == Self.setsDone)
-        #expect(summary.totalExercisesCount == 4)
         await expectEveryPushReachedTheActivity(rig)
     }
 
@@ -268,8 +264,7 @@ struct LiveActivityScenarioTests {
         let session = try #require(rig.sessions.activeSession)
         rig.hkWorkoutManager.startWorkout(workout: session)
         rig.activity.updateLiveActivity(params: LiveActivityUpdateParams(
-            session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: nil,
-            statusMessage: nil, totalVolumeKg: nil, elapsedTime: 0
+            session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: nil
         ))
 
         for tap in 1...rows {

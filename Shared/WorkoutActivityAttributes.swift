@@ -35,23 +35,16 @@ struct WorkoutActivityAttributes: ActivityAttributes {
         var targetDurationSec: Int?
         // If resting, the time when the rest period ends
         var restEndsAt: Date?
-        // Optional status message to display (e.g. "Resting", "Get Ready")
-        var statusMessage: String?
-        // Optional running total of volume lifted in kilograms
-        var totalVolumeKg: Double?
         // Convenience progress value 0.0...1.0 (completedSets/totalSets)
         var progress: Double
         // Workout ended state
         var isWorkoutEnded: Bool
-        var endedSuccessfully: Bool?
         // Final summary metrics (populated when workout ends successfully)
         var finalDurationSeconds: TimeInterval?
         var finalVolumeKg: Double?
         var finalCompletedSetsCount: Int?
-        var finalTotalExercisesCount: Int?
         // Button loading state
         var isProcessingIntent: Bool
-        var lastIntentTimestamp: Date?
         // Workout completion state
         var isAllSetsComplete: Bool
         // The set most recently logged, whose reps can be corrected during the rest that follows
@@ -71,7 +64,5 @@ struct WorkoutActivityAttributes: ActivityAttributes {
     // Immutable attributes for this workout Live Activity instance
     var sessionId: String
     var workoutName: String
-    var startedAt: Date
-    var workoutTemplateId: String?
 }
 #endif

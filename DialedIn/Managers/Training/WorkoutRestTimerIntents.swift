@@ -33,7 +33,6 @@ private extension Activity where Attributes == WorkoutActivityAttributes {
     ) async {
         var loadingState = state
         loadingState.isProcessingIntent = true
-        loadingState.lastIntentTimestamp = Date()
         await update(ActivityContent(state: loadingState, staleDate: state.restEndsAt, relevanceScore: 100))
 
         guard let handler = LiveActivityIntentHandler.current else {

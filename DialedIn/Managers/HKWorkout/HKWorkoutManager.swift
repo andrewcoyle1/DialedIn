@@ -331,10 +331,7 @@ extension HKWorkoutManager {
             session: session,
             isActive: isWorkoutActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: restEndTime,
-            statusMessage: "Resting",
-            totalVolumeKg: nil,
-            elapsedTime: metrics.elapsedTime
+            restEndsAt: restEndTime
         ))
 
         // Schedule timer to fire exactly at rest end, even when app is backgrounded
@@ -357,11 +354,7 @@ extension HKWorkoutManager {
         cancelRestTimer()
 
         // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
-        liveActivityUpdater?.updateRestAndActive(
-            isActive: isWorkoutActive,
-            restEndsAt: nil,
-            statusMessage: nil
-        )
+        liveActivityUpdater?.updateRestAndActive(isActive: isWorkoutActive, restEndsAt: nil)
     }
 
     /// Called automatically when the scheduled rest end time is reached.
@@ -385,11 +378,7 @@ extension HKWorkoutManager {
         }
         
         // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
-        liveActivityUpdater?.updateRestAndActive(
-            isActive: isWorkoutActive,
-            restEndsAt: nil,
-            statusMessage: nil
-        )
+        liveActivityUpdater?.updateRestAndActive(isActive: isWorkoutActive, restEndsAt: nil)
     }
 
     // Deliberately MainActor-isolated rather than `nonisolated`, and both callers are already on

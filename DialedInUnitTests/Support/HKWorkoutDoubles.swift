@@ -20,7 +20,6 @@ final class LiveActivityUpdaterSpy: LiveActivityUpdating {
     struct RestAndActive: Equatable {
         let isActive: Bool
         let restEndsAt: Date?
-        let statusMessage: String?
     }
 
     private(set) var ensured: [String] = []
@@ -32,8 +31,7 @@ final class LiveActivityUpdaterSpy: LiveActivityUpdating {
         session: WorkoutSessionModel,
         isActive: Bool,
         currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?
+        restEndsAt: Date?
     ) {
         ensured.append(session.id)
     }
@@ -42,13 +40,11 @@ final class LiveActivityUpdaterSpy: LiveActivityUpdating {
         fullUpdates.append(params)
     }
 
-    func updateRestAndActive(isActive: Bool, restEndsAt: Date?, statusMessage: String?) {
-        restAndActiveUpdates.append(
-            RestAndActive(isActive: isActive, restEndsAt: restEndsAt, statusMessage: statusMessage)
-        )
+    func updateRestAndActive(isActive: Bool, restEndsAt: Date?) {
+        restAndActiveUpdates.append(RestAndActive(isActive: isActive, restEndsAt: restEndsAt))
     }
 
-    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool, statusMessage: String?) {
+    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool) {
         ended.append(session.id)
     }
 }

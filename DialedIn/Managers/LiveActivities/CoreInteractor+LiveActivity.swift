@@ -18,41 +18,25 @@ extension CoreInteractor {
     ///   - isActive: Whether the workout timer is running
     ///   - currentExerciseIndex: Index of the currently focused exercise in the session
     ///   - restEndsAt: Optional rest countdown end time
-    ///   - statusMessage: Optional status string (e.g. "Resting", "Ready")
     func ensureLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool = true,
         currentExerciseIndex: Int = 0,
-        restEndsAt: Date? = nil,
-        statusMessage: String? = nil
+        restEndsAt: Date? = nil
     ) {
-        liveActivityManager.ensureLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
+        liveActivityManager.ensureLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt)
     }
     
-    /// Ensure a Workout Live Activity using data from the given session
-    /// - Parameters:
-    ///   - session: The workout session used to seed immutable attributes
-    ///   - session: WorkoutSessionModel
-    ///   - isActive: Bool
-    ///   - currentExerciseIndex: Int
-    ///   - restEndsAt: Date?
-    ///   - statusMessage: String?
-    ///   - totalVolumeKg: Double?
-    ///   - elapsedTime: TimeInterval?
+    /// Push the session's current state to the Live Activity.
     func updateLiveActivity(params: LiveActivityUpdateParams) {
         liveActivityManager.updateLiveActivity(params: params)
     }
     
-    /// Ensure a Workout Live Activity using data from the given session
-    /// - Parameters:
-    ///   - session: WorkoutSessionModel
-    ///   - isCompleted: Bool
-    ///   - statusMessage: String?
+    /// End the session's Live Activity, with the summary when the workout completed.
     func endLiveActivity(
         session: WorkoutSessionModel,
-        isCompleted: Bool = true,
-        statusMessage: String? = nil
+        isCompleted: Bool = true
     ) {
-        liveActivityManager.endLiveActivity(session: session, isCompleted: isCompleted, statusMessage: statusMessage)
+        liveActivityManager.endLiveActivity(session: session, isCompleted: isCompleted)
     }
 }

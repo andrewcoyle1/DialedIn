@@ -43,7 +43,6 @@ struct LiveActivityPhaseTests {
         finalDurationSeconds: TimeInterval? = nil,
         finalVolumeKg: Double? = nil,
         finalCompletedSetsCount: Int? = nil,
-        finalTotalExercisesCount: Int? = nil,
         isAllSetsComplete: Bool = false,
         lastLoggedSetId: String? = nil,
         lastLoggedReps: Int? = nil,
@@ -69,17 +68,12 @@ struct LiveActivityPhaseTests {
             targetDistanceMeters: targetDistanceMeters,
             targetDurationSec: targetDurationSec,
             restEndsAt: restEndsAt,
-            statusMessage: nil,
-            totalVolumeKg: nil,
             progress: 0.33,
             isWorkoutEnded: isWorkoutEnded,
-            endedSuccessfully: nil,
             finalDurationSeconds: finalDurationSeconds,
             finalVolumeKg: finalVolumeKg,
             finalCompletedSetsCount: finalCompletedSetsCount,
-            finalTotalExercisesCount: finalTotalExercisesCount,
             isProcessingIntent: false,
-            lastIntentTimestamp: nil,
             isAllSetsComplete: isAllSetsComplete,
             lastLoggedSetId: lastLoggedSetId,
             lastLoggedReps: lastLoggedReps,
@@ -107,8 +101,7 @@ struct LiveActivityPhaseTests {
             isWorkoutEnded: true,
             finalDurationSeconds: 3_600,
             finalVolumeKg: 4_250,
-            finalCompletedSetsCount: 12,
-            finalTotalExercisesCount: 3
+            finalCompletedSetsCount: 12
         )
 
         #expect(
@@ -116,7 +109,6 @@ struct LiveActivityPhaseTests {
                 Summary(
                     durationSeconds: 3_600,
                     completedSetsCount: 12,
-                    totalExercisesCount: 3,
                     volumeKg: 4_250
                 )
             )

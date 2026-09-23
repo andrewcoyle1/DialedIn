@@ -14,9 +14,6 @@ struct LiveActivityUpdateParams {
     let isActive: Bool
     let currentExerciseIndex: Int
     let restEndsAt: Date?
-    let statusMessage: String?
-    let totalVolumeKg: Double?
-    let elapsedTime: TimeInterval?
 }
 
 /// Interactor protocol for handling all interactions between the Workout Tracker view model
@@ -82,15 +79,13 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
         session: WorkoutSessionModel,
         isActive: Bool,
         currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?
+        restEndsAt: Date?
     )
 
     /// End any running live activity for the provided workout session.
     func endLiveActivity(
         session: WorkoutSessionModel,
-        isCompleted: Bool,
-        statusMessage: String?
+        isCompleted: Bool
     )
 
     /// Update live activity status and metrics for widgets/external presentation.

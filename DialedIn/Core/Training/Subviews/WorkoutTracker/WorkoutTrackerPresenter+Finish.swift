@@ -90,12 +90,8 @@ extension WorkoutTrackerPresenter {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Torn down on the first answer rather than the last. Waiting for a whole retry schedule
         // would leave the Dynamic Island claiming a workout was under way for half a minute after
-        // the user finished it, so the message says where the save stood at this moment instead.
-        interactor.endLiveActivity(
-            session: session,
-            isCompleted: firstAttempt == .saved,
-            statusMessage: statusMessage(for: firstAttempt)
-        )
+        // the user finished it.
+        interactor.endLiveActivity(session: session, isCompleted: firstAttempt == .saved)
         #endif
 
         // The side effects of finishing, each independent of the save and of each other: a failed
@@ -110,14 +106,6 @@ extension WorkoutTrackerPresenter {
             interactor.showAppToast(SaveToast.failed)
         case .failedTransiently:
             await retrySave(session)
-        }
-    }
-
-    private func statusMessage(for outcome: SaveOutcome) -> String {
-        switch outcome {
-        case .saved:              return "Workout ended & saved."
-        case .failedTransiently:  return "Workout ended. Still saving…"
-        case .failedPermanently:  return "Workout ended, but could not be saved."
         }
     }
 

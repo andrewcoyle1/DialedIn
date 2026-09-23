@@ -125,8 +125,7 @@ class WorkoutTrackerPresenter {
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil
+            restEndsAt: interactor.restEndTime
         )
         #endif
         
@@ -266,7 +265,7 @@ class WorkoutTrackerPresenter {
         Task {
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             interactor.discardWorkout()
-            interactor.endLiveActivity(session: sessionSnapshot, isCompleted: false, statusMessage: "Workout Discarded")
+            interactor.endLiveActivity(session: sessionSnapshot, isCompleted: false)
             #endif
         }
     }
@@ -319,10 +318,7 @@ class WorkoutTrackerPresenter {
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: liveActivityExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil,
-            totalVolumeKg: computeTotalVolumeKg(),
-            elapsedTime: elapsedTime
+            restEndsAt: interactor.restEndTime
         ))
         #endif
     }

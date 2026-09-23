@@ -108,7 +108,7 @@ struct WorkoutTrackerFinishTests {
     }
 
     /// A workout that could not be saved is still over, so its Live Activity still has to end —
-    /// and it must not claim the workout was saved.
+    /// as ended, not completed, so the summary is not shown for a workout that was not saved.
     @Test("Test A Failed Save Ends The Live Activity Without Claiming It Saved")
     func testAFailedSaveEndsTheLiveActivityWithoutClaimingItSaved() async throws {
         let screen = try makeScreen()
@@ -119,8 +119,7 @@ struct WorkoutTrackerFinishTests {
 
         #expect(screen.interactor.endedSessions.isEmpty)
         #expect(screen.interactor.endedLiveActivities.count == 1)
-        #expect(screen.interactor.endedLiveActivities.first?.isCompleted == false)
-        #expect(screen.interactor.endedLiveActivities.first?.statusMessage != "Workout ended & saved.")
+        #expect(screen.interactor.endedLiveActivities.first == false)
     }
 
     // MARK: - Saving a finished workout

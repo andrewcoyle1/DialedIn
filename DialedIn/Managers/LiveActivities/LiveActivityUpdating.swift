@@ -13,21 +13,18 @@ protocol LiveActivityUpdating: AnyObject {
         session: WorkoutSessionModel,
         isActive: Bool,
         currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?
+        restEndsAt: Date?
     )
     
     func updateLiveActivity(params: LiveActivityUpdateParams)
     
     func updateRestAndActive(
         isActive: Bool,
-        restEndsAt: Date?,
-        statusMessage: String?
+        restEndsAt: Date?
     )
     
     func endLiveActivity(
         session: WorkoutSessionModel,
-        isCompleted: Bool,
-        statusMessage: String?
+        isCompleted: Bool
     )
 }
