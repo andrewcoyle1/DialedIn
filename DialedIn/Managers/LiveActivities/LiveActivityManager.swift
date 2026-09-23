@@ -563,6 +563,17 @@ class LiveActivityManager: LiveActivityUpdating {
         return exercises.indices.dropFirst(requested + 1).first { hasWorkLeft(exercises[$0]) } ?? requested
     }
 
+    /// The completed rows of an exercise, leaving out a left row whose right partner is not done.
+    static func fullyCompletedRows(in sets: [WorkoutSetModel]) -> [WorkoutSetModel] {
+        sets.filter { row in
+            guard row.completedAt != nil else { return false }
+            guard row.side == .left else { return true }
+            let pair = sets.pairedSetIds(for: row.id)
+            guard pair.count == 2, let partner = sets.first(where: { $0.id == pair[1] }) else { return true }
+            return partner.completedAt != nil
+        }
+    }
+
     private func deriveCurrentExerciseData(session: WorkoutSessionModel, index: Int) -> CurrentExerciseData {
         let totalExercisesCount = session.exercises.count
         let currentExercise: WorkoutExerciseModel? =
@@ -574,7 +585,11 @@ class LiveActivityManager: LiveActivityUpdating {
         let currentExerciseImageName = currentExercise?.imageName
 
         let currentExerciseSets = currentExercise?.sets ?? []
-        let currentExerciseCompletedSetsCount = currentExerciseSets.filter { $0.completedAt != nil }.pairedSetCount
+        // "Set n of m" is the set the user is on, so a pair counts as done only once both halves
+        // are. `pairedSetCount` alone reads a lone left row as a finished set, which puts the banner
+        // on "Set 2 of 4" while the right arm of set 1 is still to come, and on "Set 5 of 4" at the
+        // end. The whole-workout totals keep the plain count on purpose; see WorkoutSetPairing.
+        let currentExerciseCompletedSetsCount = Self.fullyCompletedRows(in: currentExerciseSets).pairedSetCount
         let currentExerciseTotalSetsCount = currentExerciseSets.pairedSetCount
         let targetSet = currentExercise?.sets.first { $0.completedAt == nil }
 

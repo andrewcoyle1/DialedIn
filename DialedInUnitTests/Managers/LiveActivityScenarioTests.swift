@@ -24,23 +24,32 @@ struct LiveActivityScenarioTests {
 
     // MARK: - Fixture: four exercises, two warm-ups and four working sets each
 
-    private func set(exercise: Int, index: Int, warmup: Bool) -> WorkoutSetModel {
-        WorkoutSetModel(
-            id: "e\(exercise)-s\(index)",
+    private func set(exercise: Int, index: Int, warmup: Bool, side: SetSide? = nil) -> WorkoutSetModel {
+        let suffix = side.map { "-\($0.rawValue)" } ?? ""
+        return WorkoutSetModel(
+            id: "e\(exercise)-s\(index)\(suffix)",
             authorId: "author-1",
             index: index,
             reps: warmup ? 10 : 8,
             weightKg: warmup ? 40 : 60 + Double(exercise) * 5,
             rpe: nil,
+            side: side,
             isWarmup: warmup,
             completedAt: nil,
             dateCreated: Self.start
         )
     }
 
-    private func exercise(_ number: Int) -> WorkoutExerciseModel {
+    /// Two warm-ups and four working sets. A unilateral exercise logs each working set as a left
+    /// row and a right row, stored next to each other, left first, the way the tracker does.
+    private func exercise(_ number: Int, unilateral: Bool = false) -> WorkoutExerciseModel {
         let warmups = (1...2).map { set(exercise: number, index: $0, warmup: true) }
-        let working = (3...6).map { set(exercise: number, index: $0, warmup: false) }
+        let working: [WorkoutSetModel] = (3...6).flatMap { index -> [WorkoutSetModel] in
+            unilateral
+                ? [set(exercise: number, index: index, warmup: false, side: .left),
+                   set(exercise: number, index: index, warmup: false, side: .right)]
+                : [set(exercise: number, index: index, warmup: false)]
+        }
         return WorkoutExerciseModel(
             id: "e\(number)",
             authorId: "author-1",
@@ -52,15 +61,20 @@ struct LiveActivityScenarioTests {
         )
     }
 
+    /// Four exercises; the second is unilateral, so the rows to tap number 6 + 10 + 6 + 6 = 28
+    /// while the sets the user did number 24.
     private func session() -> WorkoutSessionModel {
         WorkoutSessionModel(
             id: "scenario-session",
             authorId: "author-1",
             name: "Full Body",
             dateCreated: Self.start,
-            exercises: (1...4).map(exercise)
+            exercises: [exercise(1), exercise(2, unilateral: true), exercise(3), exercise(4)]
         )
     }
+
+    private static let rowsToTap = 28
+    private static let setsDone = 24
 
     private struct Rig {
         let handler: AppLiveActivityIntentHandler
@@ -160,17 +174,17 @@ struct LiveActivityScenarioTests {
 
         var completed: [String] = []
         var exerciseIndexAfterEachSet: [Int] = []
-        for tap in 1...24 {
-            let step = try await tapComplete(rig, tapNumber: tap, isLast: tap == 24)
+        for tap in 1...Self.rowsToTap {
+            let step = try await tapComplete(rig, tapNumber: tap, isLast: tap == Self.rowsToTap)
             completed.append(step.setId)
             exerciseIndexAfterEachSet.append(step.exerciseIndex)
         }
 
-        #expect(Set(completed).count == 24, "a set was completed twice")
+        #expect(Set(completed).count == Self.rowsToTap, "a row was completed twice")
         // Each exercise's sixth completion moves the activity on, and the index never goes back.
         #expect(exerciseIndexAfterEachSet[5] == 1, "stuck on exercise 1 after its last set")
-        #expect(exerciseIndexAfterEachSet[11] == 2)
-        #expect(exerciseIndexAfterEachSet[17] == 3)
+        #expect(exerciseIndexAfterEachSet[15] == 2, "stuck on the unilateral exercise after its last pair")
+        #expect(exerciseIndexAfterEachSet[21] == 3)
         #expect(exerciseIndexAfterEachSet == exerciseIndexAfterEachSet.sorted())
 
         guard case .allSetsDone = try phase(rig) else {
@@ -182,7 +196,7 @@ struct LiveActivityScenarioTests {
         guard case .ended(let summary) = try phase(rig) else {
             Issue.record("after Finish the activity shows \(try phase(rig)) instead of .ended"); return
         }
-        #expect(summary.completedSetsCount == 24)
+        #expect(summary.completedSetsCount == Self.setsDone)
         #expect(summary.totalExercisesCount == 4)
     }
 

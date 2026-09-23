@@ -265,8 +265,11 @@ extension LiveActivityPhase {
             return .restOver(next: target)
         }
 
-        // 6. This exercise is finished and another one follows.
-        if state.currentExerciseCompletedSetsCount == state.currentExerciseTotalSetsCount
+        // 6. This exercise is finished and another one follows. Finished means every set is
+        //    counted done and no row is left to tap: a half-finished left/right pair still has a
+        //    target, so it stays on the banner rather than falling in here.
+        if state.targetSetId == nil
+            && state.currentExerciseCompletedSetsCount >= state.currentExerciseTotalSetsCount
             && state.currentExerciseIndex + 1 < state.totalExercisesCount {
             let nextTarget = LiveActivitySetTarget(
                 weightKg: state.nextExerciseFirstTargetWeightKg,

@@ -283,6 +283,32 @@ struct LiveActivityManagerTests {
 
         #expect(LiveActivityManager.exerciseIndexWithWorkLeft(from: 0, in: session) == 0)
     }
+
+    // MARK: - Paired sets and the position
+
+    /// After the left half of a pair the user is still on that set, so the completed count the
+    /// position is built from leaves it out; once both halves are done it counts as one.
+    @Test("Test A Half Done Pair Does Not Count As A Completed Set")
+    func testAHalfDonePairDoesNotCountAsACompletedSet() {
+        let logged = Date()
+        let left = WorkoutSetModel(
+            id: "s1-left", authorId: "author-1", index: 1, reps: 8, weightKg: 20,
+            side: .left, isWarmup: false, completedAt: logged, dateCreated: logged
+        )
+        var right = WorkoutSetModel(
+            id: "s1-right", authorId: "author-1", index: 1, reps: 8, weightKg: 20,
+            side: .right, isWarmup: false, completedAt: nil, dateCreated: logged
+        )
+        let second = WorkoutSetModel(
+            id: "s2", authorId: "author-1", index: 2, reps: 8, weightKg: 20,
+            side: nil, isWarmup: false, completedAt: nil, dateCreated: logged
+        )
+
+        #expect(LiveActivityManager.fullyCompletedRows(in: [left, right, second]).pairedSetCount == 0)
+
+        right.completedAt = logged
+        #expect(LiveActivityManager.fullyCompletedRows(in: [left, right, second]).pairedSetCount == 1)
+    }
 }
 
 #endif

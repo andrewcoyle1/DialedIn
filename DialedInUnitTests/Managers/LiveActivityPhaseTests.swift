@@ -177,6 +177,7 @@ struct LiveActivityPhaseTests {
             totalExercisesCount: 3,
             currentExerciseCompletedSetsCount: 4,
             currentExerciseTotalSetsCount: 4,
+            targetSetId: nil,
             nextExerciseName: "Incline press",
             nextExerciseFirstTargetWeightKg: 40,
             nextExerciseFirstTargetReps: 10
@@ -199,10 +200,32 @@ struct LiveActivityPhaseTests {
             currentExerciseIndex: 0,
             totalExercisesCount: 3,
             currentExerciseCompletedSetsCount: 4,
-            currentExerciseTotalSetsCount: 4
+            currentExerciseTotalSetsCount: 4,
+            targetSetId: nil
         )
 
         #expect(phase(state) == .exerciseDone(next: "", firstTarget: nil))
+    }
+
+    /// A unilateral exercise after the left half of its last pair: the paired counts already say
+    /// 4 of 4, but the right row still wants a tap, so the banner stays ready rather than falling
+    /// into a phase with no button.
+    @Test("Test A Half Finished Last Pair Is Still Ready Not Exercise Done")
+    func testAHalfFinishedLastPairIsStillReadyNotExerciseDone() {
+        let state = makeState(
+            currentExerciseName: "Single-arm row",
+            currentExerciseIndex: 0,
+            totalExercisesCount: 3,
+            currentExerciseCompletedSetsCount: 3,
+            currentExerciseTotalSetsCount: 4,
+            targetSetId: "set-4-right",
+            nextExerciseName: "Incline press"
+        )
+
+        guard case .ready(_, let position) = phase(state) else {
+            Issue.record("expected .ready, got \(phase(state))"); return
+        }
+        #expect(position == SetPosition(index: 4, total: 4))
     }
 
     // MARK: - Row 7
