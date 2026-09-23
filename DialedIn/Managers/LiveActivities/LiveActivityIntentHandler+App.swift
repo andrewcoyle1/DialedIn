@@ -77,8 +77,12 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
         updated.updateExercises(exercises)
         guard save(updated) else { return }
 
-        startRest(after: set, in: exercise, session: updated, exerciseIndex: location.exerciseIndex)
-        push(updated, exerciseIndex: location.exerciseIndex)
+        // The exercise to show is the next one with work left, not the one just finished: after
+        // its last set the finished exercise has no target, and a banner with no target has no
+        // way out once the rest ends.
+        let nextIndex = currentExerciseIndex(in: updated)
+        startRest(after: set, in: exercise, session: updated, exerciseIndex: nextIndex)
+        push(updated, exerciseIndex: nextIndex)
     }
 
     /// Correct the reps of a set already logged, while the rest after it is still running.
@@ -98,7 +102,7 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
         updated.updateExercises(exercises)
         guard save(updated) else { return }
 
-        push(updated, exerciseIndex: location.exerciseIndex)
+        push(updated, exerciseIndex: currentExerciseIndex(in: updated))
     }
 
     // MARK: - Fallback drain
@@ -146,7 +150,7 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
         var updated = session
         updated.updateExercises(exercises)
         guard save(updated) else { return }
-        push(updated, exerciseIndex: location.exerciseIndex)
+        push(updated, exerciseIndex: currentExerciseIndex(in: updated))
     }
 
     /// Lengthen (or shorten) the running rest, never past now.

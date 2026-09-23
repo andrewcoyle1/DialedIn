@@ -354,6 +354,23 @@ struct LiveActivityIntentHandlerTests {
         #expect(rig.sessions.activeSession != nil)
     }
 
+    // MARK: - Advancing past a finished exercise
+
+    /// Completing the last set of an exercise moves the activity on to the next exercise, so the
+    /// rest shows what is coming and the banner has a live target when it ends. Pointing at the
+    /// finished exercise left the widget with no target and no way forward.
+    @Test("Test Completing The Last Set Advances The Activity To The Next Exercise")
+    func testCompletingTheLastSetAdvancesTheActivityToTheNextExercise() async throws {
+        let rig = try await makeRig(exercises: [
+            exercise(id: "e1", index: 1, sets: [set("set-1", index: 1)]),
+            exercise(id: "e2", index: 2, sets: [set("set-2", index: 1)])
+        ])
+
+        await rig.handler.completeSet(id: "set-1")
+
+        let pushed = try #require(rig.activity.fullUpdates.last)
+        #expect(pushed.currentExerciseIndex == 1)
+    }
 }
 
 #endif

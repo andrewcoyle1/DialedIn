@@ -224,6 +224,65 @@ struct LiveActivityManagerTests {
         #expect(state.nextExerciseName == nil)
         #expect(state.nextExerciseFirstTargetWeightKg == nil)
     }
+
+    // MARK: - Never describing a finished exercise
+
+    /// The state is built from the next exercise with work left when the requested one is
+    /// finished, so the rest-end push cannot strand the banner on an exercise with no target.
+    @Test("Test A Finished Exercise Index Advances To The Next With Work Left")
+    func testAFinishedExerciseIndexAdvancesToTheNextWithWorkLeft() {
+        let logged = Date()
+        let session = WorkoutSessionModel(
+            id: "s2",
+            authorId: "author-1",
+            name: "Push Day",
+            dateCreated: logged,
+            exercises: [
+                exercise(id: "e1", name: "Bench press", index: 1, sets: [
+                    set(id: "set-1", reps: 8, weightKg: 60, completedAt: logged)
+                ]),
+                exercise(id: "e2", name: "Incline press", index: 2, sets: [
+                    set(id: "set-2", reps: 10, weightKg: 40)
+                ])
+            ]
+        )
+
+        #expect(LiveActivityManager.exerciseIndexWithWorkLeft(from: 0, in: session) == 1)
+        #expect(LiveActivityManager.exerciseIndexWithWorkLeft(from: 1, in: session) == 1)
+
+        let (manager, _) = makeManager()
+        let state = manager.makeContentState(
+            params: LiveActivityManager.MakeContentStateParams(
+                session: session,
+                isActive: true,
+                currentExerciseIndex: 0,
+                restEndsAt: nil
+            )
+        )
+        #expect(state.currentExerciseIndex == 1)
+        #expect(state.currentExerciseName == "Incline press")
+        #expect(state.targetSetId == "set-2")
+    }
+
+    /// When nothing later has work left the requested index stands, and all-sets-complete takes
+    /// over from there.
+    @Test("Test A Finished Last Exercise Keeps Its Index")
+    func testAFinishedLastExerciseKeepsItsIndex() {
+        let logged = Date()
+        let session = WorkoutSessionModel(
+            id: "s3",
+            authorId: "author-1",
+            name: "Push Day",
+            dateCreated: logged,
+            exercises: [
+                exercise(id: "e1", name: "Bench press", index: 1, sets: [
+                    set(id: "set-1", reps: 8, weightKg: 60, completedAt: logged)
+                ])
+            ]
+        )
+
+        #expect(LiveActivityManager.exerciseIndexWithWorkLeft(from: 0, in: session) == 0)
+    }
 }
 
 #endif

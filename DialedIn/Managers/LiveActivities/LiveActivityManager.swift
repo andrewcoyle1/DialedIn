@@ -26,7 +26,7 @@ class LiveActivityManager: LiveActivityUpdating {
 	private var currentActivity: Activity<WorkoutActivityAttributes>?
 	
 	// Cache the last content state to avoid unnecessary updates
-	private var lastContentState: WorkoutActivityAttributes.ContentState?
+	private(set) var lastContentState: WorkoutActivityAttributes.ContentState?
     
 	// MARK: - Public API
     
@@ -243,12 +243,12 @@ class LiveActivityManager: LiveActivityUpdating {
         }
     }
         
+    /// Any difference is worth a push. This used to compare four fields, which was enough while
+    /// only those changed between pushes; the reps correction changes `lastLoggedReps` and nothing
+    /// else, and a four-field gate dropped it on the floor. The per-second tick still produces an
+    /// identical state (elapsed time is not part of it), so the gate keeps that quiet.
     private func shouldUpdateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) -> Bool {
-        lastContentState == nil ||
-            lastContentState?.currentExerciseIndex != contentState.currentExerciseIndex ||
-            lastContentState?.completedSetsCount != contentState.completedSetsCount ||
-            lastContentState?.isActive != contentState.isActive ||
-            lastContentState?.restEndsAt != contentState.restEndsAt
+        lastContentState != contentState
     }
     
     private func setup(withActivity activity: Activity<WorkoutActivityAttributes>) {
@@ -374,8 +374,9 @@ class LiveActivityManager: LiveActivityUpdating {
     func makeContentState(params: MakeContentStateParams) -> WorkoutActivityAttributes.ContentState {
         
         let totals = computeTotals(session: params.session, totalVolumeKgOverride: params.totalVolumeKgOverride)
-        let current = deriveCurrentExerciseData(session: params.session, index: params.currentExerciseIndex)
-        let next = deriveNextExerciseData(session: params.session, index: params.currentExerciseIndex)
+        let currentExerciseIndex = Self.exerciseIndexWithWorkLeft(from: params.currentExerciseIndex, in: params.session)
+        let current = deriveCurrentExerciseData(session: params.session, index: currentExerciseIndex)
+        let next = deriveNextExerciseData(session: params.session, index: currentExerciseIndex)
         // The correction window is exactly the rest that follows a logged set (spec §4). Deriving
         // it from the rest rather than storing it is what clears it when the rest ends: the state
         // is rebuilt on every update, so there is no bookkeeping to get wrong.
@@ -387,7 +388,7 @@ class LiveActivityManager: LiveActivityUpdating {
             totalSetsCount: totals.totalSetsCount,
             currentExerciseName: current.name,
             currentExerciseImageName: current.imageName,
-            currentExerciseIndex: params.currentExerciseIndex,
+            currentExerciseIndex: currentExerciseIndex,
             totalExercisesCount: params.session.exercises.count,
             currentExerciseCompletedSetsCount: current.currentExerciseCompletedSetsCount,
             currentExerciseTotalSetsCount: current.currentExerciseTotalSetsCount,
@@ -544,6 +545,22 @@ class LiveActivityManager: LiveActivityUpdating {
         let currentExerciseCompletedSetsCount: Int
         let currentExerciseTotalSetsCount: Int
         let targetSet: WorkoutSetModel?
+    }
+
+    /// The index the activity should describe: `requested`, unless that exercise is finished and a
+    /// later one still has an incomplete set, in which case the first such later exercise.
+    ///
+    /// A finished exercise has no target set, and a banner with no target has no way forward once
+    /// its rest ends. Callers that push after logging a set already advance, but the rest-end push
+    /// reuses whatever index it last saw, so the guard lives here where every state is built.
+    static func exerciseIndexWithWorkLeft(from requested: Int, in session: WorkoutSessionModel) -> Int {
+        let exercises = session.exercises
+        guard exercises.indices.contains(requested) else { return requested }
+        let hasWorkLeft = { (exercise: WorkoutExerciseModel) in
+            exercise.sets.contains { $0.completedAt == nil }
+        }
+        guard !hasWorkLeft(exercises[requested]) else { return requested }
+        return exercises.indices.dropFirst(requested + 1).first { hasWorkLeft(exercises[$0]) } ?? requested
     }
 
     private func deriveCurrentExerciseData(session: WorkoutSessionModel, index: Int) -> CurrentExerciseData {
