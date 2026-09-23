@@ -110,21 +110,51 @@ struct ProgressionEngineTests {
 
     // MARK: - Earning weight
 
-    /// Weight-first: one set at the top of the range is enough to add weight, and every set drops
-    /// back to the bottom of it.
-    @Test("Test Weight First Adds Weight When The Top Set Reaches The Range")
-    func testWeightFirstAddsWeightWhenTheTopSetReachesTheRange() {
+    /// Weight-first: a majority of sets at the top of the range is enough to add weight, and
+    /// every set drops back to the bottom of it. The one that fell short is not a miss.
+    @Test("Test Weight First Adds Weight When Most Sets Reach The Top")
+    func testWeightFirstAddsWeightWhenMostSetsReachTheTop() {
         let suggestion = engine.suggest(input(
-            targets: targets(min: 8, max: 12, count: 3),
-            history: [sets([(60, 12, nil), (60, 10, nil), (60, 9, nil)])]
+            targets: targets(min: 8, max: 12, count: 4),
+            history: [sets([(60, 12, nil), (60, 12, nil), (60, 12, nil), (60, 10, nil)])]
         ))
 
         #expect(suggestion.rationale == .progressWeight)
         #expect(suggestion.sets == [
             SuggestedSet(weightKg: 62.5, reps: 8),
             SuggestedSet(weightKg: 62.5, reps: 8),
+            SuggestedSet(weightKg: 62.5, reps: 8),
             SuggestedSet(weightKg: 62.5, reps: 8)
         ])
+    }
+
+    /// One good set followed by a fade is a weight that is not ready. Weight-first still adds a
+    /// rep to the sets that have room rather than a plate to all of them.
+    @Test("Test Weight First Adds Reps When Only One Set Reaches The Top")
+    func testWeightFirstAddsRepsWhenOnlyOneSetReachesTheTop() {
+        let suggestion = engine.suggest(input(
+            targets: targets(min: 8, max: 12, count: 4),
+            history: [sets([(60, 12, nil), (60, 10, nil), (60, 9, nil), (60, 8, nil)])]
+        ))
+
+        #expect(suggestion.rationale == .addReps)
+        #expect(suggestion.sets == [
+            SuggestedSet(weightKg: 60, reps: 12),
+            SuggestedSet(weightKg: 60, reps: 11),
+            SuggestedSet(weightKg: 60, reps: 10),
+            SuggestedSet(weightKg: 60, reps: 9)
+        ])
+    }
+
+    /// Exactly half is not a majority: two of four at the top holds the weight.
+    @Test("Test Weight First Needs More Than Half The Sets At The Top")
+    func testWeightFirstNeedsMoreThanHalfTheSetsAtTheTop() {
+        let suggestion = engine.suggest(input(
+            targets: targets(min: 8, max: 12, count: 4),
+            history: [sets([(60, 12, nil), (60, 12, nil), (60, 10, nil), (60, 10, nil)])]
+        ))
+
+        #expect(suggestion.rationale == .addReps)
     }
 
     /// The same session under reps-first: the other two sets have not caught up, so it is a rep
@@ -271,7 +301,7 @@ struct ProgressionEngineTests {
 
         let suggestion = engine.suggest(input(
             targets: setTargets,
-            history: [sets([(60, 12, nil), (60, 10, nil), (60, 9, nil)])]
+            history: [sets([(60, 12, nil), (60, 12, nil), (60, 9, nil)])]
         ))
 
         #expect(suggestion.rationale == .progressWeight)

@@ -84,7 +84,7 @@ harder than prescribed; RPE and RIR are the same scale from opposite ends).
 |---|---|
 | `missed > 0` and the previous session (`history[1]`) also had `missed > 0` at a weight ≥ this one | `.deload` |
 | `missed > 0` | `.hold` |
-| `.weightFirst` and `top ≥ 1` and `rpeOK` | `.progressWeight` |
+| `.weightFirst` and `top × 2 > workingSets.count` (a majority) and `rpeOK` | `.progressWeight` |
 | `.repsFirst` and `top == workingSets.count` and `rpeOK` | `.progressWeight` |
 | otherwise | `.addReps` |
 

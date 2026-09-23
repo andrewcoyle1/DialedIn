@@ -123,7 +123,9 @@ struct ProgressionEngine {
 
         switch input.adjustmentMode {
         case .weightFirst:
-            return referenceTally.top >= 1 ? .progressWeight : .addReps
+            // More than half the sets at the top. One good set followed by a fade is a weight
+            // that is not ready; every set at the top is reps-first's bar, not this one's.
+            return referenceTally.top * 2 > reference.workingSets.count ? .progressWeight : .addReps
         case .repsFirst:
             return referenceTally.top == reference.workingSets.count ? .progressWeight : .addReps
         }
