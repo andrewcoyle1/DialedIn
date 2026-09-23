@@ -105,54 +105,6 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
         push(updated, exerciseIndex: currentExerciseIndex(in: updated))
     }
 
-    // MARK: - Fallback drain
-
-    /// Apply anything an intent left in the app group because no handler was registered when it
-    /// ran — the cold-launch race, where `perform()` could in principle beat `didFinishLaunching`.
-    /// Nothing else reads those slots any more, so without this a tap that lost the race would be
-    /// lost with it. Called once at registration; the slots are cleared whether or not they still
-    /// apply, so a stale note from a workout since finished is dropped rather than replayed later.
-    func drainFallbackSlots() async {
-        await drain(
-            setCompletion: SharedWorkoutStorage.pendingSetCompletion,
-            adjustment: SharedWorkoutStorage.pendingSetAdjustment,
-            workoutCompletion: SharedWorkoutStorage.pendingWorkoutCompletion
-        )
-        SharedWorkoutStorage.clearPendingSetCompletion()
-        SharedWorkoutStorage.clearPendingSetAdjustment()
-        SharedWorkoutStorage.clearPendingWorkoutCompletion()
-    }
-
-    /// The drain with its inputs passed in, so a test can drive it without the app group.
-    func drain(
-        setCompletion: SharedWorkoutStorage.PendingSetCompletion?,
-        adjustment: SharedWorkoutStorage.PendingSetAdjustment?,
-        workoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion?
-    ) async {
-        if let setCompletion {
-            await completeSet(id: setCompletion.setId)
-        }
-        if let adjustment {
-            // An absolute count, and the rest it belonged to has very likely passed by now, so it
-            // bypasses the live-rest guard the tap itself has.
-            setReps(adjustment.reps, forSetId: adjustment.setId)
-        }
-        if let workoutCompletion, workoutSessionManager.activeSession?.id == workoutCompletion.sessionId {
-            await completeWorkout()
-        }
-    }
-
-    private func setReps(_ reps: Int, forSetId id: String) {
-        guard let session = workoutSessionManager.activeSession,
-              let location = locate(setId: id, in: session) else { return }
-        var exercises = session.exercises
-        exercises[location.exerciseIndex].sets[location.setIndex].reps = min(max(reps, 0), 99)
-        var updated = session
-        updated.updateExercises(exercises)
-        guard save(updated) else { return }
-        push(updated, exerciseIndex: currentExerciseIndex(in: updated))
-    }
-
     /// Lengthen (or shorten) the running rest, never past now.
     func adjustRest(by seconds: Int) async {
         guard let restEndTime = runningRestEndTime,

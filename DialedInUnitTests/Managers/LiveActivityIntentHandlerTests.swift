@@ -338,57 +338,6 @@ struct LiveActivityIntentHandlerTests {
         #expect(rig.activity.ended.isEmpty)
     }
 
-    // MARK: - Draining the fallback slots
-
-    /// A tap that lost the cold-launch race left a note in the app group. Registration drains it:
-    /// the set is logged exactly as if the handler had been there.
-    @Test("Test Draining Applies A Set Completion Left By The Fallback")
-    func testDrainingAppliesASetCompletionLeftByTheFallback() async throws {
-        let rig = try await makeRig(sets: [set("set-1", index: 1), set("set-2", index: 2)])
-
-        await rig.handler.drain(
-            setCompletion: SharedWorkoutStorage.PendingSetCompletion(
-                setId: "set-1", weightKg: nil, reps: nil, distanceMeters: nil, durationSec: nil, completedAt: Date()
-            ),
-            adjustment: nil,
-            workoutCompletion: nil
-        )
-
-        let sets = try savedSets(rig)
-        #expect(sets[0].completedAt != nil)
-        #expect(sets[1].completedAt == nil)
-    }
-
-    /// A drained adjustment is an absolute count and applies even though its rest has passed.
-    @Test("Test Draining Applies An Adjustment After Its Rest Has Passed")
-    func testDrainingAppliesAnAdjustmentAfterItsRestHasPassed() async throws {
-        let rig = try await makeRig(sets: [set("set-1", index: 1, reps: 8, done: true)])
-
-        await rig.handler.drain(
-            setCompletion: nil,
-            adjustment: SharedWorkoutStorage.PendingSetAdjustment(setId: "set-1", reps: 6, adjustedAt: Date()),
-            workoutCompletion: nil
-        )
-
-        let sets = try savedSets(rig)
-        #expect(sets[0].reps == 6)
-        #expect(sets[0].completedAt != nil)
-    }
-
-    /// A workout completion for some other session is a stale note and is dropped.
-    @Test("Test Draining Ignores A Workout Completion For Another Session")
-    func testDrainingIgnoresAWorkoutCompletionForAnotherSession() async throws {
-        let rig = try await makeRig(sets: [set("set-1", index: 1)])
-
-        await rig.handler.drain(
-            setCompletion: nil,
-            adjustment: nil,
-            workoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion(sessionId: "not-this-one", completedAt: Date())
-        )
-
-        #expect(rig.sessions.activeSession != nil)
-    }
-
     // MARK: - Advancing past a finished exercise
 
     /// Completing the last set of an exercise moves the activity on to the next exercise, so the
