@@ -114,7 +114,10 @@ struct LiveActivityScenarioTests {
         }
     }
 
-    private func makeRig(session: WorkoutSessionModel? = nil) async throws -> Rig {
+    private func makeRig(
+        session: WorkoutSessionModel? = nil,
+        weightUnit: @escaping (String) -> LiveActivityWeightUnit = { _ in .kilograms }
+    ) async throws -> Rig {
         SharedWorkoutStorage.clearRestEndTime()
         let session = session ?? self.session()
 
@@ -127,7 +130,9 @@ struct LiveActivityScenarioTests {
 
         let log = SpyLogService()
         let system = SystemActivity()
-        let activity = LiveActivityManager(logger: LogManager(services: [log]), activityLookup: system.lookup)
+        let activity = LiveActivityManager(
+            logger: LogManager(services: [log]), activityLookup: system.lookup, weightUnit: weightUnit
+        )
         system.initialState = activity.makeContentState(session: session, isActive: false, currentExerciseIndex: 0, restEndsAt: nil)
         let hkWorkoutManager = HKWorkoutManager(logger: LogManager(), liveActivityUpdater: activity)
         let handler = AppLiveActivityIntentHandler(
@@ -352,6 +357,24 @@ struct LiveActivityScenarioTests {
             Issue.record("the stale rest is not .restOver"); return
         }
         #expect(!over.isEmpty)
+        await expectEveryPushReachedTheActivity(rig)
+    }
+
+    /// A per-exercise pounds preference reaches the push a Lock Screen tap makes, and the label
+    /// the banner draws from it reads in pounds.
+    @Test("Test A Pounds Preference For The Exercise Reaches The Push")
+    func testAPoundsPreferenceForTheExerciseReachesThePush() async throws {
+        let rig = try await makeRig { $0 == "template-1" ? .pounds : .kilograms }
+        rig.hkWorkoutManager.startWorkout(workout: try #require(rig.sessions.activeSession))
+
+        await rig.handler.completeSet(id: "e1-s1")
+
+        let state = try #require(rig.activity.lastContentState)
+        #expect(state.weightUnit == .pounds)
+        guard case .resting(_, let next, _) = try phase(rig) else {
+            Issue.record("expected a rest after the first warm-up, got \(try phase(rig))"); return
+        }
+        #expect(next?.label(weightUnit: state.weightUnit)?.hasSuffix("lb × 10") == true)
         await expectEveryPushReachedTheActivity(rig)
     }
 }

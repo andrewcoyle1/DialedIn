@@ -74,9 +74,9 @@ struct WorkoutSessionActivity: Widget {
     private func compactTrailing(context: ActivityViewContext<WorkoutActivityAttributes>) -> some View {
         switch phase(context) {
         case let .ready(target, _):
-            compactTargetLabel(target)
+            compactTargetLabel(target, unit: context.state.weightUnit)
         case let .restOver(next):
-            compactTargetLabel(next)
+            compactTargetLabel(next, unit: context.state.weightUnit)
         case let .resting(until, _, _):
             Text(timerInterval: Date()...max(until, Date()), countsDown: true)
                 .monospacedDigit()
@@ -93,8 +93,8 @@ struct WorkoutSessionActivity: Widget {
     }
 
     @ViewBuilder
-    private func compactTargetLabel(_ target: LiveActivitySetTarget) -> some View {
-        if let label = target.label(weightUnit: LiveActivityLayout.weightUnit) {
+    private func compactTargetLabel(_ target: LiveActivitySetTarget, unit: LiveActivityWeightUnit) -> some View {
+        if let label = target.label(weightUnit: unit) {
             Text(label)
                 .font(.footnote)
                 .foregroundStyle(.secondary)

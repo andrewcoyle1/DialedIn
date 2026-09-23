@@ -240,6 +240,27 @@ struct LiveActivityManagerTests {
         )
     }
 
+    /// The unit is the current exercise's own preference, looked up by template id, so a lifter
+    /// who logs bench in pounds sees pounds on the Lock Screen rather than a kilogram default.
+    @Test("Test The Weight Unit Is The Current Exercises Preference")
+    func testTheWeightUnitIsTheCurrentExercisesPreference() {
+        let manager = LiveActivityManager(
+            logger: LogManager(services: []),
+            activityLookup: { _ in nil },
+            weightUnit: { $0 == "template-e1" ? .pounds : .kilograms }
+        )
+
+        let bench = manager.makeContentState(
+            session: twoExerciseSession(), isActive: true, currentExerciseIndex: 0, restEndsAt: nil
+        )
+        let incline = manager.makeContentState(
+            session: twoExerciseSession(), isActive: true, currentExerciseIndex: 1, restEndsAt: nil
+        )
+
+        #expect(bench.weightUnit == .pounds)
+        #expect(incline.weightUnit == .kilograms)
+    }
+
     /// The rest that follows a logged set is the correction window (spec §4), so that is exactly
     /// when the activity carries the set the buttons would adjust — the most recently completed
     /// one, not the first.

@@ -280,7 +280,10 @@ class DevPreview {
             logger: logManager
         )
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        liveActivityManager = LiveActivityManager(logger: logManager)
+        let unitPreferences = exerciseUnitPreferenceManager
+        liveActivityManager = LiveActivityManager(logger: logManager, weightUnit: {
+            unitPreferences.getPreference(for: $0).weightUnit.liveActivityUnit
+        })
         hkWorkoutManager = HKWorkoutManager(logger: logManager, liveActivityUpdater: liveActivityManager)
         #endif
 

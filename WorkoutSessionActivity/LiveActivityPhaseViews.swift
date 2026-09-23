@@ -25,10 +25,6 @@ enum LiveActivityLayout {
     static let contentHeight: CGFloat = rowHeight * 2 + rowSpacing
     static let imageSize: CGFloat = 38
     static let imageCornerRadius: CGFloat = 6
-
-    /// The content state carries no unit preference, so everything is shown in kilograms.
-    /// Follow-up: add a `weightUnit` field to `ContentState` and read it here.
-    static let weightUnit: LiveActivityWeightUnit = .kilograms
 }
 
 // MARK: - Phase content
@@ -132,7 +128,7 @@ struct LiveActivityPhaseContent: View {
     private func restingCorrectionRow(logged: LoggedSet?) -> some View {
         if let logged {
             HStack(spacing: 8) {
-                Text("Logged \(logged.label(weightUnit: LiveActivityLayout.weightUnit) ?? "set")")
+                Text("Logged \(logged.label(weightUnit: state.weightUnit) ?? "set")")
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                 Spacer(minLength: 4)
@@ -166,7 +162,7 @@ struct LiveActivityPhaseContent: View {
                 Text(prefix)
                     .foregroundStyle(.secondary)
             }
-            if let label = target.label(weightUnit: LiveActivityLayout.weightUnit) {
+            if let label = target.label(weightUnit: state.weightUnit) {
                 Text(label)
                     .font(.headline)
                     .foregroundStyle(.primary)
@@ -189,7 +185,7 @@ struct LiveActivityPhaseContent: View {
     private func restingTimerRow(until: Date, next: LiveActivitySetTarget?) -> some View {
         HStack(spacing: 8) {
             RestRing(until: until)
-            if let label = next?.label(weightUnit: LiveActivityLayout.weightUnit) {
+            if let label = next?.label(weightUnit: state.weightUnit) {
                 Text("Next \(label)")
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

@@ -23,14 +23,20 @@ class LiveActivityManager: LiveActivityUpdating {
     /// manager asked for and hand one back.
     private let activityLookup: (String) -> Activity<WorkoutActivityAttributes>?
 
+    /// The unit an exercise's weights are shown in, by template id. The state is rebuilt from the
+    /// session on every push, so the preference is read here rather than carried by every caller.
+    private let weightUnit: (String) -> LiveActivityWeightUnit
+
     init(
         logger: LogManager,
         activityLookup: @escaping (String) -> Activity<WorkoutActivityAttributes>? = { sessionId in
             Activity<WorkoutActivityAttributes>.activities.first { $0.attributes.sessionId == sessionId }
-        }
+        },
+        weightUnit: @escaping (String) -> LiveActivityWeightUnit = { _ in .kilograms }
     ) {
         self.logger = logger
         self.activityLookup = activityLookup
+        self.weightUnit = weightUnit
     }
     
 	// The currently active Workout Live Activity
@@ -303,6 +309,7 @@ class LiveActivityManager: LiveActivityUpdating {
             targetReps: current.targetSet?.reps,
             targetDistanceMeters: current.targetSet?.distanceMeters,
             targetDurationSec: current.targetSet?.durationSec,
+            weightUnit: current.templateId.map(weightUnit) ?? .kilograms,
             restEndsAt: restEndsAt,
             progress: totals.progress,
             isWorkoutEnded: false,
@@ -366,6 +373,7 @@ class LiveActivityManager: LiveActivityUpdating {
     }
 
     private struct CurrentExerciseData {
+        let templateId: String?
         let name: String?
         let imageName: String?
         let position: ExercisePosition
@@ -428,6 +436,7 @@ class LiveActivityManager: LiveActivityUpdating {
         let targetSet = currentExerciseSets.first { $0.completedAt == nil }
 
         return CurrentExerciseData(
+            templateId: currentExercise?.templateId,
             name: currentExerciseName,
             imageName: currentExerciseImageName,
             position: Self.exercisePosition(in: currentExerciseSets),

@@ -33,6 +33,8 @@ struct WorkoutActivityAttributes: ActivityAttributes {
         var targetReps: Int?
         var targetDistanceMeters: Double?
         var targetDurationSec: Int?
+        // The unit the current exercise's weights are shown in, from its unit preference
+        var weightUnit: LiveActivityWeightUnit = .kilograms
         // If resting, the time when the rest period ends
         var restEndsAt: Date?
         // Convenience progress value 0.0...1.0 (completedSets/totalSets)

@@ -302,7 +302,9 @@ struct Dependencies {
                 logger: logManager
             )
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            liveActivityManager = LiveActivityManager(logger: logManager)
+            liveActivityManager = LiveActivityManager(logger: logManager, weightUnit: {
+                exerciseUnitPreferenceManager.getPreference(for: $0).weightUnit.liveActivityUnit
+            })
             hkWorkoutManager = HKWorkoutManager(logger: logManager, liveActivityUpdater: liveActivityManager)
             #endif
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
@@ -616,7 +618,9 @@ struct Dependencies {
                 logger: logManager
             )
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            liveActivityManager = LiveActivityManager(logger: logManager)
+            liveActivityManager = LiveActivityManager(logger: logManager, weightUnit: {
+                exerciseUnitPreferenceManager.getPreference(for: $0).weightUnit.liveActivityUnit
+            })
             hkWorkoutManager = HKWorkoutManager(logger: logManager, liveActivityUpdater: liveActivityManager)
             #endif
             appState = AppState()
@@ -925,7 +929,9 @@ struct Dependencies {
                 logger: logManager
             )
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            liveActivityManager = LiveActivityManager(logger: logManager)
+            liveActivityManager = LiveActivityManager(logger: logManager, weightUnit: {
+                exerciseUnitPreferenceManager.getPreference(for: $0).weightUnit.liveActivityUnit
+            })
             hkWorkoutManager = HKWorkoutManager(logger: logManager, liveActivityUpdater: liveActivityManager)
             #endif
             appState = AppState()
