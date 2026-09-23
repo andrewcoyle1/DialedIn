@@ -4,6 +4,10 @@
 //
 //  Created by Andrew Coyle on 30/09/2025.
 //
+//  The Dynamic Island (spec: docs/specs/live-activity.md §5). Every region switches on the
+//  same `LiveActivityPhase` the banner uses. The island always renders on black, so it uses
+//  semantic colours and never reads the colour scheme.
+//
 
 import SwiftUI
 import WidgetKit
@@ -12,265 +16,103 @@ import AppIntents
 
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 struct WorkoutSessionActivity: Widget {
-    
+
+    /// The widget's accent is `labelColor`; on the island's black background that resolves
+    /// light, so a label on a `.borderedProminent` button is drawn dark.
+    private static let islandProminentLabelColor = Color.black
+
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: WorkoutActivityAttributes.self) { context in
             LiveActivityView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
-                // Expanded UI
-                DynamicIslandExpandedRegion(.leading) {
-                    HStack(spacing: 2) {
-                            Image("AppIconInternalDark")
-                                .renderingMode(.original)
-                                .resizable()
-                                .aspectRatio(1, contentMode: .fit)
-                                .frame(width: 20, height: 20)
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
-                        Text(context.attributes.workoutName)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .font(.caption)
-                    }
-                    .padding(.leading, 6)
-                    .padding(.top, 1)
-                }
-                
-                DynamicIslandExpandedRegion(.trailing) {
-                    Text(context.attributes.startedAt, style: .timer)
-                        .monospacedDigit()
-                        .multilineTextAlignment(.trailing)
-                        .padding(.trailing, 3)
-                        .padding(.top, 1)
-                    
-                }
-                
                 DynamicIslandExpandedRegion(.bottom) {
-                    Group {
-                        if let currentExerciseName = context.state.currentExerciseName {
-                            HStack {
-                                if context.state.isAllSetsComplete {
-                                    // Show completion icon when all sets are done
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 32))
-                                        .foregroundStyle(.green)
-                                        .frame(width: 40, height: 40)
-                                } else if let imageName = context.state.currentExerciseImageName, !imageName.isEmpty {
-                                    Image(imageName)
-                                        .renderingMode(.original)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(height: 50)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        .opacity((context.state.restEndsAt != nil && context.state.restEndsAt! > Date()) ? 0.7 : 1.0)
-                                } else {
-                                    Image(systemName: "figure.strengthtraining.traditional")
-                                        .font(.system(size: 32))
-                                        .foregroundStyle(.secondary)
-                                        .frame(width: 40, height: 40)
-                                        .opacity((context.state.restEndsAt != nil && context.state.restEndsAt! > Date()) ? 0.7 : 1.0)
-                                }
-                                VStack(alignment: .leading, spacing: 0) {
-                                    if context.state.isAllSetsComplete {
-                                        Text("Workout Complete")
-                                            .font(.headline)
-                                            .fontWeight(.medium)
-                                            .foregroundStyle(.green)
-                                    } else if context.state.restEndsAt != nil && context.state.restEndsAt! > Date() {
-                                        Text("Next: \(currentExerciseName)")
-                                            .font(.headline)
-                                            .fontWeight(.medium)
-                                            .foregroundStyle(Color.secondary)
-                                    } else {
-                                        Text(currentExerciseName)
-                                            .font(.headline)
-                                            .fontWeight(.medium)
-                                            .foregroundStyle(Color.primary)
-                                    }
-                                    if context.state.isAllSetsComplete {
-                                        Text("\(context.state.completedSetsCount) sets completed")
-                                            .font(.subheadline)
-                                            .foregroundStyle(Color.secondary)
-                                    } else {
-                                        Text("Set \(context.state.currentExerciseCompletedSetsCount + 1) of \(context.state.currentExerciseTotalSetsCount)")
-                                            .font(.subheadline)
-                                            .foregroundStyle(Color.secondary)
-                                    }
-                                }
-                                Spacer()
-                            }
-                            
-                        }
-                        HStack {
-                            if let restEndsAt = context.state.restEndsAt, restEndsAt > Date(), !context.state.isAllSetsComplete {
-                                VStack {
-                                    ProgressView(timerInterval: Date()...restEndsAt)
-                                        .labelsHidden()
-                                        .tint(.accent)
-
-                                    HStack {
-                                        Button(intent: AdjustRestTimerIntent(adjustment: -15)) {
-                                            Text("-15s")
-                                                .padding(2)
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .buttonBorderShape(.circle)
-                                        .tint(.accent)
-                                        .disabled(context.state.isProcessingIntent)
-                                        .opacity(context.state.isProcessingIntent ? 0.5 : 1.0)
-                                        
-                                        Spacer()
-                                        
-                                        Text("Rest: ")
-                                        Text(timerInterval: Date()...restEndsAt)
-                                            .monospacedDigit()
-                                            .frame(maxWidth: 40)
-                                        
-                                        Spacer()
-                                        
-                                        Button(intent: AdjustRestTimerIntent(adjustment: 15)) {
-                                            Text("+15s")
-                                                .padding(2)
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .buttonBorderShape(.circle)
-                                        .tint(.accent)
-                                        .disabled(context.state.isProcessingIntent)
-                                        .opacity(context.state.isProcessingIntent ? 0.5 : 1.0)
-                                        
-                                        Button(intent: SkipRestTimerIntent()) {
-                                            Text("Skip")
-                                                .padding(2)
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .buttonBorderShape(.circle)
-                                        .tint(.accent)
-                                        .disabled(context.state.isProcessingIntent)
-                                    }
-                                }
-                            } else {
-                                HStack {
-                                    if context.state.isAllSetsComplete {
-                                        // Show "Complete Workout" when all sets are done
-                                        Text("All sets complete!")
-                                            .font(.headline)
-                                            .foregroundStyle(.green)
-                                        Spacer()
-                                        Button(intent: CompleteWorkoutIntent()) {
-                                            Label("Finish", systemImage: "checkmark.circle.fill")
-                                                .padding(2)
-                                        }
-                                        .buttonStyle(.borderedProminent)
-                                        .disabled(context.state.isProcessingIntent)
-                                    } else {
-                                        // Show target and complete set button
-                                        if let weight = context.state.targetWeightKg, let reps = context.state.targetReps {
-                                            Text("Target: \(String(format: "%.1f", weight)) kg × \(reps) reps")
-                                                .font(.headline)
-                                        } else if let reps = context.state.targetReps {
-                                            Text("Target: \(reps) reps")
-                                                .font(.headline)
-                                        } else if let distance = context.state.targetDistanceMeters, let duration = context.state.targetDurationSec {
-                                            let minutes = duration / 60
-                                            let seconds = duration % 60
-                                            Text("Target: \(String(format: "%.0f", distance))m in \(minutes):\(String(format: "%02d", seconds))")
-                                                .font(.headline)
-                                        } else if let duration = context.state.targetDurationSec {
-                                            let minutes = duration / 60
-                                            let seconds = duration % 60
-                                            Text("Target: \(minutes):\(String(format: "%02d", seconds))")
-                                                .font(.headline)
-                                        } else {
-                                            Text("Complete Set")
-                                                .font(.headline)
-                                        }
-                                        Spacer()
-                                        Button(intent: CompleteSetIntent()) {
-                                            Image(systemName: "checkmark")
-                                                .padding(2)
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .buttonBorderShape(.circle)
-                                        .tint(.accent)
-                                        .disabled(context.state.targetSetId == nil || context.state.isProcessingIntent)
-                                    }
-                                }
-                            }
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    }
-                    .frame(height: 40)
+                    expandedContent(context: context)
                 }
             } compactLeading: {
-                if let imageName = context.state.currentExerciseImageName, !imageName.isEmpty {
-                    Image(imageName)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .padding(.leading, 2)
-                } else {
-                    Image(systemName: "figure.strengthtraining.traditional")
-                }
+                compactLeading(context: context)
             } compactTrailing: {
-                
-                if let restEndsAt = context.state.restEndsAt, restEndsAt > Date() {
-                    HStack {
-                        Text("Rest: ")
-                        Text(timerInterval: Date()...restEndsAt)
-                            .monospacedDigit()
-                            .frame(maxWidth: 40)
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                } else {
-                    Text("Set \(context.state.currentExerciseCompletedSetsCount + 1)/\(context.state.currentExerciseTotalSetsCount)")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                }
+                compactTrailing(context: context)
             } minimal: {
-                if let imageName = context.state.currentExerciseImageName, !imageName.isEmpty {
-                    Image(imageName)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                } else {
-                    Image(systemName: "figure.strengthtraining.traditional")
-                }
+                minimal(context: context)
             }
         }
     }
-    
-    private func timeString(from seconds: TimeInterval) -> String {
-        let minutes = Int(seconds) / 60
-        let seconds = Int(seconds) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+
+    private func phase(_ context: ActivityViewContext<WorkoutActivityAttributes>) -> LiveActivityPhase {
+        LiveActivityPhase(state: context.state, now: Date(), isStale: context.isStale)
     }
-    
-    private func timeCompact(from seconds: TimeInterval) -> String {
-        let minutes = Int(seconds) / 60
-        return "\(minutes)m"
+
+    // MARK: - Expanded
+
+    /// The banner's two rows for the current phase, minus the progress line and minus
+    /// `.ended` — the island is dismissed when the workout ends.
+    private func expandedContent(context: ActivityViewContext<WorkoutActivityAttributes>) -> some View {
+        LiveActivityPhaseContent(
+            phase: phase(context),
+            state: context.state,
+            workoutName: context.attributes.workoutName,
+            prominentLabelColor: Self.islandProminentLabelColor,
+            showsEnded: false
+        )
+        .padding(.horizontal, 4)
     }
-    
-    private func restRemainingString(until end: Date) -> String {
-        let remaining = max(0, Int(ceil(end.timeIntervalSinceNow)))
-        let minutes = remaining / 60
-        let seconds = remaining % 60
-        return String(format: "%02d:%02d", minutes, seconds)
-    }
-    
-    private func restCompact(until end: Date) -> String {
-        let remaining = max(0, Int(ceil(end.timeIntervalSinceNow)))
-        let minutes = remaining / 60
-        return "R: \(minutes)m"
-    }
-    
-    private func statusText(from context: ActivityViewContext<WorkoutActivityAttributes>) -> String {
-        if let restEndsAt = context.state.restEndsAt, restEndsAt > Date() {
-            return "Rest: \(restRemainingString(until: restEndsAt))"
+
+    // MARK: - Compact and minimal
+
+    @ViewBuilder
+    private func compactLeading(context: ActivityViewContext<WorkoutActivityAttributes>) -> some View {
+        switch phase(context) {
+        case let .resting(until, _, _):
+            RestRing(until: until, size: 18)
+        default:
+            ExerciseImage(imageName: context.state.currentExerciseImageName, size: 20)
         }
-        if let status = context.state.statusMessage, !status.isEmpty {
-            return status
+    }
+
+    @ViewBuilder
+    private func compactTrailing(context: ActivityViewContext<WorkoutActivityAttributes>) -> some View {
+        switch phase(context) {
+        case let .ready(target, _):
+            compactTargetLabel(target)
+        case let .restOver(next):
+            compactTargetLabel(next)
+        case let .resting(until, _, _):
+            Text(timerInterval: Date()...until, countsDown: true)
+                .monospacedDigit()
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: 44)
+        case .allSetsDone:
+            Text("Done")
+                .font(.footnote)
+                .foregroundStyle(.green)
+        default:
+            EmptyView()
         }
-        return context.state.isActive ? "In progress" : "Paused"
+    }
+
+    @ViewBuilder
+    private func compactTargetLabel(_ target: LiveActivitySetTarget) -> some View {
+        if let label = target.label(weightUnit: LiveActivityLayout.weightUnit) {
+            Text(label)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+    }
+
+    @ViewBuilder
+    private func minimal(context: ActivityViewContext<WorkoutActivityAttributes>) -> some View {
+        switch phase(context) {
+        case let .resting(until, _, _):
+            RestRing(until: until, size: 18)
+        case .allSetsDone:
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+        default:
+            ExerciseImage(imageName: context.state.currentExerciseImageName, size: 18)
+        }
     }
 }
 
