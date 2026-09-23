@@ -98,6 +98,64 @@ service cloud.firestore {
         allow read, write: if isAuthed() && request.auth.uid == user_id;
       }
 
+      // Exercise Settings subcollection (one document per exercise template)
+      match /exercise_settings/{exercise_settings_id} {
+        allow read, write: if isAuthed() && request.auth.uid == user_id;
+      }
+
+      // Food Log Settings subcollection
+      match /food_log_settings/{food_log_settings_id} {
+        allow read, write: if isAuthed() && request.auth.uid == user_id;
+      }
+
+      // Analytics Settings subcollection
+      match /analytics_settings/{analytics_settings_id} {
+        allow read, write: if isAuthed() && request.auth.uid == user_id;
+      }
+
+      // Shortcut Settings subcollection
+      match /shortcut_settings/{shortcut_settings_id} {
+        allow read, write: if isAuthed() && request.auth.uid == user_id;
+      }
+
+      // Nutrition Strategy Settings subcollection (expenditure + strategy fields)
+      match /nutrition_strategy_settings/{nutrition_strategy_settings_id} {
+        allow read, write: if isAuthed() && request.auth.uid == user_id;
+      }
+
+      // Weekly check-in data, owned by NutritionStrategyManager.
+      // Per-day annotations (partially logged / fasting), keyed by day.
+      match /nutrition_day_annotations/{day_key} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow create: if isAuthed() && request.auth.uid == user_id
+                      && request.resource.data.author_id == user_id;
+        allow update: if isAuthed() && request.auth.uid == user_id
+                      && resource.data.author_id == user_id;
+        allow delete: if isAuthed() && request.auth.uid == user_id
+                      && (resource == null || resource.data.author_id == user_id);
+      }
+
+      // Single-document collections: the open logging break and the check-in record.
+      match /logging_break/{logging_break_id} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow create: if isAuthed() && request.auth.uid == user_id
+                      && request.resource.data.author_id == user_id;
+        allow update: if isAuthed() && request.auth.uid == user_id
+                      && resource.data.author_id == user_id;
+        allow delete: if isAuthed() && request.auth.uid == user_id
+                      && (resource == null || resource.data.author_id == user_id);
+      }
+
+      match /check_in_record/{check_in_record_id} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow create: if isAuthed() && request.auth.uid == user_id
+                      && request.resource.data.author_id == user_id;
+        allow update: if isAuthed() && request.auth.uid == user_id
+                      && resource.data.author_id == user_id;
+        allow delete: if isAuthed() && request.auth.uid == user_id
+                      && (resource == null || resource.data.author_id == user_id);
+      }
+
       // Meal logs: users/{user_id}/meal_logs/{dayKey}/meals/{mealId}
       match /meal_logs/{document=**} {
         allow read, write: if isAuthed() && request.auth.uid == user_id;
@@ -110,8 +168,8 @@ service cloud.firestore {
         allow update, delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
       }
       
-      // Ingredient Templates subcollection
-      match /ingredient_templates/{workout_templates_id} {
+      // Food subcollection
+      match /foods/{food_id} {
         allow read: if isAuthed() && request.auth.uid == user_id;
         allow create: if isAuthed() && request.auth.uid == user_id && request.resource.data.author_id == user_id;
         allow update, delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
@@ -252,6 +310,14 @@ service cloud.firestore {
       allow read: if isAuthed();
       allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
       allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+
+    // ---------------- REPORTS ----------------
+    // Written by FirebaseReportService when a user reports content. Write-once by the
+    // reporter; nobody reads them from the client.
+    match /reports/{report_id} {
+      allow read, update, delete: if false;
+      allow create: if isAuthed() && request.resource.data.author_id == request.auth.uid;
     }
 
     // ---------------- WORKOUT SESSION COMMENTS ----------------
