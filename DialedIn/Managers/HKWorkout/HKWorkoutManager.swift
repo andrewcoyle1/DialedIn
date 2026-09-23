@@ -328,8 +328,10 @@ extension HKWorkoutManager {
         // front, before either the logged value or the stored duration is derived from it.
         let duration = durationSeconds.clamped(to: 0...86_400, whenNotFinite: 0)
         logger.trackEvent(event: Event.startRestCalled(durationSeconds: Int(duration), liveActivityUpdaterIsNil: liveActivityUpdater == nil))
-        // Cancel any existing rest to avoid multiple timers
-        cancelRest()
+        // Only the timer: `cancelRest()` also pushes "no rest" to the Live Activity, and that push
+        // and the one below are two unordered tasks — a "Rest over" frame before every countdown,
+        // or the countdown lost if they ever swap.
+        cancelRestTimer()
 
         restEndTime = Date().addingTimeInterval(duration)
 
@@ -353,15 +355,18 @@ extension HKWorkoutManager {
         }
     }
 
-    /// Cancel any pending rest and clear countdown from Live Activity.
-    func cancelRest() {
-        logger.trackEvent(event: Event.cancelRestCalled)
+    /// Stops the timer and forgets the end time, here and in the app group. No Live Activity push.
+    private func cancelRestTimer() {
         restTimer?.cancel()
         restTimer = nil
         restEndTime = nil
-
-        // Clear from shared storage
         SharedWorkoutStorage.clearRestEndTime()
+    }
+
+    /// Cancel any pending rest and clear countdown from Live Activity.
+    func cancelRest() {
+        logger.trackEvent(event: Event.cancelRestCalled)
+        cancelRestTimer()
 
         // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
         liveActivityUpdater?.updateRestAndActive(
@@ -374,12 +379,7 @@ extension HKWorkoutManager {
     /// Called automatically when the scheduled rest end time is reached.
     func endRest() {
         logger.trackEvent(event: Event.endRestCalled)
-        restTimer?.cancel()
-        restTimer = nil
-        restEndTime = nil
-
-        // Clear from shared storage
-        SharedWorkoutStorage.clearRestEndTime()
+        cancelRestTimer()
 
         // Announced before the Live Activity guards below: a rest that has run out is over whether
         // or not there is an activity left to redraw, and the screen that tells the user is not

@@ -226,6 +226,31 @@ struct HKWorkoutManagerRestTests {
         #expect((manager.restEndTime?.timeIntervalSinceNow ?? 0) > 60)
     }
 
+    /// Replacing used to go through `cancelRest()`, whose "no rest" push and the new countdown's
+    /// push were two unordered tasks: a "Rest over" frame before every countdown, and the countdown
+    /// lost if they ever swapped. Only the timer is cancelled now; the activity sees one push.
+    @Test("Test Replacing A Rest Pushes The New Countdown And Never A Cleared One")
+    func testReplacingARestPushesTheNewCountdownAndNeverAClearedOne() throws {
+        let (manager, spy) = makeManager()
+
+        manager.startRest(durationSeconds: 60, session: session)
+        manager.startRest(durationSeconds: 90, session: session)
+
+        #expect(!spy.restAndActiveUpdates.contains { $0.restEndsAt == nil })
+        #expect(try #require(spy.fullUpdates.last).restEndsAt == manager.restEndTime)
+    }
+
+    /// The split must not cost the cancel its push: one cleared countdown, no more.
+    @Test("Test Cancelling A Rest Pushes Exactly One Cleared Countdown")
+    func testCancellingARestPushesExactlyOneClearedCountdown() {
+        let (manager, spy) = makeManager()
+        manager.startRest(durationSeconds: 90, session: session)
+
+        manager.cancelRest()
+
+        #expect(spy.restAndActiveUpdates.filter { $0.restEndsAt == nil }.count == 1)
+    }
+
     // MARK: - Workout Lifecycle
 
     @Test("Test Ending The Workout Cancels The Rest Without Announcing It")
