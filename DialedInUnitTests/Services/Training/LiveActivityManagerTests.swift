@@ -8,6 +8,7 @@ import Foundation
 @testable import DialedIn
 
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+import ActivityKit
 
 /// The Live Activity updater, seen through what it reports.
 ///
@@ -17,32 +18,10 @@ import Foundation
 @MainActor
 struct LiveActivityManagerTests {
 
-    /// Records what the manager hands the log manager. `LogService` is `Sendable`, so the store
-    /// has to be one too.
-    private final class SpyLogService: LogService, @unchecked Sendable {
-        private let lock = NSLock()
-        private var names: [String] = []
-
-        var trackedEventNames: [String] {
-            lock.withLock { names }
-        }
-
-        func identifyUser(userId: String, name: String?, email: String?) { }
-        func addUserProperties(dict: [String: Any], isHighPriority: Bool) { }
-        func deleteUserProfile() { }
-
-        func trackEvent(event: LoggableEvent) {
-            lock.withLock { names.append(event.eventName) }
-        }
-
-        func trackScreenView(event: LoggableEvent) {
-            lock.withLock { names.append(event.eventName) }
-        }
-    }
-
+    /// The lookup answers nil, as the system does in a test process: there is no activity to find.
     private func makeManager() -> (LiveActivityManager, SpyLogService) {
         let spy = SpyLogService()
-        return (LiveActivityManager(logger: LogManager(services: [spy])), spy)
+        return (LiveActivityManager(logger: LogManager(services: [spy]), activityLookup: { _ in nil }), spy)
     }
 
     private func params(isActive: Bool = true) -> LiveActivityUpdateParams {
@@ -78,6 +57,26 @@ struct LiveActivityManagerTests {
         ])
     }
 
+    /// After iOS evicts the app a Lock Screen tap runs in a fresh process where nothing has ensured
+    /// an activity, so the manager has to ask the system for this session's. With none to find the
+    /// push is dropped and reported, and not remembered: a state recorded here would make the
+    /// equality gate swallow the identical retry once an activity is there to take it.
+    @Test("Test A Push With No Activity To Find Is Reported And Not Remembered")
+    func testAPushWithNoActivityToFindIsReportedAndNotRemembered() {
+        let spy = SpyLogService()
+        var asked: [String] = []
+        let manager = LiveActivityManager(logger: LogManager(services: [spy])) { sessionId in
+            asked.append(sessionId)
+            return nil
+        }
+
+        manager.updateLiveActivity(params: params())
+
+        #expect(asked == ["s1"])
+        #expect(spy.trackedEventNames.contains("LiveActivityMan_UpdateLiveActivity_Fail"))
+        #expect(manager.lastContentState == nil)
+    }
+
     /// The public entry point logged a Start and then called the private one, which logged another,
     /// so every update counted twice.
     @Test("Test One Update Reports One Start")
@@ -91,15 +90,26 @@ struct LiveActivityManagerTests {
 
     /// A tick that changes nothing is not an attempt. The Start used to be logged above the
     /// no-op guard, so unchanged ticks filled the funnel with Starts nothing ever answered.
+    ///
+    /// Only a push that reached an activity is remembered, so this one needs a real activity to
+    /// reach; the test host is the app and can request one.
     @Test("Test An Unchanged Update Reports Nothing")
-    func testAnUnchangedUpdateReportsNothing() {
-        let (manager, spy) = makeManager()
-        manager.updateLiveActivity(params: params())
-        let afterFirst = spy.trackedEventNames.count
+    func testAnUnchangedUpdateReportsNothing() async throws {
+        let spy = SpyLogService()
+        var activity: Activity<WorkoutActivityAttributes>?
+        let manager = LiveActivityManager(logger: LogManager(services: [spy])) { _ in activity }
+        activity = try Activity.request(
+            attributes: WorkoutActivityAttributes(sessionId: "s1", workoutName: "Upper", startedAt: .now, workoutTemplateId: nil),
+            content: ActivityContent(state: manager.makeContentState(params: .init(session: params().session)), staleDate: nil),
+            pushType: nil
+        )
+        defer { Task { await activity?.end(nil, dismissalPolicy: .immediate) } }
 
         manager.updateLiveActivity(params: params())
+        manager.updateLiveActivity(params: params())
 
-        #expect(spy.trackedEventNames.count == afterFirst)
+        #expect(spy.trackedEventNames.filter { $0 == "LiveActivityMan_UpdateLiveActivity_Start" }.count == 1)
+        #expect(!spy.trackedEventNames.contains("LiveActivityMan_UpdateLiveActivity_Fail"))
     }
 
     // MARK: - The content state

@@ -16,6 +16,7 @@ import Testing
 @testable import DialedIn
 
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+import ActivityKit
 
 @MainActor
 struct LiveActivityScenarioTests {
@@ -81,6 +82,36 @@ struct LiveActivityScenarioTests {
         let sessions: WorkoutSessionManager
         let hkWorkoutManager: HKWorkoutManager
         let activity: LiveActivityManager
+        let log: SpyLogService
+        let system: SystemActivity
+    }
+
+    /// Stands in for `Activity.activities` as the manager's lookup. The manager starts with no
+    /// activity, the way a process launched by a Lock Screen tap does, and must ask the system for
+    /// this session's on the first push; the answer is a real activity requested here, since the
+    /// test host is the app and can hold one.
+    final class SystemActivity {
+        var initialState: WorkoutActivityAttributes.ContentState?
+        private(set) var activity: Activity<WorkoutActivityAttributes>?
+        private(set) var askedFor: [String] = []
+
+        func lookup(sessionId: String) -> Activity<WorkoutActivityAttributes>? {
+            askedFor.append(sessionId)
+            if activity == nil, let initialState {
+                activity = try? Activity.request(
+                    attributes: WorkoutActivityAttributes(
+                        sessionId: sessionId, workoutName: "Full Body", startedAt: .now, workoutTemplateId: nil
+                    ),
+                    content: ActivityContent(state: initialState, staleDate: nil),
+                    pushType: nil
+                )
+            }
+            return activity
+        }
+
+        func dismiss() async {
+            await activity?.end(nil, dismissalPolicy: .immediate)
+        }
     }
 
     private func makeRig() async throws -> Rig {
@@ -93,7 +124,10 @@ struct LiveActivityScenarioTests {
         let sessions = TestManagers.workoutSessionManager()
         try sessions.updateActiveSession(session())
 
-        let activity = LiveActivityManager(logger: LogManager())
+        let log = SpyLogService()
+        let system = SystemActivity()
+        let activity = LiveActivityManager(logger: LogManager(services: [log]), activityLookup: system.lookup)
+        system.initialState = activity.makeContentState(params: .init(session: session()))
         let hkWorkoutManager = HKWorkoutManager(logger: LogManager(), liveActivityUpdater: activity)
         let handler = AppLiveActivityIntentHandler(
             workoutSessionManager: sessions,
@@ -103,7 +137,20 @@ struct LiveActivityScenarioTests {
             exerciseSettingsManager: TestManagers.exerciseSettingsManager(),
             exerciseModelManager: TestManagers.exerciseModelManager()
         )
-        return Rig(handler: handler, sessions: sessions, hkWorkoutManager: hkWorkoutManager, activity: activity)
+        return Rig(
+            handler: handler, sessions: sessions, hkWorkoutManager: hkWorkoutManager,
+            activity: activity, log: log, system: system
+        )
+    }
+
+    /// Every push reached an activity: the manager found the system's on the first push and no
+    /// push was dropped for lack of one. Then takes the activity off the Lock Screen.
+    private func expectEveryPushReachedTheActivity(_ rig: Rig) async {
+        #expect(rig.system.askedFor.first == "scenario-session", "the manager never asked the system for the activity")
+        #expect(rig.system.activity != nil, "the test host could not request an activity")
+        #expect(!rig.log.trackedEventNames.contains("LiveActivityMan_UpdateLiveActivity_Fail"), "a push was dropped")
+        #expect(!rig.log.trackedEventNames.contains("LiveActivityMan_EndLiveActivity_Fail"), "the end was dropped")
+        await rig.system.dismiss()
     }
 
     /// What the Lock Screen would show for the last state the app pushed.
@@ -205,6 +252,7 @@ struct LiveActivityScenarioTests {
         }
         #expect(summary.completedSetsCount == Self.setsDone)
         #expect(summary.totalExercisesCount == 4)
+        await expectEveryPushReachedTheActivity(rig)
     }
 
     /// Correcting the reps during the rest changes the logged set the banner names, and only that.
@@ -237,6 +285,7 @@ struct LiveActivityScenarioTests {
         #expect(saved.reps == 6)
         #expect(saved.completedAt != nil)
         #expect(saved.weightKg == 65)
+        await expectEveryPushReachedTheActivity(rig)
     }
 
     /// After the last set of an exercise the activity must not point at that exercise: there is
@@ -269,6 +318,7 @@ struct LiveActivityScenarioTests {
         if case .exerciseDone = try phase(rig, now: until.addingTimeInterval(1), isStale: false) {
             Issue.record("the activity fell into .exerciseDone, which has no button")
         }
+        await expectEveryPushReachedTheActivity(rig)
     }
 }
 

@@ -15,9 +15,22 @@ import ActivityKit
 class LiveActivityManager: LiveActivityUpdating {
     
     private let logger: LogManager
-    
-    init(logger: LogManager) {
+
+    /// Finds the system's activity for a session when `currentActivity` is nil. Every handler push
+    /// after iOS has evicted the app runs in a fresh process where nothing has started or ensured
+    /// an activity, so the manager has to find the one on the Lock Screen by session id or every
+    /// action is dropped. Injected so tests, which cannot start an activity, can see what the
+    /// manager asked for and hand one back.
+    private let activityLookup: (String) -> Activity<WorkoutActivityAttributes>?
+
+    init(
+        logger: LogManager,
+        activityLookup: @escaping (String) -> Activity<WorkoutActivityAttributes>? = { sessionId in
+            Activity<WorkoutActivityAttributes>.activities.first { $0.attributes.sessionId == sessionId }
+        }
+    ) {
         self.logger = logger
+        self.activityLookup = activityLookup
     }
     
 	// The currently active Workout Live Activity
@@ -43,8 +56,7 @@ class LiveActivityManager: LiveActivityUpdating {
         statusMessage: String? = nil
     ) {
         // Attempt to find an existing activity for this session
-        if let existing = existingActivity(for: session.id) {
-            currentActivity = existing
+        if let existing = resolveActivity(sessionId: session.id), Self.isUpdatable(existing) {
             updateLiveActivity(
                 params: LiveActivityUpdateParams(
                     session: session,
@@ -93,7 +105,7 @@ class LiveActivityManager: LiveActivityUpdating {
             )
         )
         
-        self.updateLiveActivity(contentState: updatedState)
+        self.updateLiveActivity(sessionId: params.session.id, contentState: updatedState)
     }
     
     /// Ensure a Workout Live Activity using data from the given session
@@ -142,26 +154,30 @@ class LiveActivityManager: LiveActivityUpdating {
         // Use different dismissal policies based on completion state
         let dismissalPolicy: ActivityUIDismissalPolicy = isCompleted ? .default : .immediate
 
+        guard let activity = resolveActivity(sessionId: session.id) else {
+            logger.trackEvent(event: Event.endLiveActivityFail(error: LiveActivityError.noUpdatableActivity))
+            return
+        }
         Task {
-            await self.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
+            await activity.end(ActivityContent(state: finalState, staleDate: nil), dismissalPolicy: dismissalPolicy)
             logger.trackEvent(event: Event.endLiveActivitySuccess)
         }
     }
-    
-    private func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
-        guard let activity = currentActivity else {
-            return
+
+    /// `currentActivity` when it is this session's, else whatever the lookup finds, adopted and
+    /// observed from here on. Nil when the system has no activity for the session.
+    private func resolveActivity(sessionId: String) -> Activity<WorkoutActivityAttributes>? {
+        if let currentActivity, currentActivity.attributes.sessionId == sessionId {
+            return currentActivity
         }
-        
-        Task {
-            await activity.end(
-                ActivityContent(
-                    state: finalState,
-                    staleDate: nil
-                ),
-                dismissalPolicy: dismissalPolicy
-            )
-        }
+        guard let found = activityLookup(sessionId) else { return nil }
+        currentActivity = found
+        observeActivity(activity: found)
+        return found
+    }
+
+    private static func isUpdatable(_ activity: Activity<WorkoutActivityAttributes>) -> Bool {
+        activity.activityState == .active || activity.activityState == .stale
     }
 
     /// Start a Workout Live Activity using data from the given session
@@ -185,11 +201,10 @@ class LiveActivityManager: LiveActivityUpdating {
             return
         }
 
-        // Reuse an existing activity if present (e.g. after app launch)
-        if let existing = firstExistingActivity() {
-            self.currentActivity = existing
-            observeActivity(activity: existing)
-            return
+        // `ensureLiveActivity` has already looked for this session's activity. Anything else still
+        // showing belongs to an earlier workout and would otherwise be adopted with the wrong name.
+        for other in Activity<WorkoutActivityAttributes>.activities where other.attributes.sessionId != session.id {
+            Task { await other.end(nil, dismissalPolicy: .immediate) }
         }
 
         do {
@@ -207,24 +222,24 @@ class LiveActivityManager: LiveActivityUpdating {
         }
     }
     
-    private func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
+    private func updateLiveActivity(sessionId: String, contentState: WorkoutActivityAttributes.ContentState) {
         // Only update if meaningful changes occurred. A skipped no-op is not an attempt, so the
         // Start belongs below the guard — logging it above gave every unchanged tick a Start with
         // no terminal event and buried the real failures.
         guard shouldUpdateLiveActivity(contentState: contentState) else { return }
 
         logger.trackEvent(event: Event.updateLiveActivityStart)
-        self.lastContentState = contentState
 
         // Guard activity existence and acceptable state to avoid runtime errors
-        guard let activity = self.currentActivity,
-              activity.activityState == .active ||
-                activity.activityState == .stale else {
+        guard let activity = resolveActivity(sessionId: sessionId), Self.isUpdatable(activity) else {
             // The activity was dismissed or ended under us. This used to fall out of the `if` with
             // nothing logged, so a Live Activity that stopped updating mid-workout was invisible.
             logger.trackEvent(event: Event.updateLiveActivityFail(error: LiveActivityError.noUpdatableActivity))
             return
         }
+        // Recorded only once there is something to push to: a dropped push that was remembered
+        // here made the equality gate swallow the identical retry.
+        self.lastContentState = contentState
 
         Task {
             await activity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
@@ -297,17 +312,6 @@ class LiveActivityManager: LiveActivityUpdating {
         )
         self.currentActivity = activity
         observeActivity(activity: activity)
-    }
-
-    private func firstExistingActivity() -> Activity<WorkoutActivityAttributes>? {
-        Activity<WorkoutActivityAttributes>.activities.first
-    }
-
-    private func existingActivity(for sessionId: String) -> Activity<WorkoutActivityAttributes>? {
-        Activity<WorkoutActivityAttributes>
-            .activities
-            .first {
-                $0.attributes.sessionId == sessionId && $0.activityState == .active }
     }
 
     struct MakeContentStateParams {
