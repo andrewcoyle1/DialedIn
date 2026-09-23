@@ -112,6 +112,46 @@ struct LiveActivityManagerTests {
         #expect(!spy.trackedEventNames.contains("LiveActivityMan_UpdateLiveActivity_Fail"))
     }
 
+    /// The rest push used to be the odd one out: it rebuilt the state memberwise inside its own
+    /// task, skipped the equality gate and logged nothing. It is now the same door as every other
+    /// push, so an unchanged rest is quiet and a changed one is a Start that reaches the activity.
+    @Test("Test A Rest Update Is Gated And Logged Like Any Other Push")
+    func testARestUpdateIsGatedAndLoggedLikeAnyOtherPush() async throws {
+        let spy = SpyLogService()
+        var activity: Activity<WorkoutActivityAttributes>?
+        let manager = LiveActivityManager(logger: LogManager(services: [spy])) { _ in activity }
+        activity = try Activity.request(
+            attributes: WorkoutActivityAttributes(sessionId: "s1", workoutName: "Upper", startedAt: .now, workoutTemplateId: nil),
+            content: ActivityContent(state: manager.makeContentState(params: .init(session: params().session)), staleDate: nil),
+            pushType: nil
+        )
+        defer { Task { await activity?.end(nil, dismissalPolicy: .immediate) } }
+        manager.updateLiveActivity(params: params())
+        let startsAfterFirstPush = spy.trackedEventNames.filter { $0 == "LiveActivityMan_UpdateLiveActivity_Start" }.count
+
+        manager.updateRestAndActive(isActive: true, restEndsAt: nil, statusMessage: nil)
+        #expect(spy.trackedEventNames.filter { $0 == "LiveActivityMan_UpdateLiveActivity_Start" }.count == startsAfterFirstPush)
+
+        let restEndsAt = Date().addingTimeInterval(90)
+        manager.updateRestAndActive(isActive: true, restEndsAt: restEndsAt, statusMessage: "Resting")
+        #expect(spy.trackedEventNames.filter { $0 == "LiveActivityMan_UpdateLiveActivity_Start" }.count == startsAfterFirstPush + 1)
+        #expect(!spy.trackedEventNames.contains("LiveActivityMan_UpdateLiveActivity_Fail"))
+        #expect(manager.lastContentState?.restEndsAt == restEndsAt)
+        #expect(manager.lastContentState?.statusMessage == "Resting")
+    }
+
+    /// With nothing pushed yet there is no exercise to carry over, so the rest push has nothing
+    /// to build on and is dropped without an attempt being logged.
+    @Test("Test A Rest Update Before Any Push Is Dropped Quietly")
+    func testARestUpdateBeforeAnyPushIsDroppedQuietly() {
+        let (manager, spy) = makeManager()
+
+        manager.updateRestAndActive(isActive: true, restEndsAt: Date().addingTimeInterval(90), statusMessage: "Resting")
+
+        #expect(spy.trackedEventNames.isEmpty)
+        #expect(manager.lastContentState == nil)
+    }
+
     // MARK: - The content state
 
     private func set(

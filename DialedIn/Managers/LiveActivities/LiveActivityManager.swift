@@ -406,64 +406,20 @@ class LiveActivityManager: LiveActivityUpdating {
             .max { ($0.completedAt ?? .distantPast) < ($1.completedAt ?? .distantPast) }
     }
 
-    /// Update only isActive/rest/status from current content state to avoid recomputing set counts
+    /// Only isActive/rest/status change; everything else is carried over from the last push, so the
+    /// exercise the activity is showing survives a rest ending. The same door as every other push:
+    /// logged, gated on equality, remembered. Nothing to carry over means nothing has reached an
+    /// activity yet, and there is no exercise to preserve.
     func updateRestAndActive(
         isActive: Bool,
         restEndsAt: Date?,
         statusMessage: String? = nil
     ) {
-        Task { @MainActor in
-            guard let activity = self.currentActivity else { return }
-            // Start from existing content state to preserve counts and progress
-            let previous = self.lastContentState
-            let newState = WorkoutActivityAttributes.ContentState(
-                isActive: isActive,
-                completedSetsCount: previous?.completedSetsCount ?? 0,
-                totalSetsCount: previous?.totalSetsCount ?? 0,
-                currentExerciseName: previous?.currentExerciseName,
-                currentExerciseImageName: previous?.currentExerciseImageName,
-                currentExerciseIndex: previous?.currentExerciseIndex ?? 0,
-                totalExercisesCount: previous?.totalExercisesCount ?? 0,
-                currentExerciseCompletedSetsCount: previous?.currentExerciseCompletedSetsCount ?? 0,
-                currentExerciseTotalSetsCount: previous?.currentExerciseTotalSetsCount ?? 0,
-                targetIsWarmup: previous?.targetIsWarmup ?? false,
-                targetSetId: previous?.targetSetId,
-                targetWeightKg: previous?.targetWeightKg,
-                targetReps: previous?.targetReps,
-                targetDistanceMeters: previous?.targetDistanceMeters,
-                targetDurationSec: previous?.targetDurationSec,
-                restEndsAt: restEndsAt,
-                statusMessage: statusMessage ?? previous?.statusMessage,
-                totalVolumeKg: previous?.totalVolumeKg,
-                progress: previous?.progress ?? 0,
-                isWorkoutEnded: false,
-                endedSuccessfully: nil,
-                finalDurationSeconds: nil,
-                finalVolumeKg: nil,
-                finalCompletedSetsCount: nil,
-                finalTotalExercisesCount: nil,
-                isProcessingIntent: false,
-                lastIntentTimestamp: nil,
-                isAllSetsComplete: previous?.isAllSetsComplete ?? false,
-                lastLoggedSetId: previous?.lastLoggedSetId,
-                lastLoggedReps: previous?.lastLoggedReps,
-                lastLoggedWeightKg: previous?.lastLoggedWeightKg,
-                nextExerciseName: previous?.nextExerciseName,
-                nextExerciseFirstTargetWeightKg: previous?.nextExerciseFirstTargetWeightKg,
-                nextExerciseFirstTargetReps: previous?.nextExerciseFirstTargetReps,
-                nextExerciseFirstTargetDistanceMeters: previous?.nextExerciseFirstTargetDistanceMeters,
-                nextExerciseFirstTargetDurationSec: previous?.nextExerciseFirstTargetDurationSec
-            )
-            // Reflect locally and push update with staleDate aligned to rest end
-            self.lastContentState = newState
-            await activity.update(
-                ActivityContent(
-                    state: newState,
-                    staleDate: restEndsAt,
-                    relevanceScore: 100
-                )
-            )
-        }
+        guard var state = lastContentState, let sessionId = currentActivity?.attributes.sessionId else { return }
+        state.isActive = isActive
+        state.restEndsAt = restEndsAt
+        state.statusMessage = statusMessage ?? state.statusMessage
+        updateLiveActivity(sessionId: sessionId, contentState: state)
     }
 
     // MARK: - Derived state helpers
