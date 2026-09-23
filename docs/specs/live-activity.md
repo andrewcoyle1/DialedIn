@@ -139,19 +139,59 @@ The island is always rendered on black; it uses semantic colours and never reads
 
 ## 6. Tests
 
-- `LiveActivityPhaseTests` (`DialedInUnitTests/`): one case per row of the §2 table, plus:
-  ended beats paused; paused beats resting; `isStale` with a live `restEndsAt` still gives
-  `.restOver`; rest with no `lastLoggedSetId` gives `.resting(logged: nil)`; a half-finished last
-  pair is still `.ready`.
-- `SetTargetLabelTests`: the four tracking shapes, kg and lb, nil pieces omitted.
-- `AdjustLastSetRepsIntentTests`: writes the pending adjustment with the clamped reps; no-op
-  without a logged set; no-op after the rest ends; two taps leave one slot holding the latest.
-- `WorkoutSessionManagerTests`: consuming a pending adjustment updates that set's reps and
-  nothing else; an unknown set id is dropped.
-- `LiveActivityManagerTests`: completing a set from the app populates `lastLogged*`; the rest
-  ending clears them.
+All under `DialedInUnitTests/`. The phase derivation is where the behaviour lives; the views are
+one switch each, and there are no UI tests.
 
-No UI tests. The phase derivation is where the behaviour lives; the views are one switch each.
+- `LiveActivityPhaseTests` (`Managers/`): one case per row of the §2 table, plus the precedence
+  rules — ended beats paused, paused beats resting; `isStale` with a live `restEndsAt` still
+  gives `.restOver`; rest with no `lastLoggedSetId` gives `.resting(logged: nil)`; a
+  half-finished last pair is still `.ready`; the last exercise with its sets done is
+  `.allSetsDone`, never a per-exercise "done".
+- `LiveActivitySetTargetLabelTests`: the four tracking shapes, kg and lb, fractional kg keeps one
+  decimal, distances over a kilometre read in km, nil pieces omitted, a logged set reads like a
+  target.
+- `LiveActivityEventNameTests`: the start events are named the way update and end are.
+- `LiveActivityRequestingTests` (`@Suite(.serialized)`, declared in
+  `Managers/LiveActivityScenarioTests.swift`, extended in
+  `Services/Training/LiveActivityManagerTests.swift`): the one suite that requests a real
+  `Activity` in the test host, serialised because parallel requests have returned nil.
+  - Scenarios: a four-exercise workout completed entirely from the activity, checking the phase
+    after every tap; a workout ending on a unilateral exercise is not done after the left half
+    of its last pair; a reps correction during the rest reaches the activity; the last set of
+    an exercise moves the activity to the next; the exercise's pounds preference reaches the
+    push.
+  - Manager: a push with no activity is reported and not remembered; an unchanged push reports
+    nothing, but still lands while the activity is loading; rest updates are gated and logged
+    like any push and dropped before the first one; `weightUnit` follows the current exercise;
+    `lastLogged*` populated during a rest and empty without one; a finished exercise index
+    advances to the next with work left, or the first anywhere, and the last keeps its index;
+    half-done pairs count as neither a completed set nor all sets done.
+- `LiveActivityIntentHandlerTests` (`@Suite(.serialized)`, on `TestManagers`): `completeSet`
+  logs exactly that set with its own targets, starts the settings-derived rest (none with rest
+  timers off), pushes the saved session, drops an unknown or already-logged set but still
+  pushes so the button re-enables; `adjustLastSetReps` changes only reps, clamps to 0…99, is a
+  no-op outside the rest or for an unknown id, and finds the rest after a cold launch;
+  `adjustRest` moves the end time (extends the stored one after a cold launch); `skipRest` ends
+  it; `completeWorkout` ends the session, pre-completes the rest days that follow, and does
+  nothing without a session; completing the last set advances the activity.
+- `AdjustLastSetRepsIntentTests`: the correction applies the delta during the rest, is nothing
+  without a logged set, closes with the rest, and clamps to 0…99.
+- `HKWorkoutManagerRestTests` (`@Suite(.serialized)`): starting a rest sets and shares the end
+  time and puts one countdown on the activity; negative and non-finite durations are sanitised;
+  a rest that runs out announces itself (even without an updater) and clears the shared copy; a
+  cancelled rest announces nothing and pushes exactly one cleared countdown; a second rest
+  replaces the first and never pushes a cleared one; ending or discarding the workout cancels
+  the rest silently; a manager released mid-rest is deallocated.
+- `RestDurationRulesTests`: one case per row of `RestDurationRules.restAfterCompleting` —
+  custom rest unscaled; warm-up scaling; last warm-up with `restAfterLastWarmUp` off → nil; left
+  half of a pair uses `sideSetRestScaling` and `restBetweenSideSets` off → nil; right half rests
+  between sets; last working set uses `betweenExercisesRestScaling` and `restBetweenExercises`
+  off → nil; scaling to 0 → nil; the base is the narrowest setting, with a zero override treated
+  as none.
+- `WorkoutTrackerPresenterTests` (`Core/`, the "Live Activity's writes" section): a session
+  saved elsewhere is adopted; an unchanged one is not re-adopted; another workout's session is
+  ignored; a workout finished elsewhere dismisses the screen and stops its writes; coming to the
+  foreground (`.inactive → .active`) adopts; a session arriving mid-`updateSet` is not adopted.
 
 ## 7. In-process intent handling (v1.1, replaces the shared-storage hand-off)
 
