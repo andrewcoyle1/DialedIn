@@ -63,7 +63,7 @@ Fixed height across phases so the banner does not jump when a set completes. Two
 | Phase | Row 1 | Row 2 |
 |---|---|---|
 | `.ready` | exercise image · **Exercise name** · `Set 2 of 4` | **60 kg × 8** · [✓ Complete] |
-| `.resting` | `Logged 60 kg × 8` · [−] [+] on reps | rest ring + countdown · `Next 60 kg × 8` · [+15s] [Skip] |
+| `.resting` | `Logged 60 kg × 8` · [−] [+] on reps | rest ring with countdown inside · `Next 60 kg × 8` · [+15s] [Skip] |
 | `.restOver` | exercise image · **Exercise name** · `Set 3 of 4` | `Rest over` · **60 kg × 8** · [✓ Complete] |
 | `.exerciseDone` | ✓ **Exercise name** done | `Next: Incline press` · `60 kg × 8` |
 | `.allSetsDone` | ✓ **All sets complete** | [Finish] |
@@ -233,8 +233,12 @@ behaviour degrades rather than disappears.
 ### 7.5 Duplicate countdown
 
 `ProgressView(timerInterval:countsDown:)` in the circular style draws the remaining time as its
-own label. The banner and island show it once: the ring with `.labelsHidden()`, and the
-`Text(timerInterval:)` beside it at body size.
+own label, at a size it picks that does not fit inside a row-height ring, and `.labelsHidden()`
+does not remove it. `RestRing` suppresses it by passing an empty `currentValueLabel` and draws the
+countdown itself, as a `Text(timerInterval:)` overlaid on the ring at `0.3 × size`. The island's
+compact leading and minimal slots use `showsCountdown: false` for the bare ring, since the
+trailing slot already shows the time. Both timer ranges are `Date()...max(until, Date())`, so a
+rest that ends between phase derivation and render cannot trip `ClosedRange`'s precondition.
 
 ## 8. Out of scope
 

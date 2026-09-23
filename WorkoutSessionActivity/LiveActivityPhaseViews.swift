@@ -193,10 +193,6 @@ struct LiveActivityPhaseContent: View {
     private func restingTimerRow(until: Date, next: LiveActivitySetTarget?) -> some View {
         HStack(spacing: 8) {
             RestRing(until: until)
-//            Text(timerInterval: Date()...until, countsDown: true)
-//                .monospacedDigit()
-//                .lineLimit(1)
-//                .frame(width: 44)
             if let label = next?.label(weightUnit: LiveActivityLayout.weightUnit) {
                 Text("Next \(label)")
                     .foregroundStyle(.secondary)
@@ -332,18 +328,47 @@ struct ExerciseImage: View {
     }
 }
 
-/// The circular rest countdown.
+/// The rest countdown as a ring with the time left inside it.
+///
+/// The system circular style draws its own label at a size it picks, which at row height does
+/// not fit inside the ring, so the label is hidden and the countdown is drawn as an overlay
+/// scaled to the ring. `showsCountdown: false` gives the bare ring for the island's compact
+/// slots, where the trailing slot already shows the time.
 struct RestRing: View {
 
     let until: Date
-    var size: CGFloat = 22
+    var size: CGFloat = LiveActivityLayout.rowHeight
+    var showsCountdown: Bool = true
+
+    /// The countdown's font as a share of the ring: four monospaced digits and a colon at this
+    /// size sit inside the ring with the stroke clear on both sides.
+    private static let countdownScale: CGFloat = 0.3
+    /// The width the countdown may use inside the ring, inside the stroke.
+    private static let countdownWidthScale: CGFloat = 0.72
 
     var body: some View {
-        ProgressView(timerInterval: Date()...until, countsDown: true)
+        // The circular timer style draws its own countdown inside the ring and `.labelsHidden()`
+        // does not remove it, so the current-value label is given as empty and the time is
+        // drawn once, by the overlay.
+        ProgressView(timerInterval: Date()...max(until, Date()), countsDown: true) {
+            EmptyView()
+        } currentValueLabel: {
+            EmptyView()
+        }
             .progressViewStyle(.circular)
-            .labelsHidden()
             .tint(.accent)
             .frame(width: size, height: size)
+            .overlay {
+                if showsCountdown {
+                    Text(timerInterval: Date()...max(until, Date()), countsDown: true, showsHours: false)
+                        .font(.system(size: size * Self.countdownScale, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                        .multilineTextAlignment(.center)
+                        .frame(width: size * Self.countdownWidthScale)
+                }
+            }
     }
 }
 
