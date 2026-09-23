@@ -244,7 +244,6 @@ class HKWorkoutManager: NSObject {
             guard let self else { return }
             Task { @MainActor in
                 self.metrics.elapsedTime = self.builder?.elapsedTime ?? 0
-                self.syncRestEndTimeFromSharedStorage()
             }
         }
     }
@@ -310,45 +309,6 @@ extension HKWorkoutManager: HKLiveWorkoutBuilderDelegate {
 
 // MARK: - Rest Timer Management
 extension HKWorkoutManager {
-    /// Sync rest end time from shared storage (called by timer to pick up widget changes)
-    func syncRestEndTimeFromSharedStorage() {
-        let sharedRestEndTime = SharedWorkoutStorage.restEndTime
-        
-        // Only update if there's a meaningful difference (more than 0.5 seconds)
-        if let sharedTime = sharedRestEndTime, let currentTime = restEndTime {
-            let difference = abs(sharedTime.timeIntervalSince(currentTime))
-            if difference > 0.5 {
-                restEndTime = sharedTime
-                // Reschedule the timer with new end time
-                if let endTime = restEndTime {
-                    scheduleRestEndTimer(endTime: endTime)
-                }
-                // Push an immediate Live Activity update so UI reflects changes without 1s delay
-                if activeSessionModel != nil {
-                    liveActivityUpdater?.updateRestAndActive(
-                        isActive: isWorkoutActive,
-                        restEndsAt: restEndTime,
-                        statusMessage: "Resting"
-                    )
-                }
-            }
-        } else if sharedRestEndTime == nil && restEndTime != nil {
-            // Rest was cleared by widget
-            restEndTime = nil
-            // Cancel any scheduled timer
-            restTimer?.cancel()
-            restTimer = nil
-            // Push an immediate Live Activity update to clear UI
-            if activeSessionModel != nil {
-                liveActivityUpdater?.updateRestAndActive(
-                    isActive: isWorkoutActive,
-                    restEndsAt: nil,
-                    statusMessage: nil
-                )
-            }
-        }
-    }
-    
     /// Begin a rest period and schedule a background-safe update at rest end.
     @MainActor
     func startRest(durationSeconds: Int, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {
@@ -448,7 +408,7 @@ extension HKWorkoutManager {
     // MainActor. `timer.resume()` arms the timer immediately, and storing it into `restTimer` used
     // to be deferred to a separate `Task { @MainActor ... }` hop — which meant a caller that started
     // a rest and cancelled it again in the same synchronous scope (as `cancelRest()`,
-    // `syncRestEndTimeFromSharedStorage()`, `endWorkout()` and `discardWorkout()` can all do) found
+    // `endWorkout()` and `discardWorkout()` can all do) found
     // `restTimer` still nil and had nothing to cancel, leaving the real timer armed to fire and
     // announce a rest that had already been called off. Assigning synchronously here closes that
     // window: `restTimer` holds the live timer before this function returns.
@@ -574,11 +534,6 @@ extension CoreInteractor {
     }
 
     // Rest Timer Management
-    @MainActor
-    func syncRestEndTimeFromSharedStorage() {
-        hkWorkoutManager.syncRestEndTimeFromSharedStorage()
-    }
-
     /// Begin a rest period and schedule a background-safe update at rest end.
     @MainActor
     func startRest(durationSeconds: Int, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {

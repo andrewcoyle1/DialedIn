@@ -226,51 +226,6 @@ struct HKWorkoutManagerRestTests {
         #expect((manager.restEndTime?.timeIntervalSinceNow ?? 0) > 60)
     }
 
-    // MARK: - Widget Changes
-
-    /// The widget can extend a rest, and the phone then has to ding at the new time rather than the
-    /// old one. The reschedule used to overwrite the stored timer without cancelling it, leaving
-    /// the original still scheduled and still able to fire.
-    @Test("Test A Rest Extended From The Widget Does Not Announce At The Old Time")
-    func testARestExtendedFromTheWidgetDoesNotAnnounceAtTheOldTime() async {
-        let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
-        manager.startRest(duration: Self.briefRest, session: session)
-
-        SharedWorkoutStorage.restEndTime = Date().addingTimeInterval(3600)
-        manager.syncRestEndTimeFromSharedStorage()
-
-        #expect(await announced(posts) == false)
-        #expect((manager.restEndTime?.timeIntervalSinceNow ?? 0) > 60)
-    }
-
-    @Test("Test A Rest Cleared From The Widget Cancels The Timer")
-    func testARestClearedFromTheWidgetCancelsTheTimer() async {
-        let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
-        manager.startRest(duration: Self.briefRest, session: session)
-
-        SharedWorkoutStorage.clearRestEndTime()
-        manager.syncRestEndTimeFromSharedStorage()
-
-        #expect(manager.restEndTime == nil)
-        #expect(await announced(posts) == false)
-    }
-
-    /// Both sides write the same rest a moment apart, so only a difference worth acting on counts
-    /// as a change — otherwise every tick would reschedule the timer.
-    @Test("Test A Shared End Time Within Half A Second Is Left Alone")
-    func testASharedEndTimeWithinHalfASecondIsLeftAlone() throws {
-        let (manager, _) = makeManager()
-        manager.startRest(durationSeconds: 90, session: session)
-        let end = try #require(manager.restEndTime)
-
-        SharedWorkoutStorage.restEndTime = end.addingTimeInterval(0.2)
-        manager.syncRestEndTimeFromSharedStorage()
-
-        #expect(manager.restEndTime == end)
-    }
-
     // MARK: - Workout Lifecycle
 
     @Test("Test Ending The Workout Cancels The Rest Without Announcing It")
