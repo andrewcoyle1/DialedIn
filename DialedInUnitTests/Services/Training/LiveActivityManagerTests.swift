@@ -314,10 +314,54 @@ struct LiveActivityManagerTests {
             side: nil, isWarmup: false, completedAt: nil, dateCreated: logged
         )
 
-        #expect(LiveActivityManager.fullyCompletedRows(in: [left, right, second]).pairedSetCount == 0)
+        #expect([left, right, second].fullyCompletedPairedSetCount == 0)
 
         right.completedAt = logged
-        #expect(LiveActivityManager.fullyCompletedRows(in: [left, right, second]).pairedSetCount == 1)
+        #expect([left, right, second].fullyCompletedPairedSetCount == 1)
+    }
+
+    /// With every other set done and the left half of the last pair logged, the workout is not
+    /// over: the whole-workout totals used to read the lone left row as a finished set, so the
+    /// banner showed "All sets complete" and offered Finish with the right row still to do.
+    @Test("Test A Half Done Last Pair Is Not All Sets Done")
+    func testAHalfDoneLastPairIsNotAllSetsDone() {
+        let logged = Date()
+        func row(_ id: String, index: Int, side: SetSide, done: Bool) -> WorkoutSetModel {
+            WorkoutSetModel(
+                id: id, authorId: "author-1", index: index, reps: 8, weightKg: 20,
+                side: side, isWarmup: false, completedAt: done ? logged : nil, dateCreated: logged
+            )
+        }
+        let session = WorkoutSessionModel(
+            id: "s4",
+            authorId: "author-1",
+            name: "Arms",
+            dateCreated: logged,
+            exercises: [
+                exercise(id: "e1", name: "Single-arm row", index: 1, sets: [
+                    row("1L", index: 1, side: .left, done: true),
+                    row("1R", index: 2, side: .right, done: true),
+                    row("2L", index: 3, side: .left, done: true),
+                    row("2R", index: 4, side: .right, done: false)
+                ])
+            ]
+        )
+
+        let (manager, _) = makeManager()
+        let state = manager.makeContentState(
+            params: LiveActivityManager.MakeContentStateParams(
+                session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: nil
+            )
+        )
+
+        #expect(state.targetSetId == "2R")
+        #expect(state.isAllSetsComplete == false)
+        #expect(state.progress < 1)
+        guard case .ready(_, let position) = LiveActivityPhase(state: state, now: logged, isStale: false) else {
+            Issue.record("expected .ready, got \(LiveActivityPhase(state: state, now: logged, isStale: false))")
+            return
+        }
+        #expect(position == SetPosition(index: 2, total: 2))
     }
 
     /// Two warm-ups then four working sets read as "Warmup 1 of 2" ... "Set 1 of 4", never as six.
@@ -362,10 +406,10 @@ struct LiveActivityManagerTests {
             side: .right, isWarmup: false, completedAt: logged, dateCreated: logged
         )
 
-        #expect(LiveActivityManager.fullyCompletedRows(in: [left, right]).pairedSetCount == 0)
+        #expect([left, right].fullyCompletedPairedSetCount == 0)
 
         left.completedAt = logged
-        #expect(LiveActivityManager.fullyCompletedRows(in: [left, right]).pairedSetCount == 1)
+        #expect([left, right].fullyCompletedPairedSetCount == 1)
     }
 }
 

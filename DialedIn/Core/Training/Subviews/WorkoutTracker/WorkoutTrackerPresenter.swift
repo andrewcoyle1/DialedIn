@@ -178,7 +178,7 @@ class WorkoutTrackerPresenter {
     
     /// Counted per exercise so a left/right pair is the one set it is — see `WorkoutSetPairing`.
     var completedSetsCount: Int {
-        workoutSession.exercises.reduce(0) { $0 + $1.sets.filter { $0.completedAt != nil }.pairedSetCount }
+        workoutSession.exercises.reduce(0) { $0 + $1.sets.fullyCompletedPairedSetCount }
     }
     
     var totalSetsCount: Int {

@@ -64,13 +64,15 @@ struct LiveActivityScenarioTests {
 
     /// Four exercises; the second is unilateral, so the rows to tap number 6 + 10 + 6 + 6 = 28
     /// while the sets the user did number 24.
-    private func session() -> WorkoutSessionModel {
+    private func session(
+        exercises: [WorkoutExerciseModel]? = nil
+    ) -> WorkoutSessionModel {
         WorkoutSessionModel(
             id: "scenario-session",
             authorId: "author-1",
             name: "Full Body",
             dateCreated: Self.start,
-            exercises: [exercise(1), exercise(2, unilateral: true), exercise(3), exercise(4)]
+            exercises: exercises ?? [exercise(1), exercise(2, unilateral: true), exercise(3), exercise(4)]
         )
     }
 
@@ -114,20 +116,21 @@ struct LiveActivityScenarioTests {
         }
     }
 
-    private func makeRig() async throws -> Rig {
+    private func makeRig(session: WorkoutSessionModel? = nil) async throws -> Rig {
         SharedWorkoutStorage.clearRestEndTime()
+        let session = session ?? self.session()
 
         var settings = WorkoutSettings(authorId: "author-1")
         settings.defaultRestDurationSeconds = 90
         settings.restAfterLastWarmUp = true
 
         let sessions = TestManagers.workoutSessionManager()
-        try sessions.updateActiveSession(session())
+        try sessions.updateActiveSession(session)
 
         let log = SpyLogService()
         let system = SystemActivity()
         let activity = LiveActivityManager(logger: LogManager(services: [log]), activityLookup: system.lookup)
-        system.initialState = activity.makeContentState(params: .init(session: session()))
+        system.initialState = activity.makeContentState(params: .init(session: session))
         let hkWorkoutManager = HKWorkoutManager(logger: LogManager(), liveActivityUpdater: activity)
         let handler = AppLiveActivityIntentHandler(
             workoutSessionManager: sessions,
@@ -252,6 +255,42 @@ struct LiveActivityScenarioTests {
         }
         #expect(summary.completedSetsCount == Self.setsDone)
         #expect(summary.totalExercisesCount == 4)
+        await expectEveryPushReachedTheActivity(rig)
+    }
+
+    /// The same workout with the unilateral exercise last. After the left half of the final pair
+    /// the banner must still offer the right row, not "All sets complete" with a Finish button —
+    /// the whole-workout totals used to count that lone left row as a finished set.
+    @Test("Test A Workout Ending On A Unilateral Exercise Is Not Done After The Left Half Of The Last Pair")
+    func testAWorkoutEndingOnAUnilateralExerciseIsNotDoneAfterTheLeftHalfOfTheLastPair() async throws {
+        let rows = 6 + 10
+        let rig = try await makeRig(session: session(exercises: [exercise(1), exercise(2, unilateral: true)]))
+        let session = try #require(rig.sessions.activeSession)
+        rig.hkWorkoutManager.startWorkout(workout: session)
+        rig.activity.updateLiveActivity(params: LiveActivityUpdateParams(
+            session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: nil,
+            statusMessage: nil, totalVolumeKg: nil, elapsedTime: 0
+        ))
+
+        for tap in 1...rows {
+            let step = try await tapComplete(rig, tapNumber: tap, isLast: tap == rows)
+            if tap == rows - 1 {
+                #expect(step.setId == "e2-s6-left")
+                let state = try #require(rig.activity.lastContentState)
+                #expect(state.targetSetId == "e2-s6-right")
+                #expect(state.isAllSetsComplete == false)
+                #expect(state.progress < 1)
+            }
+        }
+
+        guard case .allSetsDone = try phase(rig) else {
+            Issue.record("after the last row the activity shows \(try phase(rig)) instead of .allSetsDone"); return
+        }
+        await rig.handler.completeWorkout()
+        guard case .ended(let summary) = try phase(rig) else {
+            Issue.record("after Finish the activity shows \(try phase(rig)) instead of .ended"); return
+        }
+        #expect(summary.completedSetsCount == 6 + 6)
         await expectEveryPushReachedTheActivity(rig)
     }
 
