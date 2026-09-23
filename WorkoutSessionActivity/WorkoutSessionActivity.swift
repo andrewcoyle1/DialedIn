@@ -117,25 +117,19 @@ struct WorkoutSessionActivity: Widget {
 }
 
 extension WorkoutActivityAttributes {
-    static var preview: WorkoutActivityAttributes {
-        WorkoutActivityAttributes(
-            sessionId: UUID().uuidString,
-            workoutName: "Chest Workout"
-        )
-    }
-    
-    static var previewOld: WorkoutActivityAttributes {
-        WorkoutActivityAttributes(
-            sessionId: UUID().uuidString,
-            workoutName: "Chest Workout"
-        )
-    }
+    static let preview = WorkoutActivityAttributes(sessionId: "preview", workoutName: "Chest Workout")
 }
 
 extension WorkoutActivityAttributes.ContentState {
-    static var live: WorkoutActivityAttributes.ContentState {
-        return WorkoutActivityAttributes.ContentState(
-            isActive: true,
+    /// The phases the banner and island have, one preview state each (spec §2).
+    enum PreviewPhase: CaseIterable {
+        case ready, resting, restOver, allSetsDone, paused, ended
+    }
+
+    /// Mid-workout on the third set of bench press, then whatever `phase` needs changed.
+    static func preview(_ phase: PreviewPhase) -> WorkoutActivityAttributes.ContentState {
+        var state = WorkoutActivityAttributes.ContentState(
+            isActive: phase != .paused,
             completedSetsCount: 5,
             totalSetsCount: 12,
             currentExerciseName: "Bench Press",
@@ -144,13 +138,13 @@ extension WorkoutActivityAttributes.ContentState {
             totalExercisesCount: 4,
             currentExerciseCompletedSetsCount: 2,
             currentExerciseTotalSetsCount: 4,
-            targetSetId: UUID().uuidString,
-            targetWeightKg: 100.0,
+            targetSetId: "set-3",
+            targetWeightKg: 100,
             targetReps: 8,
             targetDistanceMeters: nil,
             targetDurationSec: nil,
-            restEndsAt: Date().addingTimeInterval(45), // 45 seconds from now
-            progress: 0.42,
+            restEndsAt: nil,
+            progress: 5.0 / 12.0,
             isWorkoutEnded: false,
             finalDurationSeconds: nil,
             finalVolumeKg: nil,
@@ -158,108 +152,40 @@ extension WorkoutActivityAttributes.ContentState {
             isProcessingIntent: false,
             isAllSetsComplete: false
         )
-    }
-    
-    static var stale: WorkoutActivityAttributes.ContentState {
-        return WorkoutActivityAttributes.ContentState(
-            isActive: false,
-            completedSetsCount: 5,
-            totalSetsCount: 12,
-            currentExerciseName: "Bench Press",
-            currentExerciseImageName: "BarbellBenchPress",
-            currentExerciseIndex: 1,
-            totalExercisesCount: 4,
-            currentExerciseCompletedSetsCount: 2,
-            currentExerciseTotalSetsCount: 4,
-            targetSetId: UUID().uuidString,
-            targetWeightKg: 100.0,
-            targetReps: 8,
-            targetDistanceMeters: nil,
-            targetDurationSec: nil,
-            restEndsAt: nil,
-            progress: 1, // 0.42
-            isWorkoutEnded: true,
-            finalDurationSeconds: nil,
-            finalVolumeKg: nil,
-            finalCompletedSetsCount: nil,
-            isProcessingIntent: false,
-            isAllSetsComplete: false
-        )
-    }
-    
-    static var someMetrics: WorkoutActivityAttributes.ContentState {
-        return WorkoutActivityAttributes.ContentState(
-            isActive: true,
-            completedSetsCount: 10,
-            totalSetsCount: 12,
-            currentExerciseName: "Overhead Tricep Extension (Cable)",
-            currentExerciseImageName: "OverheadExtensionStraightBar",
-            currentExerciseIndex: 2,
-            totalExercisesCount: 4,
-            currentExerciseCompletedSetsCount: 3,
-            currentExerciseTotalSetsCount: 3,
-            targetSetId: UUID().uuidString,
-            targetWeightKg: 60.0,
-            targetReps: 12,
-            targetDistanceMeters: nil,
-            targetDurationSec: nil,
-            restEndsAt: nil,
-            progress: 0.83,
-            isWorkoutEnded: false,
-            finalDurationSeconds: nil,
-            finalVolumeKg: nil,
-            finalCompletedSetsCount: nil,
-            isProcessingIntent: true,
-            isAllSetsComplete: true
-        )
+        switch phase {
+        case .ready, .paused:
+            break
+        case .resting:
+            state.restEndsAt = Date().addingTimeInterval(45)
+            state.lastLoggedSetId = "set-2"
+            state.lastLoggedReps = 8
+            state.lastLoggedWeightKg = 100
+        case .restOver:
+            state.restEndsAt = Date().addingTimeInterval(-5)
+        case .allSetsDone:
+            state.completedSetsCount = 12
+            state.currentExerciseCompletedSetsCount = 4
+            state.targetSetId = nil
+            state.progress = 1
+            state.isAllSetsComplete = true
+        case .ended:
+            state.isWorkoutEnded = true
+            state.finalDurationSeconds = 52 * 60
+            state.finalVolumeKg = 4_250
+            state.finalCompletedSetsCount = 12
+        }
+        return state
     }
 }
 
-#Preview("Dynamic Island - Expanded", as: .dynamicIsland(.expanded), using: WorkoutActivityAttributes.preview) {
+#Preview("Island", as: .dynamicIsland(.expanded), using: WorkoutActivityAttributes.preview) {
     WorkoutSessionActivity()
 } contentStates: {
-    WorkoutActivityAttributes.ContentState.live
-    WorkoutActivityAttributes.ContentState.stale
-    WorkoutActivityAttributes.ContentState.someMetrics
-}
-
-#Preview("Dynamic Island - Expanded - Old", as: .dynamicIsland(.expanded), using: WorkoutActivityAttributes.previewOld) {
-    WorkoutSessionActivity()
-} contentStates: {
-    WorkoutActivityAttributes.ContentState.live
-    WorkoutActivityAttributes.ContentState.stale
-    WorkoutActivityAttributes.ContentState.someMetrics
-}
-
-#Preview("Dynamic Island - Compact", as: .dynamicIsland(.compact), using: WorkoutActivityAttributes.preview) {
-    WorkoutSessionActivity()
-} contentStates: {
-    WorkoutActivityAttributes.ContentState.live
-    WorkoutActivityAttributes.ContentState.stale
-    WorkoutActivityAttributes.ContentState.someMetrics
-}
-
-#Preview("Dynamic Island - Compact - Old", as: .dynamicIsland(.compact), using: WorkoutActivityAttributes.previewOld) {
-    WorkoutSessionActivity()
-} contentStates: {
-    WorkoutActivityAttributes.ContentState.live
-    WorkoutActivityAttributes.ContentState.stale
-    WorkoutActivityAttributes.ContentState.someMetrics
-}
-
-#Preview("Dynamic Island - Minimal", as: .dynamicIsland(.minimal), using: WorkoutActivityAttributes.preview) {
-    WorkoutSessionActivity()
-} contentStates: {
-    WorkoutActivityAttributes.ContentState.live
-    WorkoutActivityAttributes.ContentState.stale
-    WorkoutActivityAttributes.ContentState.someMetrics
-}
-
-#Preview("Dynamic Island - Minimal - Old", as: .dynamicIsland(.minimal), using: WorkoutActivityAttributes.previewOld) {
-    WorkoutSessionActivity()
-} contentStates: {
-    WorkoutActivityAttributes.ContentState.live
-    WorkoutActivityAttributes.ContentState.stale
-    WorkoutActivityAttributes.ContentState.someMetrics
+    WorkoutActivityAttributes.ContentState.preview(.ready)
+    WorkoutActivityAttributes.ContentState.preview(.resting)
+    WorkoutActivityAttributes.ContentState.preview(.restOver)
+    WorkoutActivityAttributes.ContentState.preview(.allSetsDone)
+    WorkoutActivityAttributes.ContentState.preview(.paused)
+    WorkoutActivityAttributes.ContentState.preview(.ended)
 }
 #endif

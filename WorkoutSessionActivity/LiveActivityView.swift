@@ -61,19 +61,14 @@ struct LiveActivityView: View {
     }
 }
 
-#Preview("Notification", as: .content, using: WorkoutActivityAttributes.preview) {
+#Preview("Banner", as: .content, using: WorkoutActivityAttributes.preview) {
     WorkoutSessionActivity()
 } contentStates: {
-    WorkoutActivityAttributes.ContentState.live
-    WorkoutActivityAttributes.ContentState.stale
-    WorkoutActivityAttributes.ContentState.someMetrics
-}
-
-#Preview("Notification - Old", as: .content, using: WorkoutActivityAttributes.previewOld) {
-    WorkoutSessionActivity()
-} contentStates: {
-    WorkoutActivityAttributes.ContentState.live
-    WorkoutActivityAttributes.ContentState.stale
-    WorkoutActivityAttributes.ContentState.someMetrics
+    WorkoutActivityAttributes.ContentState.preview(.ready)
+    WorkoutActivityAttributes.ContentState.preview(.resting)
+    WorkoutActivityAttributes.ContentState.preview(.restOver)
+    WorkoutActivityAttributes.ContentState.preview(.allSetsDone)
+    WorkoutActivityAttributes.ContentState.preview(.paused)
+    WorkoutActivityAttributes.ContentState.preview(.ended)
 }
 #endif
