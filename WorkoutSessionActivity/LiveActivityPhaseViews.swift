@@ -47,9 +47,9 @@ struct LiveActivityPhaseContent: View {
                 exerciseRow(detail: position.label, dimmed: false)
                 targetActionRow(target: target, prefix: nil)
 
-            case let .resting(until, next, logged):
+            case let .resting(until, next, logged, nextExerciseName):
                 restingCorrectionRow(logged: logged)
-                restingTimerRow(until: until, next: next)
+                restingTimerRow(until: until, next: next, nextExerciseName: nextExerciseName)
 
             case let .restOver(next):
                 exerciseRow(detail: currentPositionLabel, dimmed: false)
@@ -182,10 +182,26 @@ struct LiveActivityPhaseContent: View {
         .frame(height: LiveActivityLayout.rowHeight)
     }
 
-    private func restingTimerRow(until: Date, next: LiveActivitySetTarget?) -> some View {
+    /// Row 2 while resting. When the rest leads into a different exercise the name goes above
+    /// the target, because "Next 40 kg × 10" alone reads as another set of the one just done.
+    private func restingTimerRow(until: Date, next: LiveActivitySetTarget?, nextExerciseName: String?) -> some View {
         HStack(spacing: 8) {
             RestRing(until: until)
-            if let label = next?.label(weightUnit: state.weightUnit) {
+            let label = next?.label(weightUnit: state.weightUnit)
+            if let nextExerciseName {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Next: \(nextExerciseName)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                    if let label {
+                        Text(label)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                }
+            } else if let label {
                 Text("Next \(label)")
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

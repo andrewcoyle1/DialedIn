@@ -27,7 +27,7 @@ the tests both see it.
 ```swift
 enum LiveActivityPhase: Equatable {
     case ready(target: SetTarget, position: SetPosition)          // about to lift
-    case resting(until: Date, next: SetTarget?, logged: LoggedSet?) // countdown running
+    case resting(until: Date, next: SetTarget?, logged: LoggedSet?, nextExerciseName: String?) // countdown running
     case restOver(next: SetTarget)                                  // rest passed, phone untouched
     case allSetsDone                                                // nothing left but Finish
     case paused                                                     // isActive == false
@@ -43,7 +43,7 @@ enum LiveActivityPhase: Equatable {
 | 1 | `isWorkoutEnded` | `.ended` with the `final*` fields |
 | 2 | `!isActive` | `.paused` |
 | 3 | `isAllSetsComplete` | `.allSetsDone` |
-| 4 | `restEndsAt > now` | `.resting(until:next:logged:)` — `next` is the current `target*` fields (after `CompleteSetIntent` they already describe the next set), `logged` is `lastLogged*` |
+| 4 | `restEndsAt > now` | `.resting(until:next:logged:)` — `next` is the current `target*` fields (after `CompleteSetIntent` they already describe the next set), `logged` is `lastLogged*`, `nextExerciseName` is the current exercise's name only when `restLeadsToNewExercise` (the logged set was the last of a different exercise) |
 | 5 | `restEndsAt != nil && restEndsAt <= now`, or `isStale` | `.restOver(next:)` |
 | 6 | `targetSetId != nil` | `.ready` |
 | 7 | otherwise | `.unknown` (renders like `.paused` without the label) |
@@ -66,7 +66,7 @@ Fixed height across phases so the banner does not jump when a set completes. Two
 | Phase | Row 1 | Row 2 |
 |---|---|---|
 | `.ready` | exercise image · **Exercise name** · `Set 2 of 4` | **60 kg × 8** · [✓ Complete] |
-| `.resting` | `Logged 60 kg × 8` · [−] [+] on reps | rest ring with countdown inside · `Next 60 kg × 8` · [+15s] [Skip] |
+| `.resting` | `Logged 60 kg × 8` · [−] [+] on reps | rest ring with countdown inside · `Next 60 kg × 8` (or, after an exercise's last set, `Next: Incline press` over `40 kg × 10`) · [+15s] [Skip] |
 | `.restOver` | exercise image · **Exercise name** · `Set 3 of 4` | `Rest over` · **60 kg × 8** · [✓ Complete] |
 | `.allSetsDone` | ✓ **All sets complete** | [Finish] |
 | `.paused` | exercise image · Exercise name, dimmed | `Paused` · `Resume in the app` |

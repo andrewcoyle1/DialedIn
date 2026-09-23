@@ -53,6 +53,9 @@ struct WorkoutActivityAttributes: ActivityAttributes {
         var lastLoggedSetId: String?
         var lastLoggedReps: Int?
         var lastLoggedWeightKg: Double?
+        // True when the set just logged was the last of its exercise, so the rest leads into a
+        // different exercise from the one the set belonged to
+        var restLeadsToNewExercise: Bool = false
     }
 
     // Immutable attributes for this workout Live Activity instance

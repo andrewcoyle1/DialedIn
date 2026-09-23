@@ -273,6 +273,42 @@ struct LiveActivityManagerTests {
         #expect(state.lastLoggedWeightKg == 65)
     }
 
+    /// A rest inside an exercise stays quiet about the exercise; the rest after its last set leads
+    /// into the next one, and the state says so, since the target it carries is already that
+    /// exercise's first set.
+    @Test("Test A Rest After The Last Set Of An Exercise Leads Into The Next")
+    func testARestAfterTheLastSetOfAnExerciseLeadsIntoTheNext() {
+        #expect(contentState(restEndsAt: Date().addingTimeInterval(60)).restLeadsToNewExercise == false)
+
+        let logged = Date()
+        let session = WorkoutSessionModel(
+            id: "s4",
+            authorId: "author-1",
+            name: "Upper",
+            dateCreated: logged,
+            exercises: [
+                exercise(id: "e1", name: "Bench press", index: 1, sets: [
+                    set(id: "set-1", reps: 8, weightKg: 60, completedAt: logged)
+                ]),
+                exercise(id: "e2", name: "Incline press", index: 2, sets: [
+                    set(id: "set-2", reps: 10, weightKg: 40)
+                ])
+            ]
+        )
+        let (manager, _) = makeManager()
+        let state = manager.makeContentState(
+            session: session, isActive: true, currentExerciseIndex: 0, restEndsAt: logged.addingTimeInterval(60)
+        )
+
+        #expect(state.restLeadsToNewExercise)
+        #expect(state.currentExerciseName == "Incline press")
+        #expect(state.lastLoggedSetId == "set-1")
+        guard case .resting(_, _, _, let nextExerciseName) = LiveActivityPhase(state: state, now: logged, isStale: false) else {
+            Issue.record("expected .resting"); return
+        }
+        #expect(nextExerciseName == "Incline press")
+    }
+
     /// Rebuilding the state from the rest is what clears the window when the rest ends: there is
     /// no separate bookkeeping to forget.
     @Test("Test No Rest Leaves The Logged Set Empty")

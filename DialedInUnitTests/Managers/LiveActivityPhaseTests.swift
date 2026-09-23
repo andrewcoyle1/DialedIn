@@ -46,7 +46,8 @@ struct LiveActivityPhaseTests {
         isAllSetsComplete: Bool = false,
         lastLoggedSetId: String? = nil,
         lastLoggedReps: Int? = nil,
-        lastLoggedWeightKg: Double? = nil
+        lastLoggedWeightKg: Double? = nil,
+        restLeadsToNewExercise: Bool = false
     ) -> WorkoutActivityAttributes.ContentState {
         WorkoutActivityAttributes.ContentState(
             isActive: isActive,
@@ -74,7 +75,8 @@ struct LiveActivityPhaseTests {
             isAllSetsComplete: isAllSetsComplete,
             lastLoggedSetId: lastLoggedSetId,
             lastLoggedReps: lastLoggedReps,
-            lastLoggedWeightKg: lastLoggedWeightKg
+            lastLoggedWeightKg: lastLoggedWeightKg,
+            restLeadsToNewExercise: restLeadsToNewExercise
         )
     }
 
@@ -137,9 +139,28 @@ struct LiveActivityPhaseTests {
             phase(state) == .resting(
                 until: restEndsAt,
                 next: LiveActivitySetTarget(weightKg: 60, reps: 8),
-                logged: LoggedSet(setId: "set-1", reps: 8, weightKg: 60)
+                logged: LoggedSet(setId: "set-1", reps: 8, weightKg: 60),
+                nextExerciseName: nil
             )
         )
+    }
+
+    /// The rest after an exercise's last set already points at the next exercise's first set, and
+    /// the phase names that exercise so the banner does not read as one more set of the last one.
+    @Test("Test A Rest Leading Into A New Exercise Names It")
+    func testARestLeadingIntoANewExerciseNamesIt() {
+        let restEndsAt = Self.now.addingTimeInterval(60)
+        let state = makeState(
+            currentExerciseName: "Incline press",
+            restEndsAt: restEndsAt,
+            lastLoggedSetId: "set-1",
+            restLeadsToNewExercise: true
+        )
+
+        guard case .resting(_, _, _, let nextExerciseName) = phase(state) else {
+            Issue.record("expected .resting, got \(phase(state))"); return
+        }
+        #expect(nextExerciseName == "Incline press")
     }
 
     // MARK: - Row 5
@@ -251,7 +272,8 @@ struct LiveActivityPhaseTests {
             phase(state) == .resting(
                 until: restEndsAt,
                 next: LiveActivitySetTarget(weightKg: 60, reps: 8),
-                logged: nil
+                logged: nil,
+                nextExerciseName: nil
             )
         )
     }
@@ -279,7 +301,7 @@ struct LiveActivityPhaseTests {
             restEndsAt: restEndsAt
         )
 
-        #expect(phase(state) == .resting(until: restEndsAt, next: nil, logged: nil))
+        #expect(phase(state) == .resting(until: restEndsAt, next: nil, logged: nil, nextExerciseName: nil))
     }
 }
 

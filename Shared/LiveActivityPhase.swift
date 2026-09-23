@@ -190,8 +190,9 @@ enum LiveActivityFormat {
 enum LiveActivityPhase: Equatable {
     /// About to lift.
     case ready(target: LiveActivitySetTarget, position: SetPosition)
-    /// Countdown running.
-    case resting(until: Date, next: LiveActivitySetTarget?, logged: LoggedSet?)
+    /// Countdown running. `nextExerciseName` is set only when the rest leads into a different
+    /// exercise from the one the logged set belonged to.
+    case resting(until: Date, next: LiveActivitySetTarget?, logged: LoggedSet?, nextExerciseName: String?)
     /// Rest passed, phone untouched (or the activity has gone stale).
     case restOver(next: LiveActivitySetTarget)
     /// Nothing left but Finish.
@@ -256,7 +257,12 @@ extension LiveActivityPhase {
                 let logged = state.lastLoggedSetId.map {
                     LoggedSet(setId: $0, reps: state.lastLoggedReps, weightKg: state.lastLoggedWeightKg)
                 }
-                return .resting(until: restEndsAt, next: target.isEmpty ? nil : target, logged: logged)
+                return .resting(
+                    until: restEndsAt,
+                    next: target.isEmpty ? nil : target,
+                    logged: logged,
+                    nextExerciseName: state.restLeadsToNewExercise ? state.currentExerciseName : nil
+                )
             }
             // 5. Rest passed, or stale with a rest on the clock.
             return .restOver(next: target)

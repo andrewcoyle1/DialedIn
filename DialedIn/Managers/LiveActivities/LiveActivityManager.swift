@@ -318,9 +318,10 @@ class LiveActivityManager: LiveActivityUpdating {
             finalCompletedSetsCount: nil,
             isProcessingIntent: false,
             isAllSetsComplete: totals.isAllSetsComplete,
-            lastLoggedSetId: lastLogged?.id,
-            lastLoggedReps: lastLogged?.reps,
-            lastLoggedWeightKg: lastLogged?.weightKg
+            lastLoggedSetId: lastLogged?.set.id,
+            lastLoggedReps: lastLogged?.set.reps,
+            lastLoggedWeightKg: lastLogged?.set.weightKg,
+            restLeadsToNewExercise: lastLogged.map { $0.exerciseId != current.id } ?? false
         )
     }
 
@@ -331,12 +332,13 @@ class LiveActivityManager: LiveActivityUpdating {
         return restEndsAt > Date()
     }
 
-    /// The set completed most recently anywhere in the session — the one the rest belongs to.
-    private func lastCompletedSet(session: WorkoutSessionModel) -> WorkoutSetModel? {
+    /// The set completed most recently anywhere in the session — the one the rest belongs to —
+    /// with the exercise it belongs to, so the rest can say when it leads into a different one.
+    private func lastCompletedSet(session: WorkoutSessionModel) -> (exerciseId: String, set: WorkoutSetModel)? {
         session.exercises
-            .flatMap { $0.sets }
-            .filter { $0.completedAt != nil }
-            .max { ($0.completedAt ?? .distantPast) < ($1.completedAt ?? .distantPast) }
+            .flatMap { exercise in exercise.sets.map { (exerciseId: exercise.id, set: $0) } }
+            .filter { $0.set.completedAt != nil }
+            .max { ($0.set.completedAt ?? .distantPast) < ($1.set.completedAt ?? .distantPast) }
     }
 
     /// Only isActive and rest change; everything else is carried over from the last push, so the
@@ -373,6 +375,7 @@ class LiveActivityManager: LiveActivityUpdating {
     }
 
     private struct CurrentExerciseData {
+        let id: String?
         let templateId: String?
         let name: String?
         let imageName: String?
@@ -436,6 +439,7 @@ class LiveActivityManager: LiveActivityUpdating {
         let targetSet = currentExerciseSets.first { $0.completedAt == nil }
 
         return CurrentExerciseData(
+            id: currentExercise?.id,
             templateId: currentExercise?.templateId,
             name: currentExerciseName,
             imageName: currentExerciseImageName,

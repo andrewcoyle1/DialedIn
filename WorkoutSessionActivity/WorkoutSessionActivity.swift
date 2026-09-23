@@ -63,7 +63,7 @@ struct WorkoutSessionActivity: Widget {
     @ViewBuilder
     private func compactLeading(context: ActivityViewContext<WorkoutActivityAttributes>) -> some View {
         switch phase(context) {
-        case let .resting(until, _, _):
+        case let .resting(until, _, _, _):
             RestRing(until: until, size: 18, showsCountdown: false)
         default:
             ExerciseImage(imageName: context.state.currentExerciseImageName, size: 20)
@@ -77,7 +77,7 @@ struct WorkoutSessionActivity: Widget {
             compactTargetLabel(target, unit: context.state.weightUnit)
         case let .restOver(next):
             compactTargetLabel(next, unit: context.state.weightUnit)
-        case let .resting(until, _, _):
+        case let .resting(until, _, _, _):
             Text(timerInterval: Date()...max(until, Date()), countsDown: true)
                 .monospacedDigit()
                 .font(.footnote)
@@ -105,7 +105,7 @@ struct WorkoutSessionActivity: Widget {
     @ViewBuilder
     private func minimal(context: ActivityViewContext<WorkoutActivityAttributes>) -> some View {
         switch phase(context) {
-        case let .resting(until, _, _):
+        case let .resting(until, _, _, _):
             RestRing(until: until, size: 18, showsCountdown: false)
         case .allSetsDone:
             Image(systemName: "checkmark.circle.fill")
