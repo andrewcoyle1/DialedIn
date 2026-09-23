@@ -151,22 +151,24 @@ one switch each, and there are no UI tests.
   decimal, distances over a kilometre read in km, nil pieces omitted, a logged set reads like a
   target.
 - `LiveActivityEventNameTests`: the start events are named the way update and end are.
-- `LiveActivityRequestingTests` (`@Suite(.serialized)`, declared in
-  `Managers/LiveActivityScenarioTests.swift`, extended in
-  `Services/Training/LiveActivityManagerTests.swift`): the one suite that requests a real
-  `Activity` in the test host, serialised because parallel requests have returned nil.
-  - Scenarios: a four-exercise workout completed entirely from the activity, checking the phase
-    after every tap; a workout ending on a unilateral exercise is not done after the left half
-    of its last pair; a reps correction during the rest reaches the activity; the last set of
-    an exercise moves the activity to the next; the exercise's pounds preference reaches the
-    push.
-  - Manager: a push with no activity is reported and not remembered; an unchanged push reports
-    nothing, but still lands while the activity is loading; rest updates are gated and logged
-    like any push and dropped before the first one; `weightUnit` follows the current exercise;
-    `lastLogged*` populated during a rest and empty without one; a finished exercise index
-    advances to the next with work left, or the first anywhere, and the last keeps its index;
-    half-done pairs count as neither a completed set nor all sets done.
-- `LiveActivityIntentHandlerTests` (`@Suite(.serialized)`, on `TestManagers`): `completeSet`
+- `WorkoutRestSharedStateTests` (`Support/`, `@Suite(.serialized)`): an empty parent whose
+  serialisation reaches the four suites nested under it, one per file. They share what the
+  runner cannot partition — the rest end time in the app group, which the intent handler reads
+  back as a rest in progress, the rest-complete notification, and ActivityKit itself, which has
+  answered nil to two suites requesting at once.
+- `LiveActivityScenarioTests` (under the parent; requests a real `Activity`): a four-exercise
+  workout completed entirely from the activity, checking the phase after every tap; a workout
+  ending on a unilateral exercise is not done after the left half of its last pair; a reps
+  correction during the rest reaches the activity; the last set of an exercise moves the
+  activity to the next; the exercise's pounds preference reaches the push.
+- `LiveActivityManagerTests` (`Services/Training/`, under the parent): a push with no activity
+  is reported and not remembered; an unchanged push reports nothing, but still lands while the
+  activity is loading; rest updates are gated and logged like any push and dropped before the
+  first one; `weightUnit` follows the current exercise; `lastLogged*` populated during a rest and
+  empty without one; a finished exercise index advances to the next with work left, or the first
+  anywhere, and the last keeps its index; half-done pairs count as neither a completed set nor
+  all sets done.
+- `LiveActivityIntentHandlerTests` (under the parent, on `TestManagers`): `completeSet`
   logs exactly that set with its own targets, starts the settings-derived rest (none with rest
   timers off), pushes the saved session, drops an unknown or already-logged set but still
   pushes so the button re-enables; `adjustLastSetReps` changes only reps, clamps to 0…99, is a
@@ -176,7 +178,7 @@ one switch each, and there are no UI tests.
   nothing without a session; completing the last set advances the activity.
 - `AdjustLastSetRepsIntentTests`: the correction applies the delta during the rest, is nothing
   without a logged set, closes with the rest, and clamps to 0…99.
-- `HKWorkoutManagerRestTests` (`@Suite(.serialized)`): starting a rest sets and shares the end
+- `HKWorkoutManagerRestTests` (under the parent): starting a rest sets and shares the end
   time and puts one countdown on the activity; negative and non-finite durations are sanitised;
   a rest that runs out announces itself (even without an updater) and clears the shared copy; a
   cancelled rest announces nothing and pushes exactly one cleared countdown; a second rest

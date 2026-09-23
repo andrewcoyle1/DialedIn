@@ -21,7 +21,8 @@ import Foundation
 /// Serialized because the three things under test — `NotificationCenter.default`, the app group's
 /// `UserDefaults`, and the process-wide dispatch queues the rest timer fires on — are all shared,
 /// and two of these tests running at once would read each other's posts.
-@Suite(.serialized)
+extension WorkoutRestSharedStateTests {
+
 @MainActor
 struct HKWorkoutManagerRestTests {
 
@@ -295,6 +296,8 @@ struct HKWorkoutManagerRestTests {
 
         #expect(weakManager == nil)
     }
+}
+
 }
 
 #endif

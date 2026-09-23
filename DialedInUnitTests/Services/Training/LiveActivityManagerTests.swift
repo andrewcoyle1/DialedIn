@@ -10,11 +10,13 @@ import Foundation
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 import ActivityKit
 
+private typealias Position = LiveActivityManager.ExercisePosition
+
 /// The Live Activity updater, seen through what it reports.
-///
-/// Part of `LiveActivityRequestingTests` because some cases here request a real activity, and
-/// that suite is the one serialised place those requests are made.
-extension LiveActivityRequestingTests {
+extension WorkoutRestSharedStateTests {
+
+@MainActor
+struct LiveActivityManagerTests {
 
     /// The lookup answers nil, as the system does in a test process: there is no activity to find.
     private func makeManager() -> (LiveActivityManager, SpyLogService) {
@@ -452,7 +454,6 @@ extension LiveActivityRequestingTests {
             (1...2).map { row("w\($0)", index: $0, warmup: true, done: $0 <= warmupsDone) }
                 + (1...4).map { row("s\($0)", index: $0 + 2, warmup: false, done: $0 <= workingDone) }
         }
-        typealias Position = LiveActivityManager.ExercisePosition
 
         #expect(LiveActivityManager.exercisePosition(in: sets(warmupsDone: 0, workingDone: 0))
             == Position(completed: 0, total: 2, isWarmup: true))
@@ -485,6 +486,8 @@ extension LiveActivityRequestingTests {
         left.completedAt = logged
         #expect([left, right].fullyCompletedPairedSetCount == 1)
     }
+}
+
 }
 
 #endif

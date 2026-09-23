@@ -18,15 +18,47 @@ import Testing
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 import ActivityKit
 
-/// The one suite whose tests request a real `Activity`.
-///
-/// ActivityKit is a system service, and two suites requesting activities in parallel have had
-/// `Activity.request` answer nil. `.serialized` reaches only the suite it is on, so every test that
-/// requests one is in this suite: the scenarios here, and the manager's own in
-/// `LiveActivityManagerTests.swift`, as an extension.
-@Suite(.serialized)
 @MainActor
-struct LiveActivityRequestingTests {
+private struct Rig {
+    let handler: AppLiveActivityIntentHandler
+    let sessions: WorkoutSessionManager
+    let hkWorkoutManager: HKWorkoutManager
+    let activity: LiveActivityManager
+    let log: SpyLogService
+    let system: SystemActivity
+}
+
+/// Stands in for `Activity.activities` as the manager's lookup. The manager starts with no
+/// activity, the way a process launched by a Lock Screen tap does, and must ask the system for
+/// this session's on the first push; the answer is a real activity requested here, since the
+/// test host is the app and can hold one.
+@MainActor
+private final class SystemActivity {
+    var initialState: WorkoutActivityAttributes.ContentState?
+    private(set) var activity: Activity<WorkoutActivityAttributes>?
+    private(set) var askedFor: [String] = []
+
+    func lookup(sessionId: String) -> Activity<WorkoutActivityAttributes>? {
+        askedFor.append(sessionId)
+        if activity == nil, let initialState {
+            activity = try? Activity.request(
+                attributes: WorkoutActivityAttributes(sessionId: sessionId, workoutName: "Full Body"),
+                content: ActivityContent(state: initialState, staleDate: nil),
+                pushType: nil
+            )
+        }
+        return activity
+    }
+
+    func dismiss() async {
+        await activity?.end(nil, dismissalPolicy: .immediate)
+    }
+}
+
+extension WorkoutRestSharedStateTests {
+
+@MainActor
+struct LiveActivityScenarioTests {
 
     private static let start = Date(timeIntervalSince1970: 1_772_000_000)
 
@@ -85,41 +117,6 @@ struct LiveActivityRequestingTests {
 
     private static let rowsToTap = 28
     private static let setsDone = 24
-
-    private struct Rig {
-        let handler: AppLiveActivityIntentHandler
-        let sessions: WorkoutSessionManager
-        let hkWorkoutManager: HKWorkoutManager
-        let activity: LiveActivityManager
-        let log: SpyLogService
-        let system: SystemActivity
-    }
-
-    /// Stands in for `Activity.activities` as the manager's lookup. The manager starts with no
-    /// activity, the way a process launched by a Lock Screen tap does, and must ask the system for
-    /// this session's on the first push; the answer is a real activity requested here, since the
-    /// test host is the app and can hold one.
-    final class SystemActivity {
-        var initialState: WorkoutActivityAttributes.ContentState?
-        private(set) var activity: Activity<WorkoutActivityAttributes>?
-        private(set) var askedFor: [String] = []
-
-        func lookup(sessionId: String) -> Activity<WorkoutActivityAttributes>? {
-            askedFor.append(sessionId)
-            if activity == nil, let initialState {
-                activity = try? Activity.request(
-                    attributes: WorkoutActivityAttributes(sessionId: sessionId, workoutName: "Full Body"),
-                    content: ActivityContent(state: initialState, staleDate: nil),
-                    pushType: nil
-                )
-            }
-            return activity
-        }
-
-        func dismiss() async {
-            await activity?.end(nil, dismissalPolicy: .immediate)
-        }
-    }
 
     private func makeRig(
         session: WorkoutSessionModel? = nil,
@@ -384,6 +381,8 @@ struct LiveActivityRequestingTests {
         #expect(next?.label(weightUnit: state.weightUnit)?.hasSuffix("lb × 10") == true)
         await expectEveryPushReachedTheActivity(rig)
     }
+}
+
 }
 
 #endif

@@ -21,7 +21,16 @@ import Foundation
 ///
 /// Serialized: `HKWorkoutManager`'s rest timer writes the app group's shared storage and fires on
 /// process-wide dispatch queues, so two of these running at once read each other's rests.
-@Suite(.serialized)
+@MainActor
+private struct Rig {
+    let handler: AppLiveActivityIntentHandler
+    let sessions: WorkoutSessionManager
+    let hkWorkoutManager: HKWorkoutManager
+    let activity: LiveActivityUpdaterSpy
+}
+
+extension WorkoutRestSharedStateTests {
+
 @MainActor
 struct LiveActivityIntentHandlerTests {
 
@@ -64,13 +73,6 @@ struct LiveActivityIntentHandlerTests {
             dateCreated: Self.start,
             exercises: exercises
         )
-    }
-
-    private struct Rig {
-        let handler: AppLiveActivityIntentHandler
-        let sessions: WorkoutSessionManager
-        let hkWorkoutManager: HKWorkoutManager
-        let activity: LiveActivityUpdaterSpy
     }
 
     private func makeRig(
@@ -419,6 +421,8 @@ struct LiveActivityIntentHandlerTests {
         let pushed = try #require(rig.activity.fullUpdates.last)
         #expect(pushed.currentExerciseIndex == 1)
     }
+}
+
 }
 
 #endif
