@@ -343,7 +343,7 @@ class LiveActivityManager: LiveActivityUpdating {
                 $0.attributes.sessionId == sessionId && $0.activityState == .active }
     }
 
-    private struct MakeContentStateParams {
+    struct MakeContentStateParams {
         let session: WorkoutSessionModel
         let isActive: Bool
         let currentExerciseIndex: Int
@@ -371,10 +371,15 @@ class LiveActivityManager: LiveActivityUpdating {
         }
     }
 
-    private func makeContentState(params: MakeContentStateParams) -> WorkoutActivityAttributes.ContentState {
+    func makeContentState(params: MakeContentStateParams) -> WorkoutActivityAttributes.ContentState {
         
         let totals = computeTotals(session: params.session, totalVolumeKgOverride: params.totalVolumeKgOverride)
         let current = deriveCurrentExerciseData(session: params.session, index: params.currentExerciseIndex)
+        let next = deriveNextExerciseData(session: params.session, index: params.currentExerciseIndex)
+        // The correction window is exactly the rest that follows a logged set (spec §4). Deriving
+        // it from the rest rather than storing it is what clears it when the rest ends: the state
+        // is rebuilt on every update, so there is no bookkeeping to get wrong.
+        let lastLogged = isResting(restEndsAt: params.restEndsAt) ? lastCompletedSet(session: params.session) : nil
 
         return WorkoutActivityAttributes.ContentState(
             isActive: params.isActive,
@@ -403,8 +408,31 @@ class LiveActivityManager: LiveActivityUpdating {
             finalTotalExercisesCount: nil,
             isProcessingIntent: false,
             lastIntentTimestamp: nil,
-            isAllSetsComplete: totals.isAllSetsComplete
+            isAllSetsComplete: totals.isAllSetsComplete,
+            lastLoggedSetId: lastLogged?.id,
+            lastLoggedReps: lastLogged?.reps,
+            lastLoggedWeightKg: lastLogged?.weightKg,
+            nextExerciseName: next.name,
+            nextExerciseFirstTargetWeightKg: next.firstTarget?.weightKg,
+            nextExerciseFirstTargetReps: next.firstTarget?.reps,
+            nextExerciseFirstTargetDistanceMeters: next.firstTarget?.distanceMeters,
+            nextExerciseFirstTargetDurationSec: next.firstTarget?.durationSec
         )
+    }
+
+    /// True while a rest is still running, which is the only window in which the last logged set
+    /// can be corrected from the activity.
+    private func isResting(restEndsAt: Date?) -> Bool {
+        guard let restEndsAt else { return false }
+        return restEndsAt > Date()
+    }
+
+    /// The set completed most recently anywhere in the session — the one the rest belongs to.
+    private func lastCompletedSet(session: WorkoutSessionModel) -> WorkoutSetModel? {
+        session.exercises
+            .flatMap { $0.sets }
+            .filter { $0.completedAt != nil }
+            .max { ($0.completedAt ?? .distantPast) < ($1.completedAt ?? .distantPast) }
     }
 
     /// Update only isActive/rest/status from current content state to avoid recomputing set counts
@@ -492,6 +520,22 @@ class LiveActivityManager: LiveActivityUpdating {
             progress: progress,
             isAllSetsComplete: isAllSetsComplete
         )
+    }
+
+    private struct NextExerciseData {
+        let name: String?
+        let firstTarget: WorkoutSetModel?
+    }
+
+    /// The exercise after the current one, with the first working set it prescribes. Nil on the
+    /// last exercise, which is what makes `.exerciseDone` unreachable there.
+    private func deriveNextExerciseData(session: WorkoutSessionModel, index: Int) -> NextExerciseData {
+        guard (0..<session.exercises.count).contains(index + 1) else {
+            return NextExerciseData(name: nil, firstTarget: nil)
+        }
+        let nextExercise = session.exercises[index + 1]
+        let firstWorkingSet = nextExercise.sets.first { !$0.isWarmup } ?? nextExercise.sets.first
+        return NextExerciseData(name: nextExercise.name, firstTarget: firstWorkingSet)
     }
 
     private struct CurrentExerciseData {
@@ -595,83 +639,6 @@ class LiveActivityManager: LiveActivityUpdating {
 
 #endif
 
-extension CoreInteractor {
-    // MARK: LiveActivityManager
-    
-    var liveActivityViewState: ActivityViewState? {
-        liveActivityManager.activityViewState
-    }
-    
-    /// Ensure a Workout Live Activity using data from the given session
-    /// - Parameters:
-    ///   - session: The workout session used to seed immutable attributes
-    ///   - isActive: Whether the workout timer is running
-    ///   - currentExerciseIndex: Index of the currently focused exercise in the session
-    ///   - restEndsAt: Optional rest countdown end time
-    ///   - statusMessage: Optional status string (e.g. "Resting", "Ready")
-    func ensureLiveActivity(
-        session: WorkoutSessionModel,
-        isActive: Bool = true,
-        currentExerciseIndex: Int = 0,
-        restEndsAt: Date? = nil,
-        statusMessage: String? = nil
-    ) {
-        liveActivityManager.ensureLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
-    }
-    
-    /// Ensure a Workout Live Activity using data from the given session
-    /// - Parameters:
-    ///   - session: The workout session used to seed immutable attributes
-    ///   - session: WorkoutSessionModel
-    ///   - isActive: Bool
-    ///   - currentExerciseIndex: Int
-    ///   - restEndsAt: Date?
-    ///   - statusMessage: String?
-    ///   - totalVolumeKg: Double?
-    ///   - elapsedTime: TimeInterval?
-    func updateLiveActivity(params: LiveActivityUpdateParams) {
-        liveActivityManager.updateLiveActivity(params: params)
-    }
-    
-    /// Discard the currently active Live Activity
-    func discardLiveActivity() async {
-        await liveActivityManager.discardLiveActivity()
-    }
-
-    /// Ensure a Workout Live Activity using data from the given session
-    /// - Parameters:
-    ///   - session: WorkoutSessionModel
-    ///   - isCompleted: Bool
-    ///   - statusMessage: String?
-    func endLiveActivity(
-        session: WorkoutSessionModel,
-        isCompleted: Bool = true,
-        statusMessage: String? = nil
-    ) {
-        liveActivityManager.endLiveActivity(session: session, isCompleted: isCompleted, statusMessage: statusMessage)
-    }
-    
-    /// End the live activity using a final content state and dismissal policy
-    /// - Parameters:
-    ///   - finalState: WorkoutActivityAttributes.ContentState
-    ///   - dismissalPolicy: ActivityUIDismissalPolicy
-    func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
-        await liveActivityManager.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
-    }
-    
-    /// Update only isActive/rest/status from current content state to avoid recomputing set counts
-    /// - Parameters:
-    ///   - isActive: Bool
-    ///   - restEndsAt: Date?
-    ///   - statusMessage: String?
-    func updateRestAndActive(
-        isActive: Bool,
-        restEndsAt: Date?,
-        statusMessage: String? = nil
-    ) {
-        liveActivityManager.updateRestAndActive(isActive: isActive, restEndsAt: restEndsAt, statusMessage: statusMessage)
-    }
-}
 private extension Data {
     var hexadecimalString: String {
         self.reduce("") {

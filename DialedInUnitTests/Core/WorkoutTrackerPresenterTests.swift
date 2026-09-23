@@ -582,6 +582,44 @@ struct WorkoutTrackerPresenterTests {
         #expect(screen.presenter.workoutSession.exercises.first?.sets[0].completedAt == nil)
     }
 
+    /// The correction made during the rest changes the reps and nothing else — in particular not
+    /// `completedAt`, because the set was still logged when it was logged.
+    @Test("Test A Rep Correction From The Widget Changes Only The Reps")
+    func testARepCorrectionFromTheWidgetChangesOnlyTheReps() throws {
+        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1, done: true)])])
+        let logged = try #require(screen.presenter.workoutSession.exercises.first).sets[0]
+        screen.interactor.pendingSetAdjustment = SharedWorkoutStorage.PendingSetAdjustment(
+            setId: logged.id,
+            reps: 5,
+            adjustedAt: start
+        )
+
+        screen.presenter.syncPendingSetAdjustmentFromWidget()
+
+        let applied = try #require(screen.presenter.workoutSession.exercises.first).sets[0]
+        #expect(applied.reps == 5)
+        #expect(applied.weightKg == logged.weightKg)
+        #expect(applied.completedAt == logged.completedAt)
+        #expect(screen.interactor.didClearPendingSetAdjustment)
+    }
+
+    /// A correction for a set this session does not have is dropped, not left to be replayed
+    /// against the next workout.
+    @Test("Test A Rep Correction For An Unknown Set Is Discarded")
+    func testARepCorrectionForAnUnknownSetIsDiscarded() throws {
+        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1, done: true)])])
+        screen.interactor.pendingSetAdjustment = SharedWorkoutStorage.PendingSetAdjustment(
+            setId: "not-in-this-workout",
+            reps: 5,
+            adjustedAt: start
+        )
+
+        screen.presenter.syncPendingSetAdjustmentFromWidget()
+
+        #expect(screen.interactor.didClearPendingSetAdjustment)
+        #expect(screen.presenter.workoutSession.exercises.first?.sets[0].reps == 8)
+    }
+
     // MARK: - Persistence
 
     /// Every change to the session is written through, so closing the app mid-workout loses

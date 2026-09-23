@@ -397,10 +397,12 @@ class WorkoutTrackerPresenter {
     private func startObservingPendingCompletions() {
         withObservationTracking {
             _ = interactor.pendingSetCompletion
+            _ = interactor.pendingSetAdjustment
             _ = interactor.pendingWorkoutCompletion
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 self?.syncPendingSetCompletionFromWidget()
+                self?.syncPendingSetAdjustmentFromWidget()
                 self?.syncPendingWorkoutCompletionFromWidget()
                 // Re-register after each change to keep observing.
                 self?.startObservingPendingCompletions()
@@ -433,6 +435,30 @@ class WorkoutTrackerPresenter {
         updatedSet.completedAt = pending.completedAt
 
         interactor.clearPendingSetCompletion()
+        updateSet(updatedSet, in: exercise.id)
+    }
+
+    /// Apply a rep correction made from the Live Activity during the rest after a set was logged.
+    ///
+    /// Reps and nothing else: `completedAt` stays as the set was logged, because the correction is
+    /// about what was lifted, not when. A set this session does not have is dropped rather than
+    /// retried against every future workout.
+    func syncPendingSetAdjustmentFromWidget() {
+        guard let pending = interactor.pendingSetAdjustment else { return }
+
+        guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { exercise in
+            exercise.sets.contains { $0.id == pending.setId }
+        }),
+            let setIndex = workoutSession.exercises[exerciseIndex].sets.firstIndex(where: { $0.id == pending.setId }) else {
+            interactor.clearPendingSetAdjustment()
+            return
+        }
+
+        let exercise = workoutSession.exercises[exerciseIndex]
+        var updatedSet = exercise.sets[setIndex]
+        updatedSet.reps = pending.reps
+
+        interactor.clearPendingSetAdjustment()
         updateSet(updatedSet, in: exercise.id)
     }
 

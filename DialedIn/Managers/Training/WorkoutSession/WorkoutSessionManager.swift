@@ -246,6 +246,14 @@ extension CoreInteractor {
         #endif
     }
 
+    var pendingSetAdjustment: SharedWorkoutStorage.PendingSetAdjustment? {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        return hkWorkoutManager.pendingSetAdjustment
+        #else
+        return nil
+        #endif
+    }
+
     var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion? {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         return hkWorkoutManager.pendingWorkoutCompletion
@@ -263,6 +271,12 @@ extension CoreInteractor {
     func clearPendingSetCompletion() {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         hkWorkoutManager.clearPendingSetCompletion()
+        #endif
+    }
+
+    func clearPendingSetAdjustment() {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        hkWorkoutManager.clearPendingSetAdjustment()
         #endif
     }
 

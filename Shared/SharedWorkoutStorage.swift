@@ -12,6 +12,7 @@ public struct SharedWorkoutStorage {
     private static let appGroupIdentifier = "group.com.dialedin.app"
     private static let restEndTimeKey = "workout.rest.endTime"
     private static let pendingSetCompletionKey = "workout.pending.setCompletion"
+    private static let pendingSetAdjustmentKey = "workout.pending.setAdjustment"
     private static let pendingWorkoutCompletionKey = "workout.pending.workoutCompletion"
     private static let hkStartedSessionIdKey = "workout.hk.started.sessionId"
     
@@ -88,6 +89,49 @@ public struct SharedWorkoutStorage {
     /// Clear pending set completion
     public static func clearPendingSetCompletion() {
         pendingSetCompletion = nil
+    }
+    
+    // MARK: - Set Adjustment Communication
+    
+    /// Represents a correction to the reps of the set that was just logged, written by the
+    /// Live Activity during the rest that follows it. A single slot, not a queue: repeated taps
+    /// coalesce and the latest reps win.
+    public struct PendingSetAdjustment: Codable {
+        public let setId: String
+        public let reps: Int
+        public let adjustedAt: Date
+        
+        public init(setId: String, reps: Int, adjustedAt: Date) {
+            self.setId = setId
+            self.reps = reps
+            self.adjustedAt = adjustedAt
+        }
+    }
+    
+    /// Get pending set adjustment from widget
+    public static var pendingSetAdjustment: PendingSetAdjustment? {
+        get {
+            guard let defaults = sharedDefaults,
+                  let data = defaults.data(forKey: pendingSetAdjustmentKey),
+                  let adjustment = try? JSONDecoder().decode(PendingSetAdjustment.self, from: data) else {
+                return nil
+            }
+            return adjustment
+        }
+        set {
+            guard let defaults = sharedDefaults else { return }
+            if let newValue = newValue,
+               let data = try? JSONEncoder().encode(newValue) {
+                defaults.set(data, forKey: pendingSetAdjustmentKey)
+            } else {
+                defaults.removeObject(forKey: pendingSetAdjustmentKey)
+            }
+        }
+    }
+    
+    /// Clear pending set adjustment
+    public static func clearPendingSetAdjustment() {
+        pendingSetAdjustment = nil
     }
     
     // MARK: - Workout Completion Communication

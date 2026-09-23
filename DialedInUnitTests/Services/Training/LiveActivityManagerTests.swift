@@ -101,6 +101,129 @@ struct LiveActivityManagerTests {
 
         #expect(spy.trackedEventNames.count == afterFirst)
     }
+
+    // MARK: - The content state
+
+    private func set(
+        id: String,
+        reps: Int,
+        weightKg: Double,
+        isWarmup: Bool = false,
+        completedAt: Date? = nil
+    ) -> WorkoutSetModel {
+        WorkoutSetModel(
+            id: id,
+            authorId: "author-1",
+            index: 1,
+            reps: reps,
+            weightKg: weightKg,
+            isWarmup: isWarmup,
+            completedAt: completedAt,
+            dateCreated: Date(timeIntervalSince1970: 1_772_000_000)
+        )
+    }
+
+    private func exercise(id: String, name: String, index: Int, sets: [WorkoutSetModel]) -> WorkoutExerciseModel {
+        WorkoutExerciseModel(
+            id: id,
+            authorId: "author-1",
+            templateId: "template-\(id)",
+            name: name,
+            trackingMode: .weightReps,
+            index: index,
+            sets: sets
+        )
+    }
+
+    /// Two exercises: the first has a set logged a minute ago and one logged just now, the second
+    /// opens with a warm-up the activity must not offer as the next target.
+    private func twoExerciseSession() -> WorkoutSessionModel {
+        let logged = Date(timeIntervalSince1970: 1_772_000_100)
+        return WorkoutSessionModel(
+            id: "s1",
+            authorId: "author-1",
+            name: "Upper",
+            dateCreated: Date(timeIntervalSince1970: 1_772_000_000),
+            exercises: [
+                exercise(id: "e1", name: "Bench press", index: 1, sets: [
+                    set(id: "set-1", reps: 8, weightKg: 60, completedAt: logged.addingTimeInterval(-60)),
+                    set(id: "set-2", reps: 6, weightKg: 65, completedAt: logged),
+                    set(id: "set-3", reps: 6, weightKg: 65)
+                ]),
+                exercise(id: "e2", name: "Incline press", index: 2, sets: [
+                    set(id: "set-4", reps: 12, weightKg: 20, isWarmup: true),
+                    set(id: "set-5", reps: 10, weightKg: 40)
+                ])
+            ]
+        )
+    }
+
+    private func contentState(restEndsAt: Date?) -> WorkoutActivityAttributes.ContentState {
+        let (manager, _) = makeManager()
+        return manager.makeContentState(
+            params: LiveActivityManager.MakeContentStateParams(
+                session: twoExerciseSession(),
+                isActive: true,
+                currentExerciseIndex: 0,
+                restEndsAt: restEndsAt
+            )
+        )
+    }
+
+    /// The rest that follows a logged set is the correction window (spec §4), so that is exactly
+    /// when the activity carries the set the buttons would adjust — the most recently completed
+    /// one, not the first.
+    @Test("Test A Rest In Progress Carries The Set Just Logged")
+    func testARestInProgressCarriesTheSetJustLogged() {
+        let state = contentState(restEndsAt: Date().addingTimeInterval(60))
+
+        #expect(state.lastLoggedSetId == "set-2")
+        #expect(state.lastLoggedReps == 6)
+        #expect(state.lastLoggedWeightKg == 65)
+    }
+
+    /// Rebuilding the state from the rest is what clears the window when the rest ends: there is
+    /// no separate bookkeeping to forget.
+    @Test("Test No Rest Leaves The Logged Set Empty")
+    func testNoRestLeavesTheLoggedSetEmpty() {
+        let state = contentState(restEndsAt: nil)
+
+        #expect(state.lastLoggedSetId == nil)
+        #expect(state.lastLoggedReps == nil)
+        #expect(state.lastLoggedWeightKg == nil)
+
+        let passed = contentState(restEndsAt: Date().addingTimeInterval(-1))
+        #expect(passed.lastLoggedSetId == nil)
+    }
+
+    /// The `.exerciseDone` phase promises what is coming next, so the state has to name it — and
+    /// the target it shows is the next exercise's first *working* set, not its warm-up.
+    @Test("Test The State Names The Next Exercise And Its First Working Set")
+    func testTheStateNamesTheNextExerciseAndItsFirstWorkingSet() {
+        let state = contentState(restEndsAt: nil)
+
+        #expect(state.nextExerciseName == "Incline press")
+        #expect(state.nextExerciseFirstTargetWeightKg == 40)
+        #expect(state.nextExerciseFirstTargetReps == 10)
+    }
+
+    /// On the last exercise there is nothing after it, which is what keeps `.exerciseDone`
+    /// unreachable there.
+    @Test("Test The Last Exercise Has No Next Exercise")
+    func testTheLastExerciseHasNoNextExercise() {
+        let (manager, _) = makeManager()
+        let state = manager.makeContentState(
+            params: LiveActivityManager.MakeContentStateParams(
+                session: twoExerciseSession(),
+                isActive: true,
+                currentExerciseIndex: 1,
+                restEndsAt: nil
+            )
+        )
+
+        #expect(state.nextExerciseName == nil)
+        #expect(state.nextExerciseFirstTargetWeightKg == nil)
+    }
 }
 
 #endif

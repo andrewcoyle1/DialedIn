@@ -42,6 +42,9 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
     /// Pending set completion written by the widget, if any.
     var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion? { get }
 
+    /// Pending rep correction to the last logged set, written by the widget, if any.
+    var pendingSetAdjustment: SharedWorkoutStorage.PendingSetAdjustment? { get }
+
     /// Pending workout completion written by the widget, if any.
     var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion? { get }
 
@@ -49,6 +52,7 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
     func syncPendingCompletionsFromSharedStorage()
 
     func clearPendingSetCompletion()
+    func clearPendingSetAdjustment()
     func clearPendingWorkoutCompletion()
     
     /// The current active workout session, if any.

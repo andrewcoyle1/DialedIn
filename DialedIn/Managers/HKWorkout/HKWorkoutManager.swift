@@ -31,6 +31,7 @@ class HKWorkoutManager: NSObject {
 
     // Pending completions from widget, surfaced as observable properties
     private(set) var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion?
+    private(set) var pendingSetAdjustment: SharedWorkoutStorage.PendingSetAdjustment?
     private(set) var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion?
 
     // Weak reference to avoid circular dependency
@@ -315,6 +316,12 @@ extension HKWorkoutManager {
             pendingSetCompletion = newSetCompletion
         }
 
+        // Compared on reps as well as set id: a second tap on the same set changes only the count.
+        let newSetAdjustment = SharedWorkoutStorage.pendingSetAdjustment
+        if pendingSetAdjustment?.setId != newSetAdjustment?.setId || pendingSetAdjustment?.reps != newSetAdjustment?.reps {
+            pendingSetAdjustment = newSetAdjustment
+        }
+
         let newWorkoutCompletion = SharedWorkoutStorage.pendingWorkoutCompletion
         if pendingWorkoutCompletion?.sessionId != newWorkoutCompletion?.sessionId {
             pendingWorkoutCompletion = newWorkoutCompletion
@@ -324,6 +331,11 @@ extension HKWorkoutManager {
     func clearPendingSetCompletion() {
         SharedWorkoutStorage.clearPendingSetCompletion()
         pendingSetCompletion = nil
+    }
+
+    func clearPendingSetAdjustment() {
+        SharedWorkoutStorage.clearPendingSetAdjustment()
+        pendingSetAdjustment = nil
     }
 
     func clearPendingWorkoutCompletion() {

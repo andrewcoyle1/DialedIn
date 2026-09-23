@@ -21,6 +21,7 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     var favouriteGymProfile: GymProfileModel?
     var restEndTime: Date?
     var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion?
+    var pendingSetAdjustment: SharedWorkoutStorage.PendingSetAdjustment?
     var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion?
     var activeSession: WorkoutSessionModel?
     var allExercises: [ExerciseModel] = []
@@ -33,6 +34,7 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     private(set) var startedRests: [Int] = []
     private(set) var didCancelRest = false
     private(set) var didClearPendingSet = false
+    private(set) var didClearPendingSetAdjustment = false
     private(set) var didAddStreakEvent = false
     private(set) var endedLiveActivities: [(isCompleted: Bool, statusMessage: String?)] = []
     var endWorkoutSessionError: Error?
@@ -54,6 +56,10 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     func clearPendingSetCompletion() {
         didClearPendingSet = true
         pendingSetCompletion = nil
+    }
+    func clearPendingSetAdjustment() {
+        didClearPendingSetAdjustment = true
+        pendingSetAdjustment = nil
     }
     func clearPendingWorkoutCompletion() { pendingWorkoutCompletion = nil }
 
