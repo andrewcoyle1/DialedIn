@@ -7,6 +7,7 @@ struct NutritionOverviewDelegate {
 
 struct NutritionOverviewView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
     @State var presenter: NutritionOverviewPresenter
     let delegate: NutritionOverviewDelegate
 
@@ -49,12 +50,17 @@ struct NutritionOverviewView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     HStack(spacing: 12) {
-                        Button("Start") {
+                        Button {
                             presenter.onStartCheckInPressed()
+                        } label: {
+                            Text("Start")
+                                .foregroundStyle(colorScheme.backgroundPrimary)
                         }
                         .buttonStyle(.borderedProminent)
-                        Button("Skip this week") {
+                        Button {
                             presenter.onSkipCheckInPressed()
+                        } label: {
+                            Text("Skip this week")
                         }
                         .buttonStyle(.bordered)
                     }

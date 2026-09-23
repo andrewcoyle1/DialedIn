@@ -6,6 +6,8 @@ struct FoodPhotoScannerDelegate {
 
 struct FoodPhotoScannerView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var presenter: FoodPhotoScannerPresenter
     let delegate: FoodPhotoScannerDelegate
 
@@ -142,8 +144,11 @@ struct FoodPhotoScannerView: View {
                 }
             }
             Spacer()
-            Button("Add") {
+            Button {
                 delegate.onPick(presenter.makeMealItem(from: item))
+            } label: {
+                Text("Add")
+                    .foregroundStyle(colorScheme.backgroundPrimary)
             }
             .buttonStyle(.borderedProminent)
         }

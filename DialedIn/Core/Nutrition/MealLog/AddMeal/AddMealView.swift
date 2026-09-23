@@ -94,7 +94,7 @@ struct AddMealView: View {
                         Text("Add")
                             .padding(.horizontal, 8)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.bordered)
                 }
             } else {
                 ForEach(presenter.mealLog.items) { mealItem in

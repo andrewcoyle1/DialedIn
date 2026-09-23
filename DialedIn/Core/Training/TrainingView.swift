@@ -18,6 +18,8 @@ struct TrainingDelegate {
 
 struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var presenter: TrainingPresenter
     let delegate: TrainingDelegate
 
@@ -85,7 +87,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
                     presenter.onChooseProgramPressed()
                 } label: {
                     Label("Choose Program", systemImage: "plus.circle.fill")
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(colorScheme.backgroundPrimary)
                 }
                 .buttonStyle(.borderedProminent)
                 .padding(.top, 8)
