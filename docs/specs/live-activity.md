@@ -84,6 +84,10 @@ Rules:
 
 ## 4. Correcting the logged set
 
+> **Superseded by §7.** The state and the no-op rules below still hold; the hand-off does not.
+> `AdjustLastSetRepsIntent` now calls `LiveActivityIntentHandler.current?.adjustLastSetReps(id:delta:)`
+> and there is no `pendingSetAdjustment` slot (§7.2, §7.3).
+
 `CompleteSetIntent` continues to log the prescribed set and start the rest; that keeps the
 pre-lift state to one button. Correction happens **during the rest**, when both hands are free and
 the number is fresh, and closes when the rest ends or the next set is logged.
@@ -111,13 +115,9 @@ struct AdjustLastSetRepsIntent: LiveActivityIntent {
 
 - No-op unless the activity's state has `lastLoggedSetId` and `restEndsAt > now`.
 - Clamps `lastLoggedReps + delta` to `0...99`.
-- Writes `SharedWorkoutStorage.pendingSetAdjustment = (setId, reps, adjustedAt)` — a new slot
-  beside `pendingSetCompletion`, same shape, same clearing rules — and updates the activity
-  optimistically so the label changes at once.
-- The app consumes it where it consumes `pendingSetCompletion` today (`HKWorkoutManager` /
-  `WorkoutSessionManager`): find the set by id in the active session, set `reps`, save. If the
-  set is not found (session changed underneath), drop it silently.
-- Repeated taps coalesce: the slot holds the latest reps, not a queue of deltas.
+- Updates the activity optimistically so the label changes at once, then awaits the handler,
+  which finds the set by id in the active session, clamps the set's own reps by `delta`, saves
+  and pushes. If the set is not found (session changed underneath), it is dropped silently.
 
 ### What it does not do
 
@@ -200,9 +200,9 @@ for the activity. The intent's optimistic update covers only the gap until that 
 ### 7.2 The intents
 
 Each intent is a thin wrapper: apply the optimistic state as today, then
-`await LiveActivityIntentHandler.current?.<action>`. When no handler is registered (never, in
-practice — the app is the process) the intent falls back to the v1 shared-storage write so the
-behaviour degrades rather than disappears.
+`await LiveActivityIntentHandler.current?.<action>`. There is no fallback: a `LiveActivityIntent`
+performs in the app process, after `didFinishLaunching` has registered the handler, so a tap
+without a handler cannot happen. With no handler the intent's optimistic update is all that runs.
 
 ### 7.3 What goes
 
@@ -213,9 +213,15 @@ behaviour degrades rather than disappears.
   methods. In their place the presenter observes `interactor.activeSession` and, when a saved
   session arrives that differs from its own copy and it is not mid-update itself, adopts it —
   that is how a set logged by the handler appears on screen while the tracker is open.
-- `SharedWorkoutStorage.pendingSetCompletion/Adjustment/WorkoutCompletion` stay only as the
-  fallback slots in §7.2; nothing in the app reads them any more. `restEndTime` stays: the widget
-  itself does not read it, but the existing rest sync does, and removing that is out of scope.
+- `SharedWorkoutStorage.pendingSetCompletion/Adjustment/WorkoutCompletion`, the intents' fallback
+  writes and the handler's registration-time drain. Only the app ever wrote or read them.
+- `HKWorkoutManager.syncRestEndTimeFromSharedStorage` and its per-second call. The app is the only
+  writer of `SharedWorkoutStorage.restEndTime`, so there was nothing to poll for. The **write** in
+  `startRest`/`cancelRest`/`endRest` stays: the handler's `runningRestEndTime` reads it after a
+  cold launch, when the manager's own `restEndTime` is nil.
+- `ActivityViewState`, the push-token observation (`pushType` is now `nil`) and the
+  `CoreInteractor` wrappers `endActivity(with:)`, `updateRestAndActive` and `discardLiveActivity`.
+  Discard is the one `endLiveActivity(isCompleted: false)` call, which dismisses immediately.
 
 ### 7.4 Tests
 
