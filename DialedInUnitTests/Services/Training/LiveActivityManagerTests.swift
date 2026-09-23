@@ -12,11 +12,9 @@ import ActivityKit
 
 /// The Live Activity updater, seen through what it reports.
 ///
-/// A real `Activity<WorkoutActivityAttributes>` cannot be started in a test process, so the
-/// manager here always has none — which is exactly the case that used to fall out of the update
-/// silently.
-@MainActor
-struct LiveActivityManagerTests {
+/// Part of `LiveActivityRequestingTests` because some cases here request a real activity, and
+/// that suite is the one serialised place those requests are made.
+extension LiveActivityRequestingTests {
 
     /// The lookup answers nil, as the system does in a test process: there is no activity to find.
     private func makeManager() -> (LiveActivityManager, SpyLogService) {

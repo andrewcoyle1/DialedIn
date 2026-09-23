@@ -18,8 +18,15 @@ import Testing
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 import ActivityKit
 
+/// The one suite whose tests request a real `Activity`.
+///
+/// ActivityKit is a system service, and two suites requesting activities in parallel have had
+/// `Activity.request` answer nil. `.serialized` reaches only the suite it is on, so every test that
+/// requests one is in this suite: the scenarios here, and the manager's own in
+/// `LiveActivityManagerTests.swift`, as an extension.
+@Suite(.serialized)
 @MainActor
-struct LiveActivityScenarioTests {
+struct LiveActivityRequestingTests {
 
     private static let start = Date(timeIntervalSince1970: 1_772_000_000)
 
