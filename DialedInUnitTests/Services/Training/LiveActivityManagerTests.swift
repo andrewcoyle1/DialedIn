@@ -124,10 +124,15 @@ struct LiveActivityManagerTests {
         )
         defer { Task { await activity?.end(nil, dismissalPolicy: .immediate) } }
         manager.updateLiveActivity(params: params())
+        // The push lands on its own task. Applying the loading state before it has landed let
+        // the push overwrite it, and the second update then saw nothing to answer.
+        #expect(await TestManagers.eventually { activity?.content.state.isActive == true })
 
         var loading = try #require(manager.lastContentState)
         loading.isProcessingIntent = true
         await activity?.update(ActivityContent(state: loading, staleDate: nil))
+        // `content` is refreshed behind the update, not by it, and the gate reads `content`.
+        #expect(await TestManagers.eventually { activity?.content.state.isProcessingIntent == true })
         manager.updateLiveActivity(params: params())
 
         #expect(spy.trackedEventNames.filter { $0 == "LiveActivityMan_UpdateLiveActivity_Start" }.count == 2)
