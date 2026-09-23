@@ -188,6 +188,27 @@ class WorkoutSessionManager {
 
         return Array(cached.prefix(max(limit, 0)))
     }
+
+    /// The last `limit` completed sessions that included a given exercise, whatever workout they
+    /// were, most recent first.
+    ///
+    /// The template lookups above answer "when did I last do this workout"; this one answers "when
+    /// did I last do this exercise", which is what `.anyExercise` means and what the other two
+    /// scopes fall back to when the template has no history for the exercise.
+    func getLastCompletedSessionsContainingExercise(
+        exerciseTemplateId: String,
+        authorId: String,
+        inTrainingProgramId: String? = nil,
+        limit: Int = 3
+    ) async throws -> [WorkoutSessionModel] {
+        let cached = userWorkoutSessionSyncEngine.currentCollection
+            .filter { $0.endedAt != nil }
+            .filter { $0.exercises.contains(where: { $0.templateId == exerciseTemplateId }) }
+            .filter { inTrainingProgramId == nil || $0.trainingProgramId == inTrainingProgramId }
+            .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
+
+        return Array(cached.prefix(max(limit, 0)))
+    }
 }
 
 extension CoreInteractor {
@@ -307,6 +328,20 @@ extension CoreInteractor {
     ) async throws -> [WorkoutSessionModel] {
         try await workoutSessionManager.getLastCompletedSessionsForTemplate(
             templateId: templateId,
+            authorId: authorId,
+            inTrainingProgramId: inTrainingProgramId,
+            limit: limit
+        )
+    }
+
+    func getLastCompletedSessionsContainingExercise(
+        exerciseTemplateId: String,
+        authorId: String,
+        inTrainingProgramId: String? = nil,
+        limit: Int = 3
+    ) async throws -> [WorkoutSessionModel] {
+        try await workoutSessionManager.getLastCompletedSessionsContainingExercise(
+            exerciseTemplateId: exerciseTemplateId,
             authorId: authorId,
             inTrainingProgramId: inTrainingProgramId,
             limit: limit

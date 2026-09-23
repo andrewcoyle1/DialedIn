@@ -252,15 +252,11 @@ struct SetSideTrackingTests {
     @Test("Test The Previous Lookup Keeps The Sides Apart")
     func testThePreviousLookupKeepsTheSidesApart() {
         let (presenter, _) = makeListPresenter()
-        presenter.previousWorkoutSession = WorkoutSessionModel(
-            authorId: "user-1",
-            name: "Pull",
-            dateCreated: Date(),
-            exercises: [exercise(sets: [
-                set(id: "p1", index: 1, side: .left, weightKg: 20),
-                set(id: "p2", index: 2, side: .right, weightKg: 22.5)
-            ])]
-        )
+        let previous = exercise(sets: [
+            set(id: "p1", index: 1, side: .left, weightKg: 20),
+            set(id: "p2", index: 2, side: .right, weightKg: 22.5)
+        ])
+        presenter.previousExercises = [previous.templateId: previous]
 
         let lookup = presenter.buildPreviousLookup(for: exercise(sets: onePair))
 

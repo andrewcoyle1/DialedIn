@@ -16,7 +16,8 @@ class SetTrackerPresenter {
     var showAutoRanges: Bool = true
     
     var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
-    var previousWorkoutSession: WorkoutSessionModel?
+    /// What the user last did for each exercise, keyed by the exercise's `templateId`.
+    var previousExercises: [String: WorkoutExerciseModel] = [:]
     var previousLookup: [PreviousSetKey: WorkoutSetModel] = [:]
 
     var userId: String? {
@@ -372,12 +373,7 @@ class SetTrackerPresenter {
     }
 
     func buildPreviousLookup(for exercise: WorkoutExerciseModel) -> [PreviousSetKey: WorkoutSetModel] {
-        guard let prevSession = previousWorkoutSession else { return [:] }
-        
-        // Find matching exercise by templateId
-        guard let prevExercise = prevSession.exercises.first(where: { $0.templateId == exercise.templateId }) else {
-            return [:]
-        }
+        guard let prevExercise = previousExercises[exercise.templateId] else { return [:] }
         
         // Map sets by index and side, keeping the last of any duplicates rather than trapping on
         // them. `Dictionary(uniqueKeysWithValues:)` crashes on a repeated key, and sessions saved

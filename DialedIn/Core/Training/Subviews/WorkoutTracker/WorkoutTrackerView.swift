@@ -144,15 +144,12 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                     }()
                     let delegate = ExerciseTrackerDelegate(
                         exercise: $exercise,
-                        lastExercise: presenter.previousWorkoutSession?.exercises.first(
-                            where: { previousExercise in
-                                previousExercise.templateId == exercise.templateId
-                            }
-                        ),
+                        lastExercise: presenter.previousExercises[exercise.templateId],
                         isExpanded: isExpanded,
                         allWorkoutExercises: presenter.workoutSession.exercises,
                         supersetLabel: supersetLabel,
                         progressionHint: presenter.progressionHint(for: exerciseId),
+                        progressionSuggestion: presenter.progressionSuggestions[exercise.templateId],
                         onSetSupersetGroup: { exerciseId, groupId in
                             presenter.setSupersetGroupId(groupId, forExerciseId: exerciseId)
                         },

@@ -16,8 +16,9 @@ import HealthKit
 /// current set.
 ///
 /// Both are settings-dependent and both defaults matter: `previousWorkoutReference` defaults to
-/// `.anyWorkout`, which is the unrestricted lookup every user has today, and the two rest-timer
-/// announcements default to on, so a rest ending is announced unless the user says otherwise.
+/// `.sameWorkout` — stored as `"anyWorkout"`, the unfiltered template lookup every user has today
+/// — and the two rest-timer announcements default to on, so a rest ending is announced unless the
+/// user says otherwise.
 @MainActor
 struct WorkoutTrackerRestFeedbackTests {
 
@@ -94,12 +95,14 @@ struct WorkoutTrackerRestFeedbackTests {
         )
     }
 
-    /// A finished session the previous-values lookup can find.
+    /// A finished session the previous-values lookup can find. Its exercises carry the session's
+    /// id so a test can say which session a figure came from.
     private func completed(
         id: String,
-        templateId: String,
+        templateId: String?,
         programId: String?,
-        endedAt: Date
+        endedAt: Date,
+        exerciseTemplateIds: [String] = ["template-e1"]
     ) -> WorkoutSessionModel {
         WorkoutSessionModel(
             id: id,
@@ -109,7 +112,17 @@ struct WorkoutTrackerRestFeedbackTests {
             trainingProgramId: programId,
             dateCreated: start,
             endedAt: endedAt,
-            exercises: []
+            exercises: exerciseTemplateIds.map { exerciseTemplateId in
+                WorkoutExerciseModel(
+                    id: "\(id)-\(exerciseTemplateId)",
+                    authorId: "author-1",
+                    templateId: exerciseTemplateId,
+                    name: "Bench Press",
+                    trackingMode: .weightReps,
+                    index: 1,
+                    sets: []
+                )
+            }
         )
     }
 
@@ -134,17 +147,19 @@ struct WorkoutTrackerRestFeedbackTests {
 
     // MARK: - Previous values
 
-    /// A workout logged freehand has no template to compare against, so there is no previous
-    /// session to show.
-    @Test("Test A Workout Without A Template Has No Previous Session")
-    func testAWorkoutWithoutATemplateHasNoPreviousSession() async throws {
+    /// A freehand workout has no template to compare against, so the column falls back to the
+    /// exercise's own history rather than showing nothing.
+    @Test("Test A Workout Without A Template Falls Back To The Exercises Own History")
+    func testAWorkoutWithoutATemplateFallsBackToTheExercisesOwnHistory() async throws {
         let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1)])])
-        screen.interactor.lastCompletedSession = session(exercises: [])
+        screen.interactor.completedSessions = [
+            completed(id: "elsewhere", templateId: "other-template", programId: nil, endedAt: start)
+        ]
 
         screen.presenter.loadPreviousWorkoutSession()
         await settle()
 
-        #expect(screen.presenter.previousWorkoutSession == nil)
+        #expect(screen.presenter.previousExercises["template-e1"]?.id == "elsewhere-template-e1")
     }
 
     @Test("Test A Workout From A Template Loads What Was Done Last Time")
@@ -153,24 +168,26 @@ struct WorkoutTrackerRestFeedbackTests {
             exercises: [exercise(id: "e1", index: 1, sets: [set(1)])],
             templateId: "template-1"
         )
-        screen.interactor.lastCompletedSession = session(exercises: [])
+        screen.interactor.completedSessions = [
+            completed(id: "last-time", templateId: "template-1", programId: nil, endedAt: start)
+        ]
 
         screen.presenter.loadPreviousWorkoutSession()
         await settle()
 
-        #expect(screen.presenter.previousWorkoutSession != nil)
+        #expect(screen.presenter.previousExercises["template-e1"]?.id == "last-time-template-e1")
     }
 
-    /// The default. Nothing is filtered, so the previous column shows the last time this workout
-    /// was done however it was reached — which is what every user has today.
-    @Test("Test Any-Workout Reference Searches Every Session")
-    func testAnyWorkoutReferenceSearchesEverySession() async throws {
+    /// The default, stored as `"anyWorkout"` for every existing user. This workout's own history,
+    /// unfiltered by program — so the more recent freehand run of the same template wins.
+    @Test("Test Same-Workout Reference Searches Every Program")
+    func testSameWorkoutReferenceSearchesEveryProgram() async throws {
         let screen = try makeScreen(
             exercises: [exercise(id: "e1", index: 1, sets: [set(1)])],
             templateId: "template-1",
             programId: "program-1"
         )
-        #expect(screen.interactor.workoutSettings.previousWorkoutReference == .anyWorkout)
+        #expect(screen.interactor.workoutSettings.previousWorkoutReference == .sameWorkout)
         screen.interactor.completedSessions = [
             completed(id: "old-in-program", templateId: "template-1", programId: "program-1", endedAt: start),
             completed(id: "recent-freehand", templateId: "template-1", programId: nil, endedAt: start.addingTimeInterval(60))
@@ -180,7 +197,7 @@ struct WorkoutTrackerRestFeedbackTests {
         await settle()
 
         #expect(screen.interactor.lastCompletedSessionLookups == [nil])
-        #expect(screen.presenter.previousWorkoutSession?.id == "recent-freehand")
+        #expect(screen.presenter.previousExercises["template-e1"]?.id == "recent-freehand-template-e1")
     }
 
     /// Turned on, the same lookup skips the more recent session logged outside the program and
@@ -203,7 +220,7 @@ struct WorkoutTrackerRestFeedbackTests {
         await settle()
 
         #expect(screen.interactor.lastCompletedSessionLookups == ["program-1"])
-        #expect(screen.presenter.previousWorkoutSession?.id == "old-in-program")
+        #expect(screen.presenter.previousExercises["template-e1"]?.id == "old-in-program-template-e1")
     }
 
     /// A one-off workout is in no program, so there is no program for it to be "within". Filtering
@@ -223,7 +240,53 @@ struct WorkoutTrackerRestFeedbackTests {
         await settle()
 
         #expect(screen.interactor.lastCompletedSessionLookups == [nil])
-        #expect(screen.presenter.previousWorkoutSession?.id == "in-program")
+        #expect(screen.presenter.previousExercises["template-e1"]?.id == "in-program-template-e1")
+    }
+
+    /// The fallback the whole rework is for: a template that has never held this exercise still
+    /// shows the last time the user performed it anywhere.
+    @Test("Test An Exercise New To This Workout Still Shows Its Own History")
+    func testAnExerciseNewToThisWorkoutStillShowsItsOwnHistory() async throws {
+        let screen = try makeScreen(
+            exercises: [exercise(id: "e1", index: 1, sets: [set(1)])],
+            templateId: "template-1"
+        )
+        screen.interactor.completedSessions = [
+            completed(
+                id: "this-workout",
+                templateId: "template-1",
+                programId: nil,
+                endedAt: start.addingTimeInterval(60),
+                exerciseTemplateIds: ["template-e2"]
+            ),
+            completed(id: "elsewhere", templateId: "other-template", programId: nil, endedAt: start)
+        ]
+
+        screen.presenter.loadPreviousWorkoutSession()
+        await settle()
+
+        #expect(screen.presenter.previousExercises["template-e1"]?.id == "elsewhere-template-e1")
+    }
+
+    /// The new scope. The template is not consulted, so the most recent time the exercise was
+    /// performed wins wherever it happened.
+    @Test("Test Any-Exercise Reference Reads The Most Recent Performance Anywhere")
+    func testAnyExerciseReferenceReadsTheMostRecentPerformanceAnywhere() async throws {
+        let screen = try makeScreen(
+            exercises: [exercise(id: "e1", index: 1, sets: [set(1)])],
+            settings: { $0.previousWorkoutReference = .anyExercise },
+            templateId: "template-1"
+        )
+        screen.interactor.completedSessions = [
+            completed(id: "this-workout", templateId: "template-1", programId: nil, endedAt: start),
+            completed(id: "elsewhere", templateId: "other-template", programId: nil, endedAt: start.addingTimeInterval(60))
+        ]
+
+        screen.presenter.loadPreviousWorkoutSession()
+        await settle()
+
+        #expect(screen.interactor.lastCompletedSessionLookups.isEmpty)
+        #expect(screen.presenter.previousExercises["template-e1"]?.id == "elsewhere-template-e1")
     }
 
     // MARK: - Announcing the end of a rest

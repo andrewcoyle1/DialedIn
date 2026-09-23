@@ -19,12 +19,25 @@ struct WorkoutSessionManagerTests {
 
     private let start = Date(timeIntervalSince1970: 1_000_000)
 
+    private func exercise(templateId: String) -> WorkoutExerciseModel {
+        WorkoutExerciseModel(
+            id: "\(templateId)-instance",
+            authorId: "author-1",
+            templateId: templateId,
+            name: templateId,
+            trackingMode: .weightReps,
+            index: 1,
+            sets: []
+        )
+    }
+
     private func session(
         id: String,
         templateId: String? = nil,
         programId: String? = nil,
         daysAgo: Int = 0,
-        ended: Bool = true
+        ended: Bool = true,
+        exerciseTemplateIds: [String] = []
     ) -> WorkoutSessionModel {
         let date = start.addingTimeInterval(Double(-daysAgo) * 86400)
         return WorkoutSessionModel(
@@ -35,7 +48,7 @@ struct WorkoutSessionManagerTests {
             trainingProgramId: programId,
             dateCreated: date,
             endedAt: ended ? date.addingTimeInterval(3600) : nil,
-            exercises: []
+            exercises: exerciseTemplateIds.map { exercise(templateId: $0) }
         )
     }
 
@@ -133,6 +146,79 @@ struct WorkoutSessionManagerTests {
         )
 
         #expect(narrowed == nil)
+    }
+
+    // MARK: - The any-exercise lookup
+
+    /// What `.anyExercise` means, and what the two template scopes fall back to: the last times
+    /// this exercise was performed, whatever workout it happened to be part of.
+    @Test("Test The Exercise Lookup Finds Every Workout That Included It")
+    func testTheExerciseLookupFindsEveryWorkoutThatIncludedIt() async throws {
+        let manager = await TestManagers.signedInWorkoutSessionManager(sessions: [
+            session(id: "push-old", templateId: "push", daysAgo: 10, exerciseTemplateIds: ["bench"]),
+            session(id: "chest-recent", templateId: "chest", daysAgo: 1, exerciseTemplateIds: ["bench", "fly"]),
+            session(id: "legs", templateId: "legs", daysAgo: 2, exerciseTemplateIds: ["squat"])
+        ])
+
+        let found = try await manager.getLastCompletedSessionsContainingExercise(
+            exerciseTemplateId: "bench",
+            authorId: "author-1"
+        )
+
+        #expect(found.map(\.id) == ["chest-recent", "push-old"])
+    }
+
+    /// An unfinished workout is not history — its sets are still being typed in.
+    @Test("Test The Exercise Lookup Ignores A Session Still In Progress")
+    func testTheExerciseLookupIgnoresASessionStillInProgress() async throws {
+        let manager = await TestManagers.signedInWorkoutSessionManager(sessions: [
+            session(id: "finished", templateId: "push", daysAgo: 5, exerciseTemplateIds: ["bench"]),
+            session(id: "running", templateId: "push", daysAgo: 1, ended: false, exerciseTemplateIds: ["bench"])
+        ])
+
+        let found = try await manager.getLastCompletedSessionsContainingExercise(
+            exerciseTemplateId: "bench",
+            authorId: "author-1"
+        )
+
+        #expect(found.map(\.id) == ["finished"])
+    }
+
+    @Test("Test The Exercise Lookup Can Be Narrowed To One Program And Limited")
+    func testTheExerciseLookupCanBeNarrowedToOneProgramAndLimited() async throws {
+        let manager = await TestManagers.signedInWorkoutSessionManager(sessions: [
+            session(id: "in-program-old", templateId: "push", programId: "program-1", daysAgo: 10, exerciseTemplateIds: ["bench"]),
+            session(id: "in-program-new", templateId: "chest", programId: "program-1", daysAgo: 2, exerciseTemplateIds: ["bench"]),
+            session(id: "freehand", templateId: "push", daysAgo: 1, exerciseTemplateIds: ["bench"])
+        ])
+
+        let narrowed = try await manager.getLastCompletedSessionsContainingExercise(
+            exerciseTemplateId: "bench",
+            authorId: "author-1",
+            inTrainingProgramId: "program-1"
+        )
+        #expect(narrowed.map(\.id) == ["in-program-new", "in-program-old"])
+
+        let limited = try await manager.getLastCompletedSessionsContainingExercise(
+            exerciseTemplateId: "bench",
+            authorId: "author-1",
+            limit: 2
+        )
+        #expect(limited.map(\.id) == ["freehand", "in-program-new"])
+    }
+
+    @Test("Test An Exercise Never Performed Has No Sessions")
+    func testAnExerciseNeverPerformedHasNoSessions() async throws {
+        let manager = await TestManagers.signedInWorkoutSessionManager(sessions: [
+            session(id: "push", templateId: "push", daysAgo: 1, exerciseTemplateIds: ["bench"])
+        ])
+
+        let found = try await manager.getLastCompletedSessionsContainingExercise(
+            exerciseTemplateId: "deadlift",
+            authorId: "author-1"
+        )
+
+        #expect(found.isEmpty)
     }
 
     // MARK: - Writing

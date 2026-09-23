@@ -10,6 +10,8 @@ import SwiftUI
 struct SetTrackerDelegate {
     let exercise: Binding<WorkoutExerciseModel>
     let lastExercise: WorkoutExerciseModel?
+    /// What smart progression suggests for this exercise, one entry per working set.
+    var progressionSuggestion: ProgressionSuggestion?
     var allWorkoutExercises: [WorkoutExerciseModel] = []
     var onSetSupersetGroup: @MainActor (String, String?) -> Void = { _, _ in }
     var onDeleteExercise: @MainActor () -> Void = { }
@@ -34,11 +36,16 @@ struct SetTrackerView<SetTrackerRow: View>: View {
                 // Matched on the side as well as the number: a left set inheriting the right
                 // arm's last weight sends the user chasing the other arm's numbers.
                 let lastSet = delegate.lastExercise?.matchingSet(for: set.wrappedValue)
+                let suggestedSet = delegate.progressionSuggestion?.suggestedSet(
+                    for: set.wrappedValue,
+                    in: delegate.exercise.wrappedValue
+                )
                 setTrackerRow(
                     SetTrackerRowDelegate(
                         exercise: delegate.exercise,
                         set: set,
                         lastSet: lastSet,
+                        progressionSuggestion: suggestedSet,
                         showAutoRanges: presenter.showAutoRanges,
                         onSetCompleted: delegate.onSetCompleted
                     )

@@ -61,7 +61,12 @@ class WorkoutTrackerPresenter {
         return currentExerciseIndex
     }
     
-    var previousWorkoutSession: WorkoutSessionModel?
+    /// What the user last did for each exercise on screen, keyed by the exercise's `templateId`.
+    ///
+    /// Per exercise rather than per session because `previousWorkoutReference` is: two exercises
+    /// of the same workout can resolve to different past sessions when one of them is new to the
+    /// template. See `loadPreviousWorkoutSession()`.
+    var previousExercises: [String: WorkoutExerciseModel] = [:]
     var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
 
     /// What smart progression decided for each exercise, keyed by `templateId`. Drives the hint

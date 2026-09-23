@@ -26,36 +26,44 @@ extension WorkoutTrackerPresenter {
 
     // MARK: - Previous Values
 
-    /// The program the "previous" figures may come from, or `nil` for any workout at all.
+    /// Loads what the user last did for every exercise on screen, honouring
+    /// `previousWorkoutReference` through `interactor.previousSessions(...)` — the same resolution
+    /// smart progression uses, so the "Prev" column and the "Auto" column can never disagree about
+    /// what last time was.
     ///
-    /// `.workoutsInProgram` means "the same program as this workout", so a session logged outside
-    /// a program has no program to be within and keeps the unrestricted lookup — otherwise the
-    /// setting would silently blank the previous column for every one-off workout.
-    private var previousWorkoutReferenceProgramId: String? {
-        switch interactor.workoutSettings.previousWorkoutReference {
-        case .anyWorkout:        return nil
-        case .workoutsInProgram: return workoutSession.trainingProgramId
-        }
-    }
-
+    /// Resolved one exercise at a time because the fallback is per exercise: an exercise this
+    /// template has never held still shows the last time it was performed anywhere.
     func loadPreviousWorkoutSession() {
-        // Only load previous session if this workout is from a template
-        guard let templateId = workoutSession.workoutTemplateId,
-              let authorId = interactor.currentUser?.userId else {
-            previousWorkoutSession = nil
+        guard let authorId = interactor.currentUser?.userId else {
+            previousExercises = [:]
             return
         }
 
+        let workoutTemplateId = workoutSession.workoutTemplateId
+        let trainingProgramId = workoutSession.trainingProgramId
+        let exerciseTemplateIds = Array(Set(workoutSession.exercises.map(\.templateId)))
+
         Task {
-            do {
-                previousWorkoutSession = try await interactor.getLastCompletedSessionForTemplate(
-                    templateId: templateId,
+            var resolved: [String: WorkoutExerciseModel] = [:]
+
+            for exerciseTemplateId in exerciseTemplateIds {
+                let sessions = await interactor.previousSessions(
+                    forExerciseTemplateId: exerciseTemplateId,
+                    workoutTemplateId: workoutTemplateId,
                     authorId: authorId,
-                    inTrainingProgramId: previousWorkoutReferenceProgramId
+                    trainingProgramId: trainingProgramId,
+                    limit: 1
                 )
-            } catch {
-                previousWorkoutSession = nil
+                let match = sessions
+                    .lazy
+                    .compactMap { $0.exercises.first(where: { $0.templateId == exerciseTemplateId }) }
+                    .first
+                if let match {
+                    resolved[exerciseTemplateId] = match
+                }
             }
+
+            previousExercises = resolved
         }
     }
 

@@ -75,6 +75,43 @@ struct PrevWORefSettingsStaleSnapshotTests {
         #expect(screen.interactor.saved.last?.rirTracking == true)
     }
 
+    // MARK: - The three scopes
+
+    /// Three scopes, listed widest first. The screen is driven by `allCases`, so this is what the
+    /// user sees.
+    @Test("Test The Screen Lists All Three Scopes")
+    func testTheScreenListsAllThreeScopes() {
+        let screen = makeScreen()
+
+        #expect(screen.presenter.options == [.anyExercise, .sameWorkout, .workoutsInProgram])
+        #expect(screen.presenter.options.allSatisfy { option in
+            !option.title.isEmpty && !option.subtitle.isEmpty
+        })
+    }
+
+    /// The default, and the one nobody's stored setting may move off.
+    @Test("Test The Default Scope Is This Workout")
+    func testTheDefaultScopeIsThisWorkout() {
+        #expect(makeScreen().presenter.previousWorkoutReference == .sameWorkout)
+        #expect(WorkoutSettings(authorId: "user-1").previousWorkoutReference == .sameWorkout)
+    }
+
+    /// The migration rule. `"anyWorkout"` is what every existing user has stored and it has always
+    /// meant "the last time this workout was done", whatever its title claimed — so it stays bound
+    /// to `.sameWorkout` and the genuinely template-free scope took a new raw value.
+    @Test("Test The Stored anyWorkout Value Still Means This Workout")
+    func testTheStoredAnyWorkoutValueStillMeansThisWorkout() throws {
+        #expect(PreviousWorkoutReferenceOption(rawValue: "anyWorkout") == .sameWorkout)
+        #expect(PreviousWorkoutReferenceOption.sameWorkout.rawValue == "anyWorkout")
+        #expect(PreviousWorkoutReferenceOption.anyExercise.rawValue == "anyExercise")
+
+        let decoded = try JSONDecoder().decode(
+            [PreviousWorkoutReferenceOption].self,
+            from: Data(#"["anyWorkout","anyExercise","workoutsInProgram"]"#.utf8)
+        )
+        #expect(decoded == [.sameWorkout, .anyExercise, .workoutsInProgram])
+    }
+
     /// And the re-read must not undo the user's own choice when the screen appears again after
     /// saving it.
     @Test("Test A Saved Choice Survives The Screen Reappearing")

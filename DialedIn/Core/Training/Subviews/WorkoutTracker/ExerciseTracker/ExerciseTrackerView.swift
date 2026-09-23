@@ -15,6 +15,8 @@ struct ExerciseTrackerDelegate {
     var supersetLabel: String?
     /// The one line smart progression has to say about this exercise, if anything.
     var progressionHint: String?
+    /// What the engine suggests for this exercise's working sets, shown by the Auto column.
+    var progressionSuggestion: ProgressionSuggestion?
     var onSetSupersetGroup: @MainActor (String, String?) -> Void = { _, _ in }
     var onDeleteExercise: @MainActor () -> Void = { }
     /// Called with the set that was just logged, so the screen can re-suggest what is left.
@@ -33,6 +35,7 @@ struct ExerciseTrackerView<SetTracker: View>: View {
             let setDelegate = SetTrackerDelegate(
                 exercise: delegate.exercise,
                 lastExercise: delegate.lastExercise,
+                progressionSuggestion: delegate.progressionSuggestion,
                 allWorkoutExercises: delegate.allWorkoutExercises,
                 onSetSupersetGroup: delegate.onSetSupersetGroup,
                 onDeleteExercise: delegate.onDeleteExercise,
