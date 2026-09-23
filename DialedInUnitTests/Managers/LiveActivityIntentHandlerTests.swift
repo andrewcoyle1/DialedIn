@@ -42,25 +42,25 @@ struct LiveActivityIntentHandlerTests {
         )
     }
 
-    private func exercise(sets: [WorkoutSetModel]) -> WorkoutExerciseModel {
+    private func exercise(id: String = "e1", index: Int = 1, sets: [WorkoutSetModel]) -> WorkoutExerciseModel {
         WorkoutExerciseModel(
-            id: "e1",
+            id: id,
             authorId: "author-1",
-            templateId: "template-1",
-            name: "Bench Press",
+            templateId: "template-\(index)",
+            name: "Exercise \(index)",
             trackingMode: .weightReps,
-            index: 1,
+            index: index,
             sets: sets
         )
     }
 
-    private func session(sets: [WorkoutSetModel]) -> WorkoutSessionModel {
+    private func session(exercises: [WorkoutExerciseModel]) -> WorkoutSessionModel {
         WorkoutSessionModel(
             id: "session-1",
             authorId: "author-1",
             name: "Push Day",
             dateCreated: Self.start,
-            exercises: [exercise(sets: sets)]
+            exercises: exercises
         )
     }
 
@@ -75,6 +75,13 @@ struct LiveActivityIntentHandlerTests {
         sets: [WorkoutSetModel],
         settings: (inout WorkoutSettings) -> Void = { _ in }
     ) async throws -> Rig {
+        try await makeRig(exercises: [exercise(sets: sets)], settings: settings)
+    }
+
+    private func makeRig(
+        exercises: [WorkoutExerciseModel],
+        settings: (inout WorkoutSettings) -> Void = { _ in }
+    ) async throws -> Rig {
         // A rest left behind by an earlier run would otherwise read back as one in progress.
         SharedWorkoutStorage.clearRestEndTime()
 
@@ -83,7 +90,7 @@ struct LiveActivityIntentHandlerTests {
         settings(&workoutSettings)
 
         let sessions = TestManagers.workoutSessionManager()
-        try sessions.updateActiveSession(session(sets: sets))
+        try sessions.updateActiveSession(session(exercises: exercises))
 
         let settingsManager = try await TestManagers.signedInWorkoutSettingsManager(workoutSettings)
         let activity = LiveActivityUpdaterSpy()
@@ -294,6 +301,57 @@ struct LiveActivityIntentHandlerTests {
         await rig.handler.completeWorkout()
 
         #expect(rig.activity.ended.isEmpty)
+    }
+
+    // MARK: - Draining the fallback slots
+
+    /// A tap that lost the cold-launch race left a note in the app group. Registration drains it:
+    /// the set is logged exactly as if the handler had been there.
+    @Test("Test Draining Applies A Set Completion Left By The Fallback")
+    func testDrainingAppliesASetCompletionLeftByTheFallback() async throws {
+        let rig = try await makeRig(sets: [set("set-1", index: 1), set("set-2", index: 2)])
+
+        await rig.handler.drain(
+            setCompletion: SharedWorkoutStorage.PendingSetCompletion(
+                setId: "set-1", weightKg: nil, reps: nil, distanceMeters: nil, durationSec: nil, completedAt: Date()
+            ),
+            adjustment: nil,
+            workoutCompletion: nil
+        )
+
+        let sets = try savedSets(rig)
+        #expect(sets[0].completedAt != nil)
+        #expect(sets[1].completedAt == nil)
+    }
+
+    /// A drained adjustment is an absolute count and applies even though its rest has passed.
+    @Test("Test Draining Applies An Adjustment After Its Rest Has Passed")
+    func testDrainingAppliesAnAdjustmentAfterItsRestHasPassed() async throws {
+        let rig = try await makeRig(sets: [set("set-1", index: 1, reps: 8, done: true)])
+
+        await rig.handler.drain(
+            setCompletion: nil,
+            adjustment: SharedWorkoutStorage.PendingSetAdjustment(setId: "set-1", reps: 6, adjustedAt: Date()),
+            workoutCompletion: nil
+        )
+
+        let sets = try savedSets(rig)
+        #expect(sets[0].reps == 6)
+        #expect(sets[0].completedAt != nil)
+    }
+
+    /// A workout completion for some other session is a stale note and is dropped.
+    @Test("Test Draining Ignores A Workout Completion For Another Session")
+    func testDrainingIgnoresAWorkoutCompletionForAnotherSession() async throws {
+        let rig = try await makeRig(sets: [set("set-1", index: 1)])
+
+        await rig.handler.drain(
+            setCompletion: nil,
+            adjustment: nil,
+            workoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion(sessionId: "not-this-one", completedAt: Date())
+        )
+
+        #expect(rig.sessions.activeSession != nil)
     }
 
 }

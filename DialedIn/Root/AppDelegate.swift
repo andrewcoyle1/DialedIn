@@ -67,6 +67,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         )
         liveActivityIntentHandler = handler
         LiveActivityIntentHandler.current = handler
+        Task { await handler.drainFallbackSlots() }
         #endif
     }
 
