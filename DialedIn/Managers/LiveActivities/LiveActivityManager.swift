@@ -221,15 +221,17 @@ class LiveActivityManager: LiveActivityUpdating {
     }
     
     private func updateLiveActivity(sessionId: String, contentState: WorkoutActivityAttributes.ContentState) {
+        let activity = resolveActivity(sessionId: sessionId)
+
         // Only update if meaningful changes occurred. A skipped no-op is not an attempt, so the
         // Start belongs below the guard — logging it above gave every unchanged tick a Start with
         // no terminal event and buried the real failures.
-        guard shouldUpdateLiveActivity(contentState: contentState) else { return }
+        guard shouldUpdateLiveActivity(contentState: contentState, on: activity) else { return }
 
         logger.trackEvent(event: Event.updateLiveActivityStart)
 
         // Guard activity existence and acceptable state to avoid runtime errors
-        guard let activity = resolveActivity(sessionId: sessionId), Self.isUpdatable(activity) else {
+        guard let activity, Self.isUpdatable(activity) else {
             // The activity was dismissed or ended under us. This used to fall out of the `if` with
             // nothing logged, so a Live Activity that stopped updating mid-workout was invisible.
             logger.trackEvent(event: Event.updateLiveActivityFail(error: LiveActivityError.noUpdatableActivity))
@@ -249,8 +251,15 @@ class LiveActivityManager: LiveActivityUpdating {
     /// only those changed between pushes; the reps correction changes `lastLoggedReps` and nothing
     /// else, and a four-field gate dropped it on the floor. The per-second tick still produces an
     /// identical state (elapsed time is not part of it), so the gate keeps that quiet.
-    private func shouldUpdateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) -> Bool {
-        lastContentState != contentState
+    ///
+    /// An intent pushes its loading state straight to ActivityKit, behind this memory. A push that
+    /// otherwise changes nothing — a tap on a set already logged — is still owed while that flag is
+    /// up, or the button stays dead.
+    private func shouldUpdateLiveActivity(
+        contentState: WorkoutActivityAttributes.ContentState,
+        on activity: Activity<WorkoutActivityAttributes>?
+    ) -> Bool {
+        lastContentState != contentState || activity?.content.state.isProcessingIntent == true
     }
     
     /// Forget the activity once the user has dismissed it, so a later update does not talk to a

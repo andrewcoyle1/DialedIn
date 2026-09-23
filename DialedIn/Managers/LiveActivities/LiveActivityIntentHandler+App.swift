@@ -64,18 +64,18 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
     /// leaves the numbers alone.
     func completeSet(id: String) async {
         guard let session = workoutSessionManager.activeSession,
-              let location = locate(setId: id, in: session) else { return }
+              let location = locate(setId: id, in: session) else { return pushActiveSession() }
 
         let exercise = session.exercises[location.exerciseIndex]
         let set = exercise.sets[location.setIndex]
-        guard set.completedAt == nil else { return }
+        guard set.completedAt == nil else { return pushActiveSession() }
 
         var exercises = session.exercises
         exercises[location.exerciseIndex].sets[location.setIndex].completedAt = Date()
 
         var updated = session
         updated.updateExercises(exercises)
-        guard save(updated) else { return }
+        guard save(updated) else { return pushActiveSession() }
 
         // The exercise to show is the next one with work left, not the one just finished: after
         // its last set the finished exercise has no target, and a banner with no target has no
@@ -90,9 +90,9 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
     /// Reps and nothing else: the correction is about what was lifted, not when, so `completedAt`
     /// stays as it was logged. Outside the rest there is no set to correct and the tap is dropped.
     func adjustLastSetReps(id: String, delta: Int) async {
-        guard runningRestEndTime != nil else { return }
-        guard let session = workoutSessionManager.activeSession,
-              let location = locate(setId: id, in: session) else { return }
+        guard runningRestEndTime != nil,
+              let session = workoutSessionManager.activeSession,
+              let location = locate(setId: id, in: session) else { return pushActiveSession() }
 
         var exercises = session.exercises
         let base = exercises[location.exerciseIndex].sets[location.setIndex].reps ?? 0
@@ -100,7 +100,7 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
 
         var updated = session
         updated.updateExercises(exercises)
-        guard save(updated) else { return }
+        guard save(updated) else { return pushActiveSession() }
 
         push(updated, exerciseIndex: currentExerciseIndex(in: updated))
     }
@@ -108,7 +108,7 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
     /// Lengthen (or shorten) the running rest, never past now.
     func adjustRest(by seconds: Int) async {
         guard let restEndTime = runningRestEndTime,
-              let session = workoutSessionManager.activeSession else { return }
+              let session = workoutSessionManager.activeSession else { return pushActiveSession() }
 
         let proposed = restEndTime.addingTimeInterval(TimeInterval(seconds))
         let remaining = max(1, proposed.timeIntervalSinceNow)
@@ -213,6 +213,18 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
             session: session,
             currentExerciseIndex: exerciseIndex
         )
+    }
+
+    /// The push an action that changed nothing still owes.
+    ///
+    /// The intent put the activity into its loading state before calling in, and only a push from
+    /// here — `makeContentState` sets `isProcessingIntent: false` — takes it out again. A tap on a
+    /// set already logged, or a correction after the rest ran out, would otherwise leave the
+    /// button dead until the tracker's next tick. With no active session there is nothing to push
+    /// and no activity that should still be up.
+    private func pushActiveSession() {
+        guard let session = workoutSessionManager.activeSession else { return }
+        push(session, exerciseIndex: currentExerciseIndex(in: session))
     }
 
     /// Pushes the saved session to the activity, the same shape `WorkoutTrackerPresenter`

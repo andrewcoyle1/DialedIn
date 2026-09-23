@@ -189,6 +189,30 @@ struct LiveActivityIntentHandlerTests {
         #expect(untouched.completedAt == Self.start)
     }
 
+    /// The intent disables the button before calling in, and only a push from here re-enables it.
+    /// A tap that changes nothing — a set already logged, an id this workout does not have — must
+    /// still answer with a push, or the button stays dead until the tracker's next tick.
+    @Test("Test A Dropped Tap Still Pushes So The Button Is Re-Enabled")
+    func testADroppedTapStillPushesSoTheButtonIsReEnabled() async throws {
+        let rig = try await makeRig(sets: [set("s1", index: 1, done: true)])
+
+        await rig.handler.completeSet(id: "s1")
+        #expect(rig.activity.fullUpdates.count == 1)
+
+        await rig.handler.completeSet(id: "not-in-this-workout")
+        #expect(rig.activity.fullUpdates.count == 2)
+
+        await rig.handler.adjustLastSetReps(id: "s1", delta: -1)
+        #expect(rig.activity.fullUpdates.count == 3)
+
+        await rig.handler.adjustRest(by: 15)
+        #expect(rig.activity.fullUpdates.count == 4)
+
+        let pushed = try #require(rig.activity.fullUpdates.last)
+        #expect(pushed.session.exercises[0].sets[0].completedAt == Self.start)
+        #expect(pushed.restEndsAt == nil)
+    }
+
     // MARK: - Correcting the reps
 
     @Test("Test A Correction During The Rest Changes Only The Reps")

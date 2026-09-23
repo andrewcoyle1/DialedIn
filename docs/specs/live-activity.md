@@ -199,10 +199,28 @@ for the activity. The intent's optimistic update covers only the gap until that 
 
 ### 7.2 The intents
 
-Each intent is a thin wrapper: apply the optimistic state as today, then
-`await LiveActivityIntentHandler.current?.<action>`. There is no fallback: a `LiveActivityIntent`
-performs in the app process, after `didFinishLaunching` has registered the handler, so a tap
-without a handler cannot happen. With no handler the intent's optimistic update is all that runs.
+Each intent is a thin wrapper with one shape: push the current state with `isProcessingIntent`
+on, then `await LiveActivityIntentHandler.current?.<action>`. That loading push is the intent's
+only ActivityKit update. The handler's push — built by `LiveActivityManager.makeContentState`,
+which sets `isProcessingIntent: false` and derives `lastLogged*`, the rest and the advanced
+target from the saved session — is what re-enables the button. Nothing is guessed in between:
+the optimistic progress, "logged set" and rest-clearing pushes are gone, so one tap is one
+update from the intent and one from the app rather than three.
+
+`AdjustLastSetRepsIntent` keeps one optimistic write, `lastLoggedReps`, carried on the loading
+push: that is the number changing under the user's thumb. `AdjustLastSetRepsDecision` stays as
+the guard that decides whether the tap does anything at all.
+
+There is no fallback: a `LiveActivityIntent` performs in the app process, after
+`didFinishLaunching` has registered the handler, so a tap without a handler cannot happen. If
+`current` is nil anyway (a unit test), the intent pushes the state again with the flag off so the
+button cannot stay dead.
+
+The handler owes a push on every path, including the ones that change nothing: a tap on a set
+already logged, a correction after the rest ran out, "+15s" with no rest running. Each early
+return pushes the active session as it is. `LiveActivityManager`'s equality gate lets that
+unchanged push through while the activity's own state has `isProcessingIntent` up, since the
+loading push went straight to ActivityKit behind the manager's memory of the last push.
 
 ### 7.3 What goes
 

@@ -112,6 +112,30 @@ struct LiveActivityManagerTests {
         #expect(!spy.trackedEventNames.contains("LiveActivityMan_UpdateLiveActivity_Fail"))
     }
 
+    /// An intent pushes its loading state straight to ActivityKit, behind the manager's memory of
+    /// the last push. The handler's answer to a tap that changed nothing is that same state again,
+    /// and the equality gate used to swallow it — leaving the button disabled.
+    @Test("Test An Unchanged Update Still Lands While The Activity Is Loading")
+    func testAnUnchangedUpdateStillLandsWhileTheActivityIsLoading() async throws {
+        let spy = SpyLogService()
+        var activity: Activity<WorkoutActivityAttributes>?
+        let manager = LiveActivityManager(logger: LogManager(services: [spy])) { _ in activity }
+        activity = try Activity.request(
+            attributes: WorkoutActivityAttributes(sessionId: "s1", workoutName: "Upper", startedAt: .now, workoutTemplateId: nil),
+            content: ActivityContent(state: manager.makeContentState(params: .init(session: params().session)), staleDate: nil),
+            pushType: nil
+        )
+        defer { Task { await activity?.end(nil, dismissalPolicy: .immediate) } }
+        manager.updateLiveActivity(params: params())
+
+        var loading = try #require(manager.lastContentState)
+        loading.isProcessingIntent = true
+        await activity?.update(ActivityContent(state: loading, staleDate: nil))
+        manager.updateLiveActivity(params: params())
+
+        #expect(spy.trackedEventNames.filter { $0 == "LiveActivityMan_UpdateLiveActivity_Start" }.count == 2)
+    }
+
     /// The rest push used to be the odd one out: it rebuilt the state memberwise inside its own
     /// task, skipped the equality gate and logged nothing. It is now the same door as every other
     /// push, so an unchanged rest is quiet and a changed one is a Start that reaches the activity.
