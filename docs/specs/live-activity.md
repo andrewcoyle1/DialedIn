@@ -150,7 +150,92 @@ The island is always rendered on black; it uses semantic colours and never reads
 
 No UI tests. The phase derivation is where the behaviour lives; the views are one switch each.
 
-## 7. Out of scope
+## 7. In-process intent handling (v1.1, replaces the shared-storage hand-off)
+
+A `LiveActivityIntent` runs **in the app's process**: the system launches or wakes the app in the
+background and calls `perform()` there. The v1 hand-off ignored that. Each intent wrote a
+"pending" slot into the app-group defaults, and a one-second timer inside the same process read
+it back — a timer that only started once HealthKit's `beginCollection` succeeded, so on the
+simulator and for any user who declined HealthKit nothing the widget wrote was ever consumed. A
+rest started from the widget also had no branch in the app's rest sync, so it never started the
+app's timer even when polling ran.
+
+### 7.1 The handler
+
+```swift
+// Shared/
+@MainActor protocol LiveActivityIntentHandling: AnyObject {
+    func completeSet(id: String) async
+    func adjustLastSetReps(id: String, delta: Int) async
+    func adjustRest(by seconds: Int) async
+    func skipRest() async
+    func completeWorkout() async
+}
+
+@MainActor enum LiveActivityIntentHandler {
+    static weak var current: (any LiveActivityIntentHandling)?
+}
+```
+
+The app registers one implementation when `Dependencies` is built (the background launch for an
+intent runs `AppDelegate` first, so it is in place before any `perform()`), built on the managers
+it already has:
+
+- `completeSet(id:)`: find the set in `workoutSessionManager.activeSession`; fill weight, reps,
+  duration and distance from its own target values (not from the activity's `target*` fields),
+  set `completedAt`, save through `updateActiveSession`; then start the rest through
+  `HKWorkoutManager.startRest` with the duration the set-row presenter would have used
+  (`WorkoutSettings.restDurationsByExerciseType`, per-exercise override, default — extract that
+  lookup from `SetTrackerRowPresenter.baseRestDuration(for:)` into a shared helper so both call
+  one function); then push the Live Activity from the saved session.
+- `adjustLastSetReps(id:delta:)`: the set must exist and the rest must be running
+  (`HKWorkoutManager.restEndTime > now`); clamp `reps + delta` to `0...99`, save, push.
+- `adjustRest(by:)` / `skipRest()`: the existing `HKWorkoutManager` rest calls, then push.
+- `completeWorkout()`: the existing end path the tracker's Finish uses.
+
+Every action ends with a push from the saved session, so the app is the single source of truth
+for the activity. The intent's optimistic update covers only the gap until that push lands.
+
+### 7.2 The intents
+
+Each intent is a thin wrapper: apply the optimistic state as today, then
+`await LiveActivityIntentHandler.current?.<action>`. When no handler is registered (never, in
+practice — the app is the process) the intent falls back to the v1 shared-storage write so the
+behaviour degrades rather than disappears.
+
+### 7.3 What goes
+
+- `HKWorkoutManager`'s per-second polling of `pendingSetCompletion`, `pendingSetAdjustment` and
+  `pendingWorkoutCompletion`, and the three properties and clear methods on it, the session
+  manager, `CoreInteractor` and `WorkoutTrackerInteractor`.
+- `WorkoutTrackerPresenter.startObservingPendingCompletions` and the three `sync…FromWidget`
+  methods. In their place the presenter observes `interactor.activeSession` and, when a saved
+  session arrives that differs from its own copy and it is not mid-update itself, adopts it —
+  that is how a set logged by the handler appears on screen while the tracker is open.
+- `SharedWorkoutStorage.pendingSetCompletion/Adjustment/WorkoutCompletion` stay only as the
+  fallback slots in §7.2; nothing in the app reads them any more. `restEndTime` stays: the widget
+  itself does not read it, but the existing rest sync does, and removing that is out of scope.
+
+### 7.4 Tests
+
+- `LiveActivityIntentHandlerTests`: with `TestManagers`, `completeSet` marks exactly that set
+  complete with its own targets, starts a rest of the settings-derived duration, and pushes an
+  activity update whose `lastLogged*` name it; `adjustLastSetReps` changes only reps, clamps, and
+  is a no-op with no running rest or an unknown id; `skipRest`/`adjustRest` reach the HealthKit
+  manager; `completeWorkout` ends the session.
+- Intent tests: with a handler registered, `CompleteSetIntent` calls it and writes no shared
+  slot; with none, it writes the slot as before.
+- `WorkoutTrackerPresenterTests`: a changed `activeSession` from the interactor is adopted;
+  the presenter's own in-flight update is not overwritten.
+- Removed polling: `HKWorkoutManagerTests` no longer reference the pending properties.
+
+### 7.5 Duplicate countdown
+
+`ProgressView(timerInterval:countsDown:)` in the circular style draws the remaining time as its
+own label. The banner and island show it once: the ring with `.labelsHidden()`, and the
+`Text(timerInterval:)` beside it at body size.
+
+## 8. Out of scope
 
 Editing weight, RPE or duration from the activity; per-side (left/right) sets, which show as one
 target; the Apple Watch; push-driven updates from the server; and changing the widget's
