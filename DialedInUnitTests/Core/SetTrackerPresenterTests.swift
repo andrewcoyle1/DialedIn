@@ -279,29 +279,29 @@ struct SetTrackerPresenterTests {
 
     // MARK: - Last session's figures
 
-    private func previousSession(sets: [WorkoutSetModel], templateId: String = "template-1") -> WorkoutSessionModel {
-        WorkoutSessionModel(
-            authorId: "user-1",
-            name: "Push",
-            dateCreated: Date(),
-            exercises: [
-                WorkoutExerciseModel(
-                    id: "prev-exercise",
-                    authorId: "user-1",
-                    templateId: templateId,
-                    name: "Bench Press",
-                    trackingMode: .weightReps,
-                    index: 1,
-                    sets: sets
-                )
-            ]
-        )
+    /// What the user last did for `templateId`, in the shape the presenter now holds it: keyed by
+    /// the exercise's template id rather than wrapped in a whole session.
+    private func previousExercises(
+        sets: [WorkoutSetModel],
+        templateId: String = "template-1"
+    ) -> [String: WorkoutExerciseModel] {
+        [
+            templateId: WorkoutExerciseModel(
+                id: "prev-exercise",
+                authorId: "user-1",
+                templateId: templateId,
+                name: "Bench Press",
+                trackingMode: .weightReps,
+                index: 1,
+                sets: sets
+            )
+        ]
     }
 
     @Test("Test Last Sessions Sets Are Matched By Index And Side")
     func testLastSessionsSetsAreMatchedByIndexAndSide() {
         let screen = makeScreen()
-        screen.presenter.previousWorkoutSession = previousSession(sets: [
+        screen.presenter.previousExercises = previousExercises(sets: [
             set(id: "p1", index: 1, reps: 8, weightKg: 80),
             set(id: "p2", index: 2, reps: 6, weightKg: 90)
         ])
@@ -318,7 +318,7 @@ struct SetTrackerPresenterTests {
     @Test("Test Duplicate Indices From Old Sessions Do Not Crash")
     func testDuplicateIndicesFromOldSessionsDoNotCrash() {
         let screen = makeScreen()
-        screen.presenter.previousWorkoutSession = previousSession(sets: [
+        screen.presenter.previousExercises = previousExercises(sets: [
             set(id: "p1", index: 1, reps: 8, weightKg: 80),
             set(id: "p2", index: 3, reps: 6, weightKg: 90),
             set(id: "p3", index: 3, reps: 5, weightKg: 95)
@@ -335,14 +335,14 @@ struct SetTrackerPresenterTests {
     @Test("Test A Different Exercise Has No Previous Sets")
     func testADifferentExerciseHasNoPreviousSets() {
         let screen = makeScreen()
-        screen.presenter.previousWorkoutSession = previousSession(sets: [set(id: "p1", index: 1)])
+        screen.presenter.previousExercises = previousExercises(sets: [set(id: "p1", index: 1)])
 
         let lookup = screen.presenter.buildPreviousLookup(for: exercise(templateId: "other", sets: []))
 
         #expect(lookup.isEmpty)
     }
 
-    @Test("Test No Previous Session Means No Previous Sets")
+    @Test("Test No Previous Exercise Means No Previous Sets")
     func testNoPreviousSessionMeansNoPreviousSets() {
         let screen = makeScreen()
 

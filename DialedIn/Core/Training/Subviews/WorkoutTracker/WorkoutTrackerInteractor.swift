@@ -23,7 +23,7 @@ struct LiveActivityUpdateParams {
 /// and data/services, supporting HealthKit session handling, local persistence, notifications,
 /// user event tracking, rest timing, preferences, and history management.
 @MainActor
-protocol WorkoutTrackerInteractor: GlobalInteractor {
+protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceResolving {
 
     // MARK: - User and Session Properties
 

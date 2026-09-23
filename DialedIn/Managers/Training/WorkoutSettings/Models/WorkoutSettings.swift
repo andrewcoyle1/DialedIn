@@ -6,7 +6,7 @@ struct WorkoutSettings: DataSyncModelProtocol {
     var authorId: String
 
     // MARK: - General
-    var previousWorkoutReference: PreviousWorkoutReferenceOption = .anyWorkout
+    var previousWorkoutReference: PreviousWorkoutReferenceOption = .sameWorkout
     var propagateChanges: Bool = false
     var rirTracking: Bool = false
     var supersetAutoScroll: Bool = true
@@ -84,27 +84,44 @@ struct WorkoutSettings: DataSyncModelProtocol {
     
 }
 
+/// Which past session the tracker's "Prev" column and smart progression reason from.
+///
+/// The raw values are stored in Firestore, so they are load-bearing. `"anyWorkout"` has always
+/// meant "the last time this workout template was done" — the title said otherwise, but the lookup
+/// never left the template — so it stays bound to `.sameWorkout`. The genuinely template-free
+/// scope is the new `.anyExercise`, and nobody's stored setting changes meaning.
 enum PreviousWorkoutReferenceOption: String, DataSyncModelProtocol, CaseIterable {
     var id: String { self.rawValue }
-    
-    case anyWorkout
+
+    /// The last time this exercise was performed at all, whatever workout it was part of.
+    case anyExercise
+
+    /// The last completed session of this workout template, in any program. The default, and what
+    /// `"anyWorkout"` has always done.
+    case sameWorkout = "anyWorkout"
+
+    /// As `.sameWorkout`, restricted to the program this workout is being done in.
     case workoutsInProgram
-    
+
     var title: String {
         switch self {
-        case .anyWorkout:
+        case .anyExercise:
             return "Any workout"
+        case .sameWorkout:
+            return "This workout"
         case .workoutsInProgram:
-            return "Workouts within program only"
+            return "This workout within the current program"
         }
     }
-    
+
     var subtitle: String {
         switch self {
-        case .anyWorkout:
-            return "Previous values for an exercise will display weight, reps, and RIR values from any workout that has previously included this exercise."
+        case .anyExercise:
+            return "Previous values show the weight, reps, and RIR from the last time you performed this exercise, in any workout at all."
+        case .sameWorkout:
+            return "Previous values come from the last time you completed this workout, in any program. If this workout has no history for an exercise, the last time you performed it anywhere is shown instead."
         case .workoutsInProgram:
-            return "Previous values for an exercise will display weight, reps, and RIR values only from workouts within the same program."
+            return "Previous values come from the last time you completed this workout within the current program. If there is none for an exercise, the last time you performed it anywhere is shown instead."
         }
     }
 }

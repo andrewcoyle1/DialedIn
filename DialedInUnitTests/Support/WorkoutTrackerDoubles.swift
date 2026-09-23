@@ -121,11 +121,57 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
         inTrainingProgramId: String?,
         limit: Int
     ) async throws -> [WorkoutSessionModel] {
-        lastCompletedSessionLookups.append(inTrainingProgramId)
         let sessions = completedSessions ?? [lastCompletedSession].compactMap { $0 }
         return Array(
             sessions
                 .filter { $0.workoutTemplateId == templateId }
+                .filter { inTrainingProgramId == nil || $0.trainingProgramId == inTrainingProgramId }
+                .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
+                .prefix(max(limit, 0))
+        )
+    }
+
+    // MARK: - Previous workout reference
+
+    /// The double serves `completedSessions` through the real `PreviousWorkoutReferenceResolving`
+    /// extension, so the tracker tests exercise the shipped switch and fallback rather than a
+    /// second copy of them living here.
+    var previousWorkoutReferenceScope: PreviousWorkoutReferenceOption {
+        workoutSettings.previousWorkoutReference
+    }
+
+    /// Every scope request the resolver made, as `(workoutTemplateId, programId)` for a template
+    /// lookup and `(nil, programId)` for an any-exercise one.
+    private(set) var previousSessionLookups: [(templateId: String?, programId: String?)] = []
+
+    func completedSessionsForWorkoutTemplate(
+        templateId: String,
+        authorId: String,
+        inTrainingProgramId: String?,
+        limit: Int
+    ) async -> [WorkoutSessionModel] {
+        previousSessionLookups.append((templateId: templateId, programId: inTrainingProgramId))
+        lastCompletedSessionLookups.append(inTrainingProgramId)
+        return (try? await getLastCompletedSessionsForTemplate(
+            templateId: templateId,
+            authorId: authorId,
+            inTrainingProgramId: inTrainingProgramId,
+            limit: limit
+        )) ?? []
+    }
+
+    func completedSessionsContainingExercise(
+        exerciseTemplateId: String,
+        authorId: String,
+        inTrainingProgramId: String?,
+        limit: Int
+    ) async -> [WorkoutSessionModel] {
+        previousSessionLookups.append((templateId: nil, programId: inTrainingProgramId))
+        let sessions = completedSessions ?? [lastCompletedSession].compactMap { $0 }
+        return Array(
+            sessions
+                .filter { $0.endedAt != nil }
+                .filter { $0.exercises.contains(where: { $0.templateId == exerciseTemplateId }) }
                 .filter { inTrainingProgramId == nil || $0.trainingProgramId == inTrainingProgramId }
                 .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
                 .prefix(max(limit, 0))

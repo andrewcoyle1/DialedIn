@@ -33,16 +33,12 @@ extension CoreInteractor {
                     preferredWeightUnit: unitPreferences[templateExercise.exercise.id]?.weightUnit
                 )
             }
-            let history = await progressionHistory(
-                templateId: template.id,
-                authorId: authorId,
-                trainingProgramId: trainingProgramId
-            )
             return .suggestions(
-                ProgressionPlanner.suggestions(
+                await suggestions(
                     for: contexts,
-                    history: history,
-                    adjustmentMode: workoutSettings.smartProgressionAdjustmentMode,
+                    workoutTemplateId: template.id,
+                    authorId: authorId,
+                    trainingProgramId: trainingProgramId,
                     gymProfile: workoutGymProfile
                 )
             )
@@ -55,7 +51,7 @@ extension CoreInteractor {
         for session: WorkoutSessionModel,
         gymProfile: GymProfileModel?
     ) async -> [String: ProgressionSuggestion] {
-        guard let templateId = session.workoutTemplateId, let authorId = currentUser?.userId else { return [:] }
+        guard let authorId = currentUser?.userId else { return [:] }
 
         let contexts = session.exercises.map { exercise in
             ProgressionPlanner.ExerciseContext(
@@ -64,39 +60,46 @@ extension CoreInteractor {
                 preferredWeightUnit: getPreference(templateId: exercise.templateId).weightUnit
             )
         }
-        let history = await progressionHistory(
-            templateId: templateId,
-            authorId: authorId,
-            trainingProgramId: session.trainingProgramId
-        )
 
-        return ProgressionPlanner.suggestions(
+        return await suggestions(
             for: contexts,
-            history: history,
-            adjustmentMode: workoutSettings.smartProgressionAdjustmentMode,
+            workoutTemplateId: session.workoutTemplateId,
+            authorId: authorId,
+            trainingProgramId: session.trainingProgramId,
             gymProfile: gymProfile ?? workoutGymProfile
         )
     }
 
-    /// The sessions the engine reasons from, honouring `previousWorkoutReference` the same way
-    /// the tracker's previous-values column does. A workout logged outside a program has no
-    /// program to be within, so it keeps the unrestricted lookup.
-    private func progressionHistory(
-        templateId: String,
+    /// History is resolved per exercise, because `previousWorkoutReference` is: an exercise this
+    /// workout has never held falls back to wherever the user last performed it, and that fallback
+    /// is decided one exercise at a time. `ProgressionPlanner.suggestions` takes one session list
+    /// for a batch of contexts, so each context is asked for on its own and the answers merged.
+    private func suggestions(
+        for contexts: [ProgressionPlanner.ExerciseContext],
+        workoutTemplateId: String?,
         authorId: String,
-        trainingProgramId: String?
-    ) async -> [WorkoutSessionModel] {
-        let programId: String?
-        switch workoutSettings.previousWorkoutReference {
-        case .anyWorkout:        programId = nil
-        case .workoutsInProgram: programId = trainingProgramId
+        trainingProgramId: String?,
+        gymProfile: GymProfileModel?
+    ) async -> [String: ProgressionSuggestion] {
+        var result: [String: ProgressionSuggestion] = [:]
+
+        for context in contexts {
+            let history = await previousSessions(
+                forExerciseTemplateId: context.templateId,
+                workoutTemplateId: workoutTemplateId,
+                authorId: authorId,
+                trainingProgramId: trainingProgramId,
+                limit: 3
+            )
+            let suggestion = ProgressionPlanner.suggestions(
+                for: [context],
+                history: history,
+                adjustmentMode: workoutSettings.smartProgressionAdjustmentMode,
+                gymProfile: gymProfile
+            )
+            result.merge(suggestion) { _, latest in latest }
         }
 
-        return (try? await getLastCompletedSessionsForTemplate(
-            templateId: templateId,
-            authorId: authorId,
-            inTrainingProgramId: programId,
-            limit: 3
-        )) ?? []
+        return result
     }
 }

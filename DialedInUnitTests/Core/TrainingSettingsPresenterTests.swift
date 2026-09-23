@@ -444,7 +444,7 @@ struct PrevWORefSettingsPresenterTests {
         let screen = makeScreen()
 
         #expect(screen.presenter.options == PreviousWorkoutReferenceOption.allCases)
-        #expect(screen.presenter.previousWorkoutReference == .anyWorkout)
+        #expect(screen.presenter.previousWorkoutReference == .sameWorkout)
     }
 
     /// This decides which numbers a set is compared against while training, so it has to reach

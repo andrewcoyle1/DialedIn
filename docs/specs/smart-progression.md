@@ -37,11 +37,16 @@ struct ProgressionHistorySession {
 
 ### 2.1 History
 
-The caller (`WorkoutTrackerPresenter`) already loads the previous session for the template via
-`getLastCompletedSessionForTemplate(templateId:authorId:inTrainingProgramId:)`, honouring
-`previousWorkoutReference`. For this feature that call is generalised to return the last **three**
-completed sessions (`getLastCompletedSessionsForTemplate(..., limit: 3)`), because the deload
-rule in §3.4 needs to see two consecutive misses. The exercise's history is the sets of the
+History is resolved per exercise by `CoreInteractor.previousSessions(forExerciseTemplateId:workoutTemplateId:authorId:trainingProgramId:limit:)`, the single place `previousWorkoutReference`
+is honoured — the tracker's "Prev" column goes through the same call, so Auto and Prev can never
+disagree about what last time was. Its three scopes are `.anyExercise` (the last sessions that
+included this exercise, whatever workout they were, via
+`getLastCompletedSessionsContainingExercise(...)`), `.sameWorkout` (the last completed sessions of
+this workout template, in any program — the default) and `.workoutsInProgram` (the same, filtered
+by `trainingProgramId`). The two template scopes fall back to the any-exercise lookup when this
+template holds no history for the exercise, so an exercise new to a template still progresses from
+wherever it was last performed. The lookup returns the last **three** completed sessions
+(`limit: 3`), because the deload rule in §3.4 needs to see two consecutive misses. The exercise's history is the sets of the
 exercise with the same `templateId` in each of those sessions, filtered to
 `isWarmup == false && completedAt != nil`. Sessions where the exercise has no completed working
 set are dropped from the history. Per-side exercises: the two rows of a set are one set; use the
@@ -174,6 +179,7 @@ working set's values, so warm-ups follow the suggestion automatically.
 ## 6. Integration points
 
 1. `WorkoutSessionManager.getLastCompletedSessionsForTemplate(templateId:authorId:inTrainingProgramId:limit:)` — new, sorted most recent first; the existing single-session function becomes `limit: 1`.
+1. `WorkoutSessionManager.getLastCompletedSessionsContainingExercise(exerciseTemplateId:authorId:inTrainingProgramId:limit:)` — the any-exercise lookup the `.anyExercise` scope and the fallback use.
 2. `WorkoutTrackerPresenter`: holds `progressionSuggestions: [String: ProgressionSuggestion]`;
    builds the session with the right `SessionPrefill`; exposes
    `progressionHint(for exerciseId:) -> String?` for the exercise header.
