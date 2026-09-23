@@ -12,17 +12,14 @@ import HealthKit
 
 /// The tracker's interactor and router doubles.
 ///
-/// `WorkoutTrackerInteractor` declares around thirty methods — HealthKit, the Live Activity, the
-/// widget hand-off, rest timing and persistence — so the doubles are longer than the tests that use
-/// them. They live here to keep the test file itself readable.
+/// `WorkoutTrackerInteractor` declares around thirty methods — HealthKit, the Live Activity, rest
+/// timing and persistence — so the doubles are longer than the tests that use them. They live here
+/// to keep the test file itself readable.
 
 final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerInteractor {
     var currentUser: UserModel? = UserModel(userId: "author-1")
     var favouriteGymProfile: GymProfileModel?
     var restEndTime: Date?
-    var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion?
-    var pendingSetAdjustment: SharedWorkoutStorage.PendingSetAdjustment?
-    var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion?
     var activeSession: WorkoutSessionModel?
     var allExercises: [ExerciseModel] = []
     var workoutSettings: WorkoutSettings = WorkoutSettings(authorId: "author-1")
@@ -33,8 +30,6 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     private(set) var endedSessions: [WorkoutSessionModel] = []
     private(set) var startedRests: [Int] = []
     private(set) var didCancelRest = false
-    private(set) var didClearPendingSet = false
-    private(set) var didClearPendingSetAdjustment = false
     private(set) var didAddStreakEvent = false
     private(set) var endedLiveActivities: [(isCompleted: Bool, statusMessage: String?)] = []
     var endWorkoutSessionError: Error?
@@ -52,17 +47,6 @@ final class WorkoutTrackerInteractorDouble: SpyGlobalInteractor, WorkoutTrackerI
     func getGymProfile(gymProfileId: String) async throws -> GymProfileModel {
         GymProfileModel(id: gymProfileId, authorId: "author-1", name: "Home Gym")
     }
-    func syncPendingCompletionsFromSharedStorage() { }
-    func clearPendingSetCompletion() {
-        didClearPendingSet = true
-        pendingSetCompletion = nil
-    }
-    func clearPendingSetAdjustment() {
-        didClearPendingSetAdjustment = true
-        pendingSetAdjustment = nil
-    }
-    func clearPendingWorkoutCompletion() { pendingWorkoutCompletion = nil }
-
     func canRequestHealthDataAuthorisation() -> Bool { false }
     func requestHealthKitAuthorisation() async throws { }
     func needsAuthorisationForRequiredTypes() -> Bool { false }

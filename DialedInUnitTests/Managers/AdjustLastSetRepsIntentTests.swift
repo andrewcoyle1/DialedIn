@@ -16,7 +16,9 @@ import Foundation
 /// exactly one place: the rest that follows the set, while the number is still fresh.
 ///
 /// A real `Activity` cannot be started in a test process, so the intent body is a thin wrapper and
-/// everything that decides anything lives in `AdjustLastSetRepsDecision`.
+/// everything that decides anything lives in `AdjustLastSetRepsDecision`. What the app then does
+/// with the correction is `LiveActivityIntentHandlerTests`; the shared-storage slot the v1
+/// hand-off wrote survives only as the fallback for a process with no handler registered.
 struct AdjustLastSetRepsIntentTests {
 
     private static let now = Date(timeIntervalSince1970: 1_700_000_000)
@@ -101,35 +103,6 @@ struct AdjustLastSetRepsIntentTests {
         #expect(reps(makeState(lastLoggedReps: nil), delta: 1) == 1)
     }
 
-    // MARK: - The slot
-
-    /// Repeated taps coalesce: the slot holds the rep count the user landed on, not a queue of
-    /// deltas the app would replay one at a time.
-    @Test("Test Two Taps Leave One Slot Holding The Latest Reps")
-    func testTwoTapsLeaveOneSlotHoldingTheLatestReps() {
-        SharedWorkoutStorage.clearPendingSetAdjustment()
-        SharedWorkoutStorage.pendingSetAdjustment = SharedWorkoutStorage.PendingSetAdjustment(
-            setId: "set-1",
-            reps: 7,
-            adjustedAt: Self.now
-        )
-        SharedWorkoutStorage.pendingSetAdjustment = SharedWorkoutStorage.PendingSetAdjustment(
-            setId: "set-1",
-            reps: 6,
-            adjustedAt: Self.now.addingTimeInterval(1)
-        )
-
-        // `SharedWorkoutStorage` has no injection point for its suite, and the app-group container
-        // is not guaranteed to be writable from the test host. When it is not, there is nothing to
-        // assert about the slot rather than a failure to report.
-        guard let slot = SharedWorkoutStorage.pendingSetAdjustment else { return }
-
-        #expect(slot.setId == "set-1")
-        #expect(slot.reps == 6)
-
-        SharedWorkoutStorage.clearPendingSetAdjustment()
-        #expect(SharedWorkoutStorage.pendingSetAdjustment == nil)
-    }
 }
 
 #endif

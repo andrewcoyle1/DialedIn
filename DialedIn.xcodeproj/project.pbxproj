@@ -57,6 +57,8 @@
 		D0EC899E2F2BAD7000845CB6 /* SwiftfulSoundEffects in Frameworks */ = {isa = PBXBuildFile; productRef = D0EC899D2F2BAD7000845CB6 /* SwiftfulSoundEffects */; };
 		D0FA1E112EB0A11100682653 /* LiveActivityPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FA1E102EB0A11000682653 /* LiveActivityPhase.swift */; };
 		D0FA1E122EB0A11200682653 /* LiveActivityPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FA1E102EB0A11000682653 /* LiveActivityPhase.swift */; };
+		D0FA1E212EB0A12100682653 /* LiveActivityIntentHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FA1E202EB0A12000682653 /* LiveActivityIntentHandling.swift */; };
+		D0FA1E222EB0A12200682653 /* LiveActivityIntentHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FA1E202EB0A12000682653 /* LiveActivityIntentHandling.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +123,7 @@
 		D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeView.swift; sourceTree = "<group>"; };
 		D0E7D5A62EE31E7F00BEE79F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		D0FA1E102EB0A11000682653 /* LiveActivityPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityPhase.swift; sourceTree = "<group>"; };
+		D0FA1E202EB0A12000682653 /* LiveActivityIntentHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityIntentHandling.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -265,6 +268,7 @@
 			isa = PBXGroup;
 			children = (
 				D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */,
+				D0FA1E202EB0A12000682653 /* LiveActivityIntentHandling.swift */,
 				D0FA1E102EB0A11000682653 /* LiveActivityPhase.swift */,
 				D0DB1C922EA1901800682653 /* MetricsModel.swift */,
 				D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */,
@@ -610,6 +614,7 @@
 				D0DB1C972EA1906000682653 /* ElapsedTimeView.swift in Sources */,
 				D0AB1C992EA1907100682653 /* SharedWorkoutStorage.swift in Sources */,
 				D0FA1E112EB0A11100682653 /* LiveActivityPhase.swift in Sources */,
+				D0FA1E212EB0A12100682653 /* LiveActivityIntentHandling.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -622,6 +627,7 @@
 				D08F58622E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */,
 				D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */,
 				D0FA1E122EB0A11200682653 /* LiveActivityPhase.swift in Sources */,
+				D0FA1E222EB0A12200682653 /* LiveActivityIntentHandling.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

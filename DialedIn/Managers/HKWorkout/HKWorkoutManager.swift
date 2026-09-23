@@ -29,11 +29,6 @@ class HKWorkoutManager: NSObject {
     private var workout: HKWorkout?
     private var activeSessionModel: WorkoutSessionModel?
 
-    // Pending completions from widget, surfaced as observable properties
-    private(set) var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion?
-    private(set) var pendingSetAdjustment: SharedWorkoutStorage.PendingSetAdjustment?
-    private(set) var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion?
-
     // Weak reference to avoid circular dependency
     private weak var liveActivityUpdater: LiveActivityUpdating?
 
@@ -243,7 +238,6 @@ class HKWorkoutManager: NSObject {
             Task { @MainActor in
                 self.metrics.elapsedTime = self.builder?.elapsedTime ?? 0
                 self.syncRestEndTimeFromSharedStorage()
-                self.syncPendingCompletionsFromSharedStorage()
             }
         }
     }
@@ -309,40 +303,6 @@ extension HKWorkoutManager: HKLiveWorkoutBuilderDelegate {
 
 // MARK: - Rest Timer Management
 extension HKWorkoutManager {
-    /// Sync pending set/workout completions from shared storage (called by timer to pick up widget writes).
-    func syncPendingCompletionsFromSharedStorage() {
-        let newSetCompletion = SharedWorkoutStorage.pendingSetCompletion
-        if pendingSetCompletion?.setId != newSetCompletion?.setId {
-            pendingSetCompletion = newSetCompletion
-        }
-
-        // Compared on reps as well as set id: a second tap on the same set changes only the count.
-        let newSetAdjustment = SharedWorkoutStorage.pendingSetAdjustment
-        if pendingSetAdjustment?.setId != newSetAdjustment?.setId || pendingSetAdjustment?.reps != newSetAdjustment?.reps {
-            pendingSetAdjustment = newSetAdjustment
-        }
-
-        let newWorkoutCompletion = SharedWorkoutStorage.pendingWorkoutCompletion
-        if pendingWorkoutCompletion?.sessionId != newWorkoutCompletion?.sessionId {
-            pendingWorkoutCompletion = newWorkoutCompletion
-        }
-    }
-
-    func clearPendingSetCompletion() {
-        SharedWorkoutStorage.clearPendingSetCompletion()
-        pendingSetCompletion = nil
-    }
-
-    func clearPendingSetAdjustment() {
-        SharedWorkoutStorage.clearPendingSetAdjustment()
-        pendingSetAdjustment = nil
-    }
-
-    func clearPendingWorkoutCompletion() {
-        SharedWorkoutStorage.clearPendingWorkoutCompletion()
-        pendingWorkoutCompletion = nil
-    }
-
     /// Sync rest end time from shared storage (called by timer to pick up widget changes)
     func syncRestEndTimeFromSharedStorage() {
         let sharedRestEndTime = SharedWorkoutStorage.restEndTime

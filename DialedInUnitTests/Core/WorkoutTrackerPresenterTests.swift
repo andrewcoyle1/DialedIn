@@ -536,88 +536,60 @@ struct WorkoutTrackerPresenterTests {
         #expect(!screen.presenter.isRestActive)
     }
 
-    // MARK: - The widget
+    // MARK: - The Live Activity's writes
 
-    /// A set logged from the Dynamic Island has to land on the session the app is holding, with the
-    /// numbers the widget captured.
-    @Test("Test A Set Logged From The Widget Is Applied")
-    func testASetLoggedFromTheWidgetIsApplied() throws {
+    /// A set logged from the Live Activity is saved by the intent handler, not by this screen, so
+    /// the tracker learns about it by re-reading the session the manager is holding.
+    @Test("Test A Session Saved Elsewhere Is Adopted")
+    func testASessionSavedElsewhereIsAdopted() throws {
         let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1)])])
         let setId = try #require(screen.presenter.workoutSession.exercises.first).sets[0].id
-        screen.interactor.pendingSetCompletion = SharedWorkoutStorage.PendingSetCompletion(
-            setId: setId,
-            weightKg: 95,
-            reps: 5,
-            distanceMeters: nil,
-            durationSec: nil,
-            completedAt: start
-        )
 
-        screen.presenter.syncPendingSetCompletionFromWidget()
+        var saved = try #require(screen.interactor.activeSession)
+        var exercises = saved.exercises
+        exercises[0].sets[0].completedAt = start
+        exercises[0].sets[0].reps = 5
+        saved.updateExercises(exercises)
+        screen.interactor.activeSession = saved
+
+        screen.presenter.adoptSavedSessionIfChanged()
 
         let applied = try #require(screen.presenter.workoutSession.exercises.first).sets[0]
-        #expect(applied.weightKg == 95)
-        #expect(applied.reps == 5)
         #expect(applied.completedAt == start)
-        #expect(screen.interactor.didClearPendingSet)
-    }
-
-    /// A pending completion for a set this session does not have is dropped, not left to be retried
-    /// against every future workout.
-    @Test("Test A Widget Completion For An Unknown Set Is Discarded")
-    func testAWidgetCompletionForAnUnknownSetIsDiscarded() throws {
-        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1)])])
-        screen.interactor.pendingSetCompletion = SharedWorkoutStorage.PendingSetCompletion(
-            setId: "not-in-this-workout",
-            weightKg: 95,
-            reps: 5,
-            distanceMeters: nil,
-            durationSec: nil,
-            completedAt: start
-        )
-
-        screen.presenter.syncPendingSetCompletionFromWidget()
-
-        #expect(screen.interactor.didClearPendingSet)
-        #expect(screen.presenter.workoutSession.exercises.first?.sets[0].completedAt == nil)
-    }
-
-    /// The correction made during the rest changes the reps and nothing else — in particular not
-    /// `completedAt`, because the set was still logged when it was logged.
-    @Test("Test A Rep Correction From The Widget Changes Only The Reps")
-    func testARepCorrectionFromTheWidgetChangesOnlyTheReps() throws {
-        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1, done: true)])])
-        let logged = try #require(screen.presenter.workoutSession.exercises.first).sets[0]
-        screen.interactor.pendingSetAdjustment = SharedWorkoutStorage.PendingSetAdjustment(
-            setId: logged.id,
-            reps: 5,
-            adjustedAt: start
-        )
-
-        screen.presenter.syncPendingSetAdjustmentFromWidget()
-
-        let applied = try #require(screen.presenter.workoutSession.exercises.first).sets[0]
         #expect(applied.reps == 5)
-        #expect(applied.weightKg == logged.weightKg)
-        #expect(applied.completedAt == logged.completedAt)
-        #expect(screen.interactor.didClearPendingSetAdjustment)
+        #expect(applied.id == setId)
     }
 
-    /// A correction for a set this session does not have is dropped, not left to be replayed
-    /// against the next workout.
-    @Test("Test A Rep Correction For An Unknown Set Is Discarded")
-    func testARepCorrectionForAnUnknownSetIsDiscarded() throws {
-        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1, done: true)])])
-        screen.interactor.pendingSetAdjustment = SharedWorkoutStorage.PendingSetAdjustment(
-            setId: "not-in-this-workout",
-            reps: 5,
-            adjustedAt: start
+    /// A saved session identical to the screen's own copy changes nothing, so the adoption does not
+    /// loop through `didSet` on every observation tick.
+    @Test("Test An Unchanged Saved Session Is Not Re-Adopted")
+    func testAnUnchangedSavedSessionIsNotReAdopted() throws {
+        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1)])])
+        let before = screen.interactor.savedActiveSessions.count
+
+        screen.presenter.adoptSavedSessionIfChanged()
+
+        #expect(screen.interactor.savedActiveSessions.count == before)
+    }
+
+    /// A session for a different workout is not this screen's, and adopting it would swap the
+    /// workout out from under the user.
+    @Test("Test A Session For Another Workout Is Ignored")
+    func testASessionForAnotherWorkoutIsIgnored() throws {
+        let screen = try makeScreen(exercises: [exercise(id: "e1", index: 1, sets: [set(1)])])
+        let ownId = screen.presenter.workoutSession.id
+
+        screen.interactor.activeSession = WorkoutSessionModel(
+            id: "another-session",
+            authorId: "author-1",
+            name: "Pull Day",
+            dateCreated: start,
+            exercises: [exercise(id: "e9", index: 1, sets: [set(1)])]
         )
 
-        screen.presenter.syncPendingSetAdjustmentFromWidget()
+        screen.presenter.adoptSavedSessionIfChanged()
 
-        #expect(screen.interactor.didClearPendingSetAdjustment)
-        #expect(screen.presenter.workoutSession.exercises.first?.sets[0].reps == 8)
+        #expect(screen.presenter.workoutSession.id == ownId)
     }
 
     // MARK: - Persistence

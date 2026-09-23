@@ -13,6 +13,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     var dependencies: Dependencies!
     var builder: CoreBuilder!
 
+    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+    /// The Live Activity's way into the app (spec: docs/specs/live-activity.md §7.1).
+    ///
+    /// Held here because `LiveActivityIntentHandler.current` is weak on purpose, and the app
+    /// delegate is the one object that lives exactly as long as the process. A background launch
+    /// for an intent runs this method before any `perform()`, so the handler is always in place.
+    private var liveActivityIntentHandler: AppLiveActivityIntentHandler?
+    #endif
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         
         var config: BuildConfiguration
@@ -38,9 +47,29 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         let dependencies = Dependencies(config: config)
         self.dependencies = dependencies
         self.builder = CoreBuilder(interactor: CoreInteractor(container: dependencies.container))
+        registerLiveActivityIntentHandler(container: dependencies.container)
         return true
     }
     
+    /// Registered for every configuration, mock included, so the Mock scheme exercises the same
+    /// path the device does.
+    private func registerLiveActivityIntentHandler(container: DependencyContainer) {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        let handler = AppLiveActivityIntentHandler(
+            workoutSessionManager: container.resolve(WorkoutSessionManager.self)!,
+            hkWorkoutManager: container.resolve(HKWorkoutManager.self)!,
+            liveActivityUpdater: container.resolve(LiveActivityManager.self)!,
+            workoutSettingsManager: container.resolve(WorkoutSettingsManager.self)!,
+            exerciseSettingsManager: container.resolve(ExerciseSettingsManager.self)!,
+            exerciseModelManager: container.resolve(ExerciseModelManager.self)!,
+            streakManager: container.resolve(StreakManager.self),
+            stravaManager: container.resolve(StravaManager.self)
+        )
+        liveActivityIntentHandler = handler
+        LiveActivityIntentHandler.current = handler
+        #endif
+    }
+
     private func registerForRemotePushNotifications(application: UIApplication) {
         UNUserNotificationCenter.current().delegate = self
         #if !MOCK

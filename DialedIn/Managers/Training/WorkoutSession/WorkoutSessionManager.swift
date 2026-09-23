@@ -238,54 +238,6 @@ extension CoreInteractor {
         #endif
     }
 
-    var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion? {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        return hkWorkoutManager.pendingSetCompletion
-        #else
-        return nil
-        #endif
-    }
-
-    var pendingSetAdjustment: SharedWorkoutStorage.PendingSetAdjustment? {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        return hkWorkoutManager.pendingSetAdjustment
-        #else
-        return nil
-        #endif
-    }
-
-    var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion? {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        return hkWorkoutManager.pendingWorkoutCompletion
-        #else
-        return nil
-        #endif
-    }
-
-    func syncPendingCompletionsFromSharedStorage() {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        hkWorkoutManager.syncPendingCompletionsFromSharedStorage()
-        #endif
-    }
-
-    func clearPendingSetCompletion() {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        hkWorkoutManager.clearPendingSetCompletion()
-        #endif
-    }
-
-    func clearPendingSetAdjustment() {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        hkWorkoutManager.clearPendingSetAdjustment()
-        #endif
-    }
-
-    func clearPendingWorkoutCompletion() {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        hkWorkoutManager.clearPendingWorkoutCompletion()
-        #endif
-    }
-
     func endWorkoutSession(_ session: WorkoutSessionModel) async throws {
         try await workoutSessionManager.endWorkoutSession(session)
     }

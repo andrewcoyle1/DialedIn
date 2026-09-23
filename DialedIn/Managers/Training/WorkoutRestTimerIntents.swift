@@ -63,8 +63,11 @@ struct AdjustRestTimerIntent: LiveActivityIntent {
         // Don't allow rest time to go negative (if adjusted time is in the past, set to now + 1 second)
         let finalRestEnd = newRestEnd > Date() ? newRestEnd : Date().addingTimeInterval(1)
         
-        // Update shared storage so the main app knows about the change
-        SharedWorkoutStorage.restEndTime = finalRestEnd
+        let handler = LiveActivityIntentHandler.current
+        if handler == nil {
+            // Fallback only: with a handler, the app's own rest timer is the one that writes this.
+            SharedWorkoutStorage.restEndTime = finalRestEnd
+        }
         
         // Create updated state with new rest end time and clear loading state
         var updatedState = state
@@ -79,7 +82,8 @@ struct AdjustRestTimerIntent: LiveActivityIntent {
                 relevanceScore: 100
             )
         )
-        
+
+        await handler?.adjustRest(by: adjustment)
         #endif
         
         return .result()
@@ -116,8 +120,11 @@ struct SkipRestTimerIntent: LiveActivityIntent {
             )
         )
         
-        // Clear shared storage so the main app knows the rest was skipped
-        SharedWorkoutStorage.clearRestEndTime()
+        let handler = LiveActivityIntentHandler.current
+        if handler == nil {
+            // Fallback only: with a handler, `cancelRest()` clears this itself.
+            SharedWorkoutStorage.clearRestEndTime()
+        }
         
         // Create updated state with rest timer cleared and loading state cleared
         var updatedState = state
@@ -133,7 +140,8 @@ struct SkipRestTimerIntent: LiveActivityIntent {
                 relevanceScore: 100
             )
         )
-        
+
+        await handler?.skipRest()
         #endif
         return .result()
     }
@@ -170,14 +178,16 @@ struct CompleteWorkoutIntent: LiveActivityIntent {
             )
         )
         
-        // Create workout completion request and write to shared storage
-        let completion = SharedWorkoutStorage.PendingWorkoutCompletion(
-            sessionId: sessionId,
-            completedAt: Date()
-        )
-        SharedWorkoutStorage.pendingWorkoutCompletion = completion
-                
-        // The main app will handle the actual workout completion and will end the Live Activity
+        if let handler = LiveActivityIntentHandler.current {
+            // The handler ends HealthKit, the session and the activity, as Finish does in the app.
+            await handler.completeWorkout()
+        } else {
+            // Fallback: leave the request in shared storage for the app to find.
+            SharedWorkoutStorage.pendingWorkoutCompletion = SharedWorkoutStorage.PendingWorkoutCompletion(
+                sessionId: sessionId,
+                completedAt: Date()
+            )
+        }
         #endif
         return .result()
     }
@@ -209,20 +219,21 @@ struct CompleteSetIntent: LiveActivityIntent {
         }
         
         await updateLoading(activity: activity, state: state)
-        
-        defer {
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 300_000_000)
-            }
+
+        let handler = LiveActivityIntentHandler.current
+        if handler == nil {
+            SharedWorkoutStorage.pendingSetCompletion = buildPendingSetCompletion(from: state, setId: setId)
         }
-        
-        SharedWorkoutStorage.pendingSetCompletion = buildPendingSetCompletion(from: state, setId: setId)
 
         var updatedState = applyLoggedSet(to: state, setId: setId)
         updatedState = applyOptimisticProgress(to: updatedState)
-        updatedState = applyRestLogic(to: updatedState)
+        updatedState = applyRestLogic(to: updatedState, fabricatingRest: handler == nil)
         await pushUpdate(activity: activity, newState: updatedState)
 
+        // The handler logs the set, starts the real rest and pushes the saved session, which is
+        // what puts a countdown on screen. Awaited, so `perform()` does not return before the app
+        // has actually done the work the button promised.
+        await handler?.completeSet(id: setId)
         #endif
         return .result()
     }
@@ -278,8 +289,26 @@ fileprivate extension CompleteSetIntent {
         return updated
     }
 
-    func applyRestLogic(to state: WorkoutActivityAttributes.ContentState) -> WorkoutActivityAttributes.ContentState {
+    /// The rest the activity shows until the app's push lands.
+    ///
+    /// With a handler there is nothing to guess: it starts the rest the set-row presenter would
+    /// have started — the user's own setting, scaled for where the set sits in the exercise — and
+    /// pushes it within this same `perform()`. Inventing ninety seconds here would put a number on
+    /// screen that is usually wrong and then visibly correct itself under the user's thumb, and it
+    /// would write that wrong number into the shared rest slot the app's rest sync reads. So the
+    /// rest is left exactly as it was and the push a moment later is the first thing to set it.
+    ///
+    /// Without a handler nothing else will ever set it, and a conservative ninety seconds beats no
+    /// countdown at all.
+    func applyRestLogic(
+        to state: WorkoutActivityAttributes.ContentState,
+        fabricatingRest: Bool
+    ) -> WorkoutActivityAttributes.ContentState {
         var updated = state
+        updated.isProcessingIntent = false
+
+        guard fabricatingRest else { return updated }
+
         if !updated.isAllSetsComplete {
             let restEnd = Date().addingTimeInterval(TimeInterval(defaultRestDurationSeconds))
             updated.restEndsAt = restEnd
@@ -290,7 +319,6 @@ fileprivate extension CompleteSetIntent {
             updated.statusMessage = nil
             SharedWorkoutStorage.clearRestEndTime()
         }
-        updated.isProcessingIntent = false
         return updated
     }
 
@@ -367,12 +395,16 @@ struct AdjustLastSetRepsIntent: LiveActivityIntent {
             return .result()
         }
 
-        // One slot, latest write wins: two taps leave the final count, not two deltas.
-        SharedWorkoutStorage.pendingSetAdjustment = SharedWorkoutStorage.PendingSetAdjustment(
-            setId: setId,
-            reps: reps,
-            adjustedAt: Date()
-        )
+        let handler = LiveActivityIntentHandler.current
+        if handler == nil {
+            // Fallback only. One slot, latest write wins: two taps leave the final count, not two
+            // deltas.
+            SharedWorkoutStorage.pendingSetAdjustment = SharedWorkoutStorage.PendingSetAdjustment(
+                setId: setId,
+                reps: reps,
+                adjustedAt: Date()
+            )
+        }
 
         // Optimistic, so the label changes under the thumb rather than on the app's next tick.
         var updatedState = state
@@ -387,6 +419,10 @@ struct AdjustLastSetRepsIntent: LiveActivityIntent {
                 relevanceScore: 100
             )
         )
+
+        // The delta, not the clamped total: the handler clamps against the set's own reps, which
+        // is the number that will be saved.
+        await handler?.adjustLastSetReps(id: setId, delta: delta)
         #endif
         return .result()
     }

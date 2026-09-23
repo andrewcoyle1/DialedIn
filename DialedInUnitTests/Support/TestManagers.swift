@@ -308,6 +308,26 @@ enum TestManagers {
     static func workoutSettingsManager(_ settings: WorkoutSettings? = nil) -> WorkoutSettingsManager {
         WorkoutSettingsManager(workoutSettingsSyncEngine: documentEngine(settings, key: "workout-settings"))
     }
+
+    /// A workout settings manager already listening, so `workoutSettings` is `settings` rather than
+    /// the defaults its engine hands back before the listener emits.
+    static func signedInWorkoutSettingsManager(
+        _ settings: WorkoutSettings,
+        userId: String = "author-1"
+    ) async throws -> WorkoutSettingsManager {
+        let manager = workoutSettingsManager(settings)
+        try await manager.signIn(userId: userId, isNewUser: false)
+        // Compared on a field the defaults cannot match: the fallback `WorkoutSettings(authorId:)`
+        // carries the same author id, so that alone would pass without the listener ever emitting.
+        let emitted = await eventually {
+            manager.workoutSettings.defaultRestDurationSeconds == settings.defaultRestDurationSeconds
+                && manager.workoutSettings.useRestTimers == settings.useRestTimers
+        }
+        if !emitted {
+            Issue.record("The workout settings sync engine never emitted, so the manager holds defaults.")
+        }
+        return manager
+    }
 }
 
 // MARK: - Nutrition, settings and shortcut managers

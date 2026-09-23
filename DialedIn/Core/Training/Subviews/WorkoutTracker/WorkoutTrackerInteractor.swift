@@ -39,22 +39,6 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
     /// The current rest end time for the active session, if any.
     var restEndTime: Date? { get }
 
-    /// Pending set completion written by the widget, if any.
-    var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion? { get }
-
-    /// Pending rep correction to the last logged set, written by the widget, if any.
-    var pendingSetAdjustment: SharedWorkoutStorage.PendingSetAdjustment? { get }
-
-    /// Pending workout completion written by the widget, if any.
-    var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion? { get }
-
-    /// Force an immediate read of pending completions from shared storage (e.g. on foreground).
-    func syncPendingCompletionsFromSharedStorage()
-
-    func clearPendingSetCompletion()
-    func clearPendingSetAdjustment()
-    func clearPendingWorkoutCompletion()
-    
     /// The current active workout session, if any.
     var activeSession: WorkoutSessionModel? { get }
 
