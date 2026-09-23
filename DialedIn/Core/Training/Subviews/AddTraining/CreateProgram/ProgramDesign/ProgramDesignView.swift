@@ -31,6 +31,8 @@ struct EditTrainingProgramDelegate {
 
 struct ProgramDesignView<DefineWorkout: View>: View {
     
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var presenter: ProgramDesignPresenter
     let delegate: ProgramDesignDelegate
     
@@ -127,6 +129,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     presenter.onWorkoutTemplateModelSelected(dayPlan)
                 } label: {
                     Text(dayPlan.name)
+                        .foregroundStyle(colorScheme.backgroundPrimary)
                         .fontWeight(.bold)
                 }
                 .buttonStyle(.borderedProminent)

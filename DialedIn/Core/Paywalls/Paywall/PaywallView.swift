@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PaywallView: View {
     
+    @Environment(\.colorScheme) private var colorScheme
     @State var presenter: PaywallPresenter
 
     var body: some View {
@@ -14,13 +15,17 @@ struct PaywallView: View {
                     VStack(spacing: 12) {
                         Text("Unable to load subscription options")
                             .font(.headline)
+                            .foregroundStyle(colorScheme.backgroundPrimary)
                         Text(errorMessage)
                             .font(.subheadline)
                             .multilineTextAlignment(.center)
                             .foregroundStyle(.secondary)
                         
-                        Button("Try Again") {
+                        Button {
                             Task { await presenter.onLoadProducts() }
+                        } label: {
+                            Text("Try Again")
+                                .foregroundStyle(colorScheme.backgroundPrimary)
                         }
                         .buttonStyle(.borderedProminent)
                     }

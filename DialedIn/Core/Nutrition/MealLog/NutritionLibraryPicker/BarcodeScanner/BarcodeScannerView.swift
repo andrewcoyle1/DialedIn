@@ -9,6 +9,8 @@ struct BarcodeScannerDelegate {
 
 struct BarcodeScannerView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var presenter: BarcodeScannerPresenter
     let delegate: BarcodeScannerDelegate
 
@@ -194,8 +196,11 @@ struct BarcodeScannerView: View {
                     Button("Re-scan", action: presenter.onRescanPressed)
                         .buttonStyle(.bordered)
 
-                    Button("Parse Label") {
+                    Button {
                         Task { await presenter.onParseLabelPressed() }
+                    } label: {
+                        Text("Parse Label")
+                            .foregroundStyle(colorScheme.backgroundPrimary)
                     }
                     .buttonStyle(.borderedProminent)
                 }
@@ -300,9 +305,12 @@ struct BarcodeScannerView: View {
                         .frame(maxWidth: .infinity)
 
                     if let ingredient = presenter.parsedIngredient {
-                        Button("Use This Food") {
+                        Button {
                             delegate.onFoodFound?(ingredient)
                             presenter.onDismissPressed()
+                        } label: {
+                            Text("Use This Food")
+                                .foregroundStyle(colorScheme.backgroundPrimary)
                         }
                         .buttonStyle(.borderedProminent)
                         .frame(maxWidth: .infinity)
@@ -323,9 +331,11 @@ struct BarcodeScannerView: View {
                             if presenter.isSavingIngredient {
                                 ProgressView()
                                     .frame(maxWidth: .infinity)
+                                    .foregroundStyle(colorScheme.backgroundPrimary)
                             } else {
                                 Text("Save to Library")
                                     .frame(maxWidth: .infinity)
+                                    .foregroundStyle(colorScheme.backgroundPrimary)
                             }
                         }
                         .buttonStyle(.borderedProminent)

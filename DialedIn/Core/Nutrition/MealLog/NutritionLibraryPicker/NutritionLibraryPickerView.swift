@@ -21,6 +21,7 @@ struct NutritionLibraryPickerView<
     MealDescribe: View
 >: View {
 
+    @Environment(\.colorScheme) private var colorScheme
     @State var presenter: NutritionLibraryPickerPresenter
 
     var delegate: NutritionLibraryPickerDelegate
@@ -70,14 +71,17 @@ struct NutritionLibraryPickerView<
                             Button {
                                 presenter.onModePressed(mode)
                             } label: {
-                                Label(mode.title, systemImage: mode.systemName).tag(mode)
+                                Label(mode.title, systemImage: mode.systemName)
+                                    .tag(mode)
+                                    .foregroundStyle(colorScheme.backgroundPrimary)
                             }
                             .buttonStyle(.borderedProminent)
                         } else {
                             Button {
                                 presenter.onModePressed(mode)
                             } label: {
-                                Label(mode.title, systemImage: mode.systemName).tag(mode)
+                                Label(mode.title, systemImage: mode.systemName)
+                                    .tag(mode)
                             }
                             .buttonStyle(.bordered)
                         }

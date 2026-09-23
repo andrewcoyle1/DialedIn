@@ -99,8 +99,11 @@ struct MealDescribeView: View {
                 }
             }
             Spacer()
-            Button("Add") {
+            Button {
                 presenter.onAddItem(item, delegate: delegate)
+            } label: {
+                Text("Add")
+                    .foregroundStyle(colorScheme.backgroundPrimary)
             }
             .buttonStyle(.borderedProminent)
         }

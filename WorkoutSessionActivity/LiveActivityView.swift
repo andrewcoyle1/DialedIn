@@ -11,6 +11,9 @@ import AppIntents
 
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 struct LiveActivityView: View {
+
+    @Environment(\.colorScheme) private var colorScheme
+    
     let context: ActivityViewContext<WorkoutActivityAttributes>
     
     var body: some View {
@@ -44,7 +47,7 @@ struct LiveActivityView: View {
             
             Text(context.attributes.workoutName)
                 .font(.headline)
-                .foregroundStyle(Color.white)
+                .foregroundStyle(colorScheme.foregroundPrimary)
             
             Spacer()
         }
@@ -134,22 +137,20 @@ struct LiveActivityView: View {
                 }
             }
             .font(.subheadline)
-            .foregroundColor(.white)
+            .foregroundStyle(colorScheme.foregroundPrimary)
             .frame(height: 55)
         }
     }
     
     private var headerSection: some View {
         HStack(alignment: .center) {
-            Image("AppIconInternalDark")
+            Image(colorScheme == .dark ? "AppIconInternalDark" : "AppIconInternal")
                 .renderingMode(.original)
                 .resizable()
                 .aspectRatio(1, contentMode: .fit)
                 .frame(width: 20, height: 20)
             HStack(alignment: .firstTextBaseline) {
-                
                 Text(context.attributes.workoutName)
-                    
                 Spacer()
                 
                 Text(context.attributes.startedAt, style: .timer)
@@ -157,7 +158,7 @@ struct LiveActivityView: View {
                     .multilineTextAlignment(.trailing)
             }
             .font(.callout)
-            .foregroundStyle(.white)
+            .foregroundStyle(colorScheme.foregroundPrimary)
         }
     }
     
@@ -184,7 +185,7 @@ struct LiveActivityView: View {
                 Text("Set \(context.state.currentExerciseCompletedSetsCount + 1) of \(context.state.currentExerciseTotalSetsCount)")
                     .font(.subheadline)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(colorScheme.foregroundPrimary)
             Spacer()
         }
     }
@@ -275,10 +276,10 @@ struct LiveActivityView: View {
                 Button(intent: SkipRestTimerIntent()) {
                     if context.state.isProcessingIntent {
                         ProgressView()
-                            .tint(.white)
+                            .tint(colorScheme.foregroundSecondary)
                     } else {
                         Text("Skip")
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(colorScheme.foregroundSecondary)
                             .padding(2)
                     }
                 }
@@ -299,7 +300,8 @@ struct LiveActivityView: View {
                     .foregroundStyle(.green)
                 Spacer()
                 Button(intent: CompleteWorkoutIntent()) {
-                    Label("Finis", systemImage: "checkmark.circle.fill")
+                    Label("Finish", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(colorScheme.foregroundSecondary)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.accent)
@@ -329,6 +331,7 @@ struct LiveActivityView: View {
                 Spacer()
                 Button(intent: CompleteSetIntent()) {
                     Image(systemName: "checkmark")
+                        .foregroundStyle(colorScheme.foregroundSecondary)
                         .padding(2)
                 }
                 .buttonBorderShape(.circle)

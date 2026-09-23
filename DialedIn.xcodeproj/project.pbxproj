@@ -138,6 +138,7 @@
 		D0BC0E372EA28EB5008A1E22 /* Exceptions for "DialedIn" folder in "WorkoutSessionActivityExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Extensions/ColorScheme+EXT.swift",
 				"Extensions/String+EXT.swift",
 				Managers/Training/WorkoutRestTimerIntents.swift,
 			);
