@@ -34,6 +34,9 @@ class HKWorkoutManager: NSObject {
 
     private var isDiscarding = false
     private var workout: HKWorkout?
+    /// Only tells `endRest` whether a workout is running. It is the session as it was at
+    /// `startWorkout`, so it must never be pushed to the Live Activity: ending the activity with it
+    /// from here raced the real end and put a zero-set summary on the Lock Screen.
     private var activeSessionModel: WorkoutSessionModel?
 
     // Weak reference to avoid circular dependency
@@ -214,24 +217,9 @@ class HKWorkoutManager: NSObject {
             finishedWorkout = try await builder.finishWorkout()
             self.metrics.elapsedTime = finishedWorkout?.duration ?? 0
             logger.trackEvent(event: Event.finishWorkoutSuccess)
-
-            if let sessionModel = activeSessionModel {
-                liveActivityUpdater?.endLiveActivity(
-                    session: sessionModel,
-                    isCompleted: true,
-                    statusMessage: "Workout ended"
-                )
-            }
             session?.end()
         } catch {
             logger.trackEvent(event: Event.finishWorkoutFail(error: error))
-            if let sessionModel = activeSessionModel {
-                liveActivityUpdater?.endLiveActivity(
-                    session: sessionModel,
-                    isCompleted: false,
-                    statusMessage: "Failed to finish workout"
-                )
-            }
             return
         }
         workout = finishedWorkout
