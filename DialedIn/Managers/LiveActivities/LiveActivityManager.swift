@@ -282,7 +282,6 @@ class LiveActivityManager: LiveActivityUpdating {
         let totals = computeTotals(session: session)
         let currentExerciseIndex = Self.exerciseIndexWithWorkLeft(from: currentExerciseIndex, in: session)
         let current = deriveCurrentExerciseData(session: session, index: currentExerciseIndex)
-        let next = deriveNextExerciseData(session: session, index: currentExerciseIndex)
         // The correction window is exactly the rest that follows a logged set (spec §4). Deriving
         // it from the rest rather than storing it is what clears it when the rest ends: the state
         // is rebuilt on every update, so there is no bookkeeping to get wrong.
@@ -314,12 +313,7 @@ class LiveActivityManager: LiveActivityUpdating {
             isAllSetsComplete: totals.isAllSetsComplete,
             lastLoggedSetId: lastLogged?.id,
             lastLoggedReps: lastLogged?.reps,
-            lastLoggedWeightKg: lastLogged?.weightKg,
-            nextExerciseName: next.name,
-            nextExerciseFirstTargetWeightKg: next.firstTarget?.weightKg,
-            nextExerciseFirstTargetReps: next.firstTarget?.reps,
-            nextExerciseFirstTargetDistanceMeters: next.firstTarget?.distanceMeters,
-            nextExerciseFirstTargetDurationSec: next.firstTarget?.durationSec
+            lastLoggedWeightKg: lastLogged?.weightKg
         )
     }
 
@@ -371,22 +365,6 @@ class LiveActivityManager: LiveActivityUpdating {
         )
     }
 
-    private struct NextExerciseData {
-        let name: String?
-        let firstTarget: WorkoutSetModel?
-    }
-
-    /// The exercise after the current one, with the first working set it prescribes. Nil on the
-    /// last exercise, which is what makes `.exerciseDone` unreachable there.
-    private func deriveNextExerciseData(session: WorkoutSessionModel, index: Int) -> NextExerciseData {
-        guard (0..<session.exercises.count).contains(index + 1) else {
-            return NextExerciseData(name: nil, firstTarget: nil)
-        }
-        let nextExercise = session.exercises[index + 1]
-        let firstWorkingSet = nextExercise.sets.first { !$0.isWarmup } ?? nextExercise.sets.first
-        return NextExerciseData(name: nextExercise.name, firstTarget: firstWorkingSet)
-    }
-
     private struct CurrentExerciseData {
         let name: String?
         let imageName: String?
@@ -414,20 +392,24 @@ class LiveActivityManager: LiveActivityUpdating {
         )
     }
 
-    /// The index the activity should describe: `requested`, unless that exercise is finished and a
-    /// later one still has an incomplete set, in which case the first such later exercise.
+    /// The index the activity should describe: `requested` while it has an incomplete set, else the
+    /// first later exercise with one, else the first anywhere, and only then `requested` itself.
     ///
     /// A finished exercise has no target set, and a banner with no target has no way forward once
     /// its rest ends. Callers that push after logging a set already advance, but the rest-end push
-    /// reuses whatever index it last saw, so the guard lives here where every state is built.
+    /// reuses whatever index it last saw, so the guard lives here where every state is built. The
+    /// search wraps because a skipped exercise still has sets: with A skipped and B, C done the
+    /// tracker sits on C, and the banner has to send the user back to A. Nothing left anywhere
+    /// means all sets are complete, and that phase wins over the index.
     static func exerciseIndexWithWorkLeft(from requested: Int, in session: WorkoutSessionModel) -> Int {
         let exercises = session.exercises
-        guard exercises.indices.contains(requested) else { return requested }
-        let hasWorkLeft = { (exercise: WorkoutExerciseModel) in
-            exercise.sets.contains { $0.completedAt == nil }
+        let hasWorkLeft = { (index: Int) in
+            exercises[index].sets.contains { $0.completedAt == nil }
         }
-        guard !hasWorkLeft(exercises[requested]) else { return requested }
-        return exercises.indices.dropFirst(requested + 1).first { hasWorkLeft(exercises[$0]) } ?? requested
+        guard exercises.indices.contains(requested), !hasWorkLeft(requested) else { return requested }
+        return exercises.indices.dropFirst(requested + 1).first(where: hasWorkLeft)
+            ?? exercises.indices.first(where: hasWorkLeft)
+            ?? requested
     }
 
     private func deriveCurrentExerciseData(session: WorkoutSessionModel, index: Int) -> CurrentExerciseData {

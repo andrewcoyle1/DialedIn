@@ -261,30 +261,6 @@ struct LiveActivityManagerTests {
         #expect(passed.lastLoggedSetId == nil)
     }
 
-    /// The `.exerciseDone` phase promises what is coming next, so the state has to name it — and
-    /// the target it shows is the next exercise's first *working* set, not its warm-up.
-    @Test("Test The State Names The Next Exercise And Its First Working Set")
-    func testTheStateNamesTheNextExerciseAndItsFirstWorkingSet() {
-        let state = contentState(restEndsAt: nil)
-
-        #expect(state.nextExerciseName == "Incline press")
-        #expect(state.nextExerciseFirstTargetWeightKg == 40)
-        #expect(state.nextExerciseFirstTargetReps == 10)
-    }
-
-    /// On the last exercise there is nothing after it, which is what keeps `.exerciseDone`
-    /// unreachable there.
-    @Test("Test The Last Exercise Has No Next Exercise")
-    func testTheLastExerciseHasNoNextExercise() {
-        let (manager, _) = makeManager()
-        let state = manager.makeContentState(
-            session: twoExerciseSession(), isActive: true, currentExerciseIndex: 1, restEndsAt: nil
-        )
-
-        #expect(state.nextExerciseName == nil)
-        #expect(state.nextExerciseFirstTargetWeightKg == nil)
-    }
-
     // MARK: - Never describing a finished exercise
 
     /// The state is built from the next exercise with work left when the requested one is
@@ -317,7 +293,42 @@ struct LiveActivityManagerTests {
         #expect(state.targetSetId == "set-2")
     }
 
-    /// When nothing later has work left the requested index stands, and all-sets-complete takes
+    /// A skipped exercise still has sets. With A skipped and B, C finished the tracker sits on C,
+    /// and nothing later has work left, so the search wraps to A rather than stranding the banner
+    /// on a finished exercise with no target.
+    @Test("Test A Finished Exercise Falls Back To The First With Work Left Anywhere")
+    func testAFinishedExerciseFallsBackToTheFirstWithWorkLeftAnywhere() {
+        let logged = Date()
+        let session = WorkoutSessionModel(
+            id: "s4",
+            authorId: "author-1",
+            name: "Push Day",
+            dateCreated: logged,
+            exercises: [
+                exercise(id: "a", name: "A", index: 1, sets: [
+                    set(id: "a-1", reps: 8, weightKg: 60)
+                ]),
+                exercise(id: "b", name: "B", index: 2, sets: [
+                    set(id: "b-1", reps: 10, weightKg: 40, completedAt: logged)
+                ]),
+                exercise(id: "c", name: "C", index: 3, sets: [
+                    set(id: "c-1", reps: 12, weightKg: 20, completedAt: logged)
+                ])
+            ]
+        )
+
+        #expect(LiveActivityManager.exerciseIndexWithWorkLeft(from: 2, in: session) == 0)
+
+        let (manager, _) = makeManager()
+        let state = manager.makeContentState(session: session, isActive: true, currentExerciseIndex: 2, restEndsAt: nil)
+        #expect(state.currentExerciseIndex == 0)
+        #expect(state.currentExerciseName == "A")
+        #expect(state.targetSetId == "a-1")
+        #expect(state.targetWeightKg == 60)
+        #expect(state.targetReps == 8)
+    }
+
+    /// When nothing anywhere has work left the requested index stands, and all-sets-complete takes
     /// over from there.
     @Test("Test A Finished Last Exercise Keeps Its Index")
     func testAFinishedLastExerciseKeepsItsIndex() {

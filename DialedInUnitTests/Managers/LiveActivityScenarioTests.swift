@@ -349,9 +349,6 @@ struct LiveActivityScenarioTests {
             Issue.record("the stale rest is not .restOver"); return
         }
         #expect(!over.isEmpty)
-        if case .exerciseDone = try phase(rig, now: until.addingTimeInterval(1), isStale: false) {
-            Issue.record("the activity fell into .exerciseDone, which has no button")
-        }
         await expectEveryPushReachedTheActivity(rig)
     }
 }

@@ -185,7 +185,7 @@ enum LiveActivityFormat {
 
 // MARK: - Phase
 
-/// The eight layouts the Live Activity can be in. Derived once, in one place, from the
+/// The seven layouts the Live Activity can be in. Derived once, in one place, from the
 /// content state — the views branch on this and nothing else.
 enum LiveActivityPhase: Equatable {
     /// About to lift.
@@ -194,8 +194,6 @@ enum LiveActivityPhase: Equatable {
     case resting(until: Date, next: LiveActivitySetTarget?, logged: LoggedSet?)
     /// Rest passed, phone untouched (or the activity has gone stale).
     case restOver(next: LiveActivitySetTarget)
-    /// This exercise finished, more to come.
-    case exerciseDone(next: String, firstTarget: LiveActivitySetTarget?)
     /// Nothing left but Finish.
     case allSetsDone
     /// `isActive == false`.
@@ -210,7 +208,7 @@ enum LiveActivityPhase: Equatable {
 
 extension LiveActivityPhase {
 
-    /// The only derivation. The precedence is spec §2, rows 1–8, in order.
+    /// The only derivation. The precedence is spec §2, rows 1–7, in order.
     init(state: WorkoutActivityAttributes.ContentState, now: Date, isStale: Bool) {
         // 1. Ended beats everything.
         if state.isWorkoutEnded {
@@ -239,7 +237,7 @@ extension LiveActivityPhase {
         self = Self.inProgressPhase(state: state, now: now, isStale: isStale)
     }
 
-    /// Rows 4–8, once the three whole-workout states above have been ruled out.
+    /// Rows 4–7, once the three whole-workout states above have been ruled out.
     private static func inProgressPhase(
         state: WorkoutActivityAttributes.ContentState,
         now: Date,
@@ -264,25 +262,9 @@ extension LiveActivityPhase {
             return .restOver(next: target)
         }
 
-        // 6. This exercise is finished and another one follows. Finished means every set is
-        //    counted done and no row is left to tap: a half-finished left/right pair still has a
-        //    target, so it stays on the banner rather than falling in here.
-        if state.targetSetId == nil
-            && state.currentExerciseCompletedSetsCount >= state.currentExerciseTotalSetsCount
-            && state.currentExerciseIndex + 1 < state.totalExercisesCount {
-            let nextTarget = LiveActivitySetTarget(
-                weightKg: state.nextExerciseFirstTargetWeightKg,
-                reps: state.nextExerciseFirstTargetReps,
-                durationSec: state.nextExerciseFirstTargetDurationSec,
-                distanceMeters: state.nextExerciseFirstTargetDistanceMeters
-            )
-            return .exerciseDone(
-                next: state.nextExerciseName ?? "",
-                firstTarget: nextTarget.isEmpty ? nil : nextTarget
-            )
-        }
-
-        // 7. Ready to lift.
+        // 6. Ready to lift. A finished exercise never gets here from the app: the manager always
+        //    points the state at an exercise with work left, so a missing target means there is
+        //    none anywhere and row 3 has usually already answered.
         if state.targetSetId != nil {
             return .ready(
                 target: target,
@@ -294,7 +276,7 @@ extension LiveActivityPhase {
             )
         }
 
-        // 8. Nothing to show.
+        // 7. Nothing to show.
         return .unknown
     }
 }

@@ -77,10 +77,10 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
         updated.updateExercises(exercises)
         guard save(updated) else { return pushActiveSession() }
 
-        // The exercise to show is the next one with work left, not the one just finished: after
-        // its last set the finished exercise has no target, and a banner with no target has no
-        // way out once the rest ends.
-        let nextIndex = currentExerciseIndex(in: updated)
+        // The exercise to show is the one just tapped while it has work left, else the next one
+        // with some: after its last set the finished exercise has no target, and a banner with no
+        // target has no way out once the rest ends.
+        let nextIndex = LiveActivityManager.exerciseIndexWithWorkLeft(from: location.exerciseIndex, in: updated)
         startRest(after: set, in: exercise, session: updated, exerciseIndex: nextIndex)
         push(updated, exerciseIndex: nextIndex)
     }
@@ -251,15 +251,11 @@ final class AppLiveActivityIntentHandler: LiveActivityIntentHandling {
         return endTime
     }
 
-    /// The exercise the user is on: the first with a set still to log, or the last one when there
-    /// is nothing left.
+    /// The exercise the user is on when nothing says otherwise: the first with a set still to log.
+    /// The manager owns that rule (its search wraps), so this asks it from the top rather than
+    /// keeping a second copy.
     private func currentExerciseIndex(in session: WorkoutSessionModel) -> Int {
-        if let index = session.exercises.firstIndex(where: { exercise in
-            !exercise.sets.isEmpty && !exercise.sets.allSatisfy { $0.completedAt != nil }
-        }) {
-            return index
-        }
-        return max(0, session.exercises.count - 1)
+        LiveActivityManager.exerciseIndexWithWorkLeft(from: 0, in: session)
     }
 }
 

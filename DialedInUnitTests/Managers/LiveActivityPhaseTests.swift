@@ -46,10 +46,7 @@ struct LiveActivityPhaseTests {
         isAllSetsComplete: Bool = false,
         lastLoggedSetId: String? = nil,
         lastLoggedReps: Int? = nil,
-        lastLoggedWeightKg: Double? = nil,
-        nextExerciseName: String? = nil,
-        nextExerciseFirstTargetWeightKg: Double? = nil,
-        nextExerciseFirstTargetReps: Int? = nil
+        lastLoggedWeightKg: Double? = nil
     ) -> WorkoutActivityAttributes.ContentState {
         WorkoutActivityAttributes.ContentState(
             isActive: isActive,
@@ -77,12 +74,7 @@ struct LiveActivityPhaseTests {
             isAllSetsComplete: isAllSetsComplete,
             lastLoggedSetId: lastLoggedSetId,
             lastLoggedReps: lastLoggedReps,
-            lastLoggedWeightKg: lastLoggedWeightKg,
-            nextExerciseName: nextExerciseName,
-            nextExerciseFirstTargetWeightKg: nextExerciseFirstTargetWeightKg,
-            nextExerciseFirstTargetReps: nextExerciseFirstTargetReps,
-            nextExerciseFirstTargetDistanceMeters: nil,
-            nextExerciseFirstTargetDurationSec: nil
+            lastLoggedWeightKg: lastLoggedWeightKg
         )
     }
 
@@ -161,59 +153,18 @@ struct LiveActivityPhaseTests {
 
     // MARK: - Row 6
 
-    /// The phase names what is *coming*, not what has just finished, so it reads off
-    /// `nextExerciseName` rather than the current exercise.
-    @Test("Test A Finished Exercise With Another To Come Derives The Exercise Done Phase")
-    func testAFinishedExerciseWithAnotherToComeDerivesTheExerciseDonePhase() {
-        let state = makeState(
-            currentExerciseName: "Bench press",
-            currentExerciseIndex: 0,
-            totalExercisesCount: 3,
-            currentExerciseCompletedSetsCount: 4,
-            currentExerciseTotalSetsCount: 4,
-            targetSetId: nil,
-            nextExerciseName: "Incline press",
-            nextExerciseFirstTargetWeightKg: 40,
-            nextExerciseFirstTargetReps: 10
-        )
-
-        #expect(
-            phase(state) == .exerciseDone(
-                next: "Incline press",
-                firstTarget: LiveActivitySetTarget(weightKg: 40, reps: 10)
-            )
-        )
-    }
-
-    /// With no next exercise plumbed through there is nothing to promise, so the phase carries an
-    /// empty name and no target rather than repeating the finished exercise back at the user.
-    @Test("Test A Finished Exercise With No Next Name Derives An Empty Exercise Done Phase")
-    func testAFinishedExerciseWithNoNextNameDerivesAnEmptyExerciseDonePhase() {
-        let state = makeState(
-            currentExerciseName: "Bench press",
-            currentExerciseIndex: 0,
-            totalExercisesCount: 3,
-            currentExerciseCompletedSetsCount: 4,
-            currentExerciseTotalSetsCount: 4,
-            targetSetId: nil
-        )
-
-        #expect(phase(state) == .exerciseDone(next: "", firstTarget: nil))
-    }
-
     /// A unilateral exercise after the left half of its last pair: the paired counts already say
     /// 4 of 4, but the right row still wants a tap, so the banner stays ready rather than falling
     /// into a phase with no button.
-    @Test("Test A Half Finished Last Pair Is Still Ready Not Exercise Done")
-    func testAHalfFinishedLastPairIsStillReadyNotExerciseDone() {
+    @Test("Test A Half Finished Last Pair Is Still Ready")
+    func testAHalfFinishedLastPairIsStillReady() {
         let state = makeState(
             currentExerciseName: "Single-arm row",
             currentExerciseIndex: 0,
             totalExercisesCount: 3,
             currentExerciseCompletedSetsCount: 3,
             currentExerciseTotalSetsCount: 4,
-            targetSetId: "set-4-right",
-            nextExerciseName: "Incline press"
+            targetSetId: "set-4-right"
         )
 
         guard case .ready(_, let position) = phase(state) else {
@@ -221,8 +172,6 @@ struct LiveActivityPhaseTests {
         }
         #expect(position == SetPosition(index: 4, total: 4))
     }
-
-    // MARK: - Row 7
 
     @Test("Test A Current Target Derives The Ready Phase With A One Based Set Position")
     func testACurrentTargetDerivesTheReadyPhaseWithAOneBasedSetPosition() {
@@ -254,7 +203,7 @@ struct LiveActivityPhaseTests {
         #expect(position.label == "Warmup 1 of 2")
     }
 
-    // MARK: - Row 8
+    // MARK: - Row 7
 
     @Test("Test No Target And No Rest Derives The Unknown Phase")
     func testNoTargetAndNoRestDerivesTheUnknownPhase() {

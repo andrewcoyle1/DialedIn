@@ -59,10 +59,6 @@ struct LiveActivityPhaseContent: View {
                 exerciseRow(detail: currentPositionLabel, dimmed: false)
                 targetActionRow(target: next, prefix: "Rest over")
 
-            case let .exerciseDone(name, firstTarget):
-                doneRow(text: "\(name) done")
-                nextExerciseRow(firstTarget: firstTarget)
-
             case .allSetsDone:
                 doneRow(text: "All sets complete")
                 finishRow
@@ -221,24 +217,6 @@ struct LiveActivityPhaseContent: View {
             .tint(.accent)
             .disabled(state.isProcessingIntent)
             .opacity(state.isProcessingIntent ? 0.5 : 1)
-        }
-        .frame(height: LiveActivityLayout.rowHeight)
-    }
-
-    private func nextExerciseRow(firstTarget: LiveActivitySetTarget?) -> some View {
-        HStack(spacing: 8) {
-            if let next = state.nextExerciseName, !next.isEmpty {
-                Text("Next: \(next)")
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            if let label = firstTarget?.label(weightUnit: LiveActivityLayout.weightUnit) {
-                Text(label)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-            }
-            Spacer(minLength: 0)
         }
         .frame(height: LiveActivityLayout.rowHeight)
     }

@@ -21,7 +21,7 @@ Two things the current view gets wrong that this fixes:
 ## 2. The phase model
 
 The view no longer branches on booleans inline. A pure derivation turns the content state into
-one of eight phases, and each phase has one layout. `Phase` lives in `Shared/` so the widget and
+one of seven phases, and each phase has one layout. `Phase` lives in `Shared/` so the widget and
 the tests both see it.
 
 ```swift
@@ -29,7 +29,6 @@ enum LiveActivityPhase: Equatable {
     case ready(target: SetTarget, position: SetPosition)          // about to lift
     case resting(until: Date, next: SetTarget?, logged: LoggedSet?) // countdown running
     case restOver(next: SetTarget)                                  // rest passed, phone untouched
-    case exerciseDone(next: String, firstTarget: SetTarget?)        // this exercise finished, more to come
     case allSetsDone                                                // nothing left but Finish
     case paused                                                     // isActive == false
     case ended(Summary)                                             // isWorkoutEnded
@@ -46,9 +45,13 @@ enum LiveActivityPhase: Equatable {
 | 3 | `isAllSetsComplete` | `.allSetsDone` |
 | 4 | `restEndsAt > now` | `.resting(until:next:logged:)` — `next` is the current `target*` fields (after `CompleteSetIntent` they already describe the next set), `logged` is `lastLogged*` |
 | 5 | `restEndsAt != nil && restEndsAt <= now`, or `isStale` | `.restOver(next:)` |
-| 6 | `currentExerciseCompletedSetsCount == currentExerciseTotalSetsCount && currentExerciseIndex + 1 < totalExercisesCount` | `.exerciseDone` |
-| 7 | `targetSetId != nil` | `.ready` |
-| 8 | otherwise | `.unknown` (renders like `.paused` without the label) |
+| 6 | `targetSetId != nil` | `.ready` |
+| 7 | otherwise | `.unknown` (renders like `.paused` without the label) |
+
+There is no "exercise done" phase. `LiveActivityManager.exerciseIndexWithWorkLeft` always points
+the state at an exercise with an incomplete set — the requested one, the next later one, or the
+first anywhere — so a finished exercise is only ever described when every set is done, and row 3
+has already answered.
 
 `SetTarget` here is a display value: `weightKg`, `reps`, `durationSec`, `distanceMeters`, formatted
 by one `label` in the same shape the tracker's Prev column uses (`60 kg × 8`, `12`, `1:30`,
@@ -65,7 +68,6 @@ Fixed height across phases so the banner does not jump when a set completes. Two
 | `.ready` | exercise image · **Exercise name** · `Set 2 of 4` | **60 kg × 8** · [✓ Complete] |
 | `.resting` | `Logged 60 kg × 8` · [−] [+] on reps | rest ring with countdown inside · `Next 60 kg × 8` · [+15s] [Skip] |
 | `.restOver` | exercise image · **Exercise name** · `Set 3 of 4` | `Rest over` · **60 kg × 8** · [✓ Complete] |
-| `.exerciseDone` | ✓ **Exercise name** done | `Next: Incline press` · `60 kg × 8` |
 | `.allSetsDone` | ✓ **All sets complete** | [Finish] |
 | `.paused` | exercise image · Exercise name, dimmed | `Paused` · `Resume in the app` |
 | `.ended` | ✓ **Workout name** | Duration · Sets · Volume (volume only if > 0) |
@@ -139,8 +141,8 @@ The island is always rendered on black; it uses semantic colours and never reads
 
 - `LiveActivityPhaseTests` (`DialedInUnitTests/`): one case per row of the §2 table, plus:
   ended beats paused; paused beats resting; `isStale` with a live `restEndsAt` still gives
-  `.restOver`; rest with no `lastLoggedSetId` gives `.resting(logged: nil)`; last exercise with all
-  its sets done gives `.allSetsDone`, not `.exerciseDone`.
+  `.restOver`; rest with no `lastLoggedSetId` gives `.resting(logged: nil)`; a half-finished last
+  pair is still `.ready`.
 - `SetTargetLabelTests`: the four tracking shapes, kg and lb, nil pieces omitted.
 - `AdjustLastSetRepsIntentTests`: writes the pending adjustment with the clamped reps; no-op
   without a logged set; no-op after the rest ends; two taps leave one slot holding the latest.
