@@ -4,6 +4,8 @@ struct SetTrackerRowDelegate {
     var exercise: Binding<WorkoutExerciseModel>
     var set: Binding<WorkoutSetModel>
     let lastSet: WorkoutSetModel?
+    /// What smart progression suggests for this row, if anything. Shown by the Auto column.
+    var progressionSuggestion: SuggestedSet?
     var showAutoRanges: Bool = false
     /// Called with the set that was just logged, so the screen can re-suggest what is left.
     var onSetCompleted: @MainActor (WorkoutSetModel, WorkoutExerciseModel) -> Void = { _, _ in }
@@ -171,20 +173,20 @@ struct SetTrackerRowView: View {
             let workingIndex = exercise.workingSetNumber(for: set)
             let target = exercise.setTargets.first { $0.setNumber == workingIndex }
             let unitPreference = presenter.getUnitPreference(for: exercise)
-            let suggestion = target.flatMap { target in
-                delegate.lastSet.flatMap {
-                    autoSuggestion(target: target, lastSet: $0, weightUnit: unitPreference.weightUnit)
-                }
-            }
+            let suggestion = delegate.progressionSuggestion
+            let label = suggestion?.label(
+                trackingMode: exercise.trackingMode,
+                weightUnit: unitPreference.weightUnit,
+                distanceUnit: unitPreference.distanceUnit
+            )
 
-            if let suggestion {
-                Text(suggestion.label)
+            if let suggestion, let label {
+                Text(label)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .frame(height: 35)
                     .anyButton {
-                        delegate.set.wrappedValue.weightKg = suggestion.weightKg
-                        delegate.set.wrappedValue.reps = suggestion.reps
+                        fill(delegate.set, from: suggestion)
                     }
                     .disabled(delegate.set.wrappedValue.completedAt != nil)
             } else if let target {
@@ -196,50 +198,18 @@ struct SetTrackerRowView: View {
     }
 
     private var emptyTargetLabel: some View {
-        Text("—")
+        Text("\u{2014}")
             .font(.caption)
             .foregroundColor(.secondary)
             .frame(height: 35)
     }
 
-    private struct AutoSuggestion {
-        let weightKg: Double
-        let reps: Int
-        let label: String
-    }
-
-    /// The weight/reps the next set should aim for, derived from the previous session's set
-    /// via its estimated 1RM. Pure arithmetic, so it lives outside the ViewBuilder — that is
-    /// what kept `autoTargetContent` over the body-length limit. Returns nil when there is
-    /// nothing to base a suggestion on, in which case the caller falls back to the rep range.
-    private func autoSuggestion(
-        target: SetTarget,
-        lastSet: WorkoutSetModel,
-        weightUnit: ExerciseWeightUnit
-    ) -> AutoSuggestion? {
-        guard let prevWeight = lastSet.weightKg, let prevReps = lastSet.reps, prevReps > 0 else {
-            return nil
-        }
-
-        let targetReps: Int = {
-            if let min = target.minReps, let max = target.maxReps { return (min + max) / 2 }
-            if let min = target.minReps { return min }
-            return 0
-        }()
-        guard targetReps > 0 else { return nil }
-
-        let oneRM = ExerciseOneRMAggregator.estimated1RM(weightKg: prevWeight, reps: prevReps)
-        let rawKg = oneRM / (1.0 + Double(targetReps) / 30.0)
-        let roundedKg = WorkoutSessionModel.roundWeightToPreferredUnit(
-            weightKg: rawKg,
-            preferredUnit: weightUnit
-        ) ?? rawKg
-
-        return AutoSuggestion(
-            weightKg: roundedKg,
-            reps: targetReps,
-            label: "\(UnitConversion.formatWeight(roundedKg, unit: weightUnit)) × \(targetReps)"
-        )
+    /// Writes a suggestion into the row, leaving alone every metric it says nothing about.
+    private func fill(_ set: Binding<WorkoutSetModel>, from suggestion: SuggestedSet) {
+        if let weightKg = suggestion.weightKg { set.wrappedValue.weightKg = weightKg }
+        if let reps = suggestion.reps { set.wrappedValue.reps = reps }
+        if let durationSec = suggestion.durationSec { set.wrappedValue.durationSec = durationSec }
+        if let distanceMeters = suggestion.distanceMeters { set.wrappedValue.distanceMeters = distanceMeters }
     }
 
     @ViewBuilder

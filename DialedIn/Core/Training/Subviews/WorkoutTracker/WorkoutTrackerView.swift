@@ -149,6 +149,7 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                         allWorkoutExercises: presenter.workoutSession.exercises,
                         supersetLabel: supersetLabel,
                         progressionHint: presenter.progressionHint(for: exerciseId),
+                        progressionSuggestion: presenter.progressionSuggestions[exercise.templateId],
                         onSetSupersetGroup: { exerciseId, groupId in
                             presenter.setSupersetGroupId(groupId, forExerciseId: exerciseId)
                         },
