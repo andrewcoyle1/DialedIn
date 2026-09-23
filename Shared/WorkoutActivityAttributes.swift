@@ -52,6 +52,18 @@ struct WorkoutActivityAttributes: ActivityAttributes {
         var lastIntentTimestamp: Date?
         // Workout completion state
         var isAllSetsComplete: Bool
+        // The set most recently logged, whose reps can be corrected during the rest that follows
+        var lastLoggedSetId: String?
+        var lastLoggedReps: Int?
+        var lastLoggedWeightKg: Double?
+        // The exercise that follows the current one, and the target its first working set carries.
+        // Populated so the `.exerciseDone` phase can name what is coming without the widget
+        // reaching back into the session.
+        var nextExerciseName: String?
+        var nextExerciseFirstTargetWeightKg: Double?
+        var nextExerciseFirstTargetReps: Int?
+        var nextExerciseFirstTargetDistanceMeters: Double?
+        var nextExerciseFirstTargetDurationSec: Int?
     }
 
     // Immutable attributes for this workout Live Activity instance
