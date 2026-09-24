@@ -1,9 +1,9 @@
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getMessaging } from "firebase-admin/messaging";
-import { requireAuth, cleanJson, normaliseName, buildActivityPush } from "./lib.js";
+import { requireAuth, cleanJson, normaliseName, buildActivityPush, newlyBlockedIds, pushRecipientSettings } from "./lib.js";
 import { genkit } from "genkit";
 import { vertexAI, gemini20Flash, imagen3Fast } from "@genkit-ai/vertexai";
 
@@ -392,8 +392,9 @@ export const foodSearch = onCall(CALLABLE_OPTIONS, async (request) => {
 // ---------------------------------------------------------------------------
 
 // The app writes users/{uid}/notifications for the in-app bell; this turns each new doc into a
-// push so it still arrives when the app is closed. Message building and the opt-out check live in
-// buildActivityPush (lib.js) so they can be tested without Firestore.
+// push so it still arrives when the app is closed. The token and opt-outs are private to the owner,
+// in users/{uid}/private/settings; pushRecipientSettings falls back to the legacy user-doc fields.
+// Message building and the opt-out check live in lib.js so they can be tested without Firestore.
 export const onActivityNotificationCreated = onDocumentCreated(
     { document: "users/{userId}/notifications/{notificationId}", region: REGION },
     async (event) => {
@@ -401,8 +402,13 @@ export const onActivityNotificationCreated = onDocumentCreated(
         if (!notification) return;
 
         const userId = event.params.userId;
-        const userDoc = await getFirestore().collection("users").doc(userId).get();
-        const message = buildActivityPush(notification, userDoc.data());
+        const userRef = getFirestore().collection("users").doc(userId);
+        const [userDoc, privateDoc] = await Promise.all([
+            userRef.get(),
+            userRef.collection("private").doc("settings").get(),
+        ]);
+        const recipient = pushRecipientSettings(privateDoc.data(), userDoc.data());
+        const message = buildActivityPush(notification, recipient);
         if (!message) {
             console.log(`No push for user ${userId} (${notification.type}): no token or opted out.`);
             return;
@@ -412,6 +418,37 @@ export const onActivityNotificationCreated = onDocumentCreated(
             await getMessaging().send(message);
         } catch (error) {
             console.error(`Error sending push to user ${userId}: ${error.message}`);
+        }
+    }
+);
+
+// ---------------------------------------------------------------------------
+// Blocking: end the blocked person's follow
+// ---------------------------------------------------------------------------
+
+// A follow lives in the follower's own following_ids, which the blocker cannot write and rules
+// cannot refuse on the blocker's behalf. So when users/{uid}.blocked_user_ids gains an id, this
+// takes uid out of that person's following_ids and drops any pending follow request they sent.
+// The blocked person's document changing re-fires this trigger, but their block list is unchanged,
+// so it returns at once.
+export const onUserBlockListChanged = onDocumentUpdated(
+    { document: "users/{uid}", region: REGION },
+    async (event) => {
+        const blocked = newlyBlockedIds(event.data?.before?.data(), event.data?.after?.data());
+        if (blocked.length === 0) return;
+
+        const uid = event.params.uid;
+        const users = getFirestore().collection("users");
+        const results = await Promise.allSettled(blocked.flatMap((blockedId) => [
+            // update, not set: a deleted account must not come back as a stub document.
+            users.doc(blockedId).update({ following_ids: FieldValue.arrayRemove(uid) }),
+            // A no-op when there is no request, or no follow_requests collection at all.
+            users.doc(uid).collection("follow_requests").doc(blockedId).delete(),
+        ]));
+        for (const result of results) {
+            if (result.status === "rejected") {
+                console.error(`Block cleanup for user ${uid}: ${result.reason?.message}`);
+            }
         }
     }
 );

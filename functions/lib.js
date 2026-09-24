@@ -17,13 +17,22 @@ export function normaliseName(name) {
     return name.trim().toLowerCase();
 }
 
-// The user-doc boolean that opts a recipient out of each social push. Absent means on, so
-// profiles written before the setting existed keep getting pushes.
+// The boolean in users/{uid}/private/settings that opts a recipient out of each social push.
+// Absent means on, so profiles written before the setting existed keep getting pushes.
 export const SOCIAL_PUSH_PREFERENCE_KEYS = {
     like: "social_push_likes",
     comment: "social_push_comments",
     follow: "social_push_follows",
 };
+
+// The token and preferences moved from the public user doc to users/{uid}/private/settings. Each
+// field is read from the private doc, else the user doc, so a user whose app has not written the
+// private doc yet still gets pushes and keeps their opt-outs.
+// ponytail: the user-doc fallback can go once every active install writes the private doc.
+export function pushRecipientSettings(privateSettings, userDoc) {
+    const keys = ["fcm_token", ...Object.values(SOCIAL_PUSH_PREFERENCE_KEYS)];
+    return Object.fromEntries(keys.map((key) => [key, privateSettings?.[key] ?? userDoc?.[key]]));
+}
 
 const COMMENT_PREVIEW_LENGTH = 60;
 
@@ -69,4 +78,11 @@ export function buildActivityPush(notification, recipient) {
             actor_id: notification.actor_id || "",
         },
     };
+}
+
+// The ids in `after.blocked_user_ids` that were not in `before.blocked_user_ids`, for the trigger
+// that makes a block also end the blocked person's follow. Either side may lack the field.
+export function newlyBlockedIds(before, after) {
+    const previous = new Set(before?.blocked_user_ids ?? []);
+    return [...new Set(after?.blocked_user_ids ?? [])].filter((id) => !previous.has(id));
 }

@@ -46,11 +46,16 @@ enum TestManagers {
         )
     }
 
-    static func userManager(user: UserModel?, following: [UserModel] = []) -> UserManager {
+    static func userManager(
+        user: UserModel?,
+        following: [UserModel] = [],
+        privateSettings: PrivateUserSettings? = nil
+    ) -> UserManager {
         UserManager(
             queryService: MockUserQueryService(),
             userSyncEngine: documentEngine(user, key: "user"),
-            followingUsersSyncEngine: collectionEngine(following, key: "following-users")
+            followingUsersSyncEngine: collectionEngine(following, key: "following-users"),
+            privateSettingsSyncEngine: documentEngine(privateSettings, key: "private-user-settings")
         )
     }
 

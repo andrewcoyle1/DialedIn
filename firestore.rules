@@ -12,6 +12,15 @@ service cloud.firestore {
       return !('userId' in request.resource.data) || request.resource.data.userId == user_id;
     }
 
+    // True when the user doc users/{ownerId} lists the caller in blocked_user_ids. A profile with
+    // no such field (or no profile at all) blocks nobody, so it behaves as before blocking existed.
+    // Used only on writes and single-document paths, never on a read rule a query depends on:
+    // rules are not filters, and a list query that could touch a denied document fails outright.
+    function isBlockedBy(ownerId) {
+      let owner = /databases/$(database)/documents/users/$(ownerId);
+      return exists(owner) && request.auth.uid in get(owner).data.get('blocked_user_ids', []);
+    }
+
     // Allow only a +1 change to clickCount and no other field changes
     function isClickCountIncrement() {
       return request.resource.data.diff(resource.data).changedKeys().hasOnly(['click_count']) &&
@@ -22,6 +31,13 @@ service cloud.firestore {
     match /users/{user_id} {
       allow read: if isAuthed();
       allow write: if isAuthed() && request.auth.uid == user_id;
+
+      // Private settings: users/{user_id}/private/settings holds the FCM token and the
+      // social_push_* opt-outs, which the public profile above exposes to every signed-in user.
+      // Owner only; the push Cloud Function reads it with the Admin SDK.
+      match /private/{private_id} {
+        allow read, write: if isAuthed() && request.auth.uid == user_id;
+      }
 
       // Body Measurements subcollection
       match /body_measurements/{entry_id} {
@@ -80,8 +96,10 @@ service cloud.firestore {
         allow update: if isAuthed() && (
           // Owner can update any field
           (request.auth.uid == user_id && resource.data.author_id == user_id) ||
-          // Any authenticated user can toggle their like (only liked_by_user_ids may change)
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['liked_by_user_ids'])
+          // Any authenticated user can toggle their like (only liked_by_user_ids may change),
+          // unless the session's author has blocked them.
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['liked_by_user_ids'])
+            && !isBlockedBy(user_id))
         );
         allow delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
       }
@@ -180,16 +198,21 @@ service cloud.firestore {
       // Any authenticated user can create/overwrite a notification on another user's behalf
       // (e.g. writing a like or comment notification to the recipient), but cannot modify
       // existing docs or read other users' notifications.
+      // Someone the recipient has blocked cannot write to them at all: create, and the actor's
+      // overwrite of an earlier notification (the app writes with setData, so a repeat is an
+      // update), both refuse a blocked actor. Their delete stays allowed, so taking back an old
+      // follow notification still works.
       match /notifications/{notification_id} {
         allow read: if isAuthed() && request.auth.uid == user_id;
         allow delete: if isAuthed() && (
           request.auth.uid == user_id ||
           resource.data.actor_id == request.auth.uid
         );
-        allow create: if isAuthed() && request.resource.data.actor_id == request.auth.uid;
+        allow create: if isAuthed() && request.resource.data.actor_id == request.auth.uid
+                      && !isBlockedBy(user_id);
         allow update: if isAuthed() && (
           request.auth.uid == user_id ||
-          request.resource.data.actor_id == request.auth.uid
+          (request.resource.data.actor_id == request.auth.uid && !isBlockedBy(user_id))
         );
       }
     }
@@ -325,8 +348,12 @@ service cloud.firestore {
     match /workout_session_comments/{comment_id} {
       // Any authenticated user can read comments
       allow read: if isAuthed();
-      // Author can create their own comment
-      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      // Author can create their own comment, unless the session's author has blocked them.
+      // session_author_id is required: WorkoutSessionComment always writes it, and leaving it
+      // optional would let a client skip the block check by omitting it.
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id
+                    && request.resource.data.session_author_id is string
+                    && !isBlockedBy(request.resource.data.session_author_id);
       // Only the comment author can soft-delete (set deleted_at); no other fields may change
       allow update: if isAuthed()
         && request.auth.uid == resource.data.author_id

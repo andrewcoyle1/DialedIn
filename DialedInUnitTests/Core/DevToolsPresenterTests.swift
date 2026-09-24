@@ -428,15 +428,15 @@ struct DevToolsNotificationsPresenterTests {
 
         func clearAllDeliveredNotifications() { clearDeliveredCount += 1 }
 
-        var currentUser: UserModel? = UserModel(userId: "user-1")
+        var privateUserSettings = PrivateUserSettings()
         var preferenceError: Error?
         private(set) var preferenceWrites: [String: Bool] = [:]
 
-        /// Records the profile key the real `UserManager` would write, so a test can check the
-        /// value lands under the field the Cloud Function reads.
+        /// Records the private-settings key the real `UserManager` would write, so a test can check
+        /// the value lands under the field the Cloud Function reads.
         func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws {
             if let preferenceError { throw preferenceError }
-            preferenceWrites[UserModel.socialPushKey(for: type).rawValue] = isEnabled
+            preferenceWrites[PrivateUserSettings.socialPushKey(for: type).rawValue] = isEnabled
         }
     }
 
@@ -601,19 +601,16 @@ struct DevToolsNotificationsPresenterTests {
 
     // MARK: - Social push switches
 
-    /// A profile written before the setting existed has no preference fields, and must keep
-    /// getting pushes: every switch reads on.
-    @Test("Test Social Push Switches Default To On When The Profile Has No Preferences")
-    func testSocialPushSwitchesDefaultToOnWhenTheProfileHasNoPreferences() {
+    /// A user who has never written the private settings document has no preference fields, and
+    /// must keep getting pushes: every switch reads on.
+    @Test("Test Social Push Switches Default To On When The Private Settings Have No Preferences")
+    func testSocialPushSwitchesDefaultToOnWhenThePrivateSettingsHaveNoPreferences() {
         let screen = makeScreen()
         #expect(screen.presenter.isLikesPushEnabled)
         #expect(screen.presenter.isCommentsPushEnabled)
         #expect(screen.presenter.isFollowsPushEnabled)
 
-        screen.interactor.currentUser = nil
-        #expect(screen.presenter.isFollowsPushEnabled)
-
-        screen.interactor.currentUser = UserModel(userId: "user-1", socialPushLikes: false, socialPushFollows: true)
+        screen.interactor.privateUserSettings = PrivateUserSettings(socialPushLikes: false, socialPushFollows: true)
         #expect(!screen.presenter.isLikesPushEnabled)
         #expect(screen.presenter.isCommentsPushEnabled)
         #expect(screen.presenter.isFollowsPushEnabled)

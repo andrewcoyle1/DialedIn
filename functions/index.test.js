@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { buildActivityPush, cleanJson, normaliseName, requireAuth } from "./lib.js";
+import { buildActivityPush, cleanJson, newlyBlockedIds, normaliseName, pushRecipientSettings, requireAuth } from "./lib.js";
 
 test("cleanJson strips the code fences Gemini adds and leaves bare JSON alone", () => {
     assert.equal(cleanJson('```json\n{"a":1}\n```'), '{"a":1}');
@@ -74,4 +74,37 @@ test("buildActivityPush sends nothing without a token, for an unknown type, or w
     assert.equal(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_follows: false }), null);
     // Opting out of one type leaves the others on.
     assert.notEqual(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_likes: false }), null);
+});
+
+test("newlyBlockedIds returns only the ids the update added to blocked_user_ids", () => {
+    assert.deepEqual(newlyBlockedIds({ blocked_user_ids: ["a"] }, { blocked_user_ids: ["a", "b"] }), ["b"]);
+    // Profiles written before blocking existed have no field on either side.
+    assert.deepEqual(newlyBlockedIds({}, { blocked_user_ids: ["a"] }), ["a"]);
+    assert.deepEqual(newlyBlockedIds(undefined, undefined), []);
+    assert.deepEqual(newlyBlockedIds({ blocked_user_ids: ["a"] }, {}), []);
+    // An unblock, or an update that leaves the list alone, has nothing to clean up.
+    assert.deepEqual(newlyBlockedIds({ blocked_user_ids: ["a", "b"] }, { blocked_user_ids: ["a"] }), []);
+    assert.deepEqual(newlyBlockedIds({ blocked_user_ids: ["a"] }, { blocked_user_ids: ["a"], is_private: true }), []);
+    assert.deepEqual(newlyBlockedIds({}, { blocked_user_ids: ["a", "a"] }), ["a"]);
+});
+
+test("pushRecipientSettings reads the private doc first and falls back to the user doc", () => {
+    const legacy = { fcm_token: "old", social_push_likes: false, social_push_comments: false, display_name: "x" };
+
+    // Not migrated yet: everything comes from the user doc, and nothing else is copied over.
+    assert.deepEqual(pushRecipientSettings(undefined, legacy), {
+        fcm_token: "old", social_push_likes: false, social_push_comments: false, social_push_follows: undefined,
+    });
+
+    // Migrated: the private doc wins field by field, including a false over a legacy true.
+    const merged = pushRecipientSettings({ fcm_token: "new", social_push_comments: true, social_push_follows: false }, legacy);
+    assert.equal(merged.fcm_token, "new");
+    assert.equal(merged.social_push_likes, false);
+    assert.equal(merged.social_push_comments, true);
+    assert.equal(merged.social_push_follows, false);
+    assert.equal(pushRecipientSettings({ social_push_likes: false }, { social_push_likes: true }).social_push_likes, false);
+
+    // Neither doc: no token, so buildActivityPush sends nothing.
+    assert.equal(buildActivityPush({ type: "like" }, pushRecipientSettings(undefined, undefined)), null);
+    assert.equal(buildActivityPush({ type: "like" }, pushRecipientSettings({ fcm_token: "new" }, undefined)).token, "new");
 });

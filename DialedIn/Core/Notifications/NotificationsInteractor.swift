@@ -11,7 +11,7 @@ import UserNotifications
 protocol NotificationsInteractor: GlobalInteractor {
     var isAuthorised: UNAuthorizationStatus { get }
     var activityNotifications: [ActivityNotificationModel] { get }
-    var currentUser: UserModel? { get }
+    var privateUserSettings: PrivateUserSettings { get }
     func requestPushAuthorisation() async throws -> Bool
     func canRequestNotificationAuthorisation() async -> Bool
     func removeDeliveredNotifications(ids: [String])
