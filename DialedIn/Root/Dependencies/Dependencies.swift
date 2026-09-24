@@ -238,7 +238,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, logManager: logManager)
+            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, systemProgramPersistence: MockLocalCollectionPersistence(collection: PrebuiltSeedData.programs), logManager: logManager)
                 
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
                 remote: MockRemoteCollectionService(collection: GymProfileModel.mocks),
@@ -536,7 +536,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, logManager: logManager)
+            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, systemProgramPersistence: SwiftDataCollectionPersistence<TrainingProgram>(managerKey: TrainingProgramManager.systemManagerKey), logManager: logManager)
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
@@ -863,7 +863,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, logManager: logManager)
+            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, systemProgramPersistence: SwiftDataCollectionPersistence<TrainingProgram>(managerKey: TrainingProgramManager.systemManagerKey), logManager: logManager)
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in

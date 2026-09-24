@@ -223,7 +223,7 @@ class DevPreview {
             enableLocalPersistence: false,
             logger: logManager
         )
-        self.trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, logManager: logManager)
+        self.trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine, systemProgramPersistence: MockLocalCollectionPersistence(collection: PrebuiltSeedData.programs), logManager: logManager)
         let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
             remote: MockRemoteCollectionService(collection: GymProfileModel.mocks),
             managerKey: Keys.gymProfileManagerKey,

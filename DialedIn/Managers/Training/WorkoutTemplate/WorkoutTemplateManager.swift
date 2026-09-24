@@ -19,7 +19,7 @@ class WorkoutTemplateManager {
     private let userDefaults: UserDefaults
     private static let hasSeededKey = "hasSeededPrebuiltWorkouts"
     private static let seedingVersionKey = "prebuiltWorkoutsSeedingVersion"
-    private static let currentSeedingVersion = 3
+    private static let currentSeedingVersion = 4
 
     var hasSeeded: Bool {
         userDefaults.bool(forKey: Self.hasSeededKey)

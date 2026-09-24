@@ -184,6 +184,7 @@ struct CoreInteractor: GlobalInteractor {
         // workout templates try to resolve exercises by ID.
         try? exerciseModelManager.seedExercisesIfNeeded()
         try? workoutTemplateManager.seedWorkoutTemplatesIfNeeded(exercises: exerciseModelManager.allExercises)
+        try? trainingProgramManager.seedProgramsIfNeeded(workouts: workoutTemplateManager.systemWorkoutTemplates)
 
         try await purchaseManager.logIn(
             userId: user.uid,

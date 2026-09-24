@@ -449,6 +449,7 @@ struct TrainingProgramManagementPresenterTests {
     private final class Interactor: SpyGlobalInteractor, TrainingProgramLibraryInteractor {
         var activeTrainingProgram: TrainingProgram?
         var trainingPrograms: [TrainingProgram] = []
+        var prebuiltPrograms: [TrainingProgram] = []
         var deleteError: Error?
         private(set) var activatedProgramIds: [String] = []
         private(set) var deletedProgramIds: [String] = []
@@ -482,6 +483,7 @@ struct TrainingProgramManagementPresenterTests {
         func showDevSettingsView() { shown.append("devSettings") }
         func showProgramSettingsView(program: Binding<TrainingProgram>) { shown.append("programSettings") }
         func showCreateProgramView(delegate: CreateProgramDelegate) { shown.append("createProgram") }
+        func showPrebuiltProgramDetailView(program: TrainingProgram) { shown.append("prebuilt:\(program.id)") }
 
         func showEditTrainingProgramView(delegate: EditTrainingProgramDelegate) {
             shown.append("editProgram")

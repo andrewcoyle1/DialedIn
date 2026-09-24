@@ -24,6 +24,10 @@ class TrainingProgramLibraryPresenter {
     var savedPrograms: [TrainingProgram] {
         interactor.trainingPrograms
     }
+
+    var prebuiltPrograms: [TrainingProgram] {
+        interactor.prebuiltPrograms
+    }
     
     init(
         interactor: TrainingProgramLibraryInteractor,
@@ -81,6 +85,10 @@ class TrainingProgramLibraryPresenter {
         }
     }
         
+    func onPrebuiltProgramPressed(_ program: TrainingProgram) {
+        router.showPrebuiltProgramDetailView(program: program)
+    }
+
     func onCreateProgramPressed() {
         router.showCreateProgramView(delegate: CreateProgramDelegate())
     }
