@@ -82,6 +82,15 @@ func finishWorkout(_ session: WorkoutSessionModel, using managers: WorkoutFinish
     if let streak = managers.streak {
         do {
             _ = try await streak.addStreakEvent()
+            // Followers cannot read the author's streak, so it rides on the session they can
+            // read. A second write rather than stamping before the save: the save goes first so
+            // it is never held up by the streak, and a session that did not save has nothing to
+            // stamp. The stamp is best-effort — a session without it renders as before.
+            if outcome == .saved, let count = streak.currentStreakData.currentStreak {
+                var stamped = session
+                stamped.streakCount = count
+                try await managers.sessions.saveWorkoutSession(stamped)
+            }
         } catch {
             logger.trackEvent(eventName: "finish_workout_streak_error", parameters: ["error": error.localizedDescription], type: .warning)
         }

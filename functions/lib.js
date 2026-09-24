@@ -23,6 +23,7 @@ export const SOCIAL_PUSH_PREFERENCE_KEYS = {
     like: "social_push_likes",
     comment: "social_push_comments",
     follow: "social_push_follows",
+    nudge: "social_push_nudges",
 };
 
 // The token and preferences moved from the public user doc to users/{uid}/private/settings. Each
@@ -64,6 +65,10 @@ export function buildActivityPush(notification, recipient) {
     case "follow":
         title = "New follower";
         body = `${actor} started following you`;
+        break;
+    case "nudge":
+        title = "Nudge";
+        body = `${actor} nudged you to train`;
         break;
     }
 

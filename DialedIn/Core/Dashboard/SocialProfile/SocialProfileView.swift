@@ -73,6 +73,11 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                                 .fontWeight(.semibold)
                         }
                         // A date of birth sat here: personal data with no social value.
+                        if let streak = presenter.latestStreak {
+                            Label("\(streak)-day streak", systemImage: "flame.fill")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(.orange)
+                        }
                         if let programName = presenter.programName {
                             Text("Following \(programName)")
                                 .font(.caption)

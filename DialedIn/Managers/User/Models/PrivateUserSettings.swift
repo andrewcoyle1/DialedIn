@@ -18,12 +18,14 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
     var socialPushLikes: Bool?
     var socialPushComments: Bool?
     var socialPushFollows: Bool?
+    var socialPushNudges: Bool?
 
     enum CodingKeys: String, CodingKey {
         case fcmToken = "fcm_token"
         case socialPushLikes = "social_push_likes"
         case socialPushComments = "social_push_comments"
         case socialPushFollows = "social_push_follows"
+        case socialPushNudges = "social_push_nudges"
     }
 
     var eventParameters: [String: Any] {
@@ -37,6 +39,7 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
         case .like: return .socialPushLikes
         case .comment: return .socialPushComments
         case .follow: return .socialPushFollows
+        case .nudge: return .socialPushNudges
         }
     }
 
@@ -45,6 +48,7 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
         case .like: \.socialPushLikes
         case .comment: \.socialPushComments
         case .follow: \.socialPushFollows
+        case .nudge: \.socialPushNudges
         }
     }
 

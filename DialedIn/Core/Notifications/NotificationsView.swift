@@ -79,6 +79,7 @@ struct NotificationsView: View {
             Toggle("Likes", isOn: $presenter.isLikesPushEnabled)
             Toggle("Comments", isOn: $presenter.isCommentsPushEnabled)
             Toggle("New followers", isOn: $presenter.isFollowsPushEnabled)
+            Toggle("Nudges", isOn: $presenter.isNudgesPushEnabled)
         } header: {
             Text("Social")
         } footer: {
@@ -120,6 +121,8 @@ struct NotificationsView: View {
             return "\(notification.actorName) commented\(preview)"
         case .follow:
             return "\(notification.actorName) started following you"
+        case .nudge:
+            return "\(notification.actorName) nudged you to train"
         }
     }
 

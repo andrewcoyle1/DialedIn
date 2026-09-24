@@ -14,6 +14,9 @@ struct ActivityNotificationModel: Identifiable {
         /// Someone started following the user. `sessionId` is empty and `sessionAuthorId` is
         /// the followed user, since there is no session behind it.
         case follow
+        /// Someone in the user's circle asked them to train today. Like `follow`, there is no
+        /// session behind it: `sessionId` is empty and `sessionAuthorId` is the nudged user.
+        case nudge
     }
 
     let id: String

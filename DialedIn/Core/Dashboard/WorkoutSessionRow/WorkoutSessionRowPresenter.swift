@@ -55,6 +55,13 @@ class WorkoutSessionRowPresenter {
         return "\(ordinal) workout of the week"
     }
 
+    /// "12-day streak", stamped on the session when the author finished it. Only from two days
+    /// on, like the weekly count, and absent on sessions finished before streaks were stamped.
+    var streakText: String? {
+        guard let count = session.streakCount, count > 1 else { return nil }
+        return "\(count)-day streak"
+    }
+
     func onWorkoutPressed() {
         router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
     }

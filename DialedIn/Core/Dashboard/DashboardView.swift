@@ -134,6 +134,15 @@ struct DashboardView<
     /// header that only appeared when the feed was non-empty in exactly the right way.
     private var workoutFeedSection: some View {
         Section {
+            if !presenter.circleMembers.isEmpty {
+                CircleActivityStripView(
+                    members: presenter.circleMembers,
+                    onMemberPressed: { presenter.onCircleMemberPressed($0) },
+                    onNudgePressed: { presenter.onNudgePressed($0) }
+                )
+                .removeListRowFormatting()
+                .listRowSeparator(.hidden)
+            }
             if presenter.feedSessions.isEmpty {
                 ContentUnavailableView {
                     Label("No Activity Yet", systemImage: "figure.run")

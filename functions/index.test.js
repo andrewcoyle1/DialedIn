@@ -72,6 +72,7 @@ test("buildActivityPush sends nothing without a token, for an unknown type, or w
     assert.equal(buildActivityPush({ type: "like" }, { fcm_token: "tok", social_push_likes: false }), null);
     assert.equal(buildActivityPush({ type: "comment" }, { fcm_token: "tok", social_push_comments: false }), null);
     assert.equal(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_follows: false }), null);
+    assert.equal(buildActivityPush({ type: "nudge" }, { fcm_token: "tok", social_push_nudges: false }), null);
     // Opting out of one type leaves the others on.
     assert.notEqual(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_likes: false }), null);
 });
@@ -94,6 +95,7 @@ test("pushRecipientSettings reads the private doc first and falls back to the us
     // Not migrated yet: everything comes from the user doc, and nothing else is copied over.
     assert.deepEqual(pushRecipientSettings(undefined, legacy), {
         fcm_token: "old", social_push_likes: false, social_push_comments: false, social_push_follows: undefined,
+        social_push_nudges: undefined,
     });
 
     // Migrated: the private doc wins field by field, including a false over a legacy true.
@@ -107,4 +109,10 @@ test("pushRecipientSettings reads the private doc first and falls back to the us
     // Neither doc: no token, so buildActivityPush sends nothing.
     assert.equal(buildActivityPush({ type: "like" }, pushRecipientSettings(undefined, undefined)), null);
     assert.equal(buildActivityPush({ type: "like" }, pushRecipientSettings({ fcm_token: "new" }, undefined)).token, "new");
+});
+
+test("buildActivityPush turns a nudge into a push with no session behind it", () => {
+    const nudge = buildActivityPush({ type: "nudge", actor_name: "Jane", actor_id: "a1" }, { fcm_token: "tok" });
+    assert.deepEqual(nudge.notification, { title: "Nudge", body: "Jane nudged you to train" });
+    assert.deepEqual(nudge.data, { tab: "dashboard", type: "nudge", session_id: "", actor_id: "a1" });
 });

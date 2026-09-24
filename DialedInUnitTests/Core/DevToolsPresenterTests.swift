@@ -609,6 +609,7 @@ struct DevToolsNotificationsPresenterTests {
         #expect(screen.presenter.isLikesPushEnabled)
         #expect(screen.presenter.isCommentsPushEnabled)
         #expect(screen.presenter.isFollowsPushEnabled)
+        #expect(screen.presenter.isNudgesPushEnabled)
 
         screen.interactor.privateUserSettings = PrivateUserSettings(socialPushLikes: false, socialPushFollows: true)
         #expect(!screen.presenter.isLikesPushEnabled)
@@ -627,7 +628,8 @@ struct DevToolsNotificationsPresenterTests {
 
         screen.presenter.isLikesPushEnabled = false
         screen.presenter.isFollowsPushEnabled = false
-        let expected = ["social_push_comments": false, "social_push_likes": false, "social_push_follows": false]
+        screen.presenter.isNudgesPushEnabled = false
+        let expected = ["social_push_comments": false, "social_push_likes": false, "social_push_follows": false, "social_push_nudges": false]
         #expect(await TestManagers.eventually { screen.interactor.preferenceWrites == expected })
         #expect(screen.interactor.trackedEventNames.contains("NotificationsView_SocialPush_Toggle"))
         #expect(screen.router.alertedErrors.isEmpty)

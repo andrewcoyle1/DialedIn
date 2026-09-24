@@ -70,6 +70,14 @@ class SocialProfilePresenter {
             .sorted { $0.dateCreated > $1.dateCreated }
     }
 
+    /// The streak stamped on the author's most recent session that carries one, from two days on.
+    /// The reader cannot see anyone else's streak directly, so this is as fresh as their last
+    /// finished workout.
+    var latestStreak: Int? {
+        guard let count = sessions.first(where: { $0.streakCount != nil })?.streakCount, count > 1 else { return nil }
+        return count
+    }
+
     /// One entry per calendar day with a finished session, for the consistency grid.
     var trainingDays: Set<Date> {
         Set(sessions.map { Calendar.current.startOfDay(for: $0.dateCreated) })
