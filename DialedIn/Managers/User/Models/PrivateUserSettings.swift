@@ -28,6 +28,8 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
     var timezone: String?
     var socialPushStreakReminder: Bool?
     var socialPushWeeklyDigest: Bool?
+    // MARK: - Challenges
+    var socialPushChallenges: Bool?
 
     enum CodingKeys: String, CodingKey {
         case fcmToken = "fcm_token"
@@ -42,6 +44,8 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
         case timezone
         case socialPushStreakReminder = "social_push_streak_reminder"
         case socialPushWeeklyDigest = "social_push_weekly_digest"
+        // MARK: - Challenges
+        case socialPushChallenges = "social_push_challenges"
     }
 
     var eventParameters: [String: Any] {
@@ -58,6 +62,7 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
         case .nudge: return .socialPushNudges
         case .mention: return .socialPushMentions
         case .share: return .socialPushShares
+        case .challengeComplete: return .socialPushChallenges
         }
     }
 
@@ -69,6 +74,7 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
         case .nudge: \.socialPushNudges
         case .mention: \.socialPushMentions
         case .share: \.socialPushShares
+        case .challengeComplete: \.socialPushChallenges
         }
     }
 

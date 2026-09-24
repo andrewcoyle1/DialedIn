@@ -47,6 +47,9 @@ class FirebaseActivityNotificationService: ActivityNotificationService {
         if notification.isReply {
             data["is_reply"] = true
         }
+        if let challengeId = notification.challengeId {
+            data["challenge_id"] = challengeId
+        }
         try await collection(userId: userId).document(notification.id).setData(data)
     }
 
@@ -127,7 +130,8 @@ class FirebaseActivityNotificationService: ActivityNotificationService {
             dateCreated: dateCreatedTimestamp.dateValue(),
             isRead: data["is_read"] as? Bool ?? false,
             shareId: data["share_id"] as? String,
-            isReply: data["is_reply"] as? Bool ?? false
+            isReply: data["is_reply"] as? Bool ?? false,
+            challengeId: data["challenge_id"] as? String
         )
     }
 }

@@ -15,6 +15,9 @@ protocol DashboardRouter: GlobalRouter {
     #if DEV || MOCK
     func showDevSettingsView()
     #endif
+    // MARK: - Challenges
+    func showChallengeDetailView(delegate: ChallengeDetailDelegate)
+    func showCreateChallengeView()
 }
 
 extension CoreRouter: DashboardRouter { }

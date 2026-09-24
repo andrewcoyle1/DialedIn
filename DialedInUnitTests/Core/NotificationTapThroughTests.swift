@@ -57,6 +57,13 @@ struct NotificationTapThroughTests {
         }
         func updatePrivateUserSettings(_ change: (inout PrivateUserSettings) -> Void) async throws { change(&privateUserSettings) }
 
+        var challenges: [ChallengeModel] = []
+
+        func fetchChallenge(id: String) async throws -> ChallengeModel {
+            guard let challenge = challenges.first(where: { $0.id == id }) else { throw URLError(.fileDoesNotExist) }
+            return challenge
+        }
+
         func getUser(userId: String) async throws -> UserModel {
             guard let user = users.first(where: { $0.userId == userId }) else { throw URLError(.fileDoesNotExist) }
             return user
@@ -81,6 +88,7 @@ struct NotificationTapThroughTests {
         func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { shown.append("thread:\(delegate.initialSession.id)") }
         func showSocialProfileView(delegate: SocialProfileDelegate) { shown.append("profile:\(delegate.user.userId)") }
         func showSharedItemView(delegate: SharedItemDelegate) { shown.append("share:\(delegate.share.id)|\(delegate.senderName)") }
+        func showChallengeDetailView(delegate: ChallengeDetailDelegate) { shown.append("challenge:\(delegate.challenge.id)") }
     }
 
     private struct Screen {
@@ -252,5 +260,21 @@ struct NotificationTapThroughTests {
 
         #expect(screen.interactor.fetchMoreCount == 1)
         #expect(screen.interactor.trackedEventNames.contains("NotificationsView_LoadMore_Pressed"))
+    }
+
+    // MARK: - Challenges
+
+    @Test("Test Tapping A Finished Challenge Opens Its Standings")
+    func testTappingAFinishedChallengeOpensItsStandings() async {
+        let screen = makeScreen()
+        screen.interactor.challenges = ChallengeModel.mocks
+        var finished = notification(.challengeComplete)
+        finished.challengeId = "mock_challenge_2"
+
+        screen.presenter.onNotificationPressed(finished)
+        await TestManagers.eventually { !screen.router.shown.isEmpty }
+
+        #expect(screen.router.shown == ["challenge:mock_challenge_2"])
+        #expect(screen.interactor.sessionRequests.isEmpty)
     }
 }

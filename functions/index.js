@@ -801,3 +801,44 @@ export const onReportCreated = onDocumentCreated(
         }
     }
 );
+
+// ---------------------------------------------------------------------------
+// Challenges
+// ---------------------------------------------------------------------------
+
+import { sessionJustEnded, activeChallengesFor, planChallengeProgress } from "./lib.js";
+
+// When a member finishes a session, each running challenge they are in gains one session in
+// challenges/{id}/progress/{uid}, which only this function writes. Reaching the target writes a
+// challenge_complete notification, which onActivityNotificationCreated turns into the push. The
+// counted session ids ride along in the progress doc, so a retried trigger does not count twice.
+export const onWorkoutSessionEndedForChallenges = onDocumentWritten(
+    { document: "users/{uid}/workout_sessions/{sessionId}", region: REGION },
+    async (event) => {
+        const after = event.data?.after?.data();
+        if (!sessionJustEnded(event.data?.before?.data(), after)) return;
+
+        const { uid, sessionId } = event.params;
+        const db = getFirestore();
+        const snap = await db.collection("challenges").where("member_ids", "array-contains", uid).get();
+        const challenges = activeChallengesFor(snap.docs.map((doc) => ({ ...doc.data(), id: doc.id })), uid, after.ended_at);
+        if (challenges.length === 0) return;
+
+        const user = (await db.collection("users").doc(uid).get()).data();
+        for (const challenge of challenges) {
+            const progressRef = db.collection("challenges").doc(challenge.id).collection("progress").doc(uid);
+            try {
+                await db.runTransaction(async (tx) => {
+                    const plan = planChallengeProgress(challenge, uid, sessionId, (await tx.get(progressRef)).data(), user);
+                    if (!plan) return;
+                    tx.set(progressRef, plan.progress);
+                    if (plan.notification) {
+                        tx.set(db.collection("users").doc(uid).collection("notifications").doc(plan.notificationId), plan.notification);
+                    }
+                });
+            } catch (error) {
+                console.error(`Challenge ${challenge.id} progress for user ${uid}: ${error.message}`);
+            }
+        }
+    }
+);

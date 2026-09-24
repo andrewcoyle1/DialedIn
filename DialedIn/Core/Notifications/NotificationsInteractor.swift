@@ -33,6 +33,8 @@ protocol NotificationsInteractor: FollowInteractor {
     var canLoadMoreActivityNotifications: Bool { get }
     func fetchMoreActivityNotifications() async throws
     func markActivityNotificationsRead(ids: [String]) async throws
+    // MARK: - Challenges
+    func fetchChallenge(id: String) async throws -> ChallengeModel
 }
 
 extension CoreInteractor: NotificationsInteractor { }

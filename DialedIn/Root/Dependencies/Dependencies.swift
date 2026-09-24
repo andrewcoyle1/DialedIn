@@ -1045,6 +1045,15 @@ struct Dependencies {
         }
         container.register(ShareManager.self, service: ShareManager(service: shareService))
 
+        // MARK: - Challenges
+        let challengeService: ChallengeService
+        if case .mock = config {
+            challengeService = MockChallengeService()
+        } else {
+            challengeService = FirebaseChallengeService()
+        }
+        container.register(ChallengeManager.self, service: ChallengeManager(service: challengeService))
+
         self.logManager = logManager
         self.container = container
     }

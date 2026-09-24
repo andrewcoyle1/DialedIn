@@ -53,6 +53,9 @@ struct AppViewForUITesting: View {
             WorkoutShareCardView(content: .preview, format: .story)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.black)
+        } else if let screen = challengesScreen {
+            // MARK: - Challenges
+            startScreen { screen($0) }
         } else if let screen = screenDeckScreen {
             // MARK: - ScreenDeck
             startScreen { screen($0) }
@@ -160,5 +163,24 @@ private struct ActiveSessionScreen<Content: View>: View {
                     isReady = true
                 }
         }
+    }
+}
+
+// MARK: - Challenges
+
+extension AppViewForUITesting {
+
+    /// `STARTSCREEN_CHALLENGES` opens the create screen, `STARTSCREEN_CHALLENGE_DETAIL` the first
+    /// seeded mock challenge's standings.
+    private var challengesScreen: ((AnyRouter) -> AnyView)? {
+        let arguments = ProcessInfo.processInfo.arguments
+        let builder = builder
+        if arguments.contains("STARTSCREEN_CHALLENGE_DETAIL") {
+            return { builder.challengeDetailView(router: $0, delegate: ChallengeDetailDelegate(challenge: .mock)).any() }
+        }
+        if arguments.contains("STARTSCREEN_CHALLENGES") {
+            return { builder.createChallengeView(router: $0).any() }
+        }
+        return nil
     }
 }

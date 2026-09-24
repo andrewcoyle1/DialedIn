@@ -541,3 +541,58 @@ extension DashboardPresenter {
         UserDefaults.standard.set(weekId, forKey: CircleWeek.summaryDismissedWeekKey)
     }
 }
+
+// MARK: - Challenges
+
+extension DashboardPresenter {
+
+    struct ChallengeCard: Identifiable {
+        let challenge: ChallengeModel
+        let daysLeft: Int
+        let mySessions: Int
+        let topThree: [ChallengeStandings.Entry]
+
+        var id: String { challenge.id }
+    }
+
+    /// Running challenges first, soonest to end first; ended ones are left to the detail screen.
+    var challengeCards: [ChallengeCard] {
+        let now = Date()
+        var users: [String: UserModel] = [:]
+        for user in interactor.followingUsers { users[user.userId] = user }
+        if let reader = interactor.currentUser { users[reader.userId] = reader }
+        let readerId = interactor.currentUser?.userId
+
+        return interactor.challenges
+            .filter { $0.endsAt > now }
+            .map { challenge in
+                let progress = interactor.challengeProgress(challengeId: challenge.id)
+                return ChallengeCard(
+                    challenge: challenge,
+                    daysLeft: challenge.daysLeft(from: now),
+                    mySessions: readerId.flatMap { progress[$0] } ?? 0,
+                    topThree: Array(ChallengeStandings.entries(for: challenge, progress: progress, users: users).prefix(3))
+                )
+            }
+    }
+
+    /// Shown once there is a circle to challenge, or a challenge someone else started.
+    var showsChallengesSection: Bool {
+        !challengeCards.isEmpty || !circleMembers.isEmpty
+    }
+
+    func loadChallenges() async {
+        // Silent: background refresh; the section keeps what it had.
+        try? await interactor.refreshChallenges()
+    }
+
+    func onChallengePressed(_ card: ChallengeCard) {
+        interactor.trackEvent(eventName: "DashboardView_Challenge_Press", parameters: nil, type: .analytic)
+        router.showChallengeDetailView(delegate: ChallengeDetailDelegate(challenge: card.challenge))
+    }
+
+    func onCreateChallengePressed() {
+        interactor.trackEvent(eventName: "DashboardView_CreateChallenge_Press", parameters: nil, type: .analytic)
+        router.showCreateChallengeView()
+    }
+}

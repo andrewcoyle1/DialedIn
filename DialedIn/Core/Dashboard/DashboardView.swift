@@ -59,6 +59,7 @@ struct DashboardView<
         .task {
             await presenter.loadNotifications()
             await presenter.loadSuggestedUsers()
+            await presenter.loadChallenges()
         }
     }
     
@@ -163,6 +164,8 @@ struct DashboardView<
                 .removeListRowFormatting()
                 .listRowSeparator(.hidden)
             }
+            // MARK: - Challenges
+            if presenter.showsChallengesSection { challengesSection }
             if presenter.feedSessions.isEmpty {
                 ContentUnavailableView {
                     Label("No Activity Yet", systemImage: "figure.run")
@@ -313,4 +316,19 @@ extension CoreRouter {
         }
     }
     
+}
+
+// MARK: - Challenges
+
+extension DashboardView {
+    var challengesSection: some View {
+        ChallengesDashboardSection(
+            cards: presenter.challengeCards,
+            currentUserId: presenter.currentUserId,
+            onCardPressed: { presenter.onChallengePressed($0) },
+            onCreatePressed: { presenter.onCreateChallengePressed() }
+        )
+        .removeListRowFormatting()
+        .listRowSeparator(.hidden)
+    }
 }
