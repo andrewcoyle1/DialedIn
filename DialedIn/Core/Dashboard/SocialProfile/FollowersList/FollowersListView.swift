@@ -24,7 +24,19 @@ struct FollowersListView: View {
                 .removeListRowFormatting()
             } else {
                 ForEach(delegate.followers) { user in
-                    UserRowView(user: user)
+                    UserRowView(user: user) {
+                        if presenter.showsFollowButton(for: user) {
+                            FollowButton(
+                                isFollowing: presenter.isFollowing(userId: user.userId),
+                                onFollowPressed: { presenter.onFollowPressed(user: user) },
+                                onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
+                            )
+                        }
+                    }
+                    .tappableBackground()
+                    .anyButton(.highlight) {
+                        presenter.onUserPressed(user: user)
+                    }
                 }
             }
         }

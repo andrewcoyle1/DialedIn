@@ -17,4 +17,37 @@ class FollowersListPresenter {
         self.interactor = interactor
         self.router = router
     }
+
+    /// The reader's own row carries no follow button.
+    func showsFollowButton(for user: UserModel) -> Bool {
+        user.userId != interactor.currentUser?.userId
+    }
+
+    func isFollowing(userId: String) -> Bool {
+        interactor.currentUser?.followingIds?.contains(userId) ?? false
+    }
+
+    func onFollowPressed(user: UserModel) {
+        Task {
+            do {
+                try await interactor.followUser(userId: user.userId)
+            } catch {
+                router.showSimpleAlert(title: "Unable to follow user", subtitle: "Please try again.")
+            }
+        }
+    }
+
+    func onUnfollowPressed(user: UserModel) {
+        Task {
+            do {
+                try await interactor.unfollowUser(userId: user.userId)
+            } catch {
+                router.showSimpleAlert(title: "Unable to unfollow user", subtitle: "Please try again.")
+            }
+        }
+    }
+
+    func onUserPressed(user: UserModel) {
+        router.showSocialProfileView(delegate: SocialProfileDelegate(user: user))
+    }
 }

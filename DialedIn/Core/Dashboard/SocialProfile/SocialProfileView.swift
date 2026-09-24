@@ -56,6 +56,14 @@ struct SocialProfileView: View {
                     }
 
                     Spacer(minLength: 0)
+
+                    if !presenter.isOwnProfile {
+                        FollowButton(
+                            isFollowing: presenter.isFollowing,
+                            onFollowPressed: { presenter.onFollowPressed() },
+                            onUnfollowPressed: { presenter.onUnfollowPressed() }
+                        )
+                    }
                 }
 
                 Divider()

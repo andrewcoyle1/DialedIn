@@ -24,6 +24,7 @@ struct SocialProfilePresenterTests {
         var followingUsers: [UserModel] = []
         var followers: [UserModel] = []
         var fetchError: Error?
+        var followError: Error?
         private(set) var fetchedFollowerIds: [String] = []
 
         func fetchFollowers(userId: String) async throws -> [UserModel] {
@@ -31,14 +32,29 @@ struct SocialProfilePresenterTests {
             if let fetchError { throw fetchError }
             return followers
         }
+
+        func followUser(userId: String) async throws {
+            if let followError { throw followError }
+            currentUser = UserModel(userId: "me", followingIds: (currentUser?.followingIds ?? []) + [userId])
+        }
+
+        func unfollowUser(userId: String) async throws {
+            if let followError { throw followError }
+            currentUser = UserModel(userId: "me", followingIds: (currentUser?.followingIds ?? []).filter { $0 != userId })
+        }
     }
 
     private final class Router: SocialProfileRouter {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var followersDelegates: [FollowersListDelegate] = []
+        private(set) var alertTitles: [String] = []
 
         func showFollowersList(delegate: FollowersListDelegate) {
             followersDelegates.append(delegate)
+        }
+
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+            alertTitles.append(title)
         }
     }
 
@@ -145,6 +161,49 @@ struct SocialProfilePresenterTests {
         #expect(screen.router.followersDelegates.last?.followers.map(\.userId) == ["shared"])
     }
 
+    /// The button reads the reader's own following list, so following flips it and unfollowing
+    /// flips it back — and the reader's own profile never shows one.
+    @Test("Test Following A Profile Flips The Button And Is Tracked")
+    func testFollowingAProfileFlipsTheButtonAndIsTracked() async {
+        let screen = makeScreen()
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+        #expect(!screen.presenter.isFollowing)
+        #expect(!screen.presenter.isOwnProfile)
+
+        screen.presenter.onFollowPressed()
+        await TestManagers.eventually { screen.presenter.isFollowing }
+
+        screen.presenter.onUnfollowPressed()
+        await TestManagers.eventually { !screen.presenter.isFollowing }
+
+        #expect(screen.interactor.trackedEventNames == [
+            "SocialProfileView_Follow_Pressed", "SocialProfileView_Unfollow_Pressed"
+        ])
+        #expect(screen.router.alertTitles.isEmpty)
+    }
+
+    @Test("Test The Readers Own Profile Has No Follow Button")
+    func testTheReadersOwnProfileHasNoFollowButton() {
+        let screen = makeScreen()
+        screen.presenter.onViewAppear(delegate: profile("me", following: []))
+
+        #expect(screen.presenter.isOwnProfile)
+    }
+
+    /// A failed follow leaves the button where it was and says so, rather than silently pretending.
+    @Test("Test A Failed Follow Shows An Alert And Leaves The Button")
+    func testAFailedFollowShowsAnAlertAndLeavesTheButton() async {
+        let screen = makeScreen()
+        screen.interactor.followError = DashboardTestError.failed
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+
+        screen.presenter.onFollowPressed()
+        await TestManagers.eventually { !screen.router.alertTitles.isEmpty }
+
+        #expect(screen.router.alertTitles == ["Unable to follow user"])
+        #expect(!screen.presenter.isFollowing)
+    }
+
     @Test("Test Leaving The Profile Is Tracked")
     func testLeavingTheProfileIsTracked() {
         let screen = makeScreen()
@@ -157,15 +216,38 @@ struct SocialProfilePresenterTests {
 
 // MARK: - Followers list
 
-/// The list itself holds no state: the people and the title travel in the delegate, so the same
-/// screen serves "Followers" and "People you both follow" without a second module.
+/// The people and the title travel in the delegate; the presenter only answers who the reader
+/// already follows and forwards the button presses.
 @MainActor
 struct SocialFollowersListTests {
 
-    private final class Interactor: SpyGlobalInteractor, FollowersListInteractor { }
+    private final class Interactor: SpyGlobalInteractor, FollowersListInteractor {
+        var currentUser: UserModel? = UserModel(userId: "me", followingIds: ["a"])
+        var followError: Error?
+        private(set) var followed: [String] = []
+        private(set) var unfollowed: [String] = []
+
+        func followUser(userId: String) async throws {
+            if let followError { throw followError }
+            followed.append(userId)
+        }
+        func unfollowUser(userId: String) async throws {
+            if let followError { throw followError }
+            unfollowed.append(userId)
+        }
+    }
 
     private final class Router: FollowersListRouter {
         let router: AnyRouter = TestRouting.anyRouter
+        private(set) var alertTitles: [String] = []
+        private(set) var profileUserIds: [String] = []
+
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+            alertTitles.append(title)
+        }
+        func showSocialProfileView(delegate: SocialProfileDelegate) {
+            profileUserIds.append(delegate.user.userId)
+        }
     }
 
     @Test("Test The Followers List Defaults To The Followers Title")
@@ -176,13 +258,43 @@ struct SocialFollowersListTests {
         #expect(delegate.followers.map(\.userId) == ["a"])
     }
 
-    /// An empty list is a state the screen draws, not an error — the presenter needs nothing for it.
-    @Test("Test The Followers List Presenter Holds No State Of Its Own")
-    func testTheFollowersListPresenterHoldsNoStateOfItsOwn() {
-        let interactor = Interactor()
-        _ = FollowersListPresenter(interactor: interactor, router: Router())
+    /// Each row's button reads the reader's list, and the reader's own row has none.
+    @Test("Test Rows Know Who The Reader Follows And Skip The Reader")
+    func testRowsKnowWhoTheReaderFollowsAndSkipTheReader() {
+        let presenter = FollowersListPresenter(interactor: Interactor(), router: Router())
 
-        #expect(interactor.trackedEventNames.isEmpty)
-        #expect(FollowersListDelegate(followers: [], title: "People You Both Follow").followers.isEmpty)
+        #expect(presenter.isFollowing(userId: "a"))
+        #expect(!presenter.isFollowing(userId: "b"))
+        #expect(presenter.showsFollowButton(for: DashboardFixture.user("b")))
+        #expect(!presenter.showsFollowButton(for: DashboardFixture.user("me")))
+    }
+
+    @Test("Test Follow And Unfollow Reach The Interactor And A Row Opens The Profile")
+    func testFollowAndUnfollowReachTheInteractorAndARowOpensTheProfile() async {
+        let interactor = Interactor()
+        let router = Router()
+        let presenter = FollowersListPresenter(interactor: interactor, router: router)
+
+        presenter.onFollowPressed(user: DashboardFixture.user("b"))
+        presenter.onUnfollowPressed(user: DashboardFixture.user("a"))
+        presenter.onUserPressed(user: DashboardFixture.user("b"))
+        await TestManagers.eventually { !interactor.unfollowed.isEmpty }
+
+        #expect(interactor.followed == ["b"])
+        #expect(interactor.unfollowed == ["a"])
+        #expect(router.profileUserIds == ["b"])
+    }
+
+    @Test("Test A Failed Follow From The List Shows An Alert")
+    func testAFailedFollowFromTheListShowsAnAlert() async {
+        let interactor = Interactor()
+        interactor.followError = DashboardTestError.failed
+        let router = Router()
+        let presenter = FollowersListPresenter(interactor: interactor, router: router)
+
+        presenter.onFollowPressed(user: DashboardFixture.user("b"))
+        await TestManagers.eventually { !router.alertTitles.isEmpty }
+
+        #expect(router.alertTitles == ["Unable to follow user"])
     }
 }
