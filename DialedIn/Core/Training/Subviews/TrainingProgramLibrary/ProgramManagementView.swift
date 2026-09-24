@@ -25,6 +25,9 @@ struct TrainingProgramLibraryView<ProgramDisclosure: View, InactiveSection: View
             if presenter.savedPrograms.isEmpty && presenter.activeTrainingProgram == nil {
                 emptyState
             }
+            if !presenter.prebuiltPrograms.isEmpty {
+                templatesSection
+            }
         }
         .navigationTitle("My Programs")
         .navigationBarTitleDisplayMode(.inline)
@@ -62,6 +65,26 @@ struct TrainingProgramLibraryView<ProgramDisclosure: View, InactiveSection: View
         }
     }
     
+    private var templatesSection: some View {
+        Section {
+            ForEach(presenter.prebuiltPrograms) { program in
+                HStack {
+                    TrainingProgramHeader(program: program)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.secondary)
+                }
+                .anyButton {
+                    presenter.onPrebuiltProgramPressed(program)
+                }
+            }
+        } header: {
+            Text("Templates")
+        } footer: {
+            Text("Starting a template saves your own copy and makes it your active program.")
+        }
+    }
+
     private var emptyState: some View {
         ContentUnavailableView {
             Label("No Programs", systemImage: "calendar.badge.clock")
