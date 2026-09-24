@@ -40,6 +40,9 @@ struct SocialWorkoutSessionRowTests {
         }
 
         func report(contentType: ReportContentType, contentId: String, authorUserId: String?, reason: ReportReason, notes: String?) async throws { }
+        var allExercises: [ExerciseModel] { [] }
+        var allWorkoutTemplates: [WorkoutTemplateModel] { [] }
+        func saveWorkoutTemplate(workoutTemplate: WorkoutTemplateModel, image: PlatformImage?) async throws { }
     }
 
     private final class Router: WorkoutSessionRowRouter {
@@ -59,6 +62,8 @@ struct SocialWorkoutSessionRowTests {
             shown.append("comments")
             commentsDelegates.append(delegate)
         }
+
+        func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate) { }
     }
 
     private struct Screen {

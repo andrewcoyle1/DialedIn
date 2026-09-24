@@ -103,6 +103,10 @@ struct ReportFlowTests {
         ) async throws {
             reports.append("\(contentType.rawValue)|\(contentId)|\(authorUserId ?? "")|\(reason.rawValue)")
         }
+
+        var allExercises: [ExerciseModel] { [] }
+        var allWorkoutTemplates: [WorkoutTemplateModel] { [] }
+        func saveWorkoutTemplate(workoutTemplate: WorkoutTemplateModel, image: PlatformImage?) async throws { }
     }
 
     private final class Router: WorkoutSessionRowRouter {
@@ -112,6 +116,7 @@ struct ReportFlowTests {
         func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { }
         func showSocialProfileView(delegate: SocialProfileDelegate) { }
         func showCommentsView(delegate: CommentsDelegate) { }
+        func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate) { }
         func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { alertTitles.append(title) }
         func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
     }

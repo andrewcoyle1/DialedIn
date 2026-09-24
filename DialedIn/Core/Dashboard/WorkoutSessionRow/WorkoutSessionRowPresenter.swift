@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 27/02/2026.
 //
 
-import Foundation
+import SwiftUI
 
 @Observable
 @MainActor
@@ -115,5 +115,79 @@ class WorkoutSessionRowPresenter {
 
     func onUserPressed() {
         router.showSocialProfileView(delegate: SocialProfileDelegate(user: author))
+    }
+
+    // MARK: Save as Template
+
+    /// Copies the card's workout into the reader's own library. Offered on every card, the reader's
+    /// own included — saving a one-off session as something to repeat is just as useful.
+    func onSaveAsTemplatePressed() {
+        guard let userId = interactor.currentUser?.userId else {
+            router.showSimpleAlert(title: "Unable to Save Workout", subtitle: "Please try again.")
+            return
+        }
+        guard let template = WorkoutSessionTemplateBuilder.template(
+            from: session,
+            availableExercises: interactor.allExercises,
+            existingNames: interactor.allWorkoutTemplates.map(\.name),
+            authorId: userId
+        ) else {
+            interactor.trackEvent(event: Event.saveAsTemplateUnresolved(sessionId: session.id))
+            router.showSimpleAlert(title: "None of these exercises are in your library", subtitle: nil)
+            return
+        }
+        Task {
+            do {
+                try await interactor.saveWorkoutTemplate(workoutTemplate: template, image: nil)
+                interactor.trackEvent(event: Event.saveAsTemplateSuccess(sessionId: session.id, exerciseCount: template.exercises.count))
+                router.showAlert(title: "Saved to your workouts", subtitle: template.name) {
+                    AnyView(VStack {
+                        Button("Open") { self.onOpenSavedTemplatePressed(template) }
+                        Button("OK", role: .cancel) { }
+                    })
+                }
+            } catch {
+                interactor.trackEvent(event: Event.saveAsTemplateFail(error: error))
+                router.showSimpleAlert(title: "Unable to Save Workout", subtitle: "Please try again.")
+            }
+        }
+    }
+
+    func onOpenSavedTemplatePressed(_ template: WorkoutTemplateModel) {
+        router.showWorkoutTemplateDetailView(
+            delegate: WorkoutTemplateDetailDelegate(workoutTemplate: template, trainingProgramId: nil, onStartWorkoutPressed: nil)
+        )
+    }
+
+    enum Event: LoggableEvent {
+        case saveAsTemplateSuccess(sessionId: String, exerciseCount: Int)
+        case saveAsTemplateUnresolved(sessionId: String)
+        case saveAsTemplateFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .saveAsTemplateSuccess: return "WorkoutSessionRow_SaveAsTemplate_Success"
+            case .saveAsTemplateUnresolved: return "WorkoutSessionRow_SaveAsTemplate_Unresolved"
+            case .saveAsTemplateFail: return "WorkoutSessionRow_SaveAsTemplate_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .saveAsTemplateSuccess(let sessionId, let exerciseCount):
+                return ["session_id": sessionId, "exercise_count": exerciseCount]
+            case .saveAsTemplateUnresolved(let sessionId):
+                return ["session_id": sessionId]
+            case .saveAsTemplateFail(let error):
+                return error.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .saveAsTemplateFail: return .severe
+            default: return .analytic
+            }
+        }
     }
 }
