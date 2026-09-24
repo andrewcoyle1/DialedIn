@@ -6,12 +6,18 @@ class DashboardPresenter {
     
     private let interactor: DashboardInteractor
     private let router: DashboardRouter
+    private let followFlow: FollowFlow
     
     private(set) var nutritionTotals: DailyMacroTarget?
     private(set) var nutritionTarget: DailyMacroTarget?
 
     var activityNotifications: [ActivityNotificationModel] {
         interactor.activityNotifications
+    }
+
+    /// The bell's badge: unread activity plus follow requests waiting on an answer, matching the tab.
+    var bellBadgeCount: Int {
+        activityNotifications.filter { !$0.isRead }.count + interactor.incomingFollowRequests.count
     }
     
     /// What the feed shows: finished workouts, newest first, each one attributable to a person.
@@ -105,8 +111,8 @@ class DashboardPresenter {
         return suggestedUsers.filter { !following.contains($0.userId) }
     }
 
-    func isFollowing(userId: String) -> Bool {
-        interactor.currentUser?.followingIds?.contains(userId) ?? false
+    func followState(for user: UserModel) -> FollowState {
+        followFlow.state(for: user)
     }
 
     func loadSuggestedUsers() async {
@@ -136,15 +142,9 @@ class DashboardPresenter {
         router.showSocialProfileView(delegate: SocialProfileDelegate(user: user))
     }
 
-    func onFollowPressed(user: UserModel) {
+    func onFollowButtonPressed(user: UserModel) {
         interactor.trackEvent(eventName: "DashboardView_SuggestedFollow_Press", parameters: nil, type: .analytic)
-        Task {
-            do {
-                try await interactor.followUser(userId: user.userId)
-            } catch {
-                router.showSimpleAlert(title: "Unable to follow user", subtitle: "Please try again.")
-            }
-        }
+        followFlow.onButtonPressed(user: user)
     }
 
 //    private var completedTrainingDays: Set<Date> {
@@ -315,6 +315,7 @@ class DashboardPresenter {
     init(interactor: DashboardInteractor, router: DashboardRouter) {
         self.interactor = interactor
         self.router = router
+        self.followFlow = FollowFlow(interactor: interactor, router: router)
     }
     
     func onViewAppear(delegate: DashboardDelegate) {

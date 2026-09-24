@@ -50,6 +50,9 @@ struct NotificationsView: View {
     @ViewBuilder
     private var content: some View {
         List {
+            if !presenter.incomingFollowRequests.isEmpty {
+                followRequestsSection
+            }
             switch presenter.authorizationStatus {
             case .authorized:
                 authorizedContent
@@ -106,18 +109,57 @@ struct NotificationsView: View {
     }
 
     private func activityNotificationRow(_ notification: ActivityNotificationModel) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(activityNotificationTitle(notification))
-                .font(.headline)
-                .foregroundStyle(notification.isRead ? .secondary : .primary)
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(activityNotificationTitle(notification))
+                    .font(.headline)
+                    .foregroundStyle(notification.isRead ? .secondary : .primary)
 
-            Text(notification.dateCreated.formatted(date: .abbreviated, time: .shortened))
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+                Text(notification.dateCreated.formatted(date: .abbreviated, time: .shortened))
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+
+            Spacer(minLength: 0)
+
+            if presenter.showsFollowBack(for: notification) {
+                FollowButton(state: presenter.followBackState(for: notification)) {
+                    presenter.onFollowBackPressed(notification)
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(.rect)
         .padding(.vertical, 4)
+    }
+
+    private var followRequestsSection: some View {
+        Section {
+            ForEach(presenter.incomingFollowRequests) { request in
+                HStack(spacing: 12) {
+                    UserAvatarView(imageUrl: request.requesterImageUrl, size: 40)
+
+                    Text("\(request.requesterName) wants to follow you")
+                        .font(.subheadline.weight(.medium))
+                        .lineLimit(2)
+
+                    Spacer(minLength: 0)
+
+                    Button("Accept") {
+                        presenter.onAcceptRequestPressed(request)
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button("Decline") {
+                        presenter.onDeclineRequestPressed(request)
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .controlSize(.small)
+            }
+        } header: {
+            Text("Follow Requests")
+        }
     }
 
     private func activityNotificationTitle(_ notification: ActivityNotificationModel) -> String {
@@ -134,6 +176,8 @@ struct NotificationsView: View {
         case .mention:
             let preview = notification.commentText.map { ": \"\($0.prefix(60))\"" } ?? ""
             return "\(notification.actorName) mentioned you\(preview)"
+        case .followAccepted:
+            return "\(notification.actorName) accepted your follow request"
         }
     }
 

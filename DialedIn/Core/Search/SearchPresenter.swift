@@ -13,6 +13,7 @@ class SearchPresenter {
     
     private let interactor: SearchInteractor
     private let router: SearchRouter
+    private let followFlow: FollowFlow
     
     var searchString: String = ""
     
@@ -95,8 +96,8 @@ class SearchPresenter {
             || !filteredUsers.isEmpty
     }
 
-    func isFollowing(userId: String) -> Bool {
-        interactor.followingIds.contains(userId)
+    func followState(for user: UserModel) -> FollowState {
+        followFlow.state(for: user)
     }
 
     init(
@@ -105,6 +106,7 @@ class SearchPresenter {
     ) {
         self.interactor = interactor
         self.router = router
+        self.followFlow = FollowFlow(interactor: interactor, router: router)
     }
 
     func performUnifiedSearch() {
@@ -340,24 +342,8 @@ class SearchPresenter {
         }
     }
 
-    func onFollowPressed(user: UserModel) {
-        Task {
-            do {
-                try await interactor.followUser(userId: user.userId)
-            } catch {
-                router.showSimpleAlert(title: "Unable to follow user", subtitle: "Please try again.")
-            }
-        }
-    }
-
-    func onUnfollowPressed(user: UserModel) {
-        Task {
-            do {
-                try await interactor.unfollowUser(userId: user.userId)
-            } catch {
-                router.showSimpleAlert(title: "Unable to unfollow user", subtitle: "Please try again.")
-            }
-        }
+    func onFollowButtonPressed(user: UserModel) {
+        followFlow.onButtonPressed(user: user)
     }
 
     /// The way to the screen that fills the shortcut row.

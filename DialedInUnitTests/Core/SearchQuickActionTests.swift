@@ -38,6 +38,9 @@ struct SearchQuickActionTests {
         func clearRecentSearches() { recentSearchQueries = [] }
         func followUser(userId: String) async throws { }
         func unfollowUser(userId: String) async throws { }
+        var sentFollowRequestIds: Set<String> = []
+        func sendFollowRequest(to user: UserModel) async throws { sentFollowRequestIds.insert(user.userId) }
+        func cancelFollowRequest(userId: String) async throws { sentFollowRequestIds.remove(userId) }
     }
 
     private final class Router: SearchRouter {

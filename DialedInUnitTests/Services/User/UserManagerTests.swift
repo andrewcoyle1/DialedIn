@@ -127,12 +127,13 @@ struct UserManagerTests {
     /// follow in the same write as the block, and unblocking touches only the block list.
     private func recordingManager(
         _ user: UserModel,
-        privateSettings: PrivateUserSettings? = nil
+        privateSettings: PrivateUserSettings? = nil,
+        queryService: MockUserQueryService = MockUserQueryService()
     ) async throws -> Recording {
         let remote = RecordingRemoteDocumentService<UserModel>(document: user)
         let privateRemote = RecordingRemoteDocumentService<PrivateUserSettings>(document: privateSettings)
         let manager = UserManager(
-            queryService: MockUserQueryService(),
+            queryService: queryService,
             userSyncEngine: DocumentSyncEngine<UserModel>(
                 remote: remote, managerKey: TestManagers.key("user"), enableLocalPersistence: false
             ),
@@ -207,6 +208,92 @@ struct UserManagerTests {
 
         #expect(recording.privateRemote.saves.last?.fcmToken == "abc-123")
         #expect(recording.remote.updates.last?[UserModel.CodingKeys.fcmToken.rawValue] as? String == "abc-123")
+    }
+
+    // MARK: - Follow requests
+
+    private func pending(from requesterId: String) -> FollowRequestModel {
+        FollowRequestModel(requesterId: requesterId, requesterName: requesterId, requesterImageUrl: nil, dateCreated: Date(), status: .pending)
+    }
+
+    /// Following a public profile is one write to the reader's own document, and no request.
+    @Test("Test Following A Public Profile Is Immediate")
+    func testFollowingAPublicProfileIsImmediate() async throws {
+        let queries = MockUserQueryService()
+        let recording = try await recordingManager(UserModel(userId: "me"), queryService: queries)
+        let manager = recording.manager
+        let remote = recording.remote
+
+        try await manager.followUser(userId: "friend")
+
+        #expect(remote.lastStrings(for: UserModel.CodingKeys.followingIds.rawValue) == ["friend"])
+        #expect(manager.sentFollowRequestIds.isEmpty)
+        #expect(queries.followRequests["friend"] == nil)
+    }
+
+    /// A request to a private profile is a pending document under the target, keyed by the
+    /// requester; the reader's own following list is not touched until the owner accepts.
+    @Test("Test Requesting A Private Profile Creates A Pending Request And Cancel Removes It")
+    func testRequestingAPrivateProfileCreatesAPendingRequestAndCancelRemovesIt() async throws {
+        let queries = MockUserQueryService()
+        let recording = try await recordingManager(UserModel(userId: "me", submittedFirstName: "Sam"), queryService: queries)
+        let manager = recording.manager
+        let remote = recording.remote
+
+        try await manager.sendFollowRequest(to: UserModel(userId: "friend", isPrivate: true))
+
+        let request = try #require(queries.followRequests["friend"]?.first)
+        #expect(request.requesterId == "me")
+        #expect(request.requesterName == "Sam")
+        #expect(request.status == .pending)
+        #expect(manager.sentFollowRequestIds == ["friend"])
+        #expect(remote.lastStrings(for: UserModel.CodingKeys.followingIds.rawValue) == nil)
+
+        try await manager.cancelFollowRequest(userId: "friend")
+
+        #expect(queries.followRequests["friend"]?.isEmpty == true)
+        #expect(manager.sentFollowRequestIds.isEmpty)
+    }
+
+    /// Sign-in learns both sides: the requests the reader is waiting on and the ones waiting on them.
+    @Test("Test Signing In Seeds Sent And Incoming Requests")
+    func testSigningInSeedsSentAndIncomingRequests() async throws {
+        let queries = MockUserQueryService()
+        try await queries.sendFollowRequest(pending(from: "me"), targetId: "private-friend")
+        try await queries.sendFollowRequest(pending(from: "fan"), targetId: "me")
+        var declined = pending(from: "me")
+        declined.status = .declined
+        try await queries.sendFollowRequest(declined, targetId: "said-no")
+
+        let recording = try await recordingManager(UserModel(userId: "me"), queryService: queries)
+        let manager = recording.manager
+
+        #expect(manager.sentFollowRequestIds == ["private-friend"])
+        #expect(manager.incomingFollowRequests.map(\.requesterId) == ["fan"])
+
+        manager.signOut()
+        #expect(manager.sentFollowRequestIds.isEmpty)
+        #expect(manager.incomingFollowRequests.isEmpty)
+    }
+
+    /// Accepting and declining write only the status; the Cloud Function does the rest.
+    @Test("Test Accept And Decline Write The Request Status")
+    func testAcceptAndDeclineWriteTheRequestStatus() async throws {
+        let queries = MockUserQueryService()
+        try await queries.sendFollowRequest(pending(from: "a"), targetId: "me")
+        try await queries.sendFollowRequest(pending(from: "b"), targetId: "me")
+        let recording = try await recordingManager(UserModel(userId: "me"), queryService: queries)
+        let manager = recording.manager
+        let remote = recording.remote
+        #expect(manager.incomingFollowRequests.count == 2)
+
+        try await manager.respondToFollowRequest(requesterId: "a", accept: true)
+        try await manager.respondToFollowRequest(requesterId: "b", accept: false)
+
+        let statuses = Dictionary(uniqueKeysWithValues: (queries.followRequests["me"] ?? []).map { ($0.requesterId, $0.status) })
+        #expect(statuses == ["a": .accepted, "b": .declined])
+        #expect(manager.incomingFollowRequests.isEmpty)
+        #expect(remote.updates.isEmpty)
     }
 
     // MARK: - Helpers

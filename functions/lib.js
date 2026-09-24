@@ -25,6 +25,7 @@ export const SOCIAL_PUSH_PREFERENCE_KEYS = {
     follow: "social_push_follows",
     nudge: "social_push_nudges",
     mention: "social_push_mentions",
+    followAccepted: "social_push_follows",
 };
 
 // The token and preferences moved from the public user doc to users/{uid}/private/settings. Each
@@ -77,6 +78,9 @@ export function buildActivityPush(notification, recipient) {
     case "nudge":
         title = "Nudge";
         body = `${actor} nudged you to train`;
+    case "followAccepted":
+        title = "Request accepted";
+        body = followAcceptedMessage(actor);
         break;
     }
 
@@ -99,4 +103,47 @@ export function buildActivityPush(notification, recipient) {
 export function newlyBlockedIds(before, after) {
     const previous = new Set(before?.blocked_user_ids ?? []);
     return [...new Set(after?.blocked_user_ids ?? [])].filter((id) => !previous.has(id));
+}
+
+// ---------------------------------------------------------------------------
+// Follow requests: users/{targetId}/follow_requests/{requesterId}
+// ---------------------------------------------------------------------------
+
+export function followAcceptedMessage(name) {
+    return `${name || "Someone"} accepted your follow request`;
+}
+
+// The name the app shows for a user doc, mirroring UserModel.fullNameCalculated: the submitted
+// name where there is one, else the one from auth.
+export function userDisplayName(user) {
+    const first = user?.submitted_first_name ?? user?.first_name;
+    const last = user?.submitted_last_name ?? user?.last_name;
+    return [first, last].filter(Boolean).join(" ") || "Someone";
+}
+
+// Decides whether an update to a follow request is an acceptance to act on. Returns null unless the
+// status has just become "accepted" on a request whose requester_id matches its document id (the id
+// the rules pin to the requester's uid); otherwise the ids the trigger needs.
+export function planFollowAccepted(before, after, params) {
+    if (!after || after.status !== "accepted" || before?.status === "accepted") return null;
+    const { targetId, requesterId } = params ?? {};
+    if (!targetId || !requesterId || after.requester_id !== requesterId || targetId === requesterId) return null;
+    return { requesterId, targetId, notificationId: `follow_accepted_${targetId}` };
+}
+
+// The users/{requesterId}/notifications doc telling the requester they were accepted, in the shape
+// the app's FirebaseActivityNotificationService parses. The accepting user is the actor.
+export function buildFollowAcceptedNotification(target, { targetId, requesterId }, now = new Date()) {
+    const notification = {
+        type: "followAccepted",
+        actor_id: targetId,
+        actor_name: userDisplayName(target),
+        session_id: "",
+        session_author_id: requesterId,
+        date_created: now,
+        is_read: false,
+    };
+    const image = target?.submitted_profile_image ?? target?.photo_url;
+    if (image) notification.actor_image_url = image;
+    return notification;
 }

@@ -72,6 +72,11 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                                 .font(.title3)
                                 .fontWeight(.semibold)
                         }
+                        if presenter.followsYou {
+                            Text("Follows you")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                         // A date of birth sat here: personal data with no social value.
                         if let streak = presenter.latestStreak {
                             Label("\(streak)-day streak", systemImage: "flame.fill")
@@ -88,11 +93,9 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                     Spacer(minLength: 0)
 
                     if presenter.showsFollowButton {
-                        FollowButton(
-                            isFollowing: presenter.isFollowing,
-                            onFollowPressed: { presenter.onFollowPressed() },
-                            onUnfollowPressed: { presenter.onUnfollowPressed() }
-                        )
+                        FollowButton(state: presenter.followState) {
+                            presenter.onFollowButtonPressed()
+                        }
                     }
                 }
 
@@ -100,10 +103,6 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
 
                 if presenter.isBlocked {
                     Label("You have blocked this account", systemImage: "hand.raised")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                } else if presenter.isLocked {
-                    Label("This profile is private", systemImage: "lock")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } else {
@@ -116,10 +115,20 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                                 presenter.onFollowersPressed()
                             }
                         StatItem(header: "Following", value: "\(presenter.followingCount)")
+                            .tappableBackground()
+                            .anyButton(.press) {
+                                presenter.onFollowingPressed()
+                            }
                         Spacer()
                         // A chat button sat here. There is no messaging anywhere in the app — no model, no
                         // manager, no screen — so it was an empty closure over a feature that does not exist.
                     }
+                }
+
+                if !presenter.isBlocked, presenter.isLocked {
+                    Label("This account is private. Follow it to see its workouts.", systemImage: "lock")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
 
                 if !presenter.isBlocked, !presenter.isLocked, !presenter.mutualFollowers.isEmpty {

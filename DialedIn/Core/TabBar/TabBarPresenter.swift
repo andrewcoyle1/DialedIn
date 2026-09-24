@@ -22,10 +22,10 @@ class TabBarPresenter {
         interactor.draftMeal
     }
     
-    /// Unread likes, comments and follows, shown on the Dashboard tab since that is where the bell
-    /// lives. Zero hides the badge.
+    /// Unread likes, comments and follows, plus follow requests waiting on an answer, shown on the
+    /// Dashboard tab since that is where the bell lives. Zero hides the badge.
     var unreadActivityCount: Int {
-        interactor.activityNotifications.filter { !$0.isRead }.count
+        interactor.activityNotifications.filter { !$0.isRead }.count + interactor.incomingFollowRequests.count
     }
 
     var showTabAccessory: Bool {

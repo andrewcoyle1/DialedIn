@@ -190,11 +190,9 @@ struct DashboardView<
     private var suggestedPeopleRows: some View {
         ForEach(presenter.visibleSuggestedUsers) { user in
             UserRowView(user: user) {
-                FollowButton(
-                    isFollowing: presenter.isFollowing(userId: user.userId),
-                    onFollowPressed: { presenter.onFollowPressed(user: user) },
-                    onUnfollowPressed: { }
-                )
+                FollowButton(state: presenter.followState(for: user)) {
+                    presenter.onFollowButtonPressed(user: user)
+                }
             }
             .tappableBackground()
             .anyButton(.highlight) {
@@ -228,7 +226,7 @@ struct DashboardView<
                 Image(systemName: "bell")
             }
             .accessibilityLabel("Notifications")
-            .badge(presenter.activityNotifications.filter({ !$0.isRead }).count)
+            .badge(presenter.bellBadgeCount)
         }
         
         ToolbarSpacer(.fixed, placement: .topBarTrailing)

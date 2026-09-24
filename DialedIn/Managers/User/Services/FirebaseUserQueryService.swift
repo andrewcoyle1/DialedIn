@@ -34,4 +34,60 @@ struct FirebaseUserQueryService: UserQueryService {
             .limit(to: limit)
             .getAllDocuments()
     }
+
+    /// `in` takes at most 30 values, so larger lists go in chunks.
+    func fetchUsers(userIds: [String]) async throws -> [UserModel] {
+        var users: [UserModel] = []
+        for start in stride(from: 0, to: userIds.count, by: 30) {
+            let chunk = Array(userIds[start..<min(start + 30, userIds.count)])
+            let page: [UserModel] = try await Firestore.firestore()
+                .collection("users")
+                .whereField(UserModel.CodingKeys.userId.rawValue, in: chunk)
+                .getAllDocuments()
+            users += page
+        }
+        return users
+    }
+
+    // MARK: Follow requests
+
+    private func followRequests(targetId: String) -> CollectionReference {
+        Firestore.firestore().collection("users").document(targetId).collection("follow_requests")
+    }
+
+    func sendFollowRequest(_ request: FollowRequestModel, targetId: String) async throws {
+        // Encoded first so the write itself can be awaited; `setData(from:)` does not report a rules
+        // rejection to the caller.
+        let data = try Firestore.Encoder().encode(request)
+        try await followRequests(targetId: targetId).document(request.requesterId).setData(data)
+    }
+
+    func deleteFollowRequest(requesterId: String, targetId: String) async throws {
+        try await followRequests(targetId: targetId).document(requesterId).delete()
+    }
+
+    func updateFollowRequestStatus(_ status: FollowRequestModel.Status, requesterId: String, targetId: String) async throws {
+        try await followRequests(targetId: targetId).document(requesterId).updateData([
+            FollowRequestModel.CodingKeys.status.rawValue: status.rawValue
+        ])
+    }
+
+    func fetchPendingFollowRequests(userId: String) async throws -> [FollowRequestModel] {
+        try await followRequests(targetId: userId)
+            .whereField(FollowRequestModel.CodingKeys.status.rawValue, isEqualTo: FollowRequestModel.Status.pending.rawValue)
+            .limit(to: 100)
+            .getAllDocuments()
+    }
+
+    /// Requests live under their target, so the reader's own outgoing ones are a collection-group
+    /// query; the target is the parent of the `follow_requests` collection.
+    func fetchSentFollowRequestTargetIds(requesterId: String) async throws -> [String] {
+        try await Firestore.firestore()
+            .collectionGroup("follow_requests")
+            .whereField(FollowRequestModel.CodingKeys.requesterId.rawValue, isEqualTo: requesterId)
+            .whereField(FollowRequestModel.CodingKeys.status.rawValue, isEqualTo: FollowRequestModel.Status.pending.rawValue)
+            .getDocuments()
+            .documents
+            .compactMap { $0.reference.parent.parent?.documentID }
+    }
 }

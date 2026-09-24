@@ -7,6 +7,7 @@ class SocialProfilePresenter {
     private let interactor: SocialProfileInteractor
     private let router: SocialProfileRouter
     let reportFlow: ReportFlow
+    private let followFlow: FollowFlow
 
     private var profileUser: UserModel?
     var followers: [UserModel] = []
@@ -18,11 +19,21 @@ class SocialProfilePresenter {
         profileUser?.followingIds?.count ?? 0
     }
 
-    /// Whether the reader follows this profile, read live off the reader's own document so the
-    /// button flips when the write lands rather than from a local copy.
+    /// Follow, Following or Requested, read live off the reader's own document and sent requests so
+    /// the button flips when the write lands rather than from a local copy.
+    var followState: FollowState {
+        guard let profileUser else { return .follow }
+        return followFlow.state(for: profileUser)
+    }
+
     var isFollowing: Bool {
-        guard let profileUser else { return false }
-        return interactor.currentUser?.followingIds?.contains(profileUser.userId) ?? false
+        followState == .following
+    }
+
+    /// Instagram's "Follows you": the profile's own following list names the reader.
+    var followsYou: Bool {
+        guard let profileUser, !isOwnProfile, let readerId = interactor.currentUser?.userId else { return false }
+        return profileUser.followingIds?.contains(readerId) ?? false
     }
 
     /// The reader's own profile has no follow button.
@@ -30,11 +41,12 @@ class SocialProfilePresenter {
         profileUser?.userId == interactor.currentUser?.userId
     }
 
-    /// A private profile shows its lists only to people it follows back, and to its owner.
+    /// A private profile shows its lists, consistency and sessions only to its owner and its
+    /// followers — and following a private profile needs its owner to accept a request first.
+    /// Everyone else gets the header, the counts and a lock message.
     var isLocked: Bool {
         guard let profileUser, profileUser.isPrivate == true, !isOwnProfile else { return false }
-        guard let readerId = interactor.currentUser?.userId else { return true }
-        return !(profileUser.followingIds ?? []).contains(readerId)
+        return !isFollowing
     }
 
     /// Whether the reader has blocked this profile, read live so the menu flips when the write lands.
@@ -103,6 +115,7 @@ class SocialProfilePresenter {
         self.interactor = interactor
         self.router = router
         self.reportFlow = ReportFlow(interactor: interactor, router: router)
+        self.followFlow = FollowFlow(interactor: interactor, router: router)
     }
 
     func onViewAppear(delegate: SocialProfileDelegate) {
@@ -150,28 +163,28 @@ class SocialProfilePresenter {
         router.showFollowersList(delegate: delegate)
     }
 
-    func onFollowPressed() {
-        guard let profileUser else { return }
-        interactor.trackEvent(event: Event.followPressed)
+    /// The profile's following list, fetched by id when asked for. Locked like the followers list.
+    func onFollowingPressed() {
+        guard let profileUser, !isLocked else { return }
         Task {
             do {
-                try await interactor.followUser(userId: profileUser.userId)
+                let users = try await interactor.fetchUsers(userIds: profileUser.followingIds ?? [])
+                router.showFollowersList(delegate: FollowersListDelegate(followers: users, title: "Following"))
             } catch {
-                router.showSimpleAlert(title: "Unable to follow user", subtitle: "Please try again.")
+                router.showSimpleAlert(title: "Unable to load following", subtitle: "Please try again.")
             }
         }
     }
 
-    func onUnfollowPressed() {
+    /// Follows a public profile, requests a private one, or takes back whichever is in place.
+    func onFollowButtonPressed() {
         guard let profileUser else { return }
-        interactor.trackEvent(event: Event.unfollowPressed)
-        Task {
-            do {
-                try await interactor.unfollowUser(userId: profileUser.userId)
-            } catch {
-                router.showSimpleAlert(title: "Unable to unfollow user", subtitle: "Please try again.")
-            }
+        switch followState {
+        case .follow: interactor.trackEvent(event: Event.followPressed)
+        case .following: interactor.trackEvent(event: Event.unfollowPressed)
+        case .requested: interactor.trackEvent(event: Event.cancelRequestPressed)
         }
+        followFlow.onButtonPressed(user: profileUser)
     }
 
     func onBlockMenuPressed() {
@@ -243,6 +256,7 @@ extension SocialProfilePresenter {
         case onDisappear(delegate: SocialProfileDelegate)
         case followPressed
         case unfollowPressed
+        case cancelRequestPressed
         case blockConfirmed
         case unblockPressed
 
@@ -252,6 +266,7 @@ extension SocialProfilePresenter {
             case .onDisappear:              return "SocialProfileView_Disappear"
             case .followPressed:            return "SocialProfileView_Follow_Pressed"
             case .unfollowPressed:          return "SocialProfileView_Unfollow_Pressed"
+            case .cancelRequestPressed:     return "SocialProfileView_CancelRequest_Pressed"
             case .blockConfirmed:           return "SocialProfileView_Block_Confirmed"
             case .unblockPressed:           return "SocialProfileView_Unblock_Pressed"
             }

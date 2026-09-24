@@ -149,11 +149,9 @@ struct SearchView: View {
             Section {
                 ForEach(presenter.filteredUsers) { user in
                     UserRowView(user: user) {
-                        FollowButton(
-                            isFollowing: presenter.isFollowing(userId: user.userId),
-                            onFollowPressed: { presenter.onFollowPressed(user: user) },
-                            onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
-                        )
+                        FollowButton(state: presenter.followState(for: user)) {
+                            presenter.onFollowButtonPressed(user: user)
+                        }
                     }
                     .tappableBackground()
                     .anyButton(.highlight) {

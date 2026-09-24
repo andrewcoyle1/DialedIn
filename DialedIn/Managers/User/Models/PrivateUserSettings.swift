@@ -40,7 +40,7 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
         switch type {
         case .like: return .socialPushLikes
         case .comment: return .socialPushComments
-        case .follow: return .socialPushFollows
+        case .follow, .followAccepted: return .socialPushFollows
         case .nudge: return .socialPushNudges
         case .mention: return .socialPushMentions
         }
@@ -50,7 +50,7 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
         switch type {
         case .like: \.socialPushLikes
         case .comment: \.socialPushComments
-        case .follow: \.socialPushFollows
+        case .follow, .followAccepted: \.socialPushFollows
         case .nudge: \.socialPushNudges
         case .mention: \.socialPushMentions
         }

@@ -3,7 +3,10 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getMessaging } from "firebase-admin/messaging";
-import { requireAuth, cleanJson, normaliseName, buildActivityPush, newlyBlockedIds, pushRecipientSettings } from "./lib.js";
+import {
+    requireAuth, cleanJson, normaliseName, buildActivityPush, newlyBlockedIds, pushRecipientSettings,
+    planFollowAccepted, buildFollowAcceptedNotification,
+} from "./lib.js";
 import { genkit } from "genkit";
 import { vertexAI, gemini20Flash, imagen3Fast } from "@genkit-ai/vertexai";
 
@@ -450,5 +453,35 @@ export const onUserBlockListChanged = onDocumentUpdated(
                 console.error(`Block cleanup for user ${uid}: ${result.reason?.message}`);
             }
         }
+    }
+);
+
+// ---------------------------------------------------------------------------
+// Follow requests to private profiles
+// ---------------------------------------------------------------------------
+
+// The target of a request accepts it by setting status to "accepted", but a client can only write
+// its own users/{uid} document, so the follow itself is written here: the target joins the
+// requester's following_ids, the requester gets a followAccepted notification (which
+// onActivityNotificationCreated turns into a push), and the request is deleted. A declined request
+// is left for the requester to see as declined; nothing else happens.
+export const onFollowRequestUpdated = onDocumentUpdated(
+    { document: "users/{targetId}/follow_requests/{requesterId}", region: REGION },
+    async (event) => {
+        const plan = planFollowAccepted(event.data?.before?.data(), event.data?.after?.data(), event.params);
+        if (!plan) return;
+
+        const db = getFirestore();
+        const targetDoc = await db.collection("users").doc(plan.targetId).get();
+        const batch = db.batch();
+        batch.update(db.collection("users").doc(plan.requesterId), {
+            following_ids: FieldValue.arrayUnion(plan.targetId),
+        });
+        batch.set(
+            db.collection("users").doc(plan.requesterId).collection("notifications").doc(plan.notificationId),
+            buildFollowAcceptedNotification(targetDoc.data(), plan)
+        );
+        batch.delete(event.data.after.ref);
+        await batch.commit();
     }
 );

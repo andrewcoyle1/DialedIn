@@ -323,6 +323,7 @@ struct AppShellTabBarPresenterTests {
         var activeSession: WorkoutSessionModel?
         var draftMeal: MealLogModel?
         var activityNotifications: [ActivityNotificationModel] = []
+        var incomingFollowRequests: [FollowRequestModel] = []
 
         private(set) var trackedParameters: [[String: Any]] = []
 
@@ -374,6 +375,19 @@ struct AppShellTabBarPresenterTests {
         ]
 
         #expect(screen.presenter.unreadActivityCount == 2)
+    }
+
+    /// A follow request waiting on an answer is something to act on, so it counts like unread activity.
+    @Test("Test The Dashboard Badge Includes Pending Follow Requests")
+    func testTheDashboardBadgeIncludesPendingFollowRequests() {
+        let screen = makeScreen()
+        screen.interactor.activityNotifications = [activity(id: "1", type: .like, isRead: false)]
+        screen.interactor.incomingFollowRequests = [
+            FollowRequestModel(requesterId: "r1", requesterName: "R1", requesterImageUrl: nil, dateCreated: Date(), status: .pending),
+            FollowRequestModel(requesterId: "r2", requesterName: "R2", requesterImageUrl: nil, dateCreated: Date(), status: .pending)
+        ]
+
+        #expect(screen.presenter.unreadActivityCount == 3)
     }
 
     private func activity(

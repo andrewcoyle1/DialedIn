@@ -19,6 +19,9 @@ struct ActivityNotificationModel: Identifiable {
         case nudge
         /// Someone tagged the user in a comment. `commentText` is that comment.
         case mention
+        /// A private profile accepted the user's follow request. Written by the
+        /// `onFollowRequestUpdated` Cloud Function, with the accepting user as the actor.
+        case followAccepted
     }
 
     let id: String
