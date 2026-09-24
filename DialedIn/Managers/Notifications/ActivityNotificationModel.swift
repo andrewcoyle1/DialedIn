@@ -54,6 +54,18 @@ extension ActivityNotificationModel {
                 commentText: "Great session!",
                 dateCreated: Date().addingTimeInterval(-7200),
                 isRead: true
+            ),
+            ActivityNotificationModel(
+                id: "mock_follow_1",
+                type: .follow,
+                actorId: "actor_3",
+                actorName: "Sam Lee",
+                actorImageUrl: nil,
+                sessionId: "",
+                sessionAuthorId: "user_1",
+                commentText: nil,
+                dateCreated: Date().addingTimeInterval(-600),
+                isRead: false
             )
         ]
     }

@@ -70,6 +70,17 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
                 authorImageUrl: nil,
                 text: "Impressive volume!",
                 dateCreated: Date().addingTimeInterval(-1800)
+            ),
+            WorkoutSessionComment(
+                id: "comment-3",
+                sessionId: "session-1",
+                sessionAuthorId: "uid",
+                authorId: "uid",
+                authorName: "Jane Smith",
+                authorImageUrl: nil,
+                text: "Thanks! Top set felt easy.",
+                dateCreated: Date().addingTimeInterval(-900),
+                parentId: "comment-2"
             )
         ]
     }

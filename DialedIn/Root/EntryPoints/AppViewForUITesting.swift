@@ -33,6 +33,16 @@ struct AppViewForUITesting: View {
             startScreen { builder.createWorkoutView(router: $0, delegate: CreateWorkoutDelegate()) }
         } else if processInfoContains("STARTSCREEN_CREATE_PROGRAM") {
             startScreen { builder.createProgramView(router: $0, delegate: CreateProgramDelegate()) }
+        } else if processInfoContains("STARTSCREEN_SOCIAL_PROFILE") {
+            startScreen { builder.socialProfileView(router: $0, delegate: SocialProfileDelegate(user: UserModel.mocks[2])) }
+        } else if processInfoContains("STARTSCREEN_COMMENTS") {
+            // The shipped mock comments all sit on "session-1".
+            let session = WorkoutSessionModel.mocks.first { $0.id == "session-1" } ?? .mock
+            startScreen { builder.commentsView(router: $0, delegate: CommentsDelegate(session: session)) }
+        } else if processInfoContains("STARTSCREEN_OWN_PROFILE") {
+            startScreen { builder.socialProfileView(router: $0, delegate: SocialProfileDelegate(user: UserModel.mocks[0])) }
+        } else if processInfoContains("STARTSCREEN_NOTIFICATIONS") {
+            startScreen { builder.notificationsView(router: $0) }
         } else {
             builder.build()
         }

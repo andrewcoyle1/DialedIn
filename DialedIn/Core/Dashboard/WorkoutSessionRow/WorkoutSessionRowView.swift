@@ -113,12 +113,13 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
     }
 
     private func highlightCapsule(_ text: String, systemImage: String, tint: Color) -> some View {
-        Label {
-            Text(text)
-                .foregroundStyle(.primary)
-        } icon: {
+        // An `HStack`, not a `Label`: inside the card's tappable content the label rendered its
+        // icon and dropped its title.
+        HStack(spacing: 4) {
             Image(systemName: systemImage)
                 .foregroundStyle(tint)
+            Text(text)
+                .foregroundStyle(.primary)
         }
         .font(.caption.weight(.medium))
         .lineLimit(1)
