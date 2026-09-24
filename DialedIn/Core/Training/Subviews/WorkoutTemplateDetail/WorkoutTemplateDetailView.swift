@@ -56,12 +56,22 @@ struct WorkoutTemplateDetailView: View {
     private var toolbarContent: some ToolbarContent {
         if isAuthor {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
+                Menu {
+                    Button {
+                        presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
+                    } label: {
+                        Label("Edit Workout", systemImage: "pencil")
+                    }
+                    Button(role: .destructive) {
+                        presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
+                    } label: {
+                        Label("Delete Workout", systemImage: "trash")
+                    }
                 } label: {
-                    Image(systemName: "pencil")
+                    Image(systemName: "ellipsis")
                 }
-                .accessibilityLabel("Edit workout")
+                .disabled(presenter.isDeleting)
+                .accessibilityLabel("Workout options")
             }
         }
 
