@@ -768,3 +768,36 @@ export const onUserDeleted = onDocumentDeleted(
         }
     }
 );
+
+// Report moderation
+// ---------------------------------------------------------------------------
+
+import { planReportModeration } from "./lib.js";
+
+// A new reports/{id}: once three distinct people have open reports on the same session or comment,
+// set hidden: true on it (the app then shows it only to its author) and queue it for review in
+// moderation_queue/{targetId}. What to write is decided by planReportModeration in lib.js. Queries on
+// target_id alone, a single-field index, and filters status and type there.
+export const onReportCreated = onDocumentCreated(
+    { document: "reports/{reportId}", region: REGION },
+    async (event) => {
+        const report = event.data?.data();
+        if (!report?.target_id) return;
+        const db = getFirestore();
+        const snap = await db.collection("reports").where("target_id", "==", report.target_id).get();
+        const plan = planReportModeration(report, snap.docs.map((doc) => doc.data()));
+        if (!plan) return;
+
+        await db.collection("moderation_queue").doc(plan.queueId).set(
+            { ...plan.queue, date_updated: FieldValue.serverTimestamp() },
+            { merge: true }
+        );
+        if (!plan.hidePath) return;
+        try {
+            await db.doc(plan.hidePath).update({ hidden: true });
+        } catch (error) {
+            // The content was deleted meanwhile, or the report named the wrong author.
+            console.error(`Report moderation: could not hide ${plan.hidePath}: ${error.message}`);
+        }
+    }
+);

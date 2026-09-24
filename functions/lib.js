@@ -389,3 +389,44 @@ export function planUserDeletion(uid, lists = {}) {
     ];
     return { batches, storagePrefixes: [`${own}/`], storageFiles };
 }
+
+// Report moderation: hide a session or comment once three people have reported it
+// ---------------------------------------------------------------------------
+
+export const REPORT_HIDE_THRESHOLD = 3;
+
+// Decides what onReportCreated writes for a new report, given every report on the same target_id
+// (the new one included). Only open reports that agree on target type and author count, and each
+// reporter counts once, so one person reporting three times hides nothing. Below the threshold it
+// returns null. At it: the document to set hidden on (a session lives under its author, a comment
+// is top level, a profile is never hidden) and the moderation_queue/{targetId} document.
+export function planReportModeration(report, reports, threshold = REPORT_HIDE_THRESHOLD) {
+    if (!report?.target_id || !report.target_type) return null;
+    const matching = (reports ?? []).filter((other) =>
+        other.status === "open"
+        && other.target_id === report.target_id
+        && other.target_type === report.target_type
+        && (other.target_author_id ?? null) === (report.target_author_id ?? null)
+    );
+    const reporterIds = [...new Set(matching.map((other) => other.reporter_id).filter(Boolean))].sort();
+    if (reporterIds.length < threshold) return null;
+
+    let hidePath = null;
+    if (report.target_type === "comment") hidePath = `workout_session_comments/${report.target_id}`;
+    if (report.target_type === "session" && report.target_author_id) {
+        hidePath = `users/${report.target_author_id}/workout_sessions/${report.target_id}`;
+    }
+    return {
+        hidePath,
+        queueId: report.target_id,
+        queue: {
+            target_id: report.target_id,
+            target_type: report.target_type,
+            target_author_id: report.target_author_id ?? null,
+            reporter_ids: reporterIds,
+            report_ids: matching.map((other) => other.id).filter(Boolean).sort(),
+            reasons: [...new Set(matching.map((other) => other.reason).filter(Boolean))].sort(),
+            hidden: hidePath !== null,
+        },
+    };
+}
