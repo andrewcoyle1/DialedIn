@@ -45,21 +45,12 @@ class WorkoutSessionRowPresenter {
         self.weeklyWorkoutNumber = WorkoutSessionHighlights.weeklyWorkoutNumber(of: delegate.session, history: history)
     }
 
-    /// "3rd workout of the week", from the second one on — a first is not news. "Of the week"
-    /// rather than "this week", because the card can be read long after the week is over.
     var weeklyWorkoutText: String? {
-        guard weeklyWorkoutNumber >= 2 else { return nil }
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .ordinal
-        let ordinal = formatter.string(from: NSNumber(value: weeklyWorkoutNumber)) ?? "\(weeklyWorkoutNumber)"
-        return "\(ordinal) workout of the week"
+        WorkoutSessionHighlights.weeklyWorkoutText(weeklyWorkoutNumber)
     }
 
-    /// "12-day streak", stamped on the session when the author finished it. Only from two days
-    /// on, like the weekly count, and absent on sessions finished before streaks were stamped.
     var streakText: String? {
-        guard let count = session.streakCount, count > 1 else { return nil }
-        return "\(count)-day streak"
+        WorkoutSessionHighlights.streakText(session.streakCount)
     }
 
     func onWorkoutPressed() {
@@ -122,6 +113,27 @@ class WorkoutSessionRowPresenter {
 
     func onUserPressed() {
         router.showSocialProfileView(delegate: SocialProfileDelegate(user: author))
+    }
+
+    // MARK: Share Image
+
+    /// The card shows the author by first name only, which is all a feed row already shows.
+    var shareCardContent: ShareCardContent {
+        ShareCardContent.make(session: session, author: author, personalRecords: personalRecords, weeklyWorkoutNumber: weeklyWorkoutNumber)
+    }
+
+    func onShareImagePressed(format: WorkoutShareCardView.Format) {
+        let content = shareCardContent
+        router.showLoadingModal()
+        Task {
+            let image = await ShareCardRenderer.renderCard(content, format: format)
+            router.dismissModal()
+            if let image {
+                router.showShareSheet(items: [image])
+            } else {
+                router.showSimpleAlert(title: "Unable to Create Image", subtitle: "Please try again.")
+            }
+        }
     }
 
     // MARK: Save as Template

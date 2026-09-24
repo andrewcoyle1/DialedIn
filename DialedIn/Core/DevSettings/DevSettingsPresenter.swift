@@ -253,4 +253,18 @@ class DevSettingsPresenter {
             }
         }
     }
+
+    // MARK: - Share Card
+
+    func onSaveShareCardsPressed() {
+        let content = ShareCardContent.mock()
+        Task {
+            for format in WorkoutShareCardView.Format.allCases {
+                if let image = await ShareCardRenderer.renderCard(content, format: format) {
+                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                }
+            }
+            router.showSimpleAlert(title: "Share cards saved to Photos", subtitle: nil)
+        }
+    }
 }

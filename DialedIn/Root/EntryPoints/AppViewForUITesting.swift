@@ -48,6 +48,11 @@ struct AppViewForUITesting: View {
         } else if processInfoContains("STARTSCREEN_SHARED_ITEM") {
             // MARK: - Sharing
             startScreen { builder.sharedItemView(router: $0, delegate: SharedItemDelegate(share: ShareModel.mocks[0], senderName: "Alice")) }
+        } else if processInfoContains("STARTSCREEN_SHARE_CARD") {
+            // The card alone, full screen, for a screenshot. Later mock sessions carry records.
+            WorkoutShareCardView(content: .preview, format: .story)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.black)
         } else {
             builder.build()
         }

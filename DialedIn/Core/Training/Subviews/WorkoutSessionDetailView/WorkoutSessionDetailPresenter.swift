@@ -412,6 +412,28 @@ class WorkoutSessionDetailPresenter {
         )
     }
 
+    // MARK: - Share Image
+
+    /// First name and avatar of the author only, and no comments. The author may still be loading
+    /// when this is tapped, in which case the card goes out without a name rather than waiting.
+    func shareCardContent(session: WorkoutSessionModel) -> ShareCardContent {
+        ShareCardContent.make(session: session, author: author, history: interactor.workoutSessions(authoredBy: session.authorId))
+    }
+
+    func onShareImagePressed(session: WorkoutSessionModel, format: WorkoutShareCardView.Format) {
+        let content = shareCardContent(session: session)
+        router.showLoadingModal()
+        Task {
+            let image = await ShareCardRenderer.renderCard(content, format: format)
+            router.dismissModal()
+            if let image {
+                router.showShareSheet(items: [image])
+            } else {
+                router.showSimpleAlert(title: "Unable to Create Image", subtitle: "Please try again.")
+            }
+        }
+    }
+
 #if DEV || MOCK
 func onDevSettingsPressed() {
     router.showDevSettingsView()

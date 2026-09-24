@@ -28,6 +28,7 @@ struct DevSettingsView: View {
             exerciseModelSection
             workoutTemplateSection
             seedingSection
+            shareCardSection
         }
         .navigationTitle("Developer Settings")
         .onAppear {
@@ -392,6 +393,18 @@ struct DevSettingsView: View {
         }
     }
     
+    private var shareCardSection: some View {
+        Section {
+            Button("Save Share Cards to Photos") {
+                presenter.onSaveShareCardsPressed()
+            }
+        } header: {
+            Text("Share Card")
+        } footer: {
+            Text("Renders the Story and Square cards for the first mock session and saves both to the photo library.")
+        }
+    }
+
     @ViewBuilder
     private var debugActionsSection: some View {
         Section {

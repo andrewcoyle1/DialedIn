@@ -183,6 +183,13 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
                         presenter.onShareTemplatePressed(template)
                     }
                 }
+                Menu("Share Image", systemImage: "photo") {
+                    ForEach(WorkoutShareCardView.Format.allCases, id: \.self) { format in
+                        Button(format.title) {
+                            presenter.onShareImagePressed(format: format)
+                        }
+                    }
+                }
                 if presenter.canReport {
                     Button("Report Workout", systemImage: "exclamationmark.bubble") {
                         presenter.onReportPressed()
