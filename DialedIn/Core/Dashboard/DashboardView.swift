@@ -148,6 +148,8 @@ struct DashboardView<
                     .removeListRowFormatting()
                     .listRowSeparator(.hidden)
             }
+            // MARK: - WeeklyReview
+            if presenter.showsWeeklyReviewCard { WeeklyReviewCard { presenter.onWeeklyReviewPressed() }.removeListRowFormatting().listRowSeparator(.hidden) }
             if !presenter.circleMembers.isEmpty {
                 CircleActivityStripView(
                     members: presenter.circleMembers,

@@ -127,6 +127,10 @@ struct AnalyticsView<NutritionChart: View>: View {
                 }
             }
 
+            moreRow(title: "Weekly Review", systemImage: "chart.bar.doc.horizontal") {
+                presenter.onWeeklyReviewPressed()
+            }
+
             // "house" here was copied from the Dashboard tab and said nothing about what the row
             // does.
             moreRow(title: "Customise Analytics", systemImage: "slider.horizontal.3") {

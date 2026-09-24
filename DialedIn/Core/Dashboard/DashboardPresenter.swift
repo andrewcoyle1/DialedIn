@@ -607,3 +607,17 @@ extension DashboardPresenter {
         Task { await flow.accept(code: code) }
     }
 }
+
+// MARK: - WeeklyReview
+
+extension DashboardPresenter {
+    /// The way in to last week's review, on the first day of the week only.
+    var showsWeeklyReviewCard: Bool {
+        interactor.currentUser != nil && CircleWeek.isFirstDayOfWeek(.now)
+    }
+
+    func onWeeklyReviewPressed() {
+        interactor.trackEvent(eventName: "DashboardView_WeeklyReview_Press", parameters: nil, type: .analytic)
+        router.showWeeklyReviewView()
+    }
+}

@@ -18,6 +18,8 @@ protocol DashboardRouter: GlobalRouter, InviteAcceptRouter {
     // MARK: - Challenges
     func showChallengeDetailView(delegate: ChallengeDetailDelegate)
     func showCreateChallengeView()
+    // MARK: - WeeklyReview
+    func showWeeklyReviewView()
 }
 
 extension CoreRouter: DashboardRouter { }
