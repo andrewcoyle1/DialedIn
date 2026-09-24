@@ -137,12 +137,19 @@ class WorkoutSessionManager {
         }
     }
 
+    /// Anyone's sessions, newest first. The user engine's path is the *reader's* own
+    /// `users/{uid}/workout_sessions`, so querying it for another author always came back empty;
+    /// the collection group spans every user's subcollection, which the rules let any signed-in
+    /// user read. Ordering needs the `author_id` + `date_created` index in `firestore.indexes.json`.
+    /// The filter repeats the query's because the mock remote ignores query filters.
     func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int = 20) async throws -> [WorkoutSessionModel] {
-        try await userWorkoutSessionSyncEngine.getDocumentsAsync { query in
+        try await followingWorkoutSessionSyncEngine.getDocumentsAsync { query in
             query
                 .where("author_id", isEqualTo: authorId)
+                .order(by: "date_created", descending: true)
                 .limit(to: limitTo)
         }
+        .filter { $0.authorId == authorId }
     }
 
     func likeSession(sessionId: String, authorId: String, userId: String) async throws {

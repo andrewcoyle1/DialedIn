@@ -6,6 +6,14 @@
       "fields": [
         { "fieldPath": "author_id", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "workout_sessions",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "author_id", "order": "ASCENDING" },
+        { "fieldPath": "date_created", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
