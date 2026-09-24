@@ -244,6 +244,21 @@ class UserManager {
         try await queryService.searchUsers(query: query)
     }
 
+    /// People worth following when the reader follows nobody: the newest accounts, minus the
+    /// reader, anyone they already follow, and anyone they have blocked.
+    func fetchSuggestedUsers(limit: Int = 10) async throws -> [UserModel] {
+        let excluded = Set(
+            [currentUser?.userId].compactMap { $0 }
+            + (currentUser?.followingIds ?? [])
+            + (currentUser?.blockedUserIds ?? [])
+        )
+        // Over-fetch so the exclusions do not leave the list short.
+        return try await queryService.fetchSuggestedUsers(limit: limit + excluded.count)
+            .filter { !excluded.contains($0.userId) }
+            .prefix(limit)
+            .map { $0 }
+    }
+
     // MARK: - User Blocking
 
     func blockUser(userId: String) async throws {
@@ -464,6 +479,10 @@ extension CoreInteractor {
 
     func fetchFollowers(userId: String) async throws -> [UserModel] {
         try await userManager.fetchFollowers(userId: userId)
+    }
+
+    func fetchSuggestedUsers() async throws -> [UserModel] {
+        try await userManager.fetchSuggestedUsers()
     }
 
 }

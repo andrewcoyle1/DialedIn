@@ -51,6 +51,7 @@ struct DashboardView<
         .toolbar { toolbarContent }
         .task {
             await presenter.loadNotifications()
+            await presenter.loadSuggestedUsers()
         }
     }
     
@@ -144,6 +145,7 @@ struct DashboardView<
                     }
                 }
                 .removeListRowFormatting()
+                suggestedPeopleRows
             } else {
                 ForEach(presenter.feedSessions) { session in
                     if let author = presenter.author(for: session) {
@@ -170,6 +172,26 @@ struct DashboardView<
         .listSectionSeparator(.hidden)
     }
     
+    /// A handful of people to follow, so a new user has a feed by the time they scroll back up.
+    @ViewBuilder
+    private var suggestedPeopleRows: some View {
+        ForEach(presenter.visibleSuggestedUsers) { user in
+            UserRowView(user: user) {
+                FollowButton(
+                    isFollowing: presenter.isFollowing(userId: user.userId),
+                    onFollowPressed: { presenter.onFollowPressed(user: user) },
+                    onUnfollowPressed: { }
+                )
+            }
+            .tappableBackground()
+            .anyButton(.highlight) {
+                presenter.onSuggestedUserPressed(user: user)
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        }
+    }
+
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         

@@ -32,6 +32,39 @@ class DashboardPresenter {
         interactor.userImageUrl
     }
 
+    /// People to follow, shown only under the empty feed. Loaded once per appearance of that
+    /// state; a person the reader follows from here drops out of the list.
+    private(set) var suggestedUsers: [UserModel] = []
+
+    var visibleSuggestedUsers: [UserModel] {
+        let following = Set(interactor.currentUser?.followingIds ?? [])
+        return suggestedUsers.filter { !following.contains($0.userId) }
+    }
+
+    func isFollowing(userId: String) -> Bool {
+        interactor.currentUser?.followingIds?.contains(userId) ?? false
+    }
+
+    func loadSuggestedUsers() async {
+        guard feedSessions.isEmpty else { return }
+        suggestedUsers = (try? await interactor.fetchSuggestedUsers()) ?? []
+    }
+
+    func onSuggestedUserPressed(user: UserModel) {
+        router.showSocialProfileView(delegate: SocialProfileDelegate(user: user))
+    }
+
+    func onFollowPressed(user: UserModel) {
+        interactor.trackEvent(eventName: "DashboardView_SuggestedFollow_Press", parameters: nil, type: .analytic)
+        Task {
+            do {
+                try await interactor.followUser(userId: user.userId)
+            } catch {
+                router.showSimpleAlert(title: "Unable to follow user", subtitle: "Please try again.")
+            }
+        }
+    }
+
 //    private var completedTrainingDays: Set<Date> {
 //        let calendar = Calendar.current
 //        let now = Date()

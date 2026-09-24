@@ -7,6 +7,7 @@ protocol DashboardRouter: GlobalRouter {
     func showNotificationsView()
     func showNutritionView()
     func showAddMealView(delegate: AddMealDelegate)
+    func showSocialProfileView(delegate: SocialProfileDelegate)
     #if DEV || MOCK
     func showDevSettingsView()
     #endif

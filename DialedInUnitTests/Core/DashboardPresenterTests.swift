@@ -79,6 +79,8 @@ struct DashboardFeedPresenterTests {
         var totals: DailyMacroTarget?
         var target: DailyMacroTarget?
         var notificationsError: Error?
+        var suggestedUsers: [UserModel] = []
+        private(set) var suggestedFetchCount = 0
         private(set) var deletedDraftCount = 0
         private(set) var fetchedNotificationsCount = 0
         private(set) var followedUserIds: [String] = []
@@ -97,6 +99,11 @@ struct DashboardFeedPresenterTests {
         func fetchActivityNotifications() async throws {
             fetchedNotificationsCount += 1
             if let notificationsError { throw notificationsError }
+        }
+
+        func fetchSuggestedUsers() async throws -> [UserModel] {
+            suggestedFetchCount += 1
+            return suggestedUsers
         }
 
         func getDailyTotals(dayKey: String) throws -> DailyMacroTarget {
@@ -122,6 +129,7 @@ struct DashboardFeedPresenterTests {
         func showProfileViewZoom(transitionId: String?, namespace: Namespace.ID) { shown.append("profile") }
         func showNotificationsView() { shown.append("notifications") }
         func showNutritionView() { shown.append("nutrition") }
+        func showSocialProfileView(delegate: SocialProfileDelegate) { shown.append("socialProfile:\(delegate.user.userId)") }
 
         func showAddMealView(delegate: AddMealDelegate) {
             shown.append("addMeal")
@@ -250,6 +258,43 @@ struct DashboardFeedPresenterTests {
         let screen = makeScreen()
 
         #expect(screen.presenter.feedSessions.isEmpty)
+    }
+
+    // MARK: Suggested people
+
+    /// Suggestions belong to the empty state only: a reader with a feed never pays for the fetch.
+    @Test("Test Suggested People Load Only For An Empty Feed")
+    func testSuggestedPeopleLoadOnlyForAnEmptyFeed() async {
+        let screen = makeScreen()
+        screen.interactor.suggestedUsers = [DashboardFixture.user("a")]
+        screen.interactor.workoutSessions = [DashboardFixture.session(id: "mine", on: DashboardFixture.date(day: 1))]
+
+        await screen.presenter.loadSuggestedUsers()
+        #expect(screen.interactor.suggestedFetchCount == 0)
+        #expect(screen.presenter.visibleSuggestedUsers.isEmpty)
+
+        screen.interactor.workoutSessions = []
+        await screen.presenter.loadSuggestedUsers()
+        #expect(screen.interactor.suggestedFetchCount == 1)
+        #expect(screen.presenter.visibleSuggestedUsers.map(\.userId) == ["a"])
+    }
+
+    /// Following someone from the list drops them out of it, and the row opens their profile.
+    @Test("Test Following A Suggested Person Removes Them And A Row Opens Their Profile")
+    func testFollowingASuggestedPersonRemovesThemAndARowOpensTheirProfile() async {
+        let screen = makeScreen()
+        screen.interactor.suggestedUsers = [DashboardFixture.user("a"), DashboardFixture.user("b")]
+        await screen.presenter.loadSuggestedUsers()
+
+        screen.presenter.onFollowPressed(user: DashboardFixture.user("a"))
+        await TestManagers.eventually { !screen.interactor.followedUserIds.isEmpty }
+        screen.interactor.currentUser = UserModel(userId: "me", followingIds: ["a"])
+        screen.presenter.onSuggestedUserPressed(user: DashboardFixture.user("b"))
+
+        #expect(screen.interactor.followedUserIds == ["a"])
+        #expect(screen.presenter.visibleSuggestedUsers.map(\.userId) == ["b"])
+        #expect(screen.presenter.isFollowing(userId: "a"))
+        #expect(screen.router.shown == ["socialProfile:b"])
     }
 
     // MARK: Authorship

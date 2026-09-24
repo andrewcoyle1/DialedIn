@@ -15,6 +15,7 @@ protocol DashboardInteractor: GlobalInteractor {
     func followUser(userId: String) async throws
     func unfollowUser(userId: String) async throws
     func fetchActivityNotifications() async throws
+    func fetchSuggestedUsers() async throws -> [UserModel]
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?
 }

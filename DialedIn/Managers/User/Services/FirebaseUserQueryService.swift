@@ -25,4 +25,13 @@ struct FirebaseUserQueryService: UserQueryService {
             .limit(to: 20)
             .getAllDocuments()
     }
+
+    // ponytail: newest accounts, not the most active — swap for a follower-count order once one is stored
+    func fetchSuggestedUsers(limit: Int) async throws -> [UserModel] {
+        try await Firestore.firestore()
+            .collection("users")
+            .order(by: UserModel.CodingKeys.creationDate.rawValue, descending: true)
+            .limit(to: limit)
+            .getAllDocuments()
+    }
 }
