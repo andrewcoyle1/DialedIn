@@ -19,6 +19,9 @@ class SetTrackerRowPresenter {
     var onSetCompleted: (@MainActor (WorkoutSetModel, WorkoutExerciseModel) -> Void)?
 
     var previousLookup: [PreviousSetKey: WorkoutSetModel] = [:]
+
+    /// The weight and reps keyboards for this row.
+    let keyboard = SetKeyboardPresenter()
     var defaultRestDurationSeconds: Int {
         interactor.workoutSettings.defaultRestDurationSeconds
     }
@@ -214,18 +217,65 @@ class SetTrackerRowPresenter {
     }
 }
 
+// MARK: - Keyboard
+
+extension SetTrackerRowPresenter {
+
+    /// A weight or reps field took focus: open its keyboard on what this set and exercise allow.
+    func onKeyboardFieldBegan(_ field: SetKeyboardField, delegate: SetTrackerRowDelegate) {
+        keyboard.onOfferCompletion = { [weak self] in self?.offerCompletion(delegate: delegate) }
+        keyboard.open(field, set: delegate.set, context: keyboardContext(delegate: delegate))
+    }
+
+    func keyboardContext(delegate: SetTrackerRowDelegate) -> SetKeyboardContext {
+        let exercise = delegate.exercise.wrappedValue
+        let set = delegate.set.wrappedValue
+        let unit = getUnitPreference(for: exercise).weightUnit
+        let lastSet = exercise.sets.firstIndex { $0.id == set.id }.flatMap { $0 > 0 ? exercise.sets[$0 - 1] : nil }
+        let target = set.isWarmup ? nil : exercise.setTargets.first { $0.setNumber == exercise.workingSetNumber(for: set) }
+        return SetKeyboardContext(
+            unit: unit,
+            step: WeightStepper.steps(for: exercise, profile: interactor.favouriteGymProfile, unit: unit),
+            tracksWeight: exercise.trackingMode == .weightReps,
+            showsEffort: interactor.workoutSettings.rirTracking,
+            lastSetWeightKg: lastSet?.weightKg,
+            lastSetReps: lastSet?.reps,
+            previousSessionWeightKg: delegate.lastSet?.weightKg,
+            targetWeightKg: delegate.progressionSuggestion?.weightKg,
+            targetMinReps: target?.minReps,
+            targetMaxReps: target?.maxReps
+        )
+    }
+
+    /// Done on a set that is ready to log offers the same action as the row's circle.
+    private func offerCompletion(delegate: SetTrackerRowDelegate) {
+        let exercise = delegate.exercise.wrappedValue
+        let set = delegate.set
+        let complete: @MainActor () -> Void = { [weak self] in self?.onSetComplete(exercise, set) }
+        interactor.trackEvent(event: Event.keyboardOfferedCompletion)
+        router.showAlert(title: "Complete Set?", subtitle: nil) {
+            AnyView(VStack(spacing: 8) {
+                Button("Not Yet", role: .cancel) { }
+                Button("Complete Set") { complete() }
+            })
+        }
+    }
+}
+
 extension SetTrackerRowPresenter {
     
     enum Event: LoggableEvent {
         case onAppear(delegate: SetTrackerRowDelegate)
         case onDisappear(delegate: SetTrackerRowDelegate)
         case setCompleted(setId: String, exerciseId: String, useRestTimers: Bool, restDurationSeconds: Int, onStartRestIsNil: Bool)
+        case keyboardOfferedCompletion
 
         var eventName: String {
             switch self {
             case .onAppear:                 return "SetTrackerRowView_Appear"
             case .onDisappear:              return "SetTrackerRowView_Disappear"
             case .setCompleted:             return "SetTrackerRow_SetCompleted"
+            case .keyboardOfferedCompletion: return "SetTrackerRow_Keyboard_OfferedCompletion"
             }
         }
 
@@ -241,6 +291,8 @@ extension SetTrackerRowPresenter {
                     "rest_duration_seconds": restDurationSeconds,
                     "on_start_rest_is_nil": onStartRestIsNil
                 ]
+            case .keyboardOfferedCompletion:
+                return nil
             }
         }
 

@@ -19,8 +19,8 @@ struct SetTrackerRowView: View {
     @State var presenter: SetTrackerRowPresenter
     let delegate: SetTrackerRowDelegate
     
-    @FocusState private var isFocused: Bool
-    @State private var textSelection: TextSelection?
+    /// The in-app keyboard both of this row's fields share.
+    @State private var keyboardHost = SetKeyboardInputHost()
     
     var body: some View {
         HStack {
@@ -105,50 +105,45 @@ struct SetTrackerRowView: View {
         }
     }
 
-    @ViewBuilder
     private func weightTextField(
         exercise: Binding<WorkoutExerciseModel>,
         set: Binding<WorkoutSetModel>,
         unitPreference: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)
     ) -> some View {
-        let weightBinding: Binding<Double?> = Binding<Double?>(
-            get: {
-                guard let kilograms = set.wrappedValue.weightKg else { return nil }
-                return UnitConversion.convertWeight(kilograms, to: unitPreference.weightUnit)
-                // Use trimming of trailing zeros for nicer display but keep as plain string
-            },
-            set: { newValue in
-                guard let value = newValue else { return }
-                let kilos = UnitConversion.convertWeightToKg(value, from: unitPreference.weightUnit)
-                set.wrappedValue.weightKg = kilos
-            }
-        )
-        AutoSelectNumberField(prompt: "-", value: weightBinding, keyboardType: .decimalPad)
-            .disabled(delegate.set.wrappedValue.completedAt != nil)
+        keyboardField(.weight, set: set, unit: unitPreference.weightUnit, label: "Weight, \(unitPreference.weightUnit.displayName)")
             .frame(width: 70, height: 35)
     }
 
-    @ViewBuilder
     private func repsField(exercise: WorkoutExerciseModel, set: Binding<WorkoutSetModel>) -> some View {
-        let repsValue: Binding<Double?> = Binding<Double?>(
-            get: {
-                if let reps = set.wrappedValue.reps {
-                    return Double(reps)
-                } else {
-                    return nil
-                }
-            },
-            set: { newValue in
-                if let newValue {
-                    set.wrappedValue.reps = Int(newValue)
-                } else {
-                    set.wrappedValue.reps = nil
-                }
-            }
-        )
-        AutoSelectNumberField(prompt: "-", value: repsValue, keyboardType: .numberPad)
-            .disabled(delegate.set.wrappedValue.completedAt != nil)
+        keyboardField(.reps, set: set, unit: .kilograms, label: "Reps")
             .frame(width: 50, height: 35)
+    }
+
+    /// A field that opens the in-app weight or reps keyboard, highlighted while it is being edited.
+    private func keyboardField(_ field: SetKeyboardField, set: Binding<WorkoutSetModel>, unit: ExerciseWeightUnit, label: String) -> some View {
+        let keyboard = presenter.keyboard
+        let isActive = keyboard.activeField == field
+        return SetKeyboardTextField(
+            field: field,
+            text: keyboard.displayText(for: field, set: set.wrappedValue, unit: unit),
+            isActive: isActive,
+            accessibilityLabel: label,
+            presenter: keyboard,
+            inputHost: keyboardHost,
+            onBegin: { presenter.onKeyboardFieldBegan(field, delegate: delegate) }
+        )
+        .background(isActive ? AnyShapeStyle(.tint.opacity(0.15)) : AnyShapeStyle(.clear), in: .rect(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(.tint, lineWidth: isActive ? 2 : 0)
+        }
+        .disabled(delegate.set.wrappedValue.completedAt != nil)
+        .task {
+            // `STARTSCREEN_SET_KEYBOARD`: the first open weight field opens its keyboard.
+            guard field == .weight, set.wrappedValue.completedAt == nil, SetKeyboardLaunch.isPending else { return }
+            SetKeyboardLaunch.isPending = false
+            presenter.onKeyboardFieldBegan(.weight, delegate: delegate)
+        }
     }
 
     func previousValues(exercise: Binding<WorkoutExerciseModel>, set: Binding<WorkoutSetModel>) -> some View {

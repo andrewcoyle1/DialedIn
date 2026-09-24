@@ -137,6 +137,11 @@ extension AppViewForUITesting {
             ("STARTSCREEN_SEARCH", { builder.searchView(router: $0).any() }),
             ("STARTSCREEN_FOLLOWERS", {
                 builder.followersListView(router: $0, delegate: FollowersListDelegate(followers: UserModel.mocks)).any()
+            }),
+            // MARK: - Keyboards
+            // The tracker with the first set's weight keyboard open; `SetKeyboardLaunch` opens it.
+            ("STARTSCREEN_SET_KEYBOARD", { router in
+                ActiveSessionScreen(interactor: interactor) { try? builder.workoutTrackerView(router: router) }.any()
             })
         ]
     }
