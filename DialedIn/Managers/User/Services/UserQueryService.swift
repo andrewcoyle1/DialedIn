@@ -26,4 +26,13 @@ protocol UserQueryService {
         userId: String,
         onChange: @escaping @MainActor ([FollowRequestModel]) -> Void
     ) -> @MainActor () -> Void
+
+    // MARK: Usernames — usernames/{handle} with { user_id, date_created }
+
+    /// The id of the user holding `handle`, or nil when it is free.
+    func usernameOwner(_ handle: String) async throws -> String?
+    /// Creates the reservation. Throws when it already exists (rules allow create, never update).
+    func reserveUsername(_ handle: String, userId: String) async throws
+    /// Users whose `username` starts with `prefix`.
+    func searchUsers(usernamePrefix: String) async throws -> [UserModel]
 }

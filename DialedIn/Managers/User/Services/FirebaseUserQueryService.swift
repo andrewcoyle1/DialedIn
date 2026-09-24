@@ -115,3 +115,38 @@ struct FirebaseUserQueryService: UserQueryService {
             .compactMap { $0.reference.parent.parent?.documentID }
     }
 }
+
+// MARK: - Usernames
+
+extension FirebaseUserQueryService {
+
+    private func reservation(_ handle: String) -> DocumentReference {
+        Firestore.firestore().collection("usernames").document(handle)
+    }
+
+    func usernameOwner(_ handle: String) async throws -> String? {
+        let snapshot = try await reservation(handle).getDocument()
+        guard snapshot.exists else { return nil }
+        return snapshot.data()?["user_id"] as? String
+    }
+
+    /// A plain `setData`: on an existing document that is an update, which rules refuse, so a
+    /// handle someone else reserved in the meantime fails here rather than being overwritten.
+    func reserveUsername(_ handle: String, userId: String) async throws {
+        try await reservation(handle).setData([
+            "user_id": userId,
+            "date_created": FieldValue.serverTimestamp()
+        ])
+    }
+
+    /// A single-field range on `username`, which Firestore indexes automatically.
+    func searchUsers(usernamePrefix: String) async throws -> [UserModel] {
+        let field = UserModel.CodingKeys.username.rawValue
+        return try await Firestore.firestore()
+            .collection("users")
+            .whereField(field, isGreaterThanOrEqualTo: usernamePrefix)
+            .whereField(field, isLessThan: usernamePrefix + "\u{f8ff}")
+            .limit(to: 20)
+            .getAllDocuments()
+    }
+}

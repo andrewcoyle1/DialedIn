@@ -10,6 +10,7 @@ protocol DashboardRouter: GlobalRouter {
     func showSocialProfileView(delegate: SocialProfileDelegate)
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
     func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate)
+    func showEditUsernameView()
     #if DEV || MOCK
     func showDevSettingsView()
     #endif

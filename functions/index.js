@@ -582,3 +582,30 @@ export const onUserPrivacyChanged = onDocumentUpdated(
         }
     }
 );
+
+// ---------------------------------------------------------------------------
+// Usernames
+// ---------------------------------------------------------------------------
+
+import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import { planUsernameRelease, shouldReleaseReservation } from "./lib.js";
+
+// The app reserves usernames/{handle} before setting users/{uid}.username, and rules only let the
+// owner delete a reservation. When a username changes, or the account is deleted, the old handle is
+// released here so someone else can claim it. Written, not just updated, so deletion is covered too.
+export const onUsernameChanged = onDocumentWritten(
+    { document: "users/{uid}", region: REGION },
+    async (event) => {
+        const handle = planUsernameRelease(event.data?.before?.data(), event.data?.after?.data());
+        if (!handle) return;
+
+        const db = getFirestore();
+        const ref = db.collection("usernames").doc(handle);
+        await db.runTransaction(async (tx) => {
+            const snap = await tx.get(ref);
+            if (snap.exists && shouldReleaseReservation(snap.data(), event.params.uid)) {
+                tx.delete(ref);
+            }
+        });
+    }
+);

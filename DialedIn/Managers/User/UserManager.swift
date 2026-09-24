@@ -690,3 +690,10 @@ extension CoreInteractor {
     }
 
 }
+
+// MARK: - Usernames
+
+extension UserManager {
+    /// `queryService` is private to this file; `UserManager+Username.swift` reaches it through this.
+    var usernameQueryService: any UserQueryService { queryService }
+}

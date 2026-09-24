@@ -227,6 +227,8 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         case acceptedHealthDisclaimerDate = "accepted_health_disclaimer_date"
         case acceptedHealthPrivacyPolicyVersion = "accepted_health_privacy_policy_version"
         case acceptedHealthPrivacyPolicyDate = "accepted_health_privacy_policy_date"
+        // MARK: - Usernames
+        case username
     }
     
     var eventParameters: [String: Any] {
@@ -383,6 +385,13 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     mutating func markDidCompleteOnboarding() {
         didCompleteOnboarding = true
     }
+
+    // MARK: - Usernames
+
+    /// The user's unique handle, lowercase and shown exactly as stored — see `Username`. Set only
+    /// through `UserManager.claimUsername`, which reserves `usernames/{handle}` first. A `var` with
+    /// a default so the memberwise init and every existing call site are untouched.
+    var username: String?
 }
 
 enum Gender: String, Codable, Sendable {

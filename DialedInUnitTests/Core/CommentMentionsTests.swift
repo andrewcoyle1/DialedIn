@@ -216,4 +216,27 @@ struct CommentMentionsTests {
         #expect(own.commented.isEmpty)
         #expect(own.mentioned == ["sam"])
     }
+
+    // MARK: - Usernames
+
+    /// Someone with a handle is suggested by it, labelled `@handle`, and picking them inserts the
+    /// handle; the comment still records the id.
+    @Test("Test A Handle Is Suggested Inserted And Recorded By Id")
+    func testAHandleIsSuggestedInsertedAndRecordedById() async throws {
+        let screen = await makeScreen()
+        screen.interactor.followingUsers.append(
+            UserModel(userId: "bob", submittedFirstName: "Bob", submittedLastName: "Martinez").withUsername("bob_lifts")
+        )
+
+        screen.presenter.commentDraft = "Strong @bob_l"
+        let bob = try #require(screen.presenter.mentionSuggestions.first { $0.id == "bob" })
+        #expect(bob.label == "@bob_lifts")
+
+        screen.presenter.onMentionSuggestionPressed(bob)
+        #expect(screen.presenter.commentDraft == "Strong @bob_lifts ")
+
+        screen.presenter.onSendPressed()
+        await TestManagers.eventually { !screen.interactor.added.isEmpty }
+        #expect(screen.interactor.added.first?.mentionedUserIds == ["bob"])
+    }
 }

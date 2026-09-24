@@ -171,6 +171,11 @@ class AccountPresenter {
     /// already links an Apple or Google credential to the signed-in anonymous user, and
     /// `CoreInteractor.logIn` already handles the migration and cleanup around it, so the upgrade
     /// keeps the account rather than replacing it.
+    func onUsernamePressed() {
+        interactor.trackEvent(eventName: "AccountView_Username_Press", parameters: [:], type: .analytic)
+        router.showEditUsernameView()
+    }
+
     func onSaveAccountPressed() {
         interactor.trackEvent(event: Event.saveAccountPressed)
         router.showAuthView()

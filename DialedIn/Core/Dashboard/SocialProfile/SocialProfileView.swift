@@ -72,6 +72,7 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                                 .font(.title3)
                                 .fontWeight(.semibold)
                         }
+                        UsernameLabel(username: delegate.user.username, font: .subheadline)
                         if presenter.followsYou {
                             Text("Follows you")
                                 .font(.caption)

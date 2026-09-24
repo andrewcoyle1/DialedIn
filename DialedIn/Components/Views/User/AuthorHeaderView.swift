@@ -25,10 +25,13 @@ struct AuthorHeaderView: View {
             )
             .frame(width: 40, height: 40)
             VStack(alignment: .leading, spacing: 2) {
-                if let name = delegate.author.fullNameCalculated {
-                    Text(name)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
+                HStack(spacing: 4) {
+                    if let name = delegate.author.fullNameCalculated {
+                        Text(name)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                    }
+                    UsernameLabel(username: delegate.author.username)
                 }
                 Text(delegate.date.formatted(date: .abbreviated, time: .shortened))
                     .font(.caption)

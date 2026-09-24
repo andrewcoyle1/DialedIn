@@ -27,10 +27,27 @@ service cloud.firestore {
              request.resource.data.clickCount == resource.data.clickCount + 1;
     }
 
+    // A username handle: 3-20 of [a-z0-9_.], not starting or ending with a dot. Mirrors
+    // Username.validate in the app.
+    function isValidUsername(handle) {
+      return handle is string && handle.matches('^[a-z0-9_][a-z0-9_.]{1,18}[a-z0-9_]$');
+    }
+
+    // A user doc may carry only a username whose usernames/{handle} reservation the writer holds.
+    // An unchanged or absent username costs no read; clearing it (null) is always allowed.
+    function usernameIsHeldBy(uid) {
+      let handle = request.resource.data.get('username', null);
+      return handle == null
+        || (resource != null && resource.data.get('username', null) == handle)
+        || (isValidUsername(handle)
+            && get(/databases/$(database)/documents/usernames/$(handle)).data.user_id == uid);
+    }
+
     // ---------------- USERS ----------------
     match /users/{user_id} {
       allow read: if isAuthed();
-      allow write: if isAuthed() && request.auth.uid == user_id;
+      allow write: if isAuthed() && request.auth.uid == user_id
+                   && (request.method == 'delete' || usernameIsHeldBy(user_id));
 
       // Private settings: users/{user_id}/private/settings holds the FCM token and the
       // social_push_* opt-outs, which the public profile above exposes to every signed-in user.
@@ -385,6 +402,18 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleted_at']);
       // No hard deletes
       allow delete: if false;
+    }
+
+    // ---------------- USERNAMES ----------------
+    // usernames/{handle} = { user_id, date_created }: one document per claimed handle, so a handle
+    // has at most one owner. Create only, never update, so a taken handle cannot be overwritten;
+    // the owner may delete theirs. The onUsernameChanged Cloud Function releases a handle when its
+    // owner's username moves on.
+    match /usernames/{handle} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && isValidUsername(handle)
+                    && request.resource.data.user_id == request.auth.uid;
+      allow delete: if isAuthed() && resource.data.user_id == request.auth.uid;
     }
   }
 }

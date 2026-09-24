@@ -82,6 +82,12 @@ struct ProfileAccountPresenterTests {
         func showAuthView() {
             authViewShownCount += 1
         }
+
+        private(set) var editUsernameShownCount = 0
+
+        func showEditUsernameView() {
+            editUsernameShownCount += 1
+        }
     }
 
     private struct Screen {
@@ -470,5 +476,17 @@ struct ProfileAccountPresenterTests {
 
         #expect(screen.interactor.trackedScreenEventNames == ["AccountView_Appear"])
         #expect(screen.interactor.trackedEventNames == ["AccountView_Disappear"])
+    }
+
+    // MARK: - Usernames
+
+    @Test("Test The Username Row Opens The Editor")
+    func testTheUsernameRowOpensTheEditor() {
+        let screen = makeScreen()
+
+        screen.presenter.onUsernamePressed()
+
+        #expect(screen.router.editUsernameShownCount == 1)
+        #expect(screen.interactor.trackedEventNames == ["AccountView_Username_Press"])
     }
 }

@@ -448,3 +448,19 @@ extension DashboardPresenter {
     }
 
 }
+
+// MARK: - Usernames
+
+extension DashboardPresenter {
+
+    /// Drives the "pick a username" banner. The banner itself remembers being dismissed.
+    var needsUsername: Bool {
+        guard let user = interactor.currentUser else { return false }
+        return user.username == nil
+    }
+
+    func onPickUsernamePressed() {
+        interactor.trackEvent(eventName: "DashboardView_PickUsername_Press", parameters: [:], type: .analytic)
+        router.showEditUsernameView()
+    }
+}

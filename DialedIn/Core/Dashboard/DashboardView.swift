@@ -35,6 +35,7 @@ struct DashboardView<
     
     var body: some View {
         List {
+            if presenter.needsUsername { UsernameBannerView { presenter.onPickUsernamePressed() } }
             cardsSection
             workoutFeedSection
         }
