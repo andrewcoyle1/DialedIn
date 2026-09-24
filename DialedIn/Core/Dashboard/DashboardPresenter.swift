@@ -37,6 +37,65 @@ class DashboardPresenter {
         interactor.userImageUrl
     }
 
+    /// Who the user has nudged today. Held here rather than read through the interactor on every
+    /// render because the log lives in UserDefaults, which the view cannot observe; refreshed on
+    /// each appearance so it rolls over with the day.
+    private(set) var nudgedUserIds: Set<String> = []
+
+    /// The circle strip: everyone the user follows plus the user, trained-today first, then by
+    /// name. Empty — and so hidden — when the user follows nobody, since a strip of one is just
+    /// the user's own face. A blocked account is left out for the same reason as in the feed.
+    var circleMembers: [CircleMember] {
+        guard let reader = interactor.currentUser else { return [] }
+        let followed = interactor.followingUsers.filter { !reader.hasBlocked($0.userId) && $0.userId != reader.userId }
+        guard !followed.isEmpty else { return [] }
+
+        let trainedIds = Set(
+            (interactor.workoutSessions + interactor.followingWorkoutSessions)
+                .filter { session in
+                    guard let endedAt = session.endedAt else { return false }
+                    return !session.isRestDay && session.deletedAt == nil && Calendar.current.isDateInToday(endedAt)
+                }
+                .map(\.authorId)
+        )
+        return ([reader] + followed)
+            .map { user in
+                let trained = trainedIds.contains(user.userId)
+                return CircleMember(
+                    user: user,
+                    trainedToday: trained,
+                    canNudge: !trained && user.userId != reader.userId && !nudgedUserIds.contains(user.userId)
+                )
+            }
+            .sorted { lhs, rhs in
+                if lhs.trainedToday != rhs.trainedToday { return lhs.trainedToday }
+                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+            }
+    }
+
+    func onCircleMemberPressed(_ member: CircleMember) {
+        interactor.trackEvent(event: Event.circleMemberPressed)
+        router.showSocialProfileView(delegate: SocialProfileDelegate(user: member.user))
+    }
+
+    /// Greys the button out at once so a second tap cannot send a second nudge, and gives it back
+    /// if the write fails.
+    func onNudgePressed(_ member: CircleMember) {
+        let userId = member.user.userId
+        guard member.canNudge, !nudgedUserIds.contains(userId) else { return }
+        interactor.trackEvent(event: Event.nudgePressed)
+        interactor.playHaptic(option: .light)
+        nudgedUserIds.insert(userId)
+        Task {
+            do {
+                try await interactor.nudgeUser(userId: userId)
+            } catch {
+                nudgedUserIds.remove(userId)
+                router.showSimpleAlert(title: "Unable to nudge \(member.name)", subtitle: "Please try again.")
+            }
+        }
+    }
+
     /// People to follow, shown only under the empty feed. Loaded once per appearance of that
     /// state; a person the reader follows from here drops out of the list.
     private(set) var suggestedUsers: [UserModel] = []
@@ -242,6 +301,7 @@ class DashboardPresenter {
     
     func onViewAppear(delegate: DashboardDelegate) {
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+        nudgedUserIds = interactor.nudgedUserIdsToday
         loadNutrition()
     }
     
@@ -339,11 +399,15 @@ extension DashboardPresenter {
     enum Event: LoggableEvent {
         case onAppear(delegate: DashboardDelegate)
         case onDisappear(delegate: DashboardDelegate)
+        case circleMemberPressed
+        case nudgePressed
 
         var eventName: String {
             switch self {
             case .onAppear:                 return "DashboardView_Appear"
             case .onDisappear:              return "DashboardView_Disappear"
+            case .circleMemberPressed:      return "DashboardView_CircleMember_Press"
+            case .nudgePressed:             return "DashboardView_Nudge_Press"
             }
         }
         
@@ -351,8 +415,8 @@ extension DashboardPresenter {
             switch self {
             case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
                 return delegate.eventParameters
-//            default:
-//                return nil
+            case .circleMemberPressed, .nudgePressed:
+                return nil
             }
         }
         

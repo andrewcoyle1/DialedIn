@@ -66,7 +66,8 @@ enum DashboardFixture {
 @MainActor
 struct DashboardFeedPresenterTests {
 
-    private final class Interactor: SpyGlobalInteractor, DashboardInteractor {
+    /// Internal rather than private so `DashboardCirclePresenterTests` can share the doubles.
+    final class Interactor: SpyGlobalInteractor, DashboardInteractor {
         var userId: String? = "me"
         var userImageUrl: String?
         var currentUser: UserModel? = DashboardFixture.user("me")
@@ -86,6 +87,9 @@ struct DashboardFeedPresenterTests {
         private(set) var followedUserIds: [String] = []
         private(set) var unfollowedUserIds: [String] = []
         private(set) var totalsDayKeys: [String] = []
+        var nudgedUserIdsToday: Set<String> = []
+        var nudgeError: Error?
+        private(set) var nudgeWrites: [String] = []
 
         func deleteDraftMeal() throws {
             deletedDraftCount += 1
@@ -95,6 +99,12 @@ struct DashboardFeedPresenterTests {
         func followUser(userId: String) async throws { followedUserIds.append(userId) }
 
         func unfollowUser(userId: String) async throws { unfollowedUserIds.append(userId) }
+
+        func nudgeUser(userId: String) async throws {
+            if let nudgeError { throw nudgeError }
+            nudgeWrites.append(userId)
+            nudgedUserIdsToday.insert(userId)
+        }
 
         func fetchActivityNotifications() async throws {
             fetchedNotificationsCount += 1
@@ -119,7 +129,7 @@ struct DashboardFeedPresenterTests {
 
     /// `showDevSettingsView()` is declared unguarded: the protocol wraps it in `#if DEV || MOCK` but
     /// the test target builds without those flags.
-    private final class Router: DashboardRouter {
+    final class Router: DashboardRouter {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var shown: [String] = []
         private(set) var alertTitles: [String] = []
@@ -137,6 +147,10 @@ struct DashboardFeedPresenterTests {
         }
 
         func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+            alertTitles.append(title)
+        }
+
+        func showSimpleAlert(title: String, subtitle: String?) {
             alertTitles.append(title)
         }
     }

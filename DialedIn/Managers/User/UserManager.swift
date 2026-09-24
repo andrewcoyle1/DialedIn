@@ -491,6 +491,33 @@ extension CoreInteractor {
         try? await activityNotificationManager.addNotification(notification, userId: userId)
     }
 
+    /// The people the user has already nudged today (local day).
+    var nudgedUserIdsToday: Set<String> {
+        NudgeHistoryManager.nudgedUserIds()
+    }
+
+    /// Asks someone in the user's circle to train, at most once per person per local day. The
+    /// notification id carries the day, so even a nudge the local log missed overwrites that
+    /// day's rather than stacking a second one in the recipient's bell.
+    func nudgeUser(userId: String) async throws {
+        guard let actor = userManager.currentUser, !nudgedUserIdsToday.contains(userId) else { return }
+        let now = Date.now
+        let notification = ActivityNotificationModel(
+            id: "nudge_\(actor.userId)_\(now.dayKey)",
+            type: .nudge,
+            actorId: actor.userId,
+            actorName: actor.fullNameCalculated ?? "Someone",
+            actorImageUrl: actor.submittedProfileImage,
+            sessionId: "",
+            sessionAuthorId: userId,
+            commentText: nil,
+            dateCreated: now,
+            isRead: false
+        )
+        try await activityNotificationManager.addNotification(notification, userId: userId)
+        NudgeHistoryManager.addNudge(userId: userId, on: now)
+    }
+
     func unfollowUser(userId: String) async throws {
         try await userManager.unfollowUser(userId: userId)
         await didUnfollow(userId: userId)
