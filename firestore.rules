@@ -386,5 +386,32 @@ service cloud.firestore {
       // No hard deletes
       allow delete: if false;
     }
+
+    // ---------------- SHARES ----------------
+    // A workout template or program one user sent another, payload and all. Only the two parties
+    // read it. The sender creates it pending, under its own id, for someone other than themselves
+    // who has not blocked them. Only the recipient answers, by changing `status` alone. Either
+    // party may delete it.
+    match /shares/{share_id} {
+      allow read: if isAuthed() && (
+        resource.data.from_user_id == request.auth.uid ||
+        resource.data.to_user_id == request.auth.uid
+      );
+      allow create: if isAuthed()
+                    && request.resource.data.from_user_id == request.auth.uid
+                    && request.resource.data.id == share_id
+                    && request.resource.data.to_user_id is string
+                    && request.resource.data.to_user_id != request.auth.uid
+                    && request.resource.data.kind in ['template', 'program']
+                    && request.resource.data.status == 'pending'
+                    && !isBlockedBy(request.resource.data.to_user_id);
+      allow update: if isAuthed() && resource.data.to_user_id == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                    && request.resource.data.status in ['accepted', 'dismissed'];
+      allow delete: if isAuthed() && (
+        resource.data.from_user_id == request.auth.uid ||
+        resource.data.to_user_id == request.auth.uid
+      );
+    }
   }
 }

@@ -113,7 +113,7 @@ test("pushRecipientSettings reads the private doc first and falls back to the us
     // Not migrated yet: everything comes from the user doc, and nothing else is copied over.
     assert.deepEqual(pushRecipientSettings(undefined, legacy), {
         fcm_token: "old", social_push_likes: false, social_push_comments: false, social_push_follows: undefined,
-        social_push_nudges: undefined, social_push_mentions: undefined,
+        social_push_nudges: undefined, social_push_mentions: undefined, social_push_shares: undefined,
     });
 
     // Migrated: the private doc wins field by field, including a false over a legacy true.
@@ -185,4 +185,10 @@ test("buildActivityPush sends a followAccepted push under the follows preference
     const push = buildActivityPush({ type: "followAccepted", actor_name: "Jane", actor_id: "t1" }, { fcm_token: "tok" });
     assert.deepEqual(push.notification, { title: "Request accepted", body: "Jane accepted your follow request" });
     assert.equal(buildActivityPush({ type: "followAccepted" }, { fcm_token: "tok", social_push_follows: false }), null);
+});
+
+test("buildActivityPush sends a share push under the shares preference", () => {
+    const push = buildActivityPush({ type: "share", actor_name: "Jane" }, { fcm_token: "tok" });
+    assert.deepEqual(push.notification, { title: "Shared with you", body: "Jane shared a workout with you" });
+    assert.equal(buildActivityPush({ type: "share" }, { fcm_token: "tok", social_push_shares: false }), null);
 });
