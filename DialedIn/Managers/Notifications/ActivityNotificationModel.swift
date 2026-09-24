@@ -26,6 +26,11 @@ struct ActivityNotificationModel: Identifiable {
         /// Someone shared a workout template or program with the user. `shareId` is the
         /// `shares/{id}` document, `commentText` the shared item's name, and `sessionId` is empty.
         case share
+        // MARK: - Challenges
+        /// The user reached a challenge's target. Written by the `onWorkoutSessionEndedForChallenges`
+        /// Cloud Function with the user as their own actor; `challengeId` is the challenge and
+        /// `commentText` its title.
+        case challengeComplete = "challenge_complete"
     }
 
     let id: String
@@ -41,6 +46,9 @@ struct ActivityNotificationModel: Identifiable {
     // MARK: - Sharing
     /// The `shares/{id}` document behind a `.share` notification; nil for every other type.
     var shareId: String?
+    // MARK: - Challenges
+    /// The `challenges/{id}` document behind a `.challengeComplete` notification; nil otherwise.
+    var challengeId: String?
 }
 
 extension ActivityNotificationModel {

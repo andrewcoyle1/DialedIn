@@ -54,6 +54,8 @@ class DevPreview {
         container.register(StravaManager.self, service: stravaManager)
         container.register(OpenFoodFactsServiceContainer.self, service: OpenFoodFactsServiceContainer(openFoodFactsService))
         container.register(ShareManager.self, service: ShareManager(service: MockShareService()))
+        // MARK: - Challenges
+        container.register(ChallengeManager.self, service: ChallengeManager(service: MockChallengeService()))
 
         return container
     }
