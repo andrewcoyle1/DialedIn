@@ -116,7 +116,7 @@ test("pushRecipientSettings reads the private doc first and falls back to the us
     // Not migrated yet: everything comes from the user doc, and nothing else is copied over.
     assert.deepEqual(pushRecipientSettings(undefined, legacy), {
         fcm_token: "old", social_push_likes: false, social_push_comments: false, social_push_follows: undefined,
-        social_push_nudges: undefined, social_push_mentions: undefined, social_push_shares: undefined,
+        social_push_nudges: undefined, social_push_mentions: undefined, social_push_shares: undefined, social_push_challenges: undefined,
     });
 
     // Migrated: the private doc wins field by field, including a false over a legacy true.
@@ -391,4 +391,78 @@ test("planUserDeletion chunks its writes into batches of 400", () => {
     const empty = planUserDeletion("me");
     assert.deepEqual(empty.batches, [[{ type: "delete", path: "diet_plans/me" }]]);
     assert.deepEqual(empty.storageFiles, []);
+});
+
+// ---------------------------------------------------------------------------
+// Challenges
+// ---------------------------------------------------------------------------
+
+import {
+    activeChallengesFor, challengeCompleteMessage, planChallengeProgress, sessionJustEnded,
+    SOCIAL_PUSH_PREFERENCE_KEYS as CHALLENGE_PUSH_KEYS, buildActivityPush as buildChallengePush,
+} from "./lib.js";
+
+test("sessionJustEnded fires only when ended_at is first set on a training session", () => {
+    const ended = { ended_at: new Date() };
+    assert.equal(sessionJustEnded({}, ended), true);
+    assert.equal(sessionJustEnded(undefined, ended), true, "created already finished");
+    assert.equal(sessionJustEnded({ ended_at: null }, ended), true);
+    assert.equal(sessionJustEnded(ended, { ...ended, name: "edited" }), false, "already ended");
+    assert.equal(sessionJustEnded({}, {}), false, "still running");
+    assert.equal(sessionJustEnded({}, undefined), false, "deleted");
+    assert.equal(sessionJustEnded({}, { ...ended, is_rest_day: true }), false, "rest day");
+    assert.equal(sessionJustEnded({}, { ...ended, deleted_at: new Date() }), false, "soft-deleted");
+});
+
+test("activeChallengesFor keeps running challenges the author is in", () => {
+    const at = new Date("2026-10-10T12:00:00Z");
+    const challenge = (id, start, end, members = ["me"]) => ({
+        id, member_ids: members, starts_at: new Date(start), ends_at: new Date(end),
+    });
+    const all = [
+        challenge("running", "2026-10-01", "2026-10-15"),
+        challenge("future", "2026-10-11", "2026-10-20"),
+        challenge("over", "2026-09-01", "2026-10-10T12:00:00Z"),
+        challenge("not-mine", "2026-10-01", "2026-10-15", ["other"]),
+        challenge("starts-now", "2026-10-10T12:00:00Z", "2026-10-20"),
+    ];
+    assert.deepEqual(activeChallengesFor(all, "me", at).map((c) => c.id), ["running", "starts-now"]);
+    // Firestore Timestamps work as well as Dates.
+    const ts = (d) => ({ toDate: () => new Date(d) });
+    assert.equal(activeChallengesFor([{ id: "t", member_ids: ["me"], starts_at: ts("2026-10-01"), ends_at: ts("2026-10-15") }], "me", ts(at)).length, 1);
+    assert.deepEqual(activeChallengesFor(all, "me", null), []);
+});
+
+test("planChallengeProgress counts a session once and notifies on reaching the target", () => {
+    const now = new Date("2026-10-10T12:00:00Z");
+    const challenge = { id: "c1", title: "October Grind", target_sessions: 3 };
+    const user = { submitted_first_name: "Jane", submitted_last_name: "Doe" };
+
+    const first = planChallengeProgress(challenge, "me", "s1", undefined, user, now);
+    assert.deepEqual(first.progress, { sessions: 1, updated_at: now, session_ids: ["s1"] });
+    assert.equal(first.notification, null);
+
+    assert.equal(planChallengeProgress(challenge, "me", "s1", first.progress, user, now), null, "retry is a no-op");
+
+    const third = planChallengeProgress(challenge, "me", "s3", { sessions: 2, session_ids: ["s1", "s2"] }, user, now);
+    assert.equal(third.progress.sessions, 3);
+    assert.equal(third.notificationId, "challenge_complete_c1");
+    assert.deepEqual(third.notification, {
+        type: "challenge_complete", actor_id: "me", actor_name: "Jane Doe", session_id: "", session_author_id: "me",
+        comment_text: "October Grind", challenge_id: "c1", date_created: now, is_read: false,
+    });
+
+    const beyond = planChallengeProgress(challenge, "me", "s4", third.progress, user, now);
+    assert.equal(beyond.progress.sessions, 4, "keeps counting past the target");
+    assert.equal(beyond.notification, null, "notifies only once");
+});
+
+test("a challenge_complete notification pushes 'You finished <title>' unless opted out", () => {
+    assert.equal(CHALLENGE_PUSH_KEYS.challenge_complete, "social_push_challenges");
+    assert.equal(challengeCompleteMessage("October Grind"), "You finished October Grind");
+    const notification = { type: "challenge_complete", comment_text: "October Grind", actor_id: "me" };
+    const push = buildChallengePush(notification, { fcm_token: "t" });
+    assert.equal(push.notification.body, "You finished October Grind");
+    assert.equal(push.data.type, "challenge_complete");
+    assert.equal(buildChallengePush(notification, { fcm_token: "t", social_push_challenges: false }), null);
 });

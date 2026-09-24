@@ -28,6 +28,7 @@ export const SOCIAL_PUSH_PREFERENCE_KEYS = {
     followAccepted: "social_push_follows",
     follow_request: "social_push_follows",
     share: "social_push_shares",
+    challenge_complete: "social_push_challenges",
 };
 
 // The token and preferences moved from the public user doc to users/{uid}/private/settings. Each
@@ -91,6 +92,10 @@ export function buildActivityPush(notification, recipient) {
     case "share":
         title = "Shared with you";
         body = `${actor} shared a workout with you`;
+        break;
+    case "challenge_complete":
+        title = "Challenge complete";
+        body = challengeCompleteMessage(notification.comment_text);
         break;
     }
 
@@ -388,4 +393,64 @@ export function planUserDeletion(uid, lists = {}) {
         ...(lists.foods ?? []).map((id) => `ingredient_templates/${id}`),
     ];
     return { batches, storagePrefixes: [`${own}/`], storageFiles };
+}
+
+// ---------------------------------------------------------------------------
+// Challenges: challenges/{id} and challenges/{id}/progress/{uid}
+// ---------------------------------------------------------------------------
+
+export function challengeCompleteMessage(title) {
+    return `You finished ${title || "a challenge"}`;
+}
+
+// Whether a write to users/{uid}/workout_sessions/{id} is the session being finished: ended_at goes
+// from unset to set, on a session that is neither a rest day nor deleted. `before` is undefined for
+// a session created already finished, which counts too.
+export function sessionJustEnded(before, after) {
+    if (!after || !after.ended_at || before?.ended_at) return false;
+    return !after.is_rest_day && !after.deleted_at;
+}
+
+// The challenges a finished session counts towards: those `uid` is a member of that are running at
+// `endedAt` (starts_at <= endedAt < ends_at). `challenges` are docs as { id, ...data }.
+export function activeChallengesFor(challenges, uid, endedAt) {
+    const at = toDate(endedAt);
+    if (!uid || !at) return [];
+    return (challenges ?? []).filter((challenge) => {
+        const start = toDate(challenge.starts_at);
+        const end = toDate(challenge.ends_at);
+        return (challenge.member_ids ?? []).includes(uid) && start && end && start <= at && at < end;
+    });
+}
+
+// One member's progress write for one finished session, or null when that session was already
+// counted (a trigger retry). `progress` is the current progress doc or undefined. When this session
+// takes the member to the target, `notification` is the challenge_complete doc for
+// users/{uid}/notifications/{notificationId}, in the shape FirebaseActivityNotificationService parses.
+export function planChallengeProgress(challenge, uid, sessionId, progress, user, now = new Date()) {
+    const counted = progress?.session_ids ?? [];
+    if (counted.includes(sessionId)) return null;
+    const previous = progress?.sessions ?? 0;
+    const sessions = previous + 1;
+    const target = challenge.target_sessions ?? 0;
+    const plan = {
+        progress: { sessions, updated_at: now, session_ids: [...counted, sessionId] },
+        notificationId: null,
+        notification: null,
+    };
+    if (target > 0 && previous < target && sessions >= target) {
+        plan.notificationId = `challenge_complete_${challenge.id}`;
+        plan.notification = {
+            type: "challenge_complete",
+            actor_id: uid,
+            actor_name: userDisplayName(user),
+            session_id: "",
+            session_author_id: uid,
+            comment_text: challenge.title ?? "",
+            challenge_id: challenge.id,
+            date_created: now,
+            is_read: false,
+        };
+    }
+    return plan;
 }

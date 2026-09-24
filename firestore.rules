@@ -442,5 +442,47 @@ service cloud.firestore {
         resource.data.to_user_id == request.auth.uid
       );
     }
+
+    // MARK: - Challenges
+    // challenges/{id}: members read; the owner creates it (as a member) and may edit the title and
+    // members; any member may take only themselves out. progress/{uid} is written only by the
+    // onWorkoutSessionEndedForChallenges Cloud Function (the Admin SDK bypasses these rules).
+    match /challenges/{challenge_id} {
+      function isValidChallenge(data) {
+        return data.title is string && data.title.size() > 0 && data.title.size() <= 60
+            && data.member_ids is list && data.member_ids.size() <= 50
+            && data.owner_id in data.member_ids;
+      }
+
+      allow read: if isAuthed() && request.auth.uid in resource.data.member_ids;
+      allow create: if isAuthed()
+                    && request.resource.data.id == challenge_id
+                    && request.resource.data.owner_id == request.auth.uid
+                    && isValidChallenge(request.resource.data)
+                    && request.resource.data.target_sessions is int
+                    && request.resource.data.target_sessions >= 1
+                    && request.resource.data.target_sessions <= 100
+                    && request.resource.data.starts_at is timestamp
+                    && request.resource.data.ends_at is timestamp
+                    && request.resource.data.ends_at > request.resource.data.starts_at
+                    && request.resource.data.date_created is timestamp;
+      allow update: if isAuthed() && (
+        (resource.data.owner_id == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'member_ids'])
+          && isValidChallenge(request.resource.data))
+        ||
+        (request.auth.uid in resource.data.member_ids
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['member_ids'])
+          && request.resource.data.member_ids.toSet()
+               == resource.data.member_ids.toSet().difference([request.auth.uid].toSet()))
+      );
+      allow delete: if isAuthed() && resource.data.owner_id == request.auth.uid;
+
+      match /progress/{member_id} {
+        allow read: if isAuthed()
+                    && request.auth.uid in get(/databases/$(database)/documents/challenges/$(challenge_id)).data.member_ids;
+        allow write: if false;
+      }
+    }
   }
 }
