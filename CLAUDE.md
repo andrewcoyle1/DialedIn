@@ -195,11 +195,7 @@ Shared/                      # code shared between the app and the widget extens
 DialedInUnitTests/           # unit tests (target productName is DialedInTests)
 DialedInUITests/             # UI tests
 functions/                   # Firebase Cloud Functions (Node, Genkit/Vertex AI)
-DialedInWatchApp/            # NOT in the Xcode project — orphaned source, does not build
 ```
-
-`DialedInWatchApp/` is linted but has zero references in `project.pbxproj`, so changes there
-affect nothing. Do not treat it as a shipping target.
 
 ## Architecture
 
