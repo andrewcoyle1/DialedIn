@@ -78,6 +78,7 @@ struct SetTargetView: View {
                     .anyButton(.press) {
                         addSetTarget()
                     }
+                    .accessibilityLabel("Add set target")
             }
             
             Section {

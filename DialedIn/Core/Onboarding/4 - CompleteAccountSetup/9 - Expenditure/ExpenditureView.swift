@@ -84,6 +84,7 @@ struct ExpenditureView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
     }
     #endif
@@ -136,7 +137,7 @@ struct ExpenditureView: View {
                     }
                     ProgressView(value: presenter.animateBreakdown ? presenter.progress(for: item) : 0)
                         .tint(item.color)
-                        .animation(.easeOut(duration: 1.0), value: presenter.animateBreakdown)
+                        .reducedMotionAnimation(.easeOut(duration: 1.0), value: presenter.animateBreakdown)
                 }
                 .padding(.vertical, 6)
             }

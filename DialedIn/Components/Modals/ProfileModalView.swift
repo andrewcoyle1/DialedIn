@@ -37,6 +37,7 @@ struct ProfileModalView: View {
                     .anyButton {
                         onXMarkPressed()
                     }
+                    .accessibilityLabel("Close")
                     .padding(8)
             }
             

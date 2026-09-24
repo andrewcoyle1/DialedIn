@@ -9,6 +9,7 @@ import SwiftUI
 
 /// Runs `body` with `animation`, or with no animation at all when Reduce Motion is on.
 /// For decorative motion (count-ups, ring fills, bounces) that has no state-change meaning to preserve.
+@MainActor
 func withReducedMotionAnimation<Result>(_ animation: Animation, _ body: () throws -> Result) rethrows -> Result {
     try withAnimation(UIAccessibility.isReduceMotionEnabled ? nil : animation, body)
 }

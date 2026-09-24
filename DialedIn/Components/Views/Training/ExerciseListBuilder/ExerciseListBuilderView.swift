@@ -288,6 +288,7 @@ struct ExerciseListBuilderView: View {
                 }
                 .buttonStyle(.bordered)
                 .buttonBorderShape(.circle)
+                .accessibilityLabel("Add exercise")
             }
         }
     }
@@ -355,6 +356,7 @@ struct ExerciseListBuilderView: View {
                 Image(systemName: "plus")
             }
             .buttonStyle(.glassProminent)
+            .accessibilityLabel("Add exercise")
         }
     }
 }
