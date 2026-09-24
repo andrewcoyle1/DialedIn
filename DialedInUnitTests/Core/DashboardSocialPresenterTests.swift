@@ -19,7 +19,7 @@ import SwiftUI
 @MainActor
 struct SocialWorkoutSessionRowTests {
 
-    private final class Interactor: SpyGlobalInteractor, WorkoutSessionRowInteractor {
+    final class Interactor: SpyGlobalInteractor, WorkoutSessionRowInteractor {
         var currentUser: UserModel? = DashboardFixture.user("me")
         var history: [WorkoutSessionModel] = []
         var likeError: Error?
@@ -42,7 +42,7 @@ struct SocialWorkoutSessionRowTests {
         func report(contentType: ReportContentType, contentId: String, authorUserId: String?, reason: ReportReason, notes: String?) async throws { }
     }
 
-    private final class Router: WorkoutSessionRowRouter {
+    final class Router: WorkoutSessionRowRouter {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var shown: [String] = []
         private(set) var profileDelegates: [SocialProfileDelegate] = []

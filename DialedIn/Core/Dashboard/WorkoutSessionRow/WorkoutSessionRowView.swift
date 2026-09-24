@@ -96,17 +96,21 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
 
     // MARK: - Highlights
 
-    /// Records first, then the weekly count, each a small capsule. Wraps rather than truncates:
-    /// three PRs do not fit on one line of a phone.
+    /// Records first, then the streak, then the weekly count, each a small capsule. Wraps rather
+    /// than truncates: three PRs do not fit on one line of a phone. The flame is the streak's; the
+    /// weekly count had it before streaks were shown and moved to a calendar.
     @ViewBuilder
     private var highlights: some View {
-        if !presenter.personalRecords.isEmpty || presenter.weeklyWorkoutText != nil {
+        if !presenter.personalRecords.isEmpty || presenter.streakText != nil || presenter.weeklyWorkoutText != nil {
             FlowLayout(spacing: 6) {
                 ForEach(presenter.personalRecords, id: \.exerciseName) { record in
                     highlightCapsule("PR: \(record.exerciseName) \(record.detail)", systemImage: "trophy.fill", tint: .yellow)
                 }
+                if let streak = presenter.streakText {
+                    highlightCapsule(streak, systemImage: "flame.fill", tint: .orange)
+                }
                 if let weekly = presenter.weeklyWorkoutText {
-                    highlightCapsule(weekly, systemImage: "flame.fill", tint: .orange)
+                    highlightCapsule(weekly, systemImage: "calendar", tint: .blue)
                 }
             }
         }

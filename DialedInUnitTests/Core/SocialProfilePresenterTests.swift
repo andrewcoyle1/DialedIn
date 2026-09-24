@@ -19,7 +19,7 @@ import SwiftUI
 @MainActor
 struct SocialProfilePresenterTests {
 
-    private final class Interactor: SpyGlobalInteractor, SocialProfileInteractor {
+    final class Interactor: SpyGlobalInteractor, SocialProfileInteractor {
         var currentUser: UserModel? = DashboardFixture.user("me")
         var followingUsers: [UserModel] = []
         var followers: [UserModel] = []
@@ -86,7 +86,7 @@ struct SocialProfilePresenterTests {
         }
     }
 
-    private final class Router: SocialProfileRouter {
+    final class Router: SocialProfileRouter {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var followersDelegates: [FollowersListDelegate] = []
         private(set) var alertTitles: [String] = []
