@@ -46,6 +46,7 @@ struct SocialWorkoutSessionRowTests {
     }
 
     final class Router: WorkoutSessionRowRouter {
+        func showShareToFollowerView(delegate: ShareToFollowerDelegate) { }
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var shown: [String] = []
         private(set) var profileDelegates: [SocialProfileDelegate] = []

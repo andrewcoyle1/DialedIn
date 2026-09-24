@@ -26,6 +26,8 @@ protocol NotificationsInteractor: FollowInteractor {
     func getUser(userId: String) async throws -> UserModel
     func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws
     func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel
+    // MARK: - Sharing
+    func fetchShare(id: String) async throws -> ShareModel
 }
 
 extension CoreInteractor: NotificationsInteractor { }

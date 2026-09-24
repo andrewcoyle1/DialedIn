@@ -642,6 +642,7 @@ struct TrainingProgramGroupPresenterTests {
     private final class Interactor: SpyGlobalInteractor, TrainingProgramDisclosureGroupInteractor { }
 
     private final class Router: TrainingProgramDisclosureGroupRouter {
+        func showShareToFollowerView(delegate: ShareToFollowerDelegate) { }
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var editDelegates: [EditTrainingProgramDelegate] = []
 

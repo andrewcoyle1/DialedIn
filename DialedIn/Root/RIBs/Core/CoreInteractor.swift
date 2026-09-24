@@ -60,6 +60,8 @@ struct CoreInteractor: GlobalInteractor {
     let premiumEntitlementResolution: PremiumEntitlementResolution
     let hapticManager: HapticManager
     let soundEffectManager: SoundEffectManager
+    // MARK: - Sharing
+    let shareManager: ShareManager
 
     init(container: DependencyContainer) {
         self.authManager = container.resolve(AuthManager.self)!
@@ -106,6 +108,8 @@ struct CoreInteractor: GlobalInteractor {
 
         self.hapticManager = container.resolve(HapticManager.self)!
         self.soundEffectManager = container.resolve(SoundEffectManager.self)!
+        // MARK: - Sharing
+        self.shareManager = container.resolve(ShareManager.self)!
     }
 
     // MARK: Shared

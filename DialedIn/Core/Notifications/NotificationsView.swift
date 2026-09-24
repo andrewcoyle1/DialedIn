@@ -84,6 +84,7 @@ struct NotificationsView: View {
             Toggle("Mentions", isOn: $presenter.isMentionsPushEnabled)
             Toggle("New followers", isOn: $presenter.isFollowsPushEnabled)
             Toggle("Nudges", isOn: $presenter.isNudgesPushEnabled)
+            Toggle("Shares", isOn: $presenter.isSharesPushEnabled)
         } header: {
             Text("Social")
         } footer: {
@@ -184,6 +185,8 @@ struct NotificationsView: View {
             return "\(notification.actorName) mentioned you\(preview)"
         case .followAccepted:
             return "\(notification.actorName) accepted your follow request"
+        case .share:
+            return "\(notification.actorName) shared \(notification.commentText ?? "a workout")"
         }
     }
 

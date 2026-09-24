@@ -62,6 +62,11 @@ struct WorkoutTemplateDetailView: View {
                     } label: {
                         Label("Edit Workout", systemImage: "pencil")
                     }
+                    Button {
+                        presenter.onSharePressed(template: delegate.workoutTemplate)
+                    } label: {
+                        Label("Share with Friends", systemImage: "paperplane")
+                    }
                     Button(role: .destructive) {
                         presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
                     } label: {

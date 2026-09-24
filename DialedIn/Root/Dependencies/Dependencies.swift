@@ -1035,6 +1035,15 @@ struct Dependencies {
         container.register(StravaManager.self, service: stravaManager)
         container.register(OpenFoodFactsServiceContainer.self, service: OpenFoodFactsServiceContainer(openFoodFactsService))
 
+        // MARK: - Sharing
+        let shareService: ShareService
+        if case .mock = config {
+            shareService = MockShareService()
+        } else {
+            shareService = FirebaseShareService()
+        }
+        container.register(ShareManager.self, service: ShareManager(service: shareService))
+
         self.logManager = logManager
         self.container = container
     }
