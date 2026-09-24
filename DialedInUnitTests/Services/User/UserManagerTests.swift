@@ -113,6 +113,34 @@ struct UserManagerTests {
         #expect(manager.followingUsers.isEmpty)
     }
 
+    // MARK: - Blocking
+
+    /// Blocking someone the reader follows takes the follow back in the same write, so a blocked
+    /// person's sessions stop syncing into the feed.
+    @Test("Test Blocking A Followed User Unfollows Them")
+    func testBlockingAFollowedUserUnfollowsThem() async throws {
+        let reader = UserModel(userId: "me", followingIds: ["friend", "other"])
+        let manager = try await TestManagers.signedInUserManager(reader)
+
+        try await manager.blockUser(userId: "friend")
+
+        await TestManagers.eventually { manager.currentUser?.blockedUserIds == ["friend"] }
+        #expect(manager.currentUser?.blockedUserIds == ["friend"])
+        #expect(manager.currentUser?.followingIds == ["other"])
+    }
+
+    @Test("Test Unblocking Does Not Restore The Follow")
+    func testUnblockingDoesNotRestoreTheFollow() async throws {
+        let reader = UserModel(userId: "me", blockedUserIds: ["friend"], followingIds: ["other"])
+        let manager = try await TestManagers.signedInUserManager(reader)
+
+        try await manager.unblockUser(userId: "friend")
+
+        await TestManagers.eventually { manager.currentUser?.blockedUserIds?.isEmpty == true }
+        #expect(manager.currentUser?.blockedUserIds == [])
+        #expect(manager.currentUser?.followingIds == ["other"])
+    }
+
     // MARK: - Helpers
 
     private func auth(

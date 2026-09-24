@@ -61,8 +61,10 @@ class ActivityNotificationManager {
 }
 
 extension CoreInteractor {
+    /// Nothing a blocked account did reaches the reader — not the list, not the tab badge.
     var activityNotifications: [ActivityNotificationModel] {
-        activityNotificationManager.notifications
+        let reader = userManager.currentUser
+        return activityNotificationManager.notifications.filter { !(reader?.hasBlocked($0.actorId) ?? false) }
     }
 
     func fetchActivityNotifications() async throws {

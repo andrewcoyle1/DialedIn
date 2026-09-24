@@ -177,6 +177,21 @@ struct DashboardFeedPresenterTests {
         #expect(screen.presenter.feedSessions.map(\.id) == ["mine-new", "theirs", "mine-old"])
     }
 
+    /// Blocking unfollows, but the following sync can still hold a blocked author's sessions until
+    /// it next emits, and an account blocked before blocking unfollowed may still be followed.
+    @Test("Test A Blocked Authors Session Is Not In The Feed")
+    func testABlockedAuthorsSessionIsNotInTheFeed() {
+        let screen = makeScreen()
+        screen.interactor.currentUser = UserModel(userId: "me", submittedFirstName: "me", blockedUserIds: ["blocked"])
+        screen.interactor.followingUsers = [DashboardFixture.user("friend"), DashboardFixture.user("blocked")]
+        screen.interactor.followingWorkoutSessions = [
+            DashboardFixture.session(id: "theirs", author: "friend", on: DashboardFixture.date(day: 3)),
+            DashboardFixture.session(id: "hidden", author: "blocked", on: DashboardFixture.date(day: 4))
+        ]
+
+        #expect(screen.presenter.feedSessions.map(\.id) == ["theirs"])
+    }
+
     /// A workout still being logged is not an achievement to show anyone — including its own author,
     /// who is still in the gym doing it.
     @Test("Test An Unfinished Session Of Your Own Is Not In The Feed")

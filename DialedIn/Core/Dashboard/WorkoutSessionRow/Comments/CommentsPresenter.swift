@@ -42,8 +42,19 @@ class CommentsPresenter {
         // Sorted here because the query that fetches them has no order clause, so they arrive in
         // document-id order — effectively at random. A reply read before the thing it replies to is
         // nonsense, and new comments are appended to the end, so the thread is oldest first.
-        comments = Self.threaded((try? await interactor.fetchComments(sessionId: session.id)) ?? [])
+        let fetched = (try? await interactor.fetchComments(sessionId: session.id)) ?? []
+        comments = Self.threaded(hidingBlocked(fetched))
         isLoading = false
+    }
+
+    /// Drops comments by anyone the reader has blocked, and the replies under them — which would
+    /// otherwise surface at the top level as orphans.
+    private func hidingBlocked(_ comments: [WorkoutSessionComment]) -> [WorkoutSessionComment] {
+        guard let reader = interactor.currentUser else { return comments }
+        let hiddenIds = Set(comments.filter { reader.hasBlocked($0.authorId) }.map(\.id))
+        return comments.filter { comment in
+            !hiddenIds.contains(comment.id) && !hiddenIds.contains(comment.parentId ?? "")
+        }
     }
 
     /// Top-level comments oldest first, each followed by its replies oldest first. A reply whose
