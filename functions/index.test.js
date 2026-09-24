@@ -186,3 +186,26 @@ test("buildActivityPush sends a followAccepted push under the follows preference
     assert.deepEqual(push.notification, { title: "Request accepted", body: "Jane accepted your follow request" });
     assert.equal(buildActivityPush({ type: "followAccepted" }, { fcm_token: "tok", social_push_follows: false }), null);
 });
+
+// ---------------------------------------------------------------------------
+// Usernames
+// ---------------------------------------------------------------------------
+
+import { planUsernameRelease, shouldReleaseReservation } from "./lib.js";
+
+test("planUsernameRelease releases the old handle only when it changed or the user was deleted", () => {
+    assert.equal(planUsernameRelease({ username: "bob" }, { username: "bobby" }), "bob");
+    assert.equal(planUsernameRelease({ username: "bob" }, {}), "bob");
+    assert.equal(planUsernameRelease({ username: "bob" }, undefined), "bob");
+    assert.equal(planUsernameRelease({ username: "bob" }, { username: "bob" }), null);
+    assert.equal(planUsernameRelease({}, { username: "bob" }), null);
+    assert.equal(planUsernameRelease(undefined, { username: "bob" }), null);
+    assert.equal(planUsernameRelease({ username: "" }, {}), null);
+});
+
+test("shouldReleaseReservation leaves a handle someone else now holds", () => {
+    assert.equal(shouldReleaseReservation({ user_id: "u1" }, "u1"), true);
+    assert.equal(shouldReleaseReservation({ user_id: "u2" }, "u1"), false);
+    assert.equal(shouldReleaseReservation(undefined, "u1"), false);
+    assert.equal(shouldReleaseReservation({ user_id: undefined }, undefined), false);
+});

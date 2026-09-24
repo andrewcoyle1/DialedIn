@@ -148,3 +148,21 @@ export function buildFollowAcceptedNotification(target, { targetId, requesterId 
     if (image) notification.actor_image_url = image;
     return notification;
 }
+
+// ---------------------------------------------------------------------------
+// Usernames: usernames/{handle} reservations
+// ---------------------------------------------------------------------------
+
+// The handle to release after a write to users/{uid}: the old username when it changed or the
+// document was deleted, else null. `after` is undefined for a delete.
+export function planUsernameRelease(before, after) {
+    const previous = before?.username;
+    if (typeof previous !== "string" || previous === "") return null;
+    return previous === after?.username ? null : previous;
+}
+
+// A reservation is released only while it still names the user who moved off it, so a handle that
+// someone else has since reserved is never taken from them.
+export function shouldReleaseReservation(reservation, uid) {
+    return Boolean(uid) && reservation?.user_id === uid;
+}
