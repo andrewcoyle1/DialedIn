@@ -18,13 +18,24 @@ class UserManager {
 
     var currentUser: UserModel? { userSyncEngine.currentDocument }
 
+    /// Private profiles the reader has asked to follow and is waiting on. Requests live under their
+    /// target, so this is kept here: seeded at sign-in, then changed by send and cancel.
+    private(set) var sentFollowRequestIds: Set<String> = []
+
+    /// Pending requests to follow the reader, newest first.
+    private(set) var incomingFollowRequests: [FollowRequestModel] = []
+
     /// Blocked accounts are left out even while their follow is still being taken back.
     var followingUsers: [UserModel] {
         followingUsersSyncEngine.currentCollection.filter { !isBlocked($0) }
     }
 
     private func isBlocked(_ user: UserModel) -> Bool {
-        currentUser?.hasBlocked(user.userId) ?? false
+        isBlocked(id: user.userId)
+    }
+
+    private func isBlocked(id: String) -> Bool {
+        currentUser?.hasBlocked(id) ?? false
     }
 
     init(
@@ -44,11 +55,17 @@ class UserManager {
             try await userSyncEngine.saveDocument(user)
         }
         try await userSyncEngine.startListening(documentId: auth.uid)
+        // Best effort: a failed read leaves the buttons on "Follow" and the list empty, which a
+        // later fetch corrects.
+        sentFollowRequestIds = Set((try? await queryService.fetchSentFollowRequestTargetIds(requesterId: auth.uid)) ?? [])
+        try? await fetchIncomingFollowRequests(userId: auth.uid)
     }
     
     func signOut() {
         userSyncEngine.stopListening()
         followingUsersSyncEngine.stopListening()
+        sentFollowRequestIds = []
+        incomingFollowRequests = []
     }
 
     func refreshFollowingUsers(followingIds: [String]) async {
@@ -328,6 +345,47 @@ class UserManager {
         ])
     }
     
+    // MARK: - Follow Requests
+
+    /// Asks to follow a private profile. Nothing is followed until its owner accepts.
+    func sendFollowRequest(to user: UserModel) async throws {
+        guard let requester = currentUser else { throw UserManagerError.noUserId }
+        let request = FollowRequestModel(
+            requesterId: requester.userId,
+            requesterName: requester.fullNameCalculated ?? "Someone",
+            requesterImageUrl: requester.profileImageNameCalculated,
+            dateCreated: .now,
+            status: .pending
+        )
+        try await queryService.sendFollowRequest(request, targetId: user.userId)
+        sentFollowRequestIds.insert(user.userId)
+    }
+
+    func cancelFollowRequest(userId: String) async throws {
+        guard let requesterId = currentUser?.userId else { throw UserManagerError.noUserId }
+        try await queryService.deleteFollowRequest(requesterId: requesterId, targetId: userId)
+        sentFollowRequestIds.remove(userId)
+    }
+
+    func fetchIncomingFollowRequests(userId: String) async throws {
+        incomingFollowRequests = try await queryService.fetchPendingFollowRequests(userId: userId)
+            .filter { !isBlocked(id: $0.requesterId) }
+            .sorted { $0.dateCreated > $1.dateCreated }
+    }
+
+    /// Accepting only writes the status; the `onFollowRequestUpdated` Cloud Function adds the
+    /// follow to the requester's document and deletes the request.
+    func respondToFollowRequest(requesterId: String, accept: Bool) async throws {
+        guard let userId = currentUser?.userId else { throw UserManagerError.noUserId }
+        try await queryService.updateFollowRequestStatus(accept ? .accepted : .declined, requesterId: requesterId, targetId: userId)
+        incomingFollowRequests.removeAll { $0.requesterId == requesterId }
+    }
+
+    func fetchUsers(userIds: [String]) async throws -> [UserModel] {
+        guard !userIds.isEmpty else { return [] }
+        return try await queryService.fetchUsers(userIds: userIds).filter { !isBlocked($0) }
+    }
+
     // MARK: - User deletion
     
     /// Deletes the user profile document and clears local state.
@@ -515,6 +573,37 @@ extension CoreInteractor {
 
     func fetchSuggestedUsers() async throws -> [UserModel] {
         try await userManager.fetchSuggestedUsers()
+    }
+
+    func fetchUsers(userIds: [String]) async throws -> [UserModel] {
+        try await userManager.fetchUsers(userIds: userIds)
+    }
+
+    // Follow Requests
+
+    var sentFollowRequestIds: Set<String> {
+        userManager.sentFollowRequestIds
+    }
+
+    var incomingFollowRequests: [FollowRequestModel] {
+        userManager.incomingFollowRequests
+    }
+
+    func sendFollowRequest(to user: UserModel) async throws {
+        try await userManager.sendFollowRequest(to: user)
+    }
+
+    func cancelFollowRequest(userId: String) async throws {
+        try await userManager.cancelFollowRequest(userId: userId)
+    }
+
+    func fetchIncomingFollowRequests() async throws {
+        guard let userId else { return }
+        try await userManager.fetchIncomingFollowRequests(userId: userId)
+    }
+
+    func respondToFollowRequest(requesterId: String, accept: Bool) async throws {
+        try await userManager.respondToFollowRequest(requesterId: requesterId, accept: accept)
     }
 
     func updatePrivacy(isPrivate: Bool) async throws {

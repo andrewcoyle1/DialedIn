@@ -175,6 +175,23 @@ service cloud.firestore {
         allow update, delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
       }
 
+      // Follow requests to a private profile: users/{target}/follow_requests/{requester}.
+      // The requester creates (or re-asks after a decline) their own pending request, keyed by
+      // their uid, and may delete it to cancel. The target reads their requests and may change only
+      // `status`, to accepted or declined. Acting on an acceptance is the onFollowRequestUpdated
+      // Cloud Function's job, since only the server can write the requester's document.
+      match /follow_requests/{requester_id} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow create, update: if isAuthed() && request.auth.uid == requester_id
+                              && requester_id != user_id
+                              && request.resource.data.requester_id == requester_id
+                              && request.resource.data.status == 'pending';
+        allow update: if isAuthed() && request.auth.uid == user_id
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                      && request.resource.data.status in ['accepted', 'declined'];
+        allow delete: if isAuthed() && request.auth.uid == requester_id;
+      }
+
       // Activity Notifications subcollection
       // Owner can read and delete their own notifications.
       // Any authenticated user can create/overwrite a notification on another user's behalf
@@ -222,6 +239,14 @@ service cloud.firestore {
     // Writes are still enforced by the subcollection rule above (owner-only).
     match /{path=**}/workout_sessions/{workout_session_id} {
       allow read: if isAuthed();
+    }
+
+    // ---------------- FOLLOW REQUESTS (collection group) ----------------
+    // Lets a requester find their own outgoing requests (collectionGroup("follow_requests")
+    // where requester_id == uid), which is how the app knows which buttons read "Requested".
+    // Only documents naming the reader as requester are readable this way.
+    match /{path=**}/follow_requests/{requester_id} {
+      allow read: if isAuthed() && resource.data.requester_id == request.auth.uid;
     }
 
     // ---------------- INGREDIENTS ----------------

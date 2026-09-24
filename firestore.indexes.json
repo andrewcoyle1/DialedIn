@@ -14,6 +14,14 @@
         { "fieldPath": "author_id", "order": "ASCENDING" },
         { "fieldPath": "date_created", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "follow_requests",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "requester_id", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

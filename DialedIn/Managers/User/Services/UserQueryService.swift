@@ -5,4 +5,16 @@ protocol UserQueryService {
     /// The newest accounts, for a reader who follows nobody yet. Excluding the reader and the
     /// people they already follow is the caller's job.
     func fetchSuggestedUsers(limit: Int) async throws -> [UserModel]
+    /// Profiles by id, in no particular order; ids with no profile are skipped.
+    func fetchUsers(userIds: [String]) async throws -> [UserModel]
+
+    // MARK: Follow requests — users/{targetId}/follow_requests/{requesterId}
+
+    func sendFollowRequest(_ request: FollowRequestModel, targetId: String) async throws
+    func deleteFollowRequest(requesterId: String, targetId: String) async throws
+    func updateFollowRequestStatus(_ status: FollowRequestModel.Status, requesterId: String, targetId: String) async throws
+    /// Pending requests waiting on `userId`.
+    func fetchPendingFollowRequests(userId: String) async throws -> [FollowRequestModel]
+    /// The ids of the profiles `requesterId` has a pending request with.
+    func fetchSentFollowRequestTargetIds(requesterId: String) async throws -> [String]
 }
