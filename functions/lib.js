@@ -78,6 +78,7 @@ export function buildActivityPush(notification, recipient) {
     case "nudge":
         title = "Nudge";
         body = `${actor} nudged you to train`;
+        break;
     case "followAccepted":
         title = "Request accepted";
         body = followAcceptedMessage(actor);

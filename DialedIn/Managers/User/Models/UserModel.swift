@@ -530,25 +530,3 @@ extension OnboardingStep {
         }
     }
 }
-
-extension UserModel {
-    /// The profile field that opts out of pushes for one kind of social activity. Must match
-    /// `SOCIAL_PUSH_PREFERENCE_KEYS` in `functions/lib.js`.
-    static func socialPushKey(for type: ActivityNotificationModel.ActivityType) -> CodingKeys {
-        switch type {
-        case .like: return .socialPushLikes
-        case .comment: return .socialPushComments
-        case .follow, .followAccepted: return .socialPushFollows
-        }
-    }
-
-    /// On unless the user has switched it off.
-    func isSocialPushEnabled(for type: ActivityNotificationModel.ActivityType) -> Bool {
-        let stored: Bool? = switch type {
-        case .like: socialPushLikes
-        case .comment: socialPushComments
-        case .follow, .followAccepted: socialPushFollows
-        }
-        return stored ?? true
-    }
-}

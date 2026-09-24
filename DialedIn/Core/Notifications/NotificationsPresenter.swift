@@ -182,14 +182,14 @@ class NotificationsPresenter {
     }
 
     /// A like, comment or mention opens the session it is about — a comment or mention with its
-    /// thread on top — and a follow opens the follower's profile.
+    /// thread on top — and a follow, an accepted request or a nudge opens the other person's profile.
     func onNotificationPressed(_ notification: ActivityNotificationModel) {
         interactor.trackEvent(event: Event.notificationPressed(type: notification.type))
         router.showLoadingModal()
         Task {
             do {
                 switch notification.type {
-                case .follow:
+                case .follow, .followAccepted, .nudge:
                     let user = try await interactor.getUser(userId: notification.actorId)
                     router.dismissModal()
                     router.showSocialProfileView(delegate: SocialProfileDelegate(user: user))

@@ -64,6 +64,8 @@ struct NotificationsFollowRequestTests {
         func deleteActivityNotification(id: String) async throws { }
         func clearAllDeliveredNotifications() { }
         func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws { }
+        var privateUserSettings = PrivateUserSettings()
+        func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel { throw DevToolsTestError.failed }
     }
 
     private final class Router: NotificationsRouter {
@@ -73,6 +75,9 @@ struct NotificationsFollowRequestTests {
         func showAlert(error: Error) { }
         func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { alertTitles.append(title) }
         func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
+        func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { }
+        func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { }
+        func showSocialProfileView(delegate: SocialProfileDelegate) { }
     }
 
     private func request(_ id: String) -> FollowRequestModel {

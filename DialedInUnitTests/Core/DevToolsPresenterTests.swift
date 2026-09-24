@@ -452,7 +452,6 @@ struct DevToolsNotificationsPresenterTests {
         }
 
         func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel { throw DevToolsTestError.failed }
-        func getUser(userId: String) async throws -> UserModel { throw DevToolsTestError.failed }
     }
 
     private final class Router: NotificationsRouter {

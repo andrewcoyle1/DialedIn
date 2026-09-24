@@ -33,6 +33,15 @@ struct NotificationTapThroughTests {
         func deleteActivityNotification(id: String) async throws { }
         func clearAllDeliveredNotifications() { }
         func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws { }
+        var privateUserSettings = PrivateUserSettings()
+        var incomingFollowRequests: [FollowRequestModel] = []
+        var sentFollowRequestIds: Set<String> = []
+        func fetchIncomingFollowRequests() async throws { }
+        func respondToFollowRequest(requesterId: String, accept: Bool) async throws { }
+        func followUser(userId: String) async throws { }
+        func unfollowUser(userId: String) async throws { }
+        func sendFollowRequest(to user: UserModel) async throws { }
+        func cancelFollowRequest(userId: String) async throws { }
 
         func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel {
             sessionRequests.append("\(id)|\(authorId)")

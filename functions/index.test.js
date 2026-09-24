@@ -132,7 +132,7 @@ test("pushRecipientSettings reads the private doc first and falls back to the us
 test("buildActivityPush turns a nudge into a push with no session behind it", () => {
     const nudge = buildActivityPush({ type: "nudge", actor_name: "Jane", actor_id: "a1" }, { fcm_token: "tok" });
     assert.deepEqual(nudge.notification, { title: "Nudge", body: "Jane nudged you to train" });
-    assert.deepEqual(nudge.data, { tab: "dashboard", type: "nudge", session_id: "", actor_id: "a1" });
+    assert.deepEqual(nudge.data, { tab: "dashboard", type: "nudge", session_id: "", session_author_id: "", actor_id: "a1" });
 });
 
 test("planFollowAccepted acts only when a request has just become accepted", () => {
