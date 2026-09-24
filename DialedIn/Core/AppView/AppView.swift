@@ -10,6 +10,7 @@ import SwiftfulUI
 
 struct AppView<Content: View>: View {
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State var presenter: AppPresenter
 
     @ViewBuilder var content: () -> Content
@@ -61,16 +62,16 @@ struct AppView<Content: View>: View {
         .overlay(alignment: .top) {
             if let toast = presenter.toast {
                 AppToastView(toast: toast)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .animation(.spring, value: presenter.toast?.id)
+                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+                    .reducedMotionAnimation(.spring, value: presenter.toast?.id)
                     .padding(.top, 8)
             }
         }
         .overlay(alignment: .top) {
             if let banner = presenter.activityBanner {
                 ActivityNotificationBannerView(notification: banner)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .animation(.spring, value: presenter.activityBanner != nil)
+                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+                    .reducedMotionAnimation(.spring, value: presenter.activityBanner != nil)
                     .padding(.top, 8)
             }
         }

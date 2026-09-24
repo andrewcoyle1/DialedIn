@@ -10,6 +10,7 @@ struct BarcodeScannerDelegate {
 struct BarcodeScannerView: View {
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     @State var presenter: BarcodeScannerPresenter
     let delegate: BarcodeScannerDelegate
@@ -42,8 +43,8 @@ struct BarcodeScannerView: View {
                     || (presenter.scanningMode == .barcode && presenter.barcodeError != nil)
                 if showOverlay {
                     parsedIngredientOverlay
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .animation(.spring(duration: 0.3), value: showOverlay)
+                        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                        .reducedMotionAnimation(.spring(duration: 0.3), value: showOverlay)
                 }
             } else {
                 Text("Scanner not supported on this device.")

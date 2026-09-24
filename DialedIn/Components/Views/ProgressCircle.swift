@@ -70,7 +70,7 @@ struct ProgressCircle: View {
 
         }
         .onAppear {
-            withAnimation(.spring().speed(0.2)) {
+            withReducedMotionAnimation(.spring().speed(0.2)) {
                 showValue = true
             }
         }
