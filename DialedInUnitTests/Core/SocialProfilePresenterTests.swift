@@ -137,6 +137,19 @@ struct SocialProfilePresenterTests {
         SocialProfileDelegate(user: UserModel(userId: id, followingIds: following))
     }
 
+    /// Another user's sessions load on appear; the section shows a spinner until they land rather
+    /// than flashing "No workouts yet".
+    @Test("Test Sessions Show Loading Until The Fetch Lands")
+    func testSessionsShowLoadingUntilTheFetchLands() async {
+        let screen = makeScreen()
+
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+        #expect(screen.presenter.isLoadingSessions)
+
+        #expect(await TestManagers.eventually(timeout: .seconds(5)) { !screen.presenter.isLoadingSessions })
+        #expect(screen.interactor.fetchedSessionAuthorIds == ["friend"])
+    }
+
     /// The followers shown are the profile's own, fetched for that user id — never the reader's.
     @Test("Test Appearing Loads The Profiles Followers")
     func testAppearingLoadsTheProfilesFollowers() async {

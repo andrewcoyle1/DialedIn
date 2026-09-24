@@ -69,6 +69,7 @@ class EditUsernamePresenter {
         checkTask = Task { [debounce, interactor] in
             try? await Task.sleep(for: debounce)
             guard !Task.isCancelled else { return }
+            // Not silent: nil maps to `.failed`, which the field shows inline.
             let available = try? await interactor.isUsernameAvailable(handle)
             guard !Task.isCancelled else { return }
             switch available {

@@ -128,7 +128,9 @@ class SocialProfilePresenter {
     }
 
     private func loadSessions(userId: String) {
+        isLoadingSessions = true
         Task {
+            defer { isLoadingSessions = false }
             do {
                 fetchedSessions = try await interactor.fetchWorkoutSessions(authorId: userId, limit: 30)
             } catch {
@@ -247,6 +249,11 @@ class SocialProfilePresenter {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
 
+    // MARK: - Empty and loading states
+
+    /// Another user's sessions are fetched on appear; until they land the section shows a spinner
+    /// rather than "No workouts yet".
+    private(set) var isLoadingSessions = false
 }
 
 extension SocialProfilePresenter {

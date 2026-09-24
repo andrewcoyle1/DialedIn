@@ -84,6 +84,9 @@ struct GymProfileView: View {
             if !presenter.filteredCableMachines.isEmpty || !presenter.filteredPlateLoadedMachines.isEmpty || !presenter.filteredPinLoadedMachines.isEmpty {
                 GymProfileMachineSectionsView(presenter: $presenter)
             }
+            if presenter.hasNoMatchingEquipment {
+                ContentUnavailableView.search(text: presenter.searchQuery)
+            }
         }
         .scrollIndicators(.hidden)
         .ignoresSafeArea(edges: .top)

@@ -81,6 +81,15 @@ class GymProfilePresenter {
     var filteredPinLoadedMachines: [Binding<PinLoadedMachine>] {
         filteredBindings(for: \.pinLoadedMachines)
     }
+
+    /// A filter that hides every section, so the screen can say so instead of going blank.
+    var hasNoMatchingEquipment: Bool {
+        !trimmedSearchQuery.isEmpty
+            && filteredFreeWeights.isEmpty && filteredLoadableBars.isEmpty && filteredFixedWeightBars.isEmpty
+            && filteredBands.isEmpty && filteredBodyWeights.isEmpty && filteredSupportEquipment.isEmpty
+            && filteredAccessoryEquipment.isEmpty && filteredLoadableAccessoryEquipment.isEmpty
+            && filteredCableMachines.isEmpty && filteredPlateLoadedMachines.isEmpty && filteredPinLoadedMachines.isEmpty
+    }
     
     func onBackButtonPressed() {
         guard !gymProfile.name.isEmpty else {

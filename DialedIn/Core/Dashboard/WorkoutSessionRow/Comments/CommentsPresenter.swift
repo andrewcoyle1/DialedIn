@@ -54,6 +54,7 @@ class CommentsPresenter {
         comments = Self.threaded(hidingBlocked(fetched))
         isLoading = false
         if !knownPeople.contains(where: { $0.id == session.authorId }) {
+            // Silent: the author is only needed for mention suggestions.
             sessionAuthor = try? await interactor.getUser(userId: session.authorId)
         }
     }

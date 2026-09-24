@@ -390,10 +390,16 @@ class WorkoutSessionDetailPresenter {
             }
     }
 
+    /// Dismisses only once the delete has landed, so a failure can still be shown on this screen.
     func deleteSession(session: WorkoutSessionModel) {
-        router.dismissScreen()
         Task {
-            try? await interactor.deleteWorkoutSession(id: session.id)
+            do {
+                try await interactor.deleteWorkoutSession(id: session.id)
+                router.dismissScreen()
+            } catch {
+                interactor.trackEvent(event: Event.deleteSessionFail(error: error))
+                router.showSimpleAlert(title: "Unable to Delete Workout", subtitle: "Please try again.")
+            }
         }
     }
 
@@ -439,4 +445,28 @@ func onDevSettingsPressed() {
     router.showDevSettingsView()
 }
 #endif
+}
+
+extension WorkoutSessionDetailPresenter {
+    enum Event: LoggableEvent {
+        case deleteSessionFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .deleteSessionFail: return "WorkoutSessionDetailView_DeleteSession_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .deleteSessionFail(error: let error): return error.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .deleteSessionFail: return .severe
+            }
+        }
+    }
 }

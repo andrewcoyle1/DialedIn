@@ -33,6 +33,11 @@ struct ExerciseListBuilderView: View {
                 filteredExercisesSection
             }
         }
+        .overlay {
+            if !presenter.searchText.isEmpty && presenter.filteredExercises.isEmpty {
+                ContentUnavailableView.search(text: presenter.searchText)
+            }
+        }
         .searchable(text: $presenter.searchText, placement: .toolbar, prompt: Text("Search exercises"))
         .scrollIndicators(.hidden)
         .toolbarVisibility(.hidden)

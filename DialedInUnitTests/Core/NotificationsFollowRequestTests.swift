@@ -61,7 +61,10 @@ struct NotificationsFollowRequestTests {
         func checkPushNotificationAuthorisation() async throws -> UNAuthorizationStatus { isAuthorised }
         func fetchActivityNotifications() async throws { }
         func markActivityNotificationsRead() async throws { }
-        func deleteActivityNotification(id: String) async throws { }
+        var deleteError: Error?
+        func deleteActivityNotification(id: String) async throws {
+            if let deleteError { throw deleteError }
+        }
         func clearAllDeliveredNotifications() { }
         func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws { }
         var privateUserSettings = PrivateUserSettings()
@@ -175,5 +178,22 @@ struct NotificationsFollowRequestTests {
         #expect(presenter.showsFollowBack(for: follow(from: "a")))
         #expect(!presenter.showsFollowBack(for: like))
         #expect(!presenter.showsFollowBack(for: follow(from: "me")))
+    }
+
+    /// A swipe-to-delete was `try?`-ed, so a refused delete brought the row back on the next read
+    /// with no explanation.
+    @Test("Test A Failed Delete Alerts Once")
+    func testAFailedDeleteAlertsOnce() async {
+        let interactor = Interactor()
+        interactor.deleteError = DevToolsTestError.failed
+        let router = Router()
+        let presenter = NotificationsPresenter(interactor: interactor, router: router)
+
+        presenter.onNotificationDeleted(follow(from: "alice"))
+
+        #expect(await TestManagers.eventually(timeout: .seconds(5)) { !router.alertTitles.isEmpty })
+        for _ in 0..<10 { await Task.yield() }
+        #expect(router.alertTitles == ["Unable to Delete Notification"])
+        #expect(interactor.trackedEventNames == ["NotificationsView_DeleteNotification_Fail"])
     }
 }

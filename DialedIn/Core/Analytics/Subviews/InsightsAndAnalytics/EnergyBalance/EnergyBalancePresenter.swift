@@ -96,6 +96,7 @@ class EnergyBalancePresenter {
         let startDayKey = startDate.dayKey
         let endDayKey = startOfToday.dayKey
 
+        // Silent: local read for a chart; no data draws an empty chart.
         let totalsData = (try? interactor.getDailyTotals(startDayKey: startDayKey, endDayKey: endDayKey)) ?? []
 
         var entries: [EnergyBalanceEntry] = []

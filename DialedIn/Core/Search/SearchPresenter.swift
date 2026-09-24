@@ -128,6 +128,7 @@ class SearchPresenter {
             try? await Task.sleep(for: .milliseconds(350))
             guard !Task.isCancelled else { return }
 
+            // Silent: search-as-you-type; a failed query shows no results rather than an alert per keystroke.
             let fetchedUsers = (try? await interactor.searchUsers(query: query)) ?? []
             guard !Task.isCancelled else { return }
 

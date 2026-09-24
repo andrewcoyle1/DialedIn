@@ -108,7 +108,12 @@ class ExpenditureSettingsPresenter {
     /// figure on screen is re-read rather than left showing what the old settings produced.
     private func save() {
         Task {
-            try? await interactor.saveNutritionStrategySettings(settings)
+            do {
+                try await interactor.saveNutritionStrategySettings(settings)
+            } catch {
+                interactor.trackEvent(event: Event.saveFail(error: error))
+                router.showSimpleAlert(title: "Unable to Save Settings", subtitle: "Please try again.")
+            }
             estimate = interactor.currentExpenditure
         }
     }
@@ -132,9 +137,11 @@ extension ExpenditureSettingsPresenter {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
+        case saveFail(error: Error)
         
         var eventName: String {
             switch self {
+            case .saveFail: return "ExpenditureSettingsView_Save_Fail"
             case .onAppear: return "ExpenditureSettingsView_Appear"
             case .onDisappear: return "ExpenditureSettingsView_Disappear"
             }
@@ -142,6 +149,7 @@ extension ExpenditureSettingsPresenter {
         
         var parameters: [String: Any]? {
             switch self {
+            case .saveFail(error: let error): return error.eventParameters
             default:
                 return nil
             }
@@ -149,6 +157,7 @@ extension ExpenditureSettingsPresenter {
         
         var type: LogType {
             switch self {
+            case .saveFail: return .severe
             default:
                 return .analytic
             }
