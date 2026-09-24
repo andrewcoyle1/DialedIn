@@ -155,6 +155,7 @@ struct DashboardFeedPresenterTests {
         func showSocialProfileView(delegate: SocialProfileDelegate) { shown.append("socialProfile:\(delegate.user.userId)") }
         func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { shown.append("session:\(delegate.initialSession.id)") }
         func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { shown.append("thread:\(delegate.initialSession.id)") }
+        func showWeeklyGoalView() { shown.append("weeklyGoal") }
 
         func showAddMealView(delegate: AddMealDelegate) {
             shown.append("addMeal")

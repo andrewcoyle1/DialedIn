@@ -73,6 +73,7 @@ class DashboardPresenter {
                     canNudge: !trained && user.userId != reader.userId && !nudgedUserIds.contains(user.userId)
                 )
             }
+            .map { withWeeklyProgress($0, readerId: reader.userId) }
             .sorted { lhs, rhs in
                 if lhs.trainedToday != rhs.trainedToday { return lhs.trainedToday }
                 return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
@@ -411,6 +412,11 @@ class DashboardPresenter {
             nutritionTarget = try? await interactor.getDailyTarget(for: Date(), userId: userId)
         }
     }
+
+    // MARK: - CircleGoals
+
+    /// The week whose Monday recap the user closed. Held here so closing it redraws at once.
+    var dismissedSummaryWeekId: String? = UserDefaults.standard.string(forKey: CircleWeek.summaryDismissedWeekKey)
 }
 
 extension DashboardPresenter {
@@ -447,4 +453,69 @@ extension DashboardPresenter {
         }
     }
 
+}
+
+// MARK: - CircleGoals
+
+extension DashboardPresenter {
+
+    private var circleSessions: [WorkoutSessionModel] {
+        interactor.workoutSessions + interactor.followingWorkoutSessions
+    }
+
+    /// Adds the week's ring to a strip face, and "1 to go" on the user's own on the week's last day.
+    fileprivate func withWeeklyProgress(_ member: CircleMember, readerId: String, now: Date = .now) -> CircleMember {
+        var member = member
+        member.sessionsThisWeek = CircleWeek.sessionCount(of: member.user.userId, inWeekOf: now, sessions: circleSessions)
+        member.weeklyGoal = CircleWeek.goal(for: member.user)
+        member.isCurrentUser = member.user.userId == readerId
+        let toGo = CircleWeek.remaining(sessions: member.sessionsThisWeek, goal: member.weeklyGoal)
+        if member.isCurrentUser, toGo > 0, CircleWeek.isLastDayOfWeek(now) {
+            member.sessionsToGo = toGo
+        }
+        return member
+    }
+
+    /// The leaderboard: the strip's people, ranked. Empty whenever the strip is.
+    var circleStandings: [CircleWeek.Standing] {
+        CircleWeek.standings(users: circleMembers.map(\.user), sessions: circleSessions, now: .now)
+    }
+
+    var currentUserId: String? {
+        interactor.currentUser?.userId
+    }
+
+    /// The strip offers "Set goal" until the user has picked one.
+    var showsWeeklyGoalPrompt: Bool {
+        interactor.currentUser != nil && interactor.currentUser?.weeklySessionGoal == nil
+    }
+
+    var weeklySummary: CircleWeek.Summary? {
+        let circle = circleMembers.map(\.user)
+        guard let reader = interactor.currentUser, !circle.isEmpty else { return nil }
+        return CircleWeek.summary(
+            reader: reader,
+            circle: circle,
+            sessions: circleSessions,
+            now: .now,
+            dismissedWeekId: dismissedSummaryWeekId
+        )
+    }
+
+    func onSetWeeklyGoalPressed() {
+        interactor.trackEvent(eventName: "DashboardView_SetWeeklyGoal_Press", parameters: nil, type: .analytic)
+        router.showWeeklyGoalView()
+    }
+
+    func onLeaderboardRowPressed(_ standing: CircleWeek.Standing) {
+        interactor.trackEvent(eventName: "DashboardView_LeaderboardRow_Press", parameters: nil, type: .analytic)
+        router.showSocialProfileView(delegate: SocialProfileDelegate(user: standing.user))
+    }
+
+    func onWeeklySummaryDismissed() {
+        guard let weekId = weeklySummary?.weekId else { return }
+        interactor.trackEvent(eventName: "DashboardView_WeeklySummary_Dismiss", parameters: nil, type: .analytic)
+        dismissedSummaryWeekId = weekId
+        UserDefaults.standard.set(weekId, forKey: CircleWeek.summaryDismissedWeekKey)
+    }
 }
