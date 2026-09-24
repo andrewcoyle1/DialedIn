@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { buildActivityPush, cleanJson, normaliseName, requireAuth } from "./lib.js";
+import { buildActivityPush, cleanJson, newlyBlockedIds, normaliseName, requireAuth } from "./lib.js";
 
 test("cleanJson strips the code fences Gemini adds and leaves bare JSON alone", () => {
     assert.equal(cleanJson('```json\n{"a":1}\n```'), '{"a":1}');
@@ -74,4 +74,16 @@ test("buildActivityPush sends nothing without a token, for an unknown type, or w
     assert.equal(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_follows: false }), null);
     // Opting out of one type leaves the others on.
     assert.notEqual(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_likes: false }), null);
+});
+
+test("newlyBlockedIds returns only the ids the update added to blocked_user_ids", () => {
+    assert.deepEqual(newlyBlockedIds({ blocked_user_ids: ["a"] }, { blocked_user_ids: ["a", "b"] }), ["b"]);
+    // Profiles written before blocking existed have no field on either side.
+    assert.deepEqual(newlyBlockedIds({}, { blocked_user_ids: ["a"] }), ["a"]);
+    assert.deepEqual(newlyBlockedIds(undefined, undefined), []);
+    assert.deepEqual(newlyBlockedIds({ blocked_user_ids: ["a"] }, {}), []);
+    // An unblock, or an update that leaves the list alone, has nothing to clean up.
+    assert.deepEqual(newlyBlockedIds({ blocked_user_ids: ["a", "b"] }, { blocked_user_ids: ["a"] }), []);
+    assert.deepEqual(newlyBlockedIds({ blocked_user_ids: ["a"] }, { blocked_user_ids: ["a"], is_private: true }), []);
+    assert.deepEqual(newlyBlockedIds({}, { blocked_user_ids: ["a", "a"] }), ["a"]);
 });

@@ -1,9 +1,9 @@
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getMessaging } from "firebase-admin/messaging";
-import { requireAuth, cleanJson, normaliseName, buildActivityPush } from "./lib.js";
+import { requireAuth, cleanJson, normaliseName, buildActivityPush, newlyBlockedIds } from "./lib.js";
 import { genkit } from "genkit";
 import { vertexAI, gemini20Flash, imagen3Fast } from "@genkit-ai/vertexai";
 
@@ -412,6 +412,37 @@ export const onActivityNotificationCreated = onDocumentCreated(
             await getMessaging().send(message);
         } catch (error) {
             console.error(`Error sending push to user ${userId}: ${error.message}`);
+        }
+    }
+);
+
+// ---------------------------------------------------------------------------
+// Blocking: end the blocked person's follow
+// ---------------------------------------------------------------------------
+
+// A follow lives in the follower's own following_ids, which the blocker cannot write and rules
+// cannot refuse on the blocker's behalf. So when users/{uid}.blocked_user_ids gains an id, this
+// takes uid out of that person's following_ids and drops any pending follow request they sent.
+// The blocked person's document changing re-fires this trigger, but their block list is unchanged,
+// so it returns at once.
+export const onUserBlockListChanged = onDocumentUpdated(
+    { document: "users/{uid}", region: REGION },
+    async (event) => {
+        const blocked = newlyBlockedIds(event.data?.before?.data(), event.data?.after?.data());
+        if (blocked.length === 0) return;
+
+        const uid = event.params.uid;
+        const users = getFirestore().collection("users");
+        const results = await Promise.allSettled(blocked.flatMap((blockedId) => [
+            // update, not set: a deleted account must not come back as a stub document.
+            users.doc(blockedId).update({ following_ids: FieldValue.arrayRemove(uid) }),
+            // A no-op when there is no request, or no follow_requests collection at all.
+            users.doc(uid).collection("follow_requests").doc(blockedId).delete(),
+        ]));
+        for (const result of results) {
+            if (result.status === "rejected") {
+                console.error(`Block cleanup for user ${uid}: ${result.reason?.message}`);
+            }
         }
     }
 );

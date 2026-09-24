@@ -70,3 +70,10 @@ export function buildActivityPush(notification, recipient) {
         },
     };
 }
+
+// The ids in `after.blocked_user_ids` that were not in `before.blocked_user_ids`, for the trigger
+// that makes a block also end the blocked person's follow. Either side may lack the field.
+export function newlyBlockedIds(before, after) {
+    const previous = new Set(before?.blocked_user_ids ?? []);
+    return [...new Set(after?.blocked_user_ids ?? [])].filter((id) => !previous.has(id));
+}
