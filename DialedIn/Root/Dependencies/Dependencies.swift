@@ -1054,6 +1054,15 @@ struct Dependencies {
         }
         container.register(ChallengeManager.self, service: ChallengeManager(service: challengeService))
 
+        // MARK: - Invites
+        let inviteService: InviteService
+        if case .mock = config {
+            inviteService = MockInviteService()
+        } else {
+            inviteService = FirebaseInviteService()
+        }
+        container.register(InviteManager.self, service: InviteManager(service: inviteService))
+
         self.logManager = logManager
         self.container = container
     }

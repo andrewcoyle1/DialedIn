@@ -24,6 +24,10 @@ enum DeepLink: Equatable {
     /// from its bell.
     case notifications
 
+    /// `compound://join/<code>`, an invite a friend sent. Lands on the Dashboard, which accepts it
+    /// and opens the inviter's profile. The code is already normalised by `InviteCode`.
+    case join(code: String)
+
     /// The tab bar's roots. `search` is SwiftUI's own tab, owned through `Tab(role: .search)`;
     /// it still selects by title like the rest.
     enum Tab: String, CaseIterable, Identifiable {
@@ -65,6 +69,11 @@ enum DeepLink: Equatable {
             .value?
             .lowercased()
 
+        if host == "join" {
+            guard let raw = firstPath, let code = InviteCode.normalised(raw) else { return nil }
+            self = .join(code: code)
+            return
+        }
         guard host == "tab" else { return nil }
         guard let name = firstPath ?? queryName, let tab = Tab(name: name) else { return nil }
         self = .tab(tab)
@@ -89,6 +98,8 @@ enum DeepLink: Equatable {
             )
         case .notifications:
             NotificationCenter.default.post(name: Constants.openNotifications, object: nil)
+        case .join(let code):
+            NotificationCenter.default.post(name: Constants.acceptInvite, object: nil, userInfo: ["code": code])
         }
     }
 

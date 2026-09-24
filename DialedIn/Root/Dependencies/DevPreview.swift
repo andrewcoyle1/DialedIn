@@ -56,6 +56,8 @@ class DevPreview {
         container.register(ShareManager.self, service: ShareManager(service: MockShareService()))
         // MARK: - Challenges
         container.register(ChallengeManager.self, service: ChallengeManager(service: MockChallengeService()))
+        // MARK: - Invites
+        container.register(InviteManager.self, service: InviteManager(service: MockInviteService()))
 
         return container
     }

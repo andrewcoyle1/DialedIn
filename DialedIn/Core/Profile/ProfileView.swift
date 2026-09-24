@@ -199,6 +199,12 @@ struct ProfileView: View {
     private var communityAndSupportSection: some View {
         Section {
             Group {
+                Label("Invite a friend", systemImage: "person.badge.plus")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
+                    .anyButton {
+                        Task { await presenter.onInviteFriendPressed() }
+                    }
                 Label("Knowledge Base", systemImage: "book.closed")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()

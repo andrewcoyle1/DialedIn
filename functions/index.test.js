@@ -32,7 +32,7 @@ test("every callable enforces App Check and requires auth", () => {
     const src = readFileSync(new URL("./index.js", import.meta.url), "utf8");
     assert.match(src, /const CALLABLE_OPTIONS = \{[^}]*enforceAppCheck: true/);
     const callables = [...src.matchAll(/export const (\w+) = onCall\(([^,]+),\s*async \(request\) => \{\s*([^\n]*)/g)];
-    assert.equal(callables.length, 7, "expected seven callables");
+    assert.equal(callables.length, 8, "expected eight callables");
     for (const [, name, options, firstLine] of callables) {
         assert.equal(options.trim(), "CALLABLE_OPTIONS", `${name} must use CALLABLE_OPTIONS`);
         assert.match(firstLine, /requireAuth\(request\)/, `${name} must call requireAuth first`);
@@ -522,4 +522,75 @@ test("a challenge_complete notification pushes 'You finished <title>' unless opt
     assert.equal(push.notification.body, "You finished October Grind");
     assert.equal(push.data.type, "challenge_complete");
     assert.equal(buildChallengePush(notification, { fcm_token: "t", social_push_challenges: false }), null);
+});
+
+// ---------------------------------------------------------------------------
+// Invites
+// ---------------------------------------------------------------------------
+
+import {
+    normaliseInviteCode, planInviteAcceptance, inviteOutcome, buildFollowNotification, buildInviteFollowRequest,
+    INVITE_CODE_ALPHABET,
+} from "./lib.js";
+
+test("normaliseInviteCode uppercases, drops spaces and dashes, and refuses anything else", () => {
+    assert.equal(normaliseInviteCode("push 2345"), "PUSH2345");
+    assert.equal(normaliseInviteCode("PUSH-2345"), "PUSH2345");
+    assert.equal(normaliseInviteCode("PUSH234"), null, "too short");
+    assert.equal(normaliseInviteCode("PUSH23450"), null, "too long");
+    assert.equal(normaliseInviteCode("PUSH2340"), null, "0 is not in the alphabet");
+    assert.equal(normaliseInviteCode("LIFT2345"), null, "L and I are not in the alphabet");
+    assert.equal(normaliseInviteCode(12345678), null);
+    assert.equal(normaliseInviteCode(undefined), null);
+    for (const c of "01ILO") assert.ok(!INVITE_CODE_ALPHABET.includes(c));
+});
+
+test("planInviteAcceptance refuses a missing, own, blocked or used-up invite", () => {
+    const invite = { code: "PUSH2345", inviter_id: "a", uses: 0, max_uses: 50 };
+    const inviter = { following_ids: [] };
+    const invitee = { following_ids: [] };
+    const code = (args) => planInviteAcceptance(args).error?.[0];
+    assert.equal(code({ callerId: "b", invite: undefined, inviter, invitee }), "not-found");
+    assert.equal(code({ callerId: "b", invite, inviter: undefined, invitee }), "not-found");
+    assert.equal(code({ callerId: "a", invite, inviter, invitee }), "failed-precondition");
+    assert.equal(code({ callerId: "b", invite, inviter: { blocked_user_ids: ["b"] }, invitee }), "permission-denied");
+    assert.equal(code({ callerId: "b", invite, inviter, invitee: { blocked_user_ids: ["a"] } }), "permission-denied");
+    assert.equal(code({ callerId: "b", invite: { ...invite, uses: 50 }, inviter, invitee }), "resource-exhausted");
+    assert.equal(code({ callerId: "b", invite: { inviter_id: "a", uses: 50 }, inviter, invitee }), "resource-exhausted", "max_uses defaults to 50");
+});
+
+test("planInviteAcceptance follows both ways, requests a private profile, and counts only a change", () => {
+    const invite = { inviter_id: "a", uses: 3, max_uses: 50 };
+    assert.deepEqual(
+        planInviteAcceptance({ callerId: "b", invite, inviter: {}, invitee: {} }),
+        { inviterId: "a", inviteeFollows: "follow", inviterFollows: "follow", countsUse: true }
+    );
+    const privateBoth = planInviteAcceptance({ callerId: "b", invite, inviter: { is_private: true }, invitee: { is_private: true } });
+    assert.equal(privateBoth.inviteeFollows, "request");
+    assert.equal(privateBoth.inviterFollows, "request");
+
+    // Already following both ways: nothing to write, no use taken, even on a used-up invite.
+    const already = planInviteAcceptance({
+        callerId: "b",
+        invite: { ...invite, uses: 50 },
+        inviter: { following_ids: ["b"], is_private: true },
+        invitee: { following_ids: ["a"] },
+    });
+    assert.deepEqual(already, { inviterId: "a", inviteeFollows: "already", inviterFollows: "already", countsUse: false });
+
+    assert.equal(inviteOutcome("request"), "requested");
+    assert.equal(inviteOutcome("follow"), "following");
+    assert.equal(inviteOutcome("already"), "following");
+});
+
+test("the follow and request docs acceptInvite writes match the shapes the app writes", () => {
+    const now = new Date("2026-09-24T10:00:00Z");
+    const follower = { submitted_first_name: "Alex", submitted_last_name: "Kim", photo_url: "p.jpg" };
+    assert.deepEqual(buildFollowNotification(follower, { followerId: "b", followedId: "a" }, now), {
+        type: "follow", actor_id: "b", actor_name: "Alex Kim", session_id: "", session_author_id: "a",
+        date_created: now, is_read: false, actor_image_url: "p.jpg",
+    });
+    assert.deepEqual(buildInviteFollowRequest({}, "b", now), {
+        requester_id: "b", requester_name: "Someone", requester_image_url: null, date_created: now, status: "pending",
+    });
 });

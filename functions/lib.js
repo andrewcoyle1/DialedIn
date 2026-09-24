@@ -498,3 +498,81 @@ export function planChallengeProgress(challenge, uid, sessionId, progress, user,
     }
     return plan;
 }
+
+// ---------------------------------------------------------------------------
+// Invites: invites/{code} { code, inviter_id, date_created, uses, max_uses }
+// ---------------------------------------------------------------------------
+
+// Mirrors InviteCode in the app and the invites rule: 8 characters, no 0/O or 1/I/L.
+export const INVITE_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+export const INVITE_CODE_LENGTH = 8;
+export const INVITE_MAX_USES = 50;
+
+// The code acceptInvite was sent, uppercased with spaces and dashes dropped, or null if it is not
+// a code at all.
+export function normaliseInviteCode(raw) {
+    if (typeof raw !== "string") return null;
+    const code = raw.toUpperCase().replace(/[\s-]/g, "");
+    if (code.length !== INVITE_CODE_LENGTH) return null;
+    return [...code].every((c) => INVITE_CODE_ALPHABET.includes(c)) ? code : null;
+}
+
+// Decides what accepting an invite does, from the docs acceptInvite read in its transaction.
+// Returns { error: [httpsErrorCode, message] } to refuse, else each direction of the follow as
+// "already" (nothing to write), "follow" (arrayUnion into following_ids) or "request" (a pending
+// follow request, because the person to be followed is private), plus whether this counts as a use
+// of the invite. A repeat acceptance that changes nothing does not use one up.
+export function planInviteAcceptance({ callerId, invite, inviter, invitee }) {
+    if (!invite) return { error: ["not-found", "That invite code doesn't exist."] };
+    const inviterId = invite.inviter_id;
+    if (!inviter) return { error: ["not-found", "That invite code doesn't exist."] };
+    if (inviterId === callerId) return { error: ["failed-precondition", "That's your own invite."] };
+    if ((inviter.blocked_user_ids ?? []).includes(callerId) || (invitee?.blocked_user_ids ?? []).includes(inviterId)) {
+        return { error: ["permission-denied", "That invite isn't available."] };
+    }
+
+    const direction = (follower, followedId, followed) => {
+        if ((follower?.following_ids ?? []).includes(followedId)) return "already";
+        return followed?.is_private === true ? "request" : "follow";
+    };
+    const inviteeFollows = direction(invitee, inviterId, inviter);
+    const inviterFollows = direction(inviter, callerId, invitee);
+    const countsUse = inviteeFollows !== "already" || inviterFollows !== "already";
+    if (countsUse && (invite.uses ?? 0) >= (invite.max_uses ?? INVITE_MAX_USES)) {
+        return { error: ["resource-exhausted", "That invite has been used too many times."] };
+    }
+    return { inviterId, inviteeFollows, inviterFollows, countsUse };
+}
+
+// A direction of the plan as the app reads it: a request is "requested", anything else "following".
+export function inviteOutcome(direction) {
+    return direction === "request" ? "requested" : "following";
+}
+
+// users/{followedId}/notifications/follow_{followerId}, the doc the app writes itself on a follow,
+// so acceptInvite's follows reach the bell and push the same way.
+export function buildFollowNotification(follower, { followerId, followedId }, now = new Date()) {
+    const notification = {
+        type: "follow",
+        actor_id: followerId,
+        actor_name: userDisplayName(follower),
+        session_id: "",
+        session_author_id: followedId,
+        date_created: now,
+        is_read: false,
+    };
+    const image = follower?.submitted_profile_image ?? follower?.photo_url;
+    if (image) notification.actor_image_url = image;
+    return notification;
+}
+
+// users/{targetId}/follow_requests/{requesterId}, in FollowRequestModel's shape.
+export function buildInviteFollowRequest(requester, requesterId, now = new Date()) {
+    return {
+        requester_id: requesterId,
+        requester_name: userDisplayName(requester),
+        requester_image_url: requester?.submitted_profile_image ?? requester?.photo_url ?? null,
+        date_created: now,
+        status: "pending",
+    };
+}

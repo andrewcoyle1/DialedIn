@@ -842,3 +842,67 @@ export const onWorkoutSessionEndedForChallenges = onDocumentWritten(
         }
     }
 );
+
+// ---------------------------------------------------------------------------
+// Invites
+// ---------------------------------------------------------------------------
+
+import {
+    normaliseInviteCode, planInviteAcceptance, inviteOutcome, buildFollowNotification, buildInviteFollowRequest,
+} from "./lib.js";
+
+// A compound://join/<code> link or a typed code. Follows both ways between the caller and the
+// inviter, as a follow request where the one to be followed is private, and counts the use. Every
+// write is someone else's document at least once, so it happens here. One transaction, so two
+// acceptances cannot both take the last use. Returns the inviter's id for the app to open their
+// profile, and what each direction became.
+export const acceptInvite = onCall(CALLABLE_OPTIONS, async (request) => {
+    const uid = requireAuth(request);
+    const code = normaliseInviteCode(request.data?.code);
+    if (!code) throw new HttpsError("invalid-argument", "That doesn't look like an invite code.");
+
+    const db = getFirestore();
+    const users = db.collection("users");
+    const inviteRef = db.collection("invites").doc(code);
+
+    return db.runTransaction(async (tx) => {
+        const inviteDoc = await tx.get(inviteRef);
+        const invite = inviteDoc.data();
+        const [inviterDoc, inviteeDoc] = invite
+            ? await Promise.all([tx.get(users.doc(invite.inviter_id)), tx.get(users.doc(uid))])
+            : [null, null];
+        const plan = planInviteAcceptance({
+            callerId: uid, invite, inviter: inviterDoc?.data(), invitee: inviteeDoc?.data(),
+        });
+        if (plan.error) throw new HttpsError(...plan.error);
+
+        const { inviterId } = plan;
+        const inviter = inviterDoc.data();
+        const invitee = inviteeDoc.data();
+        const now = new Date();
+        const apply = (direction, followerId, follower, followedId) => {
+            if (direction === "follow") {
+                // update, not set: a missing user document must not come back as a stub.
+                tx.update(users.doc(followerId), { following_ids: FieldValue.arrayUnion(followedId) });
+                tx.set(
+                    users.doc(followedId).collection("notifications").doc(`follow_${followerId}`),
+                    buildFollowNotification(follower, { followerId, followedId }, now)
+                );
+            } else if (direction === "request") {
+                tx.set(
+                    users.doc(followedId).collection("follow_requests").doc(followerId),
+                    buildInviteFollowRequest(follower, followerId, now)
+                );
+            }
+        };
+        apply(plan.inviteeFollows, uid, invitee, inviterId);
+        apply(plan.inviterFollows, inviterId, inviter, uid);
+        if (plan.countsUse) tx.update(inviteRef, { uses: FieldValue.increment(1) });
+
+        return {
+            inviter_id: inviterId,
+            you_follow: inviteOutcome(plan.inviteeFollows),
+            they_follow: inviteOutcome(plan.inviterFollows),
+        };
+    });
+});

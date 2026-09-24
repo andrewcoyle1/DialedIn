@@ -64,6 +64,8 @@ struct CoreInteractor: GlobalInteractor {
     let shareManager: ShareManager
     // MARK: - Challenges
     let challengeManager: ChallengeManager
+    // MARK: - Invites
+    let inviteManager: InviteManager
 
     init(container: DependencyContainer) {
         self.authManager = container.resolve(AuthManager.self)!
@@ -114,6 +116,8 @@ struct CoreInteractor: GlobalInteractor {
         self.shareManager = container.resolve(ShareManager.self)!
         // MARK: - Challenges
         self.challengeManager = container.resolve(ChallengeManager.self)!
+        // MARK: - Invites
+        self.inviteManager = container.resolve(InviteManager.self)!
     }
 
     // MARK: Shared

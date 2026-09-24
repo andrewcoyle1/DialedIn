@@ -357,4 +357,19 @@ class SearchPresenter {
     func onProfilePressed(transitionId: String, namespace: Namespace.ID) {
         router.showProfileViewZoom(transitionId: transitionId, namespace: namespace)
     }
+
+    // MARK: - Invite code
+
+    /// For an invite link received on another device: the code is typed in here instead.
+    var isEnteringInviteCode = false
+    var inviteCodeInput = ""
+
+    func onEnterInviteCodePressed() {
+        inviteCodeInput = ""
+        isEnteringInviteCode = true
+    }
+
+    func onInviteCodeSubmitted() async {
+        await InviteAcceptFlow(interactor: interactor, router: router).accept(code: inviteCodeInput)
+    }
 }

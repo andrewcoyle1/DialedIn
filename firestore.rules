@@ -523,5 +523,22 @@ service cloud.firestore {
         allow write: if false;
       }
     }
+
+    // ---------------- INVITES ----------------
+    // invites/{code} = { code, inviter_id, date_created, uses, max_uses }: one per inviter, keyed by
+    // an 8-character code (no 0/O, 1/I/L). Created by the inviter with no uses; never updated or
+    // deleted by a client. The acceptInvite Cloud Function counts uses with the Admin SDK.
+    match /invites/{code} {
+      allow read: if isAuthed();
+      allow create: if isAuthed()
+                    && code.matches('^[ABCDEFGHJKMNPQRSTUVWXYZ2-9]{8}$')
+                    && request.resource.data.keys().hasOnly(['code', 'inviter_id', 'date_created', 'uses', 'max_uses'])
+                    && request.resource.data.code == code
+                    && request.resource.data.inviter_id == request.auth.uid
+                    && request.resource.data.uses == 0
+                    && request.resource.data.max_uses == 50
+                    && request.resource.data.date_created is timestamp;
+      allow update, delete: if false;
+    }
   }
 }

@@ -69,6 +69,9 @@ struct DashboardFeedPresenterTests {
     /// Internal rather than private so `DashboardCirclePresenterTests` can share the doubles.
     final class Interactor: SpyGlobalInteractor, DashboardInteractor {
         var userId: String? = "me"
+        func acceptInvite(code: String) async throws -> (inviter: UserModel, acceptance: InviteAcceptance) {
+            throw InviteError.notFound
+        }
         var userImageUrl: String?
         var currentUser: UserModel? = DashboardFixture.user("me")
         var draftMeal: MealLogModel?
