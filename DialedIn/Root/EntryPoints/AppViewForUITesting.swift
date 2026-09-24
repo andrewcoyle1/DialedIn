@@ -150,7 +150,9 @@ extension AppViewForUITesting {
                         DeepLink.join(code: MockInviteService.sampleCode).post()
                     }
                     .any()
-            })
+            }),
+            // MARK: - WeeklyReview
+            ("STARTSCREEN_WEEKLY_REVIEW", { builder.weeklyReviewView(router: $0).any() })
         ]
     }
 }
