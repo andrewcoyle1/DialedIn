@@ -55,6 +55,24 @@ class DashboardPresenter {
         suggestedUsers = (try? await interactor.fetchSuggestedUsers()) ?? []
     }
 
+    /// A push tap about a session, relayed by the tab bar once it has selected this tab. Best
+    /// effort: if the session cannot be fetched the user is simply left on the Dashboard.
+    func onOpenWorkoutSessionNotificationReceived(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            case .session(let id, let authorId, let openComments)? = DeepLink(pushUserInfo: userInfo)
+        else { return }
+        Task {
+            guard let session = try? await interactor.fetchWorkoutSession(id: id, authorId: authorId) else { return }
+            let delegate = WorkoutSessionDetailDelegate(workoutSession: session)
+            if openComments {
+                router.showWorkoutSessionThread(delegate: delegate)
+            } else {
+                router.showWorkoutSessionDetailView(delegate: delegate)
+            }
+        }
+    }
+
     func onSuggestedUserPressed(user: UserModel) {
         router.showSocialProfileView(delegate: SocialProfileDelegate(user: user))
     }

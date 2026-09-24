@@ -8,6 +8,8 @@ protocol DashboardRouter: GlobalRouter {
     func showNutritionView()
     func showAddMealView(delegate: AddMealDelegate)
     func showSocialProfileView(delegate: SocialProfileDelegate)
+    func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
+    func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate)
     #if DEV || MOCK
     func showDevSettingsView()
     #endif

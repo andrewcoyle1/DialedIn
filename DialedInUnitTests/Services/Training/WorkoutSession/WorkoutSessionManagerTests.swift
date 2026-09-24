@@ -91,6 +91,23 @@ struct WorkoutSessionManagerTests {
         #expect(sessions.map(\.id) == ["f1"])
     }
 
+    /// A notification names one session by id and author; anyone's can be fetched, and an id that
+    /// is not there throws rather than returning some other session.
+    @Test("Test Fetching One Session By Id And Author")
+    func testFetchingOneSessionByIdAndAuthor() async throws {
+        let manager = TestManagers.workoutSessionManager(
+            following: [
+                DashboardFixture.session(id: "f1", author: "friend", on: start),
+                DashboardFixture.session(id: "f2", author: "friend", on: start)
+            ]
+        )
+
+        #expect(try await manager.fetchWorkoutSession(id: "f2", authorId: "friend").id == "f2")
+        await #expect(throws: (any Error).self) {
+            try await manager.fetchWorkoutSession(id: "missing", authorId: "friend")
+        }
+    }
+
     @Test("Test Reading Sessions By Id")
     func testReadingSessionsById() async {
         let manager = await TestManagers.signedInWorkoutSessionManager(sessions: history)

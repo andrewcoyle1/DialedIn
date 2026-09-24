@@ -21,6 +21,8 @@ protocol NotificationsInteractor: GlobalInteractor {
     func deleteActivityNotification(id: String) async throws
     func clearAllDeliveredNotifications()
     func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws
+    func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel
+    func getUser(userId: String) async throws -> UserModel
 }
 
 extension CoreInteractor: NotificationsInteractor { }

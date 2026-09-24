@@ -438,6 +438,9 @@ struct DevToolsNotificationsPresenterTests {
             if let preferenceError { throw preferenceError }
             preferenceWrites[UserModel.socialPushKey(for: type).rawValue] = isEnabled
         }
+
+        func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel { throw DevToolsTestError.failed }
+        func getUser(userId: String) async throws -> UserModel { throw DevToolsTestError.failed }
     }
 
     private final class Router: NotificationsRouter {
@@ -447,6 +450,9 @@ struct DevToolsNotificationsPresenterTests {
         func showAlert(error: Error) { alertedErrors.append(error) }
         func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { }
         func showSimpleAlert(title: String, subtitle: String?) { }
+        func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { }
+        func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { }
+        func showSocialProfileView(delegate: SocialProfileDelegate) { }
     }
 
     private struct Screen {

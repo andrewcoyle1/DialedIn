@@ -65,6 +65,11 @@ struct Constants {
     /// the `compound://` scheme would work but raises the system's "Open in Compound?" prompt for
     /// what is in-app navigation. `userInfo` carries `tab` as a `DeepLink.Tab` raw value.
     static let selectTab = Notification.Name("DialedIn.SelectTab")
+
+    /// Posted after a push tap has selected the Dashboard, asking it to open one workout session.
+    /// `userInfo` has the push's own keys — `session_id`, `session_author_id` and `type` — so
+    /// `DeepLink(pushUserInfo:)` reads it back. See `DeepLink.post()`.
+    static let openWorkoutSession = Notification.Name("DialedIn.OpenWorkoutSession")
     
     /// Map exercise template names to bundled asset names for Live Activity
     /// Returns nil for exercises without bundled images

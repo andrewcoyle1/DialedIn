@@ -16,6 +16,10 @@ enum DeepLink: Equatable {
 
     case tab(Tab)
 
+    /// One workout session, from a like, comment or mention push. Lands on the Dashboard, which
+    /// then opens it — with its comments on top when `openComments` is set.
+    case session(id: String, authorId: String, openComments: Bool)
+
     /// The tab bar's roots. `search` is SwiftUI's own tab, owned through `Tab(role: .search)`;
     /// it still selects by title like the rest.
     enum Tab: String, CaseIterable, Identifiable {
@@ -73,14 +77,27 @@ enum DeepLink: Equatable {
                 object: nil,
                 userInfo: ["tab": tab.rawValue]
             )
+        case .session(let id, let authorId, let openComments):
+            NotificationCenter.default.post(
+                name: Constants.openWorkoutSession,
+                object: nil,
+                userInfo: ["session_id": id, "session_author_id": authorId, "type": openComments ? "comment" : "like"]
+            )
         }
     }
 
     /// The same destinations from a push payload, so a notification tap and a link agree on what
-    /// they mean. Reads `deep_link` as a full URL string, or `tab` as a bare name.
+    /// they mean. Reads `deep_link` as a full URL string, then `session_id` with
+    /// `session_author_id` (both non-empty) as a session, then `tab` as a bare name.
     init?(pushUserInfo: [AnyHashable: Any]) {
         if let link = pushUserInfo["deep_link"] as? String, let url = URL(string: link) {
             self.init(url: url)
+            return
+        }
+        if let id = pushUserInfo["session_id"] as? String, !id.isEmpty,
+           let authorId = pushUserInfo["session_author_id"] as? String, !authorId.isEmpty {
+            let type = pushUserInfo["type"] as? String
+            self = .session(id: id, authorId: authorId, openComments: type == "comment" || type == "mention")
             return
         }
         if let name = (pushUserInfo["tab"] as? String)?.lowercased(), let tab = Tab(name: name) {

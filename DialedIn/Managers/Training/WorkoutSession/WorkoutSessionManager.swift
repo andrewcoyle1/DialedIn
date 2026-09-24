@@ -152,6 +152,25 @@ class WorkoutSessionManager {
         .filter { $0.authorId == authorId }
     }
 
+    /// One session by anyone, for a notification tap. Already-synced sessions (the reader's own and
+    /// those of people they follow) answer straight away; anything else is read through the same
+    /// collection group as `getWorkoutSessionsForAuthor`, which needs the `author_id` + `id` index in
+    /// `firestore.indexes.json`. The filter repeats the query's because the mock remote ignores it.
+    func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel {
+        if let synced = (workoutSessions + followingWorkoutSessions).first(where: { $0.id == id }) {
+            return synced
+        }
+        let found = try await followingWorkoutSessionSyncEngine.getDocumentsAsync { query in
+            query
+                .where("author_id", isEqualTo: authorId)
+                .where("id", isEqualTo: id)
+                .limit(to: 1)
+        }
+        .first { $0.id == id }
+        guard let found else { throw URLError(.fileDoesNotExist) }
+        return found
+    }
+
     func likeSession(sessionId: String, authorId: String, userId: String) async throws {
         try await likeService.likeSession(sessionId: sessionId, authorId: authorId, userId: userId)
     }
@@ -283,6 +302,10 @@ extension CoreInteractor {
 
     func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int = 20) async throws -> [WorkoutSessionModel] {
         try await workoutSessionManager.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
+    }
+
+    func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel {
+        try await workoutSessionManager.fetchWorkoutSession(id: id, authorId: authorId)
     }
 
     func fetchWorkoutSessions(authorId: String, limit: Int) async throws -> [WorkoutSessionModel] {

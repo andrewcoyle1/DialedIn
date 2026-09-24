@@ -18,6 +18,7 @@ protocol DashboardInteractor: GlobalInteractor {
     func fetchSuggestedUsers() async throws -> [UserModel]
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?
+    func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel
 }
 
 extension CoreInteractor: DashboardInteractor { }

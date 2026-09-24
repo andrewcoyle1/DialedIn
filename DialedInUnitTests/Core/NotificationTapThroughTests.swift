@@ -1,0 +1,138 @@
+//
+//  NotificationTapThroughTests.swift
+//  DialedInUnitTests
+//
+//  Created by Andrew Coyle on 24/09/2026.
+//
+
+import Testing
+import SwiftUI
+import UserNotifications
+@testable import DialedIn
+
+/// Tapping a row in the notifications list goes to what it is about: a like to the session, a
+/// comment or mention to the session with its thread on top, a follow to the follower's profile.
+/// Anything that cannot be fetched says so rather than doing nothing.
+@MainActor
+struct NotificationTapThroughTests {
+
+    private final class Interactor: SpyGlobalInteractor, NotificationsInteractor {
+        var isAuthorised: UNAuthorizationStatus = .authorized
+        var activityNotifications: [ActivityNotificationModel] = []
+        var currentUser: UserModel? = UserModel(userId: "me")
+        var sessions: [WorkoutSessionModel] = []
+        var users: [UserModel] = []
+        private(set) var sessionRequests: [String] = []
+
+        func requestPushAuthorisation() async throws -> Bool { true }
+        func canRequestNotificationAuthorisation() async -> Bool { true }
+        func removeDeliveredNotifications(ids: [String]) { }
+        func checkPushNotificationAuthorisation() async throws -> UNAuthorizationStatus { isAuthorised }
+        func fetchActivityNotifications() async throws { }
+        func markActivityNotificationsRead() async throws { }
+        func deleteActivityNotification(id: String) async throws { }
+        func clearAllDeliveredNotifications() { }
+        func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws { }
+
+        func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel {
+            sessionRequests.append("\(id)|\(authorId)")
+            guard let session = sessions.first(where: { $0.id == id }) else { throw URLError(.fileDoesNotExist) }
+            return session
+        }
+
+        func getUser(userId: String) async throws -> UserModel {
+            guard let user = users.first(where: { $0.userId == userId }) else { throw URLError(.fileDoesNotExist) }
+            return user
+        }
+    }
+
+    private final class Router: NotificationsRouter {
+        let router: AnyRouter = TestRouting.anyRouter
+        private(set) var shown: [String] = []
+        private(set) var alertTitles: [String] = []
+
+        func showAlert(error: Error) { alertTitles.append("error") }
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { alertTitles.append(title) }
+        func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
+        func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { shown.append("session:\(delegate.initialSession.id)") }
+        func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { shown.append("thread:\(delegate.initialSession.id)") }
+        func showSocialProfileView(delegate: SocialProfileDelegate) { shown.append("profile:\(delegate.user.userId)") }
+    }
+
+    private struct Screen {
+        let presenter: NotificationsPresenter
+        let interactor: Interactor
+        let router: Router
+    }
+
+    private func makeScreen() -> Screen {
+        let interactor = Interactor()
+        interactor.sessions = [DashboardFixture.session(id: "s1", author: "author", on: DashboardFixture.date(day: 2))]
+        interactor.users = [UserModel(userId: "fan")]
+        let router = Router()
+        return Screen(presenter: NotificationsPresenter(interactor: interactor, router: router), interactor: interactor, router: router)
+    }
+
+    private func notification(_ type: ActivityNotificationModel.ActivityType, sessionId: String = "s1") -> ActivityNotificationModel {
+        ActivityNotificationModel(
+            id: "n-\(type.rawValue)",
+            type: type,
+            actorId: "fan",
+            actorName: "Fan",
+            actorImageUrl: nil,
+            sessionId: type == .follow ? "" : sessionId,
+            sessionAuthorId: "author",
+            commentText: nil,
+            dateCreated: Date(timeIntervalSince1970: 0),
+            isRead: false
+        )
+    }
+
+    @Test("Test Tapping A Like Opens The Session")
+    func testTappingALikeOpensTheSession() async {
+        let screen = makeScreen()
+
+        screen.presenter.onNotificationPressed(notification(.like))
+        await TestManagers.eventually { !screen.router.shown.isEmpty }
+
+        #expect(screen.router.shown == ["session:s1"])
+        #expect(screen.interactor.sessionRequests == ["s1|author"])
+        #expect(screen.interactor.trackedEventNames.contains("NotificationsView_Notification_Pressed"))
+    }
+
+    @Test("Test Tapping A Comment Or Mention Opens The Thread")
+    func testTappingACommentOrMentionOpensTheThread() async {
+        let screen = makeScreen()
+
+        screen.presenter.onNotificationPressed(notification(.comment))
+        await TestManagers.eventually { screen.router.shown.count == 1 }
+        screen.presenter.onNotificationPressed(notification(.mention))
+        await TestManagers.eventually { screen.router.shown.count == 2 }
+
+        #expect(screen.router.shown == ["thread:s1", "thread:s1"])
+    }
+
+    @Test("Test Tapping A Follow Opens The Followers Profile")
+    func testTappingAFollowOpensTheFollowersProfile() async {
+        let screen = makeScreen()
+
+        screen.presenter.onNotificationPressed(notification(.follow))
+        await TestManagers.eventually { !screen.router.shown.isEmpty }
+
+        #expect(screen.router.shown == ["profile:fan"])
+        #expect(screen.interactor.sessionRequests.isEmpty)
+    }
+
+    @Test("Test A Failed Fetch Alerts And Routes Nowhere")
+    func testAFailedFetchAlertsAndRoutesNowhere() async {
+        let screen = makeScreen()
+        screen.interactor.users = []
+
+        screen.presenter.onNotificationPressed(notification(.comment, sessionId: "deleted"))
+        screen.presenter.onNotificationPressed(notification(.follow))
+        await TestManagers.eventually { screen.router.alertTitles.count == 2 }
+
+        #expect(screen.router.alertTitles == ["Unable to Open", "Unable to Open"])
+        #expect(screen.router.shown.isEmpty)
+    }
+}

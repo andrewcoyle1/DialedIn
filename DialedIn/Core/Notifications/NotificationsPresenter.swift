@@ -122,6 +122,35 @@ class NotificationsPresenter {
     func onDismissPressed() {
         router.dismissScreen()
     }
+
+    /// A like, comment or mention opens the session it is about — a comment or mention with its
+    /// thread on top — and a follow opens the follower's profile.
+    func onNotificationPressed(_ notification: ActivityNotificationModel) {
+        interactor.trackEvent(event: Event.notificationPressed(type: notification.type))
+        router.showLoadingModal()
+        Task {
+            do {
+                switch notification.type {
+                case .follow:
+                    let user = try await interactor.getUser(userId: notification.actorId)
+                    router.dismissModal()
+                    router.showSocialProfileView(delegate: SocialProfileDelegate(user: user))
+                case .like, .comment, .mention:
+                    let session = try await interactor.fetchWorkoutSession(id: notification.sessionId, authorId: notification.sessionAuthorId)
+                    router.dismissModal()
+                    let delegate = WorkoutSessionDetailDelegate(workoutSession: session)
+                    if notification.type == .like {
+                        router.showWorkoutSessionDetailView(delegate: delegate)
+                    } else {
+                        router.showWorkoutSessionThread(delegate: delegate)
+                    }
+                }
+            } catch {
+                router.dismissModal()
+                router.showSimpleAlert(title: "Unable to Open", subtitle: "It may have been deleted. Please try again.")
+            }
+        }
+    }
 }
 
 extension NotificationsPresenter {
@@ -129,12 +158,14 @@ extension NotificationsPresenter {
         case onAppear
         case onDisappear
         case socialPushToggled(type: ActivityNotificationModel.ActivityType, isEnabled: Bool)
+        case notificationPressed(type: ActivityNotificationModel.ActivityType)
 
         var eventName: String {
             switch self {
             case .onAppear:     return "NotificationsView_Appear"
             case .onDisappear:  return "NotificationsView_Disappear"
             case .socialPushToggled: return "NotificationsView_SocialPush_Toggle"
+            case .notificationPressed: return "NotificationsView_Notification_Pressed"
             }
         }
         
@@ -142,6 +173,8 @@ extension NotificationsPresenter {
             switch self {
             case .socialPushToggled(let type, let isEnabled):
                 return ["type": type.rawValue, "is_enabled": isEnabled]
+            case .notificationPressed(let type):
+                return ["type": type.rawValue]
             default:
                 return nil
             }

@@ -90,12 +90,17 @@ struct NotificationsView: View {
     @ViewBuilder
     private var activityNotificationsList: some View {
         ForEach(presenter.activityNotifications) { notification in
-            activityNotificationRow(notification)
-                .swipeActions {
-                    Button(role: .destructive) {
-                        presenter.onNotificationDeleted(notification)
-                    }
+            Button {
+                presenter.onNotificationPressed(notification)
+            } label: {
+                activityNotificationRow(notification)
+            }
+            .buttonStyle(.plain)
+            .swipeActions {
+                Button(role: .destructive) {
+                    presenter.onNotificationDeleted(notification)
                 }
+            }
         }
     }
 
@@ -109,6 +114,8 @@ struct NotificationsView: View {
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(.rect)
         .padding(.vertical, 4)
     }
 
