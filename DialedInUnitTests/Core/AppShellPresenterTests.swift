@@ -324,6 +324,13 @@ struct AppShellTabBarPresenterTests {
         var draftMeal: MealLogModel?
         var activityNotifications: [ActivityNotificationModel] = []
         var incomingFollowRequests: [FollowRequestModel] = []
+        /// The real one is `PushManager`; its gating is covered in `PushPendingDeepLinkTests`.
+        var pendingDeepLink: DeepLink?
+
+        func consumePendingDeepLink() -> DeepLink? {
+            defer { pendingDeepLink = nil }
+            return pendingDeepLink
+        }
 
         private(set) var trackedParameters: [[String: Any]] = []
 
@@ -460,9 +467,8 @@ struct AppShellTabBarPresenterTests {
     func testAPushPayloadSelectsTheSameTabAsALink() {
         let screen = makeScreen()
 
-        screen.presenter.onPushNotificationReceived(
-            Notification(name: Constants.selectTab, object: nil, userInfo: ["deep_link": "compound://tab/analytics"])
-        )
+        screen.interactor.pendingDeepLink = DeepLink(pushUserInfo: ["deep_link": "compound://tab/analytics"])
+        screen.presenter.onPushNotificationReceived()
 
         #expect(screen.presenter.selectedTabTitle == "Analytics")
     }
@@ -502,9 +508,8 @@ struct AppShellTabBarPresenterTests {
     func testAPushWithNoDestinationIsIgnored() {
         let screen = makeScreen()
 
-        screen.presenter.onPushNotificationReceived(
-            Notification(name: Constants.selectTab, object: nil, userInfo: ["body": "hello"])
-        )
+        screen.interactor.pendingDeepLink = DeepLink(pushUserInfo: ["body": "hello"])
+        screen.presenter.onPushNotificationReceived()
         screen.presenter.onSelectTabNotificationReceived(
             Notification(name: Constants.selectTab, object: nil, userInfo: nil)
         )
@@ -525,7 +530,8 @@ struct AppShellTabBarPresenterTests {
 
         let screen = makeScreen()
         screen.presenter.selectedTabTitle = "Training"
-        screen.presenter.onPushNotificationReceived(Notification(name: .pushNotification, object: nil, userInfo: payload))
+        screen.interactor.pendingDeepLink = DeepLink(pushUserInfo: payload)
+        screen.presenter.onPushNotificationReceived()
 
         #expect(screen.presenter.selectedTabTitle == "Dashboard")
         #expect(screen.interactor.trackedEventNames == ["TabBarView_DeepLink_Session"])
@@ -546,11 +552,30 @@ struct AppShellTabBarPresenterTests {
         }
         defer { NotificationCenter.default.removeObserver(observer) }
 
-        screen.presenter.onPushNotificationReceived(Notification(name: .pushNotification, object: nil, userInfo: payload))
+        screen.interactor.pendingDeepLink = DeepLink(pushUserInfo: payload)
+        screen.presenter.onPushNotificationReceived()
 
         #expect(await TestManagers.eventually { opened })
         #expect(screen.presenter.selectedTabTitle == "Dashboard")
         #expect(screen.interactor.trackedEventNames == ["TabBarView_DeepLink_Notifications"])
+    }
+
+    /// A push tapped to launch the app is waiting before the tab bar exists; the tab bar takes it
+    /// when it appears, and only once — a later appear or broadcast must not replay it.
+    @Test("Test A Pending Push Is Routed On Appear Exactly Once")
+    func testAPendingPushIsRoutedOnAppearExactlyOnce() {
+        let screen = makeScreen()
+        screen.interactor.pendingDeepLink = .tab(.nutrition)
+
+        screen.presenter.onViewAppear()
+        #expect(screen.presenter.selectedTabTitle == "Nutrition")
+
+        screen.presenter.selectedTabTitle = "Training"
+        screen.presenter.onViewAppear()
+        screen.presenter.onPushNotificationReceived()
+
+        #expect(screen.presenter.selectedTabTitle == "Training")
+        #expect(screen.interactor.trackedEventNames == ["TabBarView_DeepLink_Tab"])
     }
 
     // MARK: - The accessory above the tab bar

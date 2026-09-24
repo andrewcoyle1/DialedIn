@@ -48,6 +48,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         self.dependencies = dependencies
         self.builder = CoreBuilder(interactor: CoreInteractor(container: dependencies.container))
         registerLiveActivityIntentHandler(container: dependencies.container)
+        seedPushPayloadFromLaunchArguments()
         return true
     }
     
@@ -71,6 +72,21 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         )
         liveActivityIntentHandler = handler
         LiveActivityIntentHandler.current = handler
+        #endif
+    }
+
+    /// `PUSH_PAYLOAD_JSON '{"type":"follow_request"}'` as launch arguments stands in for a push
+    /// tapped to launch the app, which the simulator cannot deliver on its own.
+    private func seedPushPayloadFromLaunchArguments() {
+        #if MOCK || DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        guard
+            let index = arguments.firstIndex(of: "PUSH_PAYLOAD_JSON"),
+            arguments.indices.contains(index + 1),
+            let data = arguments[index + 1].data(using: .utf8),
+            let payload = try? JSONSerialization.jsonObject(with: data) as? [AnyHashable: Any]
+        else { return }
+        storePendingDeepLink(DeepLink(pushUserInfo: payload))
         #endif
     }
 
@@ -106,11 +122,20 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         completionHandler([.banner, .sound, .badge])
     }
 
-    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        // Firebase push notifications put the payload within "aps" sub-dictionary.
-        // This may not be the case for other push notification services
-        let userInfo = response.notification.request.content.userInfo["aps"] as? [String: Any]
-        NotificationCenter.default.post(name: .pushNotification, object: nil, userInfo: userInfo)
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+        // FCM puts the message's `data` keys at the top level of userInfo, beside `aps` — reading
+        // only `aps` meant no tap ever carried a destination. Parsed here because userInfo is not
+        // Sendable; `DeepLink` is.
+        let deepLink = DeepLink(pushUserInfo: response.notification.request.content.userInfo)
+        await storePendingDeepLink(deepLink)
+    }
+
+    /// Parks the destination on `PushManager` and tells a tab bar already on screen to take it. On a
+    /// cold start nothing is listening yet; `logIn` and the tab bar's appear pick it up instead.
+    private func storePendingDeepLink(_ deepLink: DeepLink?) {
+        guard let deepLink else { return }
+        dependencies?.container.resolve(PushManager.self)?.storePendingDeepLink(deepLink)
+        NotificationCenter.default.post(name: .pushNotification, object: nil)
     }
 }
 

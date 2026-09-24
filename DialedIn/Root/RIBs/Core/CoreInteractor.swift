@@ -176,6 +176,8 @@ struct CoreInteractor: GlobalInteractor {
         // workout templates try to resolve exercises by ID.
         try? exerciseModelManager.seedExercisesIfNeeded()
         try? workoutTemplateManager.seedWorkoutTemplatesIfNeeded(exercises: exerciseModelManager.allExercises)
+        // A push tapped to launch the app waits for this point; see `PushManager.pendingDeepLink`.
+        routePendingDeepLinkAfterLogIn()
 
         try await purchaseManager.logIn(
             userId: user.uid,
@@ -221,6 +223,7 @@ struct CoreInteractor: GlobalInteractor {
         goalManager.signOut()
         streakManager.logOut()
         activityNotificationManager.stopListening()
+        pushManager.setReadyForDeepLinks(false)
     }
     
     func deleteAccount() async throws {

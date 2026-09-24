@@ -95,13 +95,19 @@ class TabBarPresenter {
         handle(deepLink)
     }
 
-    func onPushNotificationReceived(_ notification: Notification) {
-        guard
-            let userInfo = notification.userInfo,
-            let deepLink = DeepLink(pushUserInfo: userInfo)
-        else {
-            return
-        }
+    /// A push tap never carries its payload here: `AppDelegate` parks it on `PushManager`, and this
+    /// takes it. The same pull runs on appear, so a tap that launched the app is routed once the tab
+    /// bar exists and the user is signed in, whichever comes last.
+    func onPushNotificationReceived() {
+        routePendingDeepLink()
+    }
+
+    func onViewAppear() {
+        routePendingDeepLink()
+    }
+
+    private func routePendingDeepLink() {
+        guard let deepLink = interactor.consumePendingDeepLink() else { return }
         handle(deepLink)
     }
 

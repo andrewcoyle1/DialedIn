@@ -11,6 +11,7 @@ protocol TabBarInteractor: GlobalInteractor {
     var draftMeal: MealLogModel? { get }
     var activityNotifications: [ActivityNotificationModel] { get }
     var incomingFollowRequests: [FollowRequestModel] { get }
+    func consumePendingDeepLink() -> DeepLink?
 }
 
 extension CoreInteractor: TabBarInteractor { }
