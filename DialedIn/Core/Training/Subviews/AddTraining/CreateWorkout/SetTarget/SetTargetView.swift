@@ -72,12 +72,13 @@ struct SetTargetView: View {
                     .listRowInsets(.vertical, 0)
                 }
                 Image(systemName: "plus")
-                    .font(.system(size: 16))
+                    .font(.callout)
                     .padding(4)
                     .background(.secondary.opacity(0.2), in: Circle())
                     .anyButton(.press) {
                         addSetTarget()
                     }
+                    .accessibilityLabel("Add set target")
             }
             
             Section {

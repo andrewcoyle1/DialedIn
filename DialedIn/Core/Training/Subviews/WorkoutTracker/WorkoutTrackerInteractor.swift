@@ -14,9 +14,6 @@ struct LiveActivityUpdateParams {
     let isActive: Bool
     let currentExerciseIndex: Int
     let restEndsAt: Date?
-    let statusMessage: String?
-    let totalVolumeKg: Double?
-    let elapsedTime: TimeInterval?
 }
 
 /// Interactor protocol for handling all interactions between the Workout Tracker view model
@@ -39,18 +36,6 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
     /// The current rest end time for the active session, if any.
     var restEndTime: Date? { get }
 
-    /// Pending set completion written by the widget, if any.
-    var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion? { get }
-
-    /// Pending workout completion written by the widget, if any.
-    var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion? { get }
-
-    /// Force an immediate read of pending completions from shared storage (e.g. on foreground).
-    func syncPendingCompletionsFromSharedStorage()
-
-    func clearPendingSetCompletion()
-    func clearPendingWorkoutCompletion()
-    
     /// The current active workout session, if any.
     var activeSession: WorkoutSessionModel? { get }
 
@@ -79,8 +64,10 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
 
     func endWorkoutSession(_ session: WorkoutSessionModel) async throws
     func deleteActiveSession() throws 
-    /// End the current workout and persist/close resources as needed.
-    func endWorkout()
+
+    /// The whole finish — HealthKit, the save, the Live Activity and the side effects — for a
+    /// session already stamped with `endedAt`. Answers how the save went so it can be retried.
+    func finishWorkout(_ session: WorkoutSessionModel) async -> WorkoutSaveOutcome
 
     /// Discard the current workout without saving to HealthKit.
     func discardWorkout()
@@ -94,21 +81,18 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
         session: WorkoutSessionModel,
         isActive: Bool,
         currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?
+        restEndsAt: Date?
     )
 
     /// End any running live activity for the provided workout session.
     func endLiveActivity(
         session: WorkoutSessionModel,
-        isCompleted: Bool,
-        statusMessage: String?
+        isCompleted: Bool
     )
 
     /// Update live activity status and metrics for widgets/external presentation.
     func updateLiveActivity(params: LiveActivityUpdateParams)
 
-    func discardLiveActivity() async 
     // MARK: - Workout History
 
     /// Lookup the last completed session for a given template and author, if present.
@@ -159,30 +143,28 @@ protocol WorkoutTrackerInteractor: GlobalInteractor, PreviousWorkoutReferenceRes
 
     /// The current workout settings.
     var workoutSettings: WorkoutSettings { get }
-    
-    func addWorkoutStreakEvent() async throws
 
     /// Load unit preferences for an exercise template.
     func getPreference(templateId: String) -> ExerciseUnitPreference
-
-    /// Pre-create rest-day sessions for any consecutive rest days that follow the given session in the active training program.
-    func preCompleteConsecutiveRestDays(after session: WorkoutSessionModel) async
-
-    /// Upload a completed workout to Strava if the user is connected. Silently ignores errors.
-    func uploadToStravaIfConnected(_ session: WorkoutSessionModel) async
 }
 
 extension CoreInteractor: WorkoutTrackerInteractor {
-    func uploadToStravaIfConnected(_ session: WorkoutSessionModel) async {
-        guard stravaManager.isConnected, session.endedAt != nil else { return }
-        do {
-            try await stravaManager.uploadWorkout(session)
-        } catch {
-            trackEvent(
-                eventName: "strava_upload_error",
-                parameters: ["error": error.localizedDescription],
-                type: .warning
-            )
-        }
+    func finishWorkout(_ session: WorkoutSessionModel) async -> WorkoutSaveOutcome {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        await DialedIn.finishWorkout(session, using: WorkoutFinishManagers(
+            sessions: workoutSessionManager,
+            hkWorkout: hkWorkoutManager,
+            liveActivity: liveActivityManager,
+            gymProfiles: gymProfileManager,
+            programs: trainingProgramManager,
+            users: userManager,
+            streak: streakManager,
+            strava: stravaManager,
+            logger: logManager
+        ))
+        #else
+        gymProfileManager.activeWorkoutGymProfile = nil
+        return await saveFinishedWorkout(session, sessions: workoutSessionManager, logger: logManager)
+        #endif
     }
 }

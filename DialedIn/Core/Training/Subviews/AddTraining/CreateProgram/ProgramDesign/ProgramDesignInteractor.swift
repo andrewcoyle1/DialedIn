@@ -3,7 +3,6 @@ import SwiftUI
 @MainActor
 protocol ProgramDesignInteractor: GlobalInteractor {
     var userId: String? { get }
-    var currentUser: UserModel? { get }
     var favouriteGymProfile: GymProfileModel? { get }
     var activeTrainingProgram: TrainingProgram? { get }
     func setActiveTrainingProgram(programId: String) async throws

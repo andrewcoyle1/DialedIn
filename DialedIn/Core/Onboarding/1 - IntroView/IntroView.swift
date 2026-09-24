@@ -118,6 +118,7 @@ struct IntroView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
     }
 #endif

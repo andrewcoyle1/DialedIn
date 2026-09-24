@@ -79,6 +79,10 @@ class WorkoutTrackerPresenter {
 
     // Prevents handleWorkoutSessionChange from double-processing when updateSet() is the caller
     private var isProcessingUpdateSet = false
+
+    /// Set once this screen has left — finished, discarded, or told the workout ended elsewhere.
+    /// A write after that would put an ended session back as the active one.
+    var isDone = false
     
     // Notification identifier for rest timer
     let restTimerNotificationId = "workout-rest-timer"
@@ -125,8 +129,7 @@ class WorkoutTrackerPresenter {
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil
+            restEndsAt: interactor.restEndTime
         )
         #endif
         
@@ -141,11 +144,6 @@ class WorkoutTrackerPresenter {
             expandedExerciseId = workoutSession.exercises.first?.id
         }
         
-        // Check for pending widget completions that happened while backgrounded.
-        // Force a storage read first because the HKWorkoutManager timer hasn't started yet.
-        interactor.syncPendingCompletionsFromSharedStorage()
-        syncPendingSetCompletionFromWidget()
-
     }
     
     func onTask() async {
@@ -183,7 +181,7 @@ class WorkoutTrackerPresenter {
     
     /// Counted per exercise so a left/right pair is the one set it is — see `WorkoutSetPairing`.
     var completedSetsCount: Int {
-        workoutSession.exercises.reduce(0) { $0 + $1.sets.filter { $0.completedAt != nil }.pairedSetCount }
+        workoutSession.exercises.reduce(0) { $0 + $1.sets.fullyCompletedPairedSetCount }
     }
     
     var totalSetsCount: Int {
@@ -209,7 +207,7 @@ class WorkoutTrackerPresenter {
     // MARK: - Lifecycle
 
     func onAppear() async {
-        startObservingPendingCompletions()
+        startObservingActiveSession()
         loadPreviousWorkoutSession()
         loadProgressionSuggestions()
         UIApplication.shared.isIdleTimerDisabled = interactor.workoutSettings.keepAlive
@@ -234,12 +232,12 @@ class WorkoutTrackerPresenter {
     }
 
     func onScenePhaseChange(oldPhase: ScenePhase, newPhase: ScenePhase) {
-        if newPhase == .active && oldPhase == .background {
-            // Force an immediate read from shared storage so pending completions are
-            // processed without waiting for the next HKWorkoutManager timer tick.
-            interactor.syncPendingCompletionsFromSharedStorage()
-            syncPendingSetCompletionFromWidget()
-            syncPendingWorkoutCompletionFromWidget()
+        // iOS foregrounds through `.inactive`, so `oldPhase` is never `.background` here.
+        if newPhase == .active {
+            // A set logged from the Live Activity while the app was in the background was saved by
+            // the intent handler, not by this screen, so re-read it rather than waiting for the
+            // observation to fire.
+            adoptSavedSessionIfChanged()
         }
     }
 
@@ -262,6 +260,7 @@ class WorkoutTrackerPresenter {
     // MARK: - Workout Actions
     
     private func discardWorkout() {
+        isDone = true
         interactor.setActiveWorkoutGymProfile(nil)
         try? interactor.deleteActiveSession()
         UIApplication.shared.isIdleTimerDisabled = false
@@ -272,8 +271,7 @@ class WorkoutTrackerPresenter {
         Task {
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             interactor.discardWorkout()
-            await interactor.discardLiveActivity()
-            interactor.endLiveActivity(session: sessionSnapshot, isCompleted: false, statusMessage: "Workout Discarded")
+            interactor.endLiveActivity(session: sessionSnapshot, isCompleted: false)
             #endif
         }
     }
@@ -309,6 +307,7 @@ class WorkoutTrackerPresenter {
     // MARK: - Persistence
     
     func saveWorkoutProgress() {
+        guard !isDone else { return }
         do {
             try interactor.updateActiveSession(workoutSession)
         } catch {
@@ -326,10 +325,7 @@ class WorkoutTrackerPresenter {
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: liveActivityExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil,
-            totalVolumeKg: computeTotalVolumeKg(),
-            elapsedTime: elapsedTime
+            restEndsAt: interactor.restEndTime
         ))
         #endif
     }
@@ -389,51 +385,45 @@ class WorkoutTrackerPresenter {
         workoutSession.notes = workoutNotes.isEmpty ? nil : workoutNotes
     }
     
-    // MARK: - Widget Sync
+    // MARK: - The handler's writes
 
-    /// Begins observing `interactor.pendingSetCompletion` and `pendingWorkoutCompletion` using Swift
-    /// Observation. The HKWorkoutManager timer updates these properties from shared storage every
-    /// second, so the presenter never needs to poll SharedWorkoutStorage directly.
-    private func startObservingPendingCompletions() {
+    /// Watches `interactor.activeSession` for a save this screen did not make.
+    ///
+    /// A set logged from the Live Activity is written by `AppLiveActivityIntentHandler`, in this
+    /// process but outside this presenter. Observation is how it reaches the screen: the handler
+    /// saves through the session manager, `activeSession` changes, and the tracker adopts it.
+    ///
+    /// Re-armed on every change, because `withObservationTracking` fires its `onChange` once.
+    private func startObservingActiveSession() {
         withObservationTracking {
-            _ = interactor.pendingSetCompletion
-            _ = interactor.pendingWorkoutCompletion
+            _ = interactor.activeSession
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
-                self?.syncPendingSetCompletionFromWidget()
-                self?.syncPendingWorkoutCompletionFromWidget()
-                // Re-register after each change to keep observing.
-                self?.startObservingPendingCompletions()
+                self?.adoptSavedSessionIfChanged()
+                self?.startObservingActiveSession()
             }
         }
     }
 
-    func syncPendingSetCompletionFromWidget() {
-        guard let pending = interactor.pendingSetCompletion else { return }
-
-        guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { exercise in
-            exercise.sets.contains { $0.id == pending.setId }
-        }) else {
-            interactor.clearPendingSetCompletion()
+    /// Takes on the saved session when it differs from the screen's own copy.
+    ///
+    /// Skipped while `updateSet` is mid-flight: that is this screen's own write on its way to the
+    /// manager, and adopting it back would fight the edit the user is making.
+    func adoptSavedSessionIfChanged() {
+        guard !isProcessingUpdateSet else { return }
+        guard let saved = interactor.activeSession else {
+            // Finished from the Live Activity while this screen sat in the background. There is
+            // nothing left to track, and the next edit here would resurrect the ended session.
+            guard !isDone else { return }
+            isDone = true
+            UIApplication.shared.isIdleTimerDisabled = false
+            router.dismissScreen()
             return
         }
+        guard saved.id == workoutSession.id else { return }
+        guard saved != workoutSession else { return }
 
-        guard let setIndex = workoutSession.exercises[exerciseIndex].sets.firstIndex(where: { $0.id == pending.setId }) else {
-            interactor.clearPendingSetCompletion()
-            return
-        }
-
-        let exercise = workoutSession.exercises[exerciseIndex]
-        var updatedSet = exercise.sets[setIndex]
-
-        if let weight = pending.weightKg { updatedSet.weightKg = weight }
-        if let reps = pending.reps { updatedSet.reps = reps }
-        if let distance = pending.distanceMeters { updatedSet.distanceMeters = distance }
-        if let duration = pending.durationSec { updatedSet.durationSec = duration }
-        updatedSet.completedAt = pending.completedAt
-
-        interactor.clearPendingSetCompletion()
-        updateSet(updatedSet, in: exercise.id)
+        workoutSession = saved
     }
 
     func updateSet(_ updatedSet: WorkoutSetModel, in exerciseId: String) {
@@ -562,17 +552,6 @@ class WorkoutTrackerPresenter {
                 oldSets[set.id]?.completedAt == nil && set.completedAt != nil
             }
         }
-    }
-
-    func syncPendingWorkoutCompletionFromWidget() {
-        guard let pending = interactor.pendingWorkoutCompletion else { return }
-
-        guard pending.sessionId == workoutSession.id else {
-            interactor.clearPendingWorkoutCompletion()
-            return
-        }
-
-        interactor.clearPendingWorkoutCompletion()
     }
 
     func onGymProfilePressed() {

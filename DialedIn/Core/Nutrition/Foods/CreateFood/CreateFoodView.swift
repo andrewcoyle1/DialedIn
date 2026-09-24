@@ -104,6 +104,7 @@ struct CreateFoodView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 120)
             }
+            .accessibilityLabel("Choose food image")
         }
         .removeListRowFormatting()
         .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
@@ -204,6 +205,7 @@ struct CreateFoodView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Cancel")
         }
 #if DEBUG || MOCK
         ToolbarSpacer(.fixed, placement: .topBarLeading)
@@ -213,6 +215,7 @@ struct CreateFoodView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
 #endif
     }

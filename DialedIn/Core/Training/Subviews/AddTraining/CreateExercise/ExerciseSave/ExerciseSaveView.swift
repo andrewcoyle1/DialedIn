@@ -78,6 +78,8 @@ struct ExerciseSaveView: View {
             } label: {
                 Text("Create")
             }
+            .accessibilityIdentifier("ExerciseSave.create")
+            .disabled(presenter.isSaving)
             .padding(.bottom)
         }
     }
@@ -115,65 +117,6 @@ struct ExerciseSaveView: View {
                 Text("Final")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private var nameSection: some View {
-        Section {
-            HStack {
-                Text("Exercise Name: ")
-                    .font(.subheadline)
-                Text(delegate.exerciseName)
-            }
-        } header: {
-            HStack {
-                Text("Exercise Name")
-                Spacer()
-                Text("Final")
-                    .font(.caption)
-            }
-        }
-    }
-
-    private var trackableMetricSection: some View {
-        Section {
-            TextField("Trackable Metric", text: .constant(delegate.trackableMetricString))
-                .disabled(true)
-        } header: {
-            HStack {
-                Text("Trackable Metric")
-                Spacer()
-                Text("Final")
-                    .font(.caption)
-            }
-        }
-    }
-
-    private func typeSection(_ type: ExerciseType) -> some View {
-        Section {
-            TextField("Type", text: .constant(type.name))
-                .disabled(true)
-        } header: {
-            HStack {
-                Text("Type")
-                Spacer()
-                Text("Final")
-                    .font(.caption)
-            }
-        }
-    }
-
-    private func lateralitySection(_ laterality: Laterality) -> some View {
-        Section {
-            TextField("Laterality", text: .constant(laterality.name))
-                .disabled(true)
-        } header: {
-            HStack {
-                Text("Laterality")
-                Spacer()
-                Text("Final")
-                    .font(.caption)
             }
         }
     }

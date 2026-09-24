@@ -30,8 +30,11 @@ class ExercisesPickerPresenter {
         router.dismissScreen()
     }
 
+    /// Reopening the picker started from an empty selection, so an exercise already in the
+    /// workout could be added a second time.
     func onSavePressed() {
-        committedExercises.wrappedValue.append(contentsOf: workingExercises)
+        let existing = Set(committedExercises.wrappedValue.map(\.exercise.id))
+        committedExercises.wrappedValue.append(contentsOf: workingExercises.filter { !existing.contains($0.exercise.id) })
         router.dismissScreen()
     }
 

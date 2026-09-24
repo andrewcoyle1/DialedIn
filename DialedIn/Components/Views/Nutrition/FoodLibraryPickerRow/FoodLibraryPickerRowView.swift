@@ -92,6 +92,7 @@ struct FoodLibraryPickerRowView<T: FoodItem>: View {
             } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Quick add")
             .buttonStyle(.bordered)
             .buttonBorderShape(.circle)
         }

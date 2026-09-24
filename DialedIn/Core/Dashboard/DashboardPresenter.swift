@@ -219,7 +219,7 @@ class DashboardPresenter {
             parameters: nil,
             type: .analytic
         )
-        DeepLink.tab(.add).post()
+        DeepLink.tab(.search).post()
     }
 
     func onProfilePressed(transitionId: String, namespace: Namespace.ID) {

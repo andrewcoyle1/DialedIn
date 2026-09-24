@@ -71,12 +71,12 @@ struct ActivityRingView: View {
         }
         .frame(width: size, height: size)
         .onAppear {
-            withAnimation(.spring().speed(0.2)) {
+            withReducedMotionAnimation(.spring().speed(0.2)) {
                 internalProgress = progress
             }
         }
         .onChange(of: progress) { _, newValue in
-            withAnimation(.spring().speed(0.2)) {
+            withReducedMotionAnimation(.spring().speed(0.2)) {
                 internalProgress = newValue
             }
         }

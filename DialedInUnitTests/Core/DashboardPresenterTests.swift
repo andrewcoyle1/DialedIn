@@ -436,10 +436,10 @@ struct DashboardFeedPresenterTests {
         #expect(screen.router.shown == ["notifications"])
     }
 
-    /// People search lives on the Add tab and only the tab bar can select a tab, so the empty feed's
-    /// call to action asks for it through `NotificationCenter` rather than navigating itself.
-    @Test("Test Find People Asks The Tab Bar For The Add Tab")
-    func testFindPeopleAsksTheTabBarForTheAddTab() async {
+    /// People search lives on the Search tab and only the tab bar can select a tab, so the empty
+    /// feed's call to action asks for it through `NotificationCenter` rather than navigating itself.
+    @Test("Test Find People Asks The Tab Bar For The Search Tab")
+    func testFindPeopleAsksTheTabBarForTheSearchTab() async {
         let screen = makeScreen()
         var receivedTab: String?
         let observer = NotificationCenter.default.addObserver(
@@ -454,7 +454,7 @@ struct DashboardFeedPresenterTests {
         screen.presenter.onFindPeoplePressed()
         await TestManagers.eventually { receivedTab != nil }
 
-        #expect(receivedTab == DeepLink.Tab.add.rawValue)
+        #expect(receivedTab == DeepLink.Tab.search.rawValue)
         #expect(screen.interactor.trackedEventNames.contains("DashboardView_FindPeople_Press"))
         #expect(screen.router.shown.isEmpty)
     }

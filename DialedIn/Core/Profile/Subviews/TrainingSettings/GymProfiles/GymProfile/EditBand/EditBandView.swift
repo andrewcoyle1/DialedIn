@@ -79,6 +79,7 @@ struct EditBandView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
 
         ToolbarItem(placement: .topBarTrailing) {
@@ -87,6 +88,7 @@ struct EditBandView: View {
             } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Add band")
         }
     }
 }

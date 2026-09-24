@@ -236,12 +236,16 @@ struct ExerciseEquipmentPresenterTests {
         #expect(passed?.equipmentVariations.first?.supportEquipment == [bench.ref])
     }
 
-    @Test("Test The Bodyweight Flag Reaches The Final Step")
+    /// The toggle hid the variation rows but their drafts still travelled, so a bodyweight
+    /// exercise could be saved with whatever equipment had been picked before the toggle.
+    @Test("Test The Bodyweight Flag Reaches The Final Step Without The Hidden Variations")
     func testTheBodyweightFlagReachesTheFinalStep() {
         let screen = makeScreen()
+        screen.presenter.variations[0].resistanceEquipment = [barbell.ref]
         screen.presenter.bodyweightExercise = true
         screen.presenter.onNextPressed(delegate: delegate())
         #expect(screen.router.finalDelegates.first?.isBodyweight == true)
+        #expect(screen.router.finalDelegates.first?.equipmentVariations.isEmpty == true)
     }
 
     @Test("Test Appearing Is Tracked As A Screen View")
@@ -316,7 +320,9 @@ struct EquipmentPickerPresenterTests {
 @MainActor
 struct FinalExerciseDetailsPresenterTests {
 
-    private final class Interactor: SpyGlobalInteractor, FinalExerciseDetailsInteractor { }
+    private final class Interactor: SpyGlobalInteractor, FinalExerciseDetailsInteractor {
+        var currentUser: UserModel?
+    }
 
     private final class Router: FinalExerciseDetailsRouter {
         let router: AnyRouter = TestRouting.anyRouter
@@ -338,7 +344,7 @@ struct FinalExerciseDetailsPresenterTests {
         return Screen(presenter: FinalExerciseDetailsPresenter(interactor: interactor, router: router), interactor: interactor, router: router)
     }
 
-    private func delegate() -> FinalExerciseDetailsDelegate {
+    private func delegate(isBodyweight: Bool = false) -> FinalExerciseDetailsDelegate {
         FinalExerciseDetailsDelegate(
             name: "Bench Press",
             trackableMetricA: .reps,
@@ -346,8 +352,8 @@ struct FinalExerciseDetailsPresenterTests {
             exerciseType: .compoundUpper,
             laterality: .bilateral,
             targetMuscles: [.chest: .primary],
-            isBodyweight: false,
-            equipmentVariations: [EquipmentVariation(id: "v1", resistanceEquipment: [barbell.ref])]
+            isBodyweight: isBodyweight,
+            equipmentVariations: isBodyweight ? [] : [EquipmentVariation(id: "v1", resistanceEquipment: [barbell.ref])]
         )
     }
 
@@ -373,12 +379,51 @@ struct FinalExerciseDetailsPresenterTests {
         screen.presenter.stability = 2
         screen.presenter.bodyweightContribution = 60
         screen.presenter.exerciseDescription = "Press the bar off the chest."
-        screen.presenter.onNextPressed(delegate: delegate())
+        screen.presenter.onNextPressed(delegate: delegate(isBodyweight: true))
         let passed = screen.router.saveDelegates.first
         #expect(passed?.rangeOfMotion == 4)
         #expect(passed?.stability == 2)
         #expect(passed?.bodyweightContribution == 60)
         #expect(passed?.exerciseDescription == "Press the bar off the chest.")
+    }
+
+    /// The field is only shown for bodyweight exercises, so the default it holds must not be
+    /// stored against everything else as if it meant something.
+    @Test("Test A Loaded Exercise Stores No Bodyweight Contribution")
+    func testALoadedExerciseStoresNoBodyweightContribution() {
+        let screen = makeScreen()
+        screen.presenter.onNextPressed(delegate: delegate())
+        #expect(screen.router.saveDelegates.first?.bodyweightContribution == 0)
+    }
+
+    /// Labelled "Required" but never checked: any integer went through, including negatives.
+    @Test("Test The Contribution Must Be A Percentage For A Bodyweight Exercise")
+    func testTheContributionMustBeAPercentageForABodyweightExercise() {
+        let screen = makeScreen()
+
+        screen.presenter.bodyweightContribution = 140
+        #expect(!screen.presenter.canContinue(delegate: delegate(isBodyweight: true)))
+        #expect(screen.presenter.canContinue(delegate: delegate()))
+        screen.presenter.onNextPressed(delegate: delegate(isBodyweight: true))
+        #expect(screen.router.saveDelegates.isEmpty)
+
+        screen.presenter.bodyweightContribution = 100
+        #expect(screen.presenter.canContinue(delegate: delegate(isBodyweight: true)))
+    }
+
+    /// The footer used to be the literal placeholder "XX kg at your current weight."
+    @Test("Test The Footer Shows The Weight Moved In The Users Unit")
+    func testTheFooterShowsTheWeightMovedInTheUsersUnit() {
+        let screen = makeScreen()
+        screen.presenter.bodyweightContribution = 50
+
+        #expect(screen.presenter.contributionFooter(delegate: delegate(isBodyweight: true)).hasPrefix("The share"))
+
+        screen.interactor.currentUser = UserModel(userId: "user-1", submittedWeightKilograms: 80)
+        #expect(screen.presenter.contributionFooter(delegate: delegate(isBodyweight: true)) == "About 40 kg at your current weight.")
+
+        screen.interactor.currentUser = UserModel(userId: "user-1", submittedWeightKilograms: 80, submittedWeightUnitPreference: .pounds)
+        #expect(screen.presenter.contributionFooter(delegate: delegate(isBodyweight: true)) == "About 88 lbs at your current weight.")
     }
 
     /// The field's footer tells the user to separate names with a comma, and people type a space
@@ -442,9 +487,11 @@ struct ExerciseSavePresenterTests {
     private final class Interactor: SpyGlobalInteractor, ExerciseSaveInteractor {
         var currentUser: UserModel?
         var saveError: Error?
+        var saveDelay: Duration = .zero
         private(set) var saved: [ExerciseModel] = []
 
         func saveExerciseModel(exercise: ExerciseModel, image: PlatformImage?) async throws {
+            try? await Task.sleep(for: saveDelay)
             if let saveError {
                 throw saveError
             }
@@ -526,6 +573,23 @@ struct ExerciseSavePresenterTests {
 
     /// A custom exercise belongs to whoever made it, and must never be filed alongside the prebuilt
     /// library — a system exercise is not theirs to edit or delete.
+    /// Create had no in-flight state, so a second tap while the first save was in progress
+    /// stored the exercise twice.
+    @Test("Test A Second Tap During A Save Stores Nothing Extra")
+    func testASecondTapDuringASaveStoresNothingExtra() async {
+        let screen = makeScreen()
+        screen.interactor.saveDelay = .milliseconds(150)
+
+        screen.presenter.onCreatePressed(delegate: delegate())
+        #expect(screen.presenter.isSaving)
+        screen.presenter.onCreatePressed(delegate: delegate())
+
+        _ = await TestManagers.eventually { !screen.interactor.saved.isEmpty }
+        try? await Task.sleep(for: .milliseconds(100))
+        #expect(screen.interactor.saved.count == 1)
+        #expect(!screen.presenter.isSaving)
+    }
+
     @Test("Test The Exercise Belongs To The Signed In User")
     func testTheExerciseBelongsToTheSignedInUser() async {
         let screen = makeScreen(user: UserModel(userId: "user-42"))

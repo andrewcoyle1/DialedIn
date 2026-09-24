@@ -56,13 +56,13 @@ struct NutritionOverviewView: View {
                             Text("Start")
                                 .foregroundStyle(colorScheme.backgroundPrimary)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
                         Button {
                             presenter.onSkipCheckInPressed()
                         } label: {
                             Text("Skip this week")
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.glass)
                     }
                 }
                 .padding(.vertical, 4)
@@ -89,11 +89,11 @@ struct NutritionOverviewView: View {
                         Button("Accept") {
                             presenter.onAcceptProposalPressed()
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
                         Button("Not now") {
                             presenter.onDismissProposalPressed()
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.glass)
                     }
                 }
                 .padding(.vertical, 4)

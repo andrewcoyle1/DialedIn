@@ -107,11 +107,7 @@ struct AddTrainingPresenterTests {
 @MainActor
 struct CreateExercisePresenterTests {
 
-    private final class Interactor: SpyGlobalInteractor, CreateExerciseInteractor {
-        var currentUser: UserModel? = UserModel(userId: "user-1")
-        func saveExerciseModel(exercise: ExerciseModel, image: PlatformImage?) async throws { }
-        func generateImage(input: String) async throws -> UIImage { UIImage() }
-    }
+    private final class Interactor: SpyGlobalInteractor, CreateExerciseInteractor { }
 
     /// `showDevSettingsView()` is declared unguarded: the test target builds without `-DDEV`, so a
     /// double that guards it the way the router does would not satisfy the protocol.
@@ -181,7 +177,6 @@ struct CreateExercisePresenterTests {
         let screen = makeScreen()
         screen.presenter.exerciseName = "Bench Press"
         screen.presenter.trackableMetricB = .weight
-        #expect(screen.presenter.canSave)
     }
 
     @Test("Test Nothing Opens Until The Gate Is Passed")
@@ -376,7 +371,6 @@ struct MuscleGroupPickerPresenterTests {
     @Test("Test The Step Can Be Skipped Entirely")
     func testTheStepCanBeSkippedEntirely() {
         let screen = makeScreen()
-        #expect(screen.presenter.canSave)
         screen.presenter.onNextPressed(delegate: delegate())
         #expect(screen.router.equipmentDelegates.first?.muscleGroups.isEmpty == true)
     }

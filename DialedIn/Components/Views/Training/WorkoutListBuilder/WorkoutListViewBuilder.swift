@@ -46,6 +46,7 @@ struct WorkoutListViewBuilder: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add workout")
                 .buttonStyle(.glassProminent)
             }
         }

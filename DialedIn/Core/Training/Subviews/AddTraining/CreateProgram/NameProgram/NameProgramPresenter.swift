@@ -9,7 +9,9 @@ class NameProgramPresenter {
     
     var programName: String
     
-    var canSave: Bool { !programName.isEmpty }
+    private var trimmedName: String { programName.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    var canSave: Bool { !trimmedName.isEmpty }
     
     init(interactor: NameProgramInteractor, router: NameProgramRouter) {
         self.interactor = interactor
@@ -27,7 +29,8 @@ class NameProgramPresenter {
     }
     
     func onNextPressed(delegate: NameProgramDelegate) {
-        router.showProgramIconView(delegate: ProgramIconDelegate(onComplete: delegate.onComplete, name: programName))
+        guard canSave else { return }
+        router.showProgramIconView(delegate: ProgramIconDelegate(onComplete: delegate.onComplete, name: trimmedName))
     }
     
 }

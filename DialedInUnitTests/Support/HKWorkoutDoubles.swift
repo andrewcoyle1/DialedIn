@@ -20,7 +20,6 @@ final class LiveActivityUpdaterSpy: LiveActivityUpdating {
     struct RestAndActive: Equatable {
         let isActive: Bool
         let restEndsAt: Date?
-        let statusMessage: String?
     }
 
     private(set) var ensured: [String] = []
@@ -32,8 +31,7 @@ final class LiveActivityUpdaterSpy: LiveActivityUpdating {
         session: WorkoutSessionModel,
         isActive: Bool,
         currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?
+        restEndsAt: Date?
     ) {
         ensured.append(session.id)
     }
@@ -42,22 +40,22 @@ final class LiveActivityUpdaterSpy: LiveActivityUpdating {
         fullUpdates.append(params)
     }
 
-    func updateRestAndActive(isActive: Bool, restEndsAt: Date?, statusMessage: String?) {
-        restAndActiveUpdates.append(
-            RestAndActive(isActive: isActive, restEndsAt: restEndsAt, statusMessage: statusMessage)
-        )
+    func updateRestAndActive(isActive: Bool, restEndsAt: Date?) {
+        restAndActiveUpdates.append(RestAndActive(isActive: isActive, restEndsAt: restEndsAt))
     }
 
-    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool, statusMessage: String?) {
+    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool) {
         ended.append(session.id)
     }
 }
 
-/// Counts `Constants.workoutRestDidComplete` posts.
+/// Counts `Constants.workoutRestDidComplete` posts from one manager.
 ///
 /// The manager announces a finished rest to whichever screen is listening rather than calling it,
 /// so the post is the only observable difference between a rest that ran out and one that was
-/// cancelled. The count is behind a lock because the notification can be delivered from any queue.
+/// cancelled. Scoped to the manager under test because the centre is shared with every suite the
+/// runner has going at once, and another suite ending its own rest would otherwise be counted here.
+/// The count is behind a lock because the notification can be delivered from any queue.
 final class RestCompletionSpy: @unchecked Sendable {
     private let lock = NSLock()
     private var posts = 0
@@ -67,10 +65,10 @@ final class RestCompletionSpy: @unchecked Sendable {
         lock.withLock { posts }
     }
 
-    init() {
+    init(_ manager: HKWorkoutManager) {
         token = NotificationCenter.default.addObserver(
             forName: Constants.workoutRestDidComplete,
-            object: nil,
+            object: manager,
             queue: nil
         ) { [weak self] _ in
             guard let self else { return }

@@ -70,80 +70,24 @@ class SetTrackerRowPresenter {
 
     /// How long to rest after this set, or `nil` when the settings say not to rest here at all.
     ///
-    /// A rest set by hand on the set wins outright and unscaled: the user typed that number for
-    /// that set and meant it. Everything else starts from the base below and is then scaled by
-    /// where the set sits in the exercise, because the four moments are not the same rest — a
-    /// warm-up is a ramp, the gap between the two limbs of one set is the time it takes to swap
-    /// hands, the gap after the last set is the walk to the next exercise, and the gap between
-    /// sets is the one that actually needs to be long.
+    /// The rules themselves are in `RestDurationRules`, shared with the Live Activity intent
+    /// handler so a set logged from the widget rests for exactly as long as one logged here.
     func restAfterCompleting(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Int? {
-        if let custom = restBeforeSetIdToSec[set.id] {
-            return custom
-        }
-
-        let settings = interactor.workoutSettings
-        let base = baseRestDuration(for: exercise)
-
-        if set.isWarmup {
-            // The last warm-up runs straight into the first working set unless asked otherwise,
-            // which is the whole point of warming up.
-            if isLastWarmup(set, in: exercise), !settings.restAfterLastWarmUp {
-                return nil
-            }
-            return scale(base, by: settings.warmUpRestScaling)
-        }
-
-        // Before the last-set check, because the left half of a pair is never the last working
-        // set and would otherwise fall through to the full between-sets rest.
-        if hasFollowingSidePartner(set, in: exercise) {
-            guard settings.restBetweenSideSets else { return nil }
-            return scale(base, by: settings.sideSetRestScaling)
-        }
-
-        if isLastWorkingSet(set, in: exercise) {
-            guard settings.restBetweenExercises else { return nil }
-            return scale(base, by: settings.betweenExercisesRestScaling)
-        }
-
-        return base
+        RestDurationRules.restAfterCompleting(
+            set,
+            in: exercise,
+            settings: interactor.workoutSettings,
+            context: restContext(for: exercise),
+            customRestSeconds: restBeforeSetIdToSec[set.id]
+        )
     }
 
-    /// The unscaled rest for this exercise, narrowest setting first: the rest set on this one
-    /// exercise, then the one set for its whole type, then the global default.
-    ///
-    /// A zero-second override is treated as no override at all. Both screens that write it clear
-    /// to `nil` on an empty picker, but a document written by an older build can still carry a
-    /// literal zero, and resting for no time is not something a user can have meant.
-    private func baseRestDuration(for exercise: WorkoutExerciseModel) -> Int {
-        if let exerciseDuration = interactor.exerciseRestOverride(for: exercise.templateId), exerciseDuration > 0 {
-            return exerciseDuration
-        }
-        if let exerciseType = interactor.allExercises.first(where: { $0.id == exercise.templateId })?.type,
-           let typeDuration = interactor.workoutSettings.restDurationsByExerciseType[exerciseType.rawValue] {
-            return typeDuration
-        }
-        return interactor.workoutSettings.defaultRestDurationSeconds
-    }
-
-    /// Scaling to nothing means no rest rather than a zero-second one.
-    private func scale(_ base: Int, by factor: Double) -> Int? {
-        let scaled = Int((Double(base) * factor).rounded())
-        return scaled > 0 ? scaled : nil
-    }
-
-    /// True when this set is the first limb of a pair whose other limb is still to come, so what
-    /// follows is a swap of hands rather than a rest between sets.
-    private func hasFollowingSidePartner(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Bool {
-        set.side == .left && exercise.sets.pairedSetIds(for: set.id).count == 2
-    }
-
-    private func isLastWarmup(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Bool {
-        exercise.sets.last(where: { $0.isWarmup })?.id == set.id
-    }
-
-    /// Warm-ups are prepended, so the last working set is the last of the sets that are not one.
-    private func isLastWorkingSet(_ set: WorkoutSetModel, in exercise: WorkoutExerciseModel) -> Bool {
-        exercise.sets.last(where: { !$0.isWarmup })?.id == set.id
+    /// What the rules need to know about this exercise, read off the interactor.
+    private func restContext(for exercise: WorkoutExerciseModel) -> RestDurationRules.ExerciseContext {
+        RestDurationRules.ExerciseContext(
+            restOverrideSeconds: interactor.exerciseRestOverride(for: exercise.templateId),
+            exerciseTypeRawValue: interactor.allExercises.first(where: { $0.id == exercise.templateId })?.type?.rawValue
+        )
     }
 
     func onRestPickerRequested(exercise: WorkoutExerciseModel, setId: String) {
@@ -156,7 +100,7 @@ class SetTrackerRowPresenter {
         let existing = restBeforeSetIdToSec[setId]
             ?? exercise.sets.first(where: { $0.id == setId })
                 .flatMap { restAfterCompleting($0, in: exercise) }
-            ?? baseRestDuration(for: exercise)
+            ?? RestDurationRules.baseRestDuration(settings: interactor.workoutSettings, context: restContext(for: exercise))
         restPickerMinutesSelection = existing / 60
         restPickerSecondsSelection = existing % 60
 

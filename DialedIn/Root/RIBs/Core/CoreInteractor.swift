@@ -298,6 +298,16 @@ struct CoreInteractor: GlobalInteractor {
         ensureLiveActivity(session: session)
     }
     
+    /// A session with no template and no exercises; the tracker adds exercises as it goes.
+    /// "Start Empty Workout" used to run the template wizard and save a template first.
+    func startBlankWorkout() async throws {
+        guard let userId = self.userId else { throw CoreError.noCurrentUser }
+        let session = WorkoutSessionModel(authorId: userId, name: "Workout", dateCreated: .now, exercises: [])
+        try self.updateActiveSession(session)
+        hkWorkoutManager.startWorkout(workout: session)
+        ensureLiveActivity(session: session)
+    }
+
     func deleteActiveSession() throws {
         try workoutSessionManager.deleteActiveSession()
         hkWorkoutManager.discardWorkout()

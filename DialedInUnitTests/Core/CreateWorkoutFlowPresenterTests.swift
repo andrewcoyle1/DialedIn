@@ -28,17 +28,6 @@ private final class CreateWorkoutFlowExerciseBox {
     }
 }
 
-/// Stands in for whoever asked for a workout to be built: the start-a-workout flow hands a
-/// callback down the wizard and expects the finished template back through it.
-@MainActor
-private final class CreateWorkoutFlowCreationSpy {
-    private(set) var created: [WorkoutTemplateModel] = []
-
-    var callback: @Sendable (WorkoutTemplateModel) -> Void {
-        { workout in MainActor.assumeIsolated { self.created.append(workout) } }
-    }
-}
-
 /// An exercise targeting whichever muscles the test cares about.
 @MainActor
 private func flowExercise(
@@ -104,29 +93,26 @@ struct WorkoutBuildStartPresenterTests {
         return (CreateWorkoutPresenter(interactor: Interactor(), router: router), router)
     }
 
-    /// Losing the callback here is silent until four hops later, when the built workout has
-    /// nowhere to go and never starts.
-    @Test("Test Continuing Carries The Creation Callback To The Naming Step")
-    func testContinuingCarriesTheCreationCallbackToTheNamingStep() {
-        let (presenter, router) = makeScreen()
-        let spy = CreateWorkoutFlowCreationSpy()
-
-        presenter.onContinuePressed(delegate: CreateWorkoutDelegate(onWorkoutCreated: spy.callback))
-        router.nameDelegates.first?.onWorkoutCreated?(WorkoutTemplateModel(authorId: "user-1", name: "Push"))
-
-        #expect(router.nameDelegates.count == 1)
-        #expect(spy.created.map(\.name) == ["Push"])
-    }
-
-    /// Building a workout from the library has no caller waiting on it, and the next step has to
-    /// be told that rather than handed something that makes it behave like the start flow.
-    @Test("Test No Callback Is Invented When There Was None")
-    func testNoCallbackIsInventedWhenThereWasNone() {
+    @Test("Test Continuing Opens The Naming Step")
+    func testContinuingOpensTheNamingStep() {
         let (presenter, router) = makeScreen()
 
         presenter.onContinuePressed(delegate: CreateWorkoutDelegate())
 
-        #expect(router.nameDelegates.first?.onWorkoutCreated == nil)
+        #expect(router.nameDelegates.count == 1)
+        #expect(router.nameDelegates.first?.workoutTemplate == nil)
+    }
+
+    /// The template being edited was dropped on this hop, so "Edit" ran the new-workout wizard and
+    /// saving produced a second template beside the original.
+    @Test("Test The Template Being Edited Reaches The Naming Step")
+    func testTheTemplateBeingEditedReachesTheNamingStep() {
+        let (presenter, router) = makeScreen()
+        let template = WorkoutTemplateModel(id: "wt-1", authorId: "user-1", name: "Push")
+
+        presenter.onContinuePressed(delegate: CreateWorkoutDelegate(workoutTemplate: template))
+
+        #expect(router.nameDelegates.first?.workoutTemplate?.id == "wt-1")
     }
 }
 
@@ -139,27 +125,28 @@ struct WorkoutBuildStartPresenterTests {
 struct WorkoutBuildNamePresenterTests {
 
     private final class Interactor: SpyGlobalInteractor, NameWorkoutInteractor {
-        var currentUser: UserModel? = UserModel(userId: "user-1")
-
-        func saveWorkoutTemplate(workoutTemplate: WorkoutTemplateModel, image: PlatformImage?) async throws { }
-
-        func generateImage(input: String) async throws -> UIImage {
-            UIImage()
-        }
+        var gymProfiles: [GymProfileModel] = []
     }
 
     private final class Router: NameWorkoutRouter {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var gymDelegates: [ChooseGymProfileDelegate] = []
+        private(set) var defineDelegates: [DefineWorkoutWrapperDelegate] = []
 
         func showChooseGymProfileView(delegate: ChooseGymProfileDelegate) {
             gymDelegates.append(delegate)
         }
+
+        func showDefineWorkoutWrapperView(delegate: DefineWorkoutWrapperDelegate) {
+            defineDelegates.append(delegate)
+        }
     }
 
-    private func makeScreen() -> (NameWorkoutPresenter, Router) {
+    private func makeScreen(gyms: [GymProfileModel] = [], workoutName: String = "") -> (NameWorkoutPresenter, Router) {
         let router = Router()
-        return (NameWorkoutPresenter(interactor: Interactor(), router: router), router)
+        let interactor = Interactor()
+        interactor.gymProfiles = gyms
+        return (NameWorkoutPresenter(interactor: interactor, router: router, workoutName: workoutName), router)
     }
 
     @Test("Test A Workout Cannot Be Named Nothing")
@@ -173,17 +160,59 @@ struct WorkoutBuildNamePresenterTests {
         #expect(presenter.canSave)
     }
 
-    @Test("Test The Typed Name And The Callback Reach The Gym Step")
-    func testTheTypedNameAndTheCallbackReachTheGymStep() {
+    @Test("Test The Typed Name Reaches The Gym Step")
+    func testTheTypedNameReachesTheGymStep() {
         let (presenter, router) = makeScreen()
-        let spy = CreateWorkoutFlowCreationSpy()
         presenter.workoutName = "Push Day"
 
-        presenter.onContinuePressed(delegate: NameWorkoutDelegate(onWorkoutCreated: spy.callback))
-        router.gymDelegates.first?.onWorkoutCreated?(WorkoutTemplateModel(authorId: "user-1", name: "Push Day"))
+        presenter.onContinuePressed(delegate: NameWorkoutDelegate())
 
         #expect(router.gymDelegates.first?.name == "Push Day")
-        #expect(spy.created.count == 1)
+    }
+
+    @Test("Test The Name Is Trimmed Before It Travels")
+    func testTheNameIsTrimmedBeforeItTravels() {
+        let (presenter, router) = makeScreen()
+        presenter.workoutName = "  Push Day \n"
+
+        presenter.onContinuePressed(delegate: NameWorkoutDelegate())
+
+        #expect(router.gymDelegates.first?.name == "Push Day")
+    }
+
+    @Test("Test Editing Opens With The Existing Name")
+    func testEditingOpensWithTheExistingName() {
+        let (presenter, _) = makeScreen(workoutName: "Leg Day")
+
+        #expect(presenter.workoutName == "Leg Day")
+    }
+
+    /// A template being edited already has a gym, so the chooser is skipped and the template goes
+    /// straight to the define step where the save keeps its id.
+    @Test("Test Editing Skips The Gym Step When The Gym Still Exists")
+    func testEditingSkipsTheGymStepWhenTheGymStillExists() {
+        let gym = GymProfileModel(id: "gym-1", authorId: "user-1", name: "Home Gym")
+        let (presenter, router) = makeScreen(gyms: [gym], workoutName: "Leg Day")
+        let template = WorkoutTemplateModel(id: "wt-1", authorId: "user-1", name: "Leg Day", gymProfileId: "gym-1")
+
+        presenter.onContinuePressed(delegate: NameWorkoutDelegate(workoutTemplate: template))
+
+        #expect(router.gymDelegates.isEmpty)
+        #expect(router.defineDelegates.first?.workoutTemplate?.id == "wt-1")
+        #expect(router.defineDelegates.first?.gymProfile.id == "gym-1")
+    }
+
+    /// The gym may have been deleted since the template was made, so the chooser is shown again
+    /// but the template still travels.
+    @Test("Test Editing Asks For A Gym When The Old One Is Gone")
+    func testEditingAsksForAGymWhenTheOldOneIsGone() {
+        let (presenter, router) = makeScreen(workoutName: "Leg Day")
+        let template = WorkoutTemplateModel(id: "wt-1", authorId: "user-1", name: "Leg Day", gymProfileId: "gym-gone")
+
+        presenter.onContinuePressed(delegate: NameWorkoutDelegate(workoutTemplate: template))
+
+        #expect(router.defineDelegates.isEmpty)
+        #expect(router.gymDelegates.first?.workoutTemplate?.id == "wt-1")
     }
 }
 
@@ -210,9 +239,14 @@ struct WorkoutBuildGymChoicePresenterTests {
     private final class Router: ChooseGymProfileRouter {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var defineDelegates: [DefineWorkoutWrapperDelegate] = []
+        private(set) var createGymProfileCount = 0
 
         func showDefineWorkoutWrapperView(delegate: DefineWorkoutWrapperDelegate) {
             defineDelegates.append(delegate)
+        }
+
+        func showCreateGymProfileView(delegate: CreateGymProfileDelegate) {
+            createGymProfileCount += 1
         }
     }
 
@@ -259,21 +293,42 @@ struct WorkoutBuildGymChoicePresenterTests {
 
     /// The name has come two screens by now and is not shown on this one, which is exactly what
     /// makes it easy to drop here.
-    @Test("Test The Name Gym And Callback Reach The Define Step")
-    func testTheNameGymAndCallbackReachTheDefineStep() {
+    @Test("Test The Name And Gym Reach The Define Step")
+    func testTheNameAndGymReachTheDefineStep() {
         let screen = makeScreen()
-        let spy = CreateWorkoutFlowCreationSpy()
 
         screen.presenter.onGymProfilePressed(
             name: "Push Day",
             profile: profile("gym-1", name: "Home Gym"),
-            delegate: ChooseGymProfileDelegate(name: "Push Day", onWorkoutCreated: spy.callback)
+            delegate: ChooseGymProfileDelegate(name: "Push Day")
         )
-        screen.router.defineDelegates.first?.onWorkoutCreated?(WorkoutTemplateModel(authorId: "user-1", name: "Push Day"))
 
         #expect(screen.router.defineDelegates.first?.name == "Push Day")
         #expect(screen.router.defineDelegates.first?.gymProfile.id == "gym-1")
-        #expect(spy.created.count == 1)
+    }
+
+    @Test("Test The Template Being Edited Reaches The Define Step")
+    func testTheTemplateBeingEditedReachesTheDefineStep() {
+        let screen = makeScreen()
+        let template = WorkoutTemplateModel(id: "wt-1", authorId: "user-1", name: "Push Day")
+
+        screen.presenter.onGymProfilePressed(
+            name: "Push Day",
+            profile: profile("gym-1", name: "Home Gym"),
+            delegate: ChooseGymProfileDelegate(name: "Push Day", workoutTemplate: template)
+        )
+
+        #expect(screen.router.defineDelegates.first?.workoutTemplate?.id == "wt-1")
+    }
+
+    /// With no gyms on file the list was empty and the wizard could not continue.
+    @Test("Test An Empty List Offers To Create A Gym")
+    func testAnEmptyListOffersToCreateAGym() {
+        let screen = makeScreen()
+
+        screen.presenter.onCreateGymProfilePressed()
+
+        #expect(screen.router.createGymProfileCount == 1)
     }
 
     @Test("Test Appearing Is Tracked As A Screen View")
@@ -548,6 +603,20 @@ struct WorkoutBuildPickerPresenterTests {
     /// A newly picked exercise arrives with one set already targeted and numbered from one, so
     /// the workout can be saved without opening the target sheet at all. Rest timers are a
     /// per-exercise override the user has not asked for, so they start off.
+    /// The picker starts empty each time it opens, so confirming an exercise the workout already
+    /// had appended it a second time.
+    @Test("Test Confirming Does Not Add An Exercise The Workout Already Has")
+    func testConfirmingDoesNotAddAnExerciseTheWorkoutAlreadyHas() {
+        let squat = flowExercise(id: "squat", name: "Squat")
+        let screen = makeScreen(existing: [flowTemplateExercise(exercise: squat)])
+
+        screen.presenter.onExercisePressed(exercise: squat)
+        screen.presenter.onExercisePressed(exercise: flowExercise(id: "lunge", name: "Lunge"))
+        screen.presenter.onSavePressed()
+
+        #expect(screen.box.value.map(\.exercise.name) == ["Squat", "Lunge"])
+    }
+
     @Test("Test A Picked Exercise Starts With One Numbered Set")
     func testAPickedExerciseStartsWithOneNumberedSet() {
         let screen = makeScreen()

@@ -129,6 +129,7 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
 
         if presenter.configuration.showsAddButton {

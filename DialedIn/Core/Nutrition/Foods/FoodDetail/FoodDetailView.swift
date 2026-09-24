@@ -193,6 +193,7 @@ struct FoodDetailView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
 

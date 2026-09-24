@@ -39,6 +39,7 @@ struct ExpenditureDelegate {
 struct ExpenditureView: View {
 
     @State var presenter: ExpenditurePresenter
+    @ScaledMetric(relativeTo: .largeTitle) private var kcalFontSize: CGFloat = 56
 
     var delegate: ExpenditureDelegate
 
@@ -83,6 +84,7 @@ struct ExpenditureView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
     }
     #endif
@@ -92,7 +94,7 @@ struct ExpenditureView: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text("\(presenter.displayedKcal)")
-                        .font(.system(size: 56, weight: .bold, design: .rounded))
+                        .font(.system(size: kcalFontSize, weight: .bold, design: .rounded))
                         .monospacedDigit()
                         .contentTransition(.numericText())
                         .frame(minWidth: 170)
@@ -135,7 +137,7 @@ struct ExpenditureView: View {
                     }
                     ProgressView(value: presenter.animateBreakdown ? presenter.progress(for: item) : 0)
                         .tint(item.color)
-                        .animation(.easeOut(duration: 1.0), value: presenter.animateBreakdown)
+                        .reducedMotionAnimation(.easeOut(duration: 1.0), value: presenter.animateBreakdown)
                 }
                 .padding(.vertical, 6)
             }

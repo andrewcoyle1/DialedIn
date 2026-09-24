@@ -11,7 +11,7 @@ import Foundation
 
 // MARK: - Shortcuts
 
-/// The quick actions on the Add tab, in the order the user arranged them.
+/// The quick actions on the Search tab, in the order the user arranged them.
 ///
 /// This is the one settings screen here whose value is an ordered list rather than a set of
 /// switches, so the things that can go wrong are list things: a removal taking a neighbour with it,
@@ -47,8 +47,8 @@ struct GeneralSettingsShortcutsTests {
         )
     }
 
-    /// Someone who has never opened this screen sees the four the Add tab was hardcoded to. Anything
-    /// else would silently rearrange a grid they are used to.
+    /// Someone who has never opened this screen sees the default four. Anything else would silently
+    /// rearrange a row they are used to.
     @Test("Test An Untouched List Shows The Defaults")
     func testAnUntouchedListShowsTheDefaults() {
         let screen = makeScreen()
@@ -103,7 +103,7 @@ struct GeneralSettingsShortcutsTests {
         screen.presenter.onRemove(at: IndexSet(integer: 1))
         await TestManagers.eventually { !screen.interactor.savedSettings.isEmpty }
 
-        let expected = [QuickAction.startWorkout, .logMeal, .logWeight]
+        let expected = [QuickAction.startWorkout, .logWeight, .logMeasurement]
         #expect(screen.presenter.quickActions == expected)
         #expect(screen.interactor.savedSettings.last?.quickActions == expected)
     }
@@ -117,7 +117,7 @@ struct GeneralSettingsShortcutsTests {
         screen.presenter.onMove(from: IndexSet(integer: 3), to: 0)
         await TestManagers.eventually { !screen.interactor.savedSettings.isEmpty }
 
-        #expect(screen.presenter.quickActions == [.logWeight, .startWorkout, .addExercise, .logMeal])
+        #expect(screen.presenter.quickActions == [.logMeasurement, .startWorkout, .logMeal, .logWeight])
         #expect(Set(screen.presenter.quickActions) == Set(QuickAction.defaultActions))
     }
 
@@ -133,15 +133,6 @@ struct GeneralSettingsShortcutsTests {
 
         #expect(screen.presenter.quickActions == QuickAction.defaultActions)
         #expect(screen.interactor.savedSettings.last?.quickActions == QuickAction.defaultActions)
-    }
-
-    /// The grid is two columns, so an odd number leaves a half-empty row. It is allowed, but the
-    /// screen says so, and that warning has to appear only when it is true.
-    @Test("Test The Odd Count Warning Tracks The List Length")
-    func testTheOddCountWarningTracksTheListLength() {
-        #expect(!makeScreen(actions: []).presenter.hasOddCount)
-        #expect(!makeScreen().presenter.hasOddCount)
-        #expect(makeScreen(actions: [.startWorkout, .logMeal, .logWeight]).presenter.hasOddCount)
     }
 
     /// Unknown ids are dropped rather than crashing or leaving a gap, so a grid saved by a newer

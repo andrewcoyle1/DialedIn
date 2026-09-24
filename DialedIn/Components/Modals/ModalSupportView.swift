@@ -30,7 +30,7 @@ struct ModalSupportView<Content: View>: View {
             }
         }
         .zIndex(9999)
-        .animation(.bouncy, value: showModal)
+        .reducedMotionAnimation(.bouncy, value: showModal)
     }
 }
 

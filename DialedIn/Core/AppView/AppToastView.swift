@@ -45,8 +45,7 @@ struct AppToastView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22))
-        .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
+        .glassEffect(.regular, in: .rect(cornerRadius: 22))
         .padding(.horizontal, 20)
     }
 }

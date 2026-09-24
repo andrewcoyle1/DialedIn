@@ -29,8 +29,6 @@ class WorkoutSessionManager {
         followingWorkoutSessionSyncEngine.currentCollection
     }
 
-    var restEndTime: Date?
-
     // MARK: - Init
 
     init(
@@ -234,41 +232,7 @@ extension CoreInteractor {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         return hkWorkoutManager.restEndTime
         #else
-        return workoutSessionManager.restEndTime
-        #endif
-    }
-
-    var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion? {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        return hkWorkoutManager.pendingSetCompletion
-        #else
         return nil
-        #endif
-    }
-
-    var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion? {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        return hkWorkoutManager.pendingWorkoutCompletion
-        #else
-        return nil
-        #endif
-    }
-
-    func syncPendingCompletionsFromSharedStorage() {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        hkWorkoutManager.syncPendingCompletionsFromSharedStorage()
-        #endif
-    }
-
-    func clearPendingSetCompletion() {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        hkWorkoutManager.clearPendingSetCompletion()
-        #endif
-    }
-
-    func clearPendingWorkoutCompletion() {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        hkWorkoutManager.clearPendingWorkoutCompletion()
         #endif
     }
 

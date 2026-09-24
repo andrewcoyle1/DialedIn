@@ -52,6 +52,7 @@ struct AddFixedWeightBarView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
         
         ToolbarItem(placement: .confirmationAction) {
@@ -60,6 +61,7 @@ struct AddFixedWeightBarView: View {
             } label: {
                 Image(systemName: "checkmark")
             }
+            .accessibilityLabel("Save")
             .buttonStyle(.glassProminent)
         }
     }

@@ -105,6 +105,7 @@ struct FoodLogSettingsView: View {
                             .anyButton(.press) {
                                 presenter.onTimelineFoodTilesPressed()
                             }
+                        .accessibilityLabel("Timeline Food Tiles")
 
                     }
                 CustomLabelButtonView(
@@ -116,6 +117,7 @@ struct FoodLogSettingsView: View {
                             .anyButton(.press) {
                                 presenter.onLoggerFoodTilesPressed()
                             }
+                        .accessibilityLabel("Logger Food Tiles")
 
                     }
             } header: {
@@ -132,6 +134,7 @@ struct FoodLogSettingsView: View {
                             .anyButton(.press) {
                                 presenter.onLoggedBannerPressed()
                             }
+                        .accessibilityLabel("Logger Banner")
 
                     }
                 CustomLabelButtonView(
@@ -143,6 +146,7 @@ struct FoodLogSettingsView: View {
                             .anyButton(.press) {
                                 presenter.onTimeSelectionPressed()
                             }
+                        .accessibilityLabel("Time Selection")
 
                     }
                 CustomLabelButtonView(
@@ -154,6 +158,7 @@ struct FoodLogSettingsView: View {
                             .anyButton(.press) {
                                 presenter.onFavouriteMeasurementsPressed()
                             }
+                        .accessibilityLabel("Favourite Measurements")
 
                     }
                 CustomLabelButtonView(
@@ -165,6 +170,7 @@ struct FoodLogSettingsView: View {
                             .anyButton(.press) {
                                 presenter.onOptimisationPressed()
                             }
+                        .accessibilityLabel("Optimisation")
                     }
 
             } header: {

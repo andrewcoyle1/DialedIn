@@ -34,7 +34,7 @@ struct WorkoutStreakCard: View {
                 .foregroundStyle(streakAccentColor)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text("\(presenter.workoutStreakCount)")
-                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
                     .foregroundStyle(streakAccentColor)
                 Text(presenter.workoutStreakCount == 1 ? "day" : "days")
                     .font(.subheadline)

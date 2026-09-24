@@ -51,7 +51,7 @@ struct AnalyticsView<NutritionChart: View>: View {
         // the navigation bar, even when the list is pulled down.
         .topFill(Color(.secondarySystemGroupedBackground))
         .navigationTitle("Analytics")
-        .navigationBarTitleDisplayMode(.inline)
+        .minimizingLargeTitleBar()
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
@@ -154,6 +154,7 @@ struct AnalyticsView<NutritionChart: View>: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
 

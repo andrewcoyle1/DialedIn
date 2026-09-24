@@ -10,7 +10,6 @@ import PhotosUI
 
 struct NameWorkoutDelegate {
     var workoutTemplate: WorkoutTemplateModel?
-    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
 struct NameWorkoutView: View {
@@ -23,27 +22,43 @@ struct NameWorkoutView: View {
         List {
             Section {
                 TextField("Enter workout name", text: $presenter.workoutName)
+                    .accessibilityIdentifier("NameWorkout.name")
             } header: {
                 Text("Workout name")
             }
         }
-        .navigationTitle("Name Workout")
+        .navigationTitle(delegate.workoutTemplate == nil ? "Name Workout" : "Edit Workout")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // Editing opens straight onto this screen, so it needs the close the splash normally has.
+            if delegate.workoutTemplate != nil {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(role: .close) {
+                        presenter.onClosePressed()
+                    }
+                }
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
             } label: {
                 Text("Continue")
             }
-            .disabled(!presenter.canSave || presenter.isSaving)
+            .accessibilityIdentifier("NameWorkout.continue")
+            .disabled(!presenter.canSave)
         }
     }
 }
 
 extension CoreBuilder {
-    func createWorkoutView(router: AnyRouter, delegate: NameWorkoutDelegate) -> some View {
+    func nameWorkoutView(router: AnyRouter, delegate: NameWorkoutDelegate) -> some View {
         NameWorkoutView(
-            presenter: NameWorkoutPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            presenter: NameWorkoutPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self),
+                workoutName: delegate.workoutTemplate?.name ?? ""
+            ),
             delegate: delegate
         )
     }
@@ -52,7 +67,7 @@ extension CoreBuilder {
 extension CoreRouter {
     func showNameWorkoutView(delegate: NameWorkoutDelegate) {
         router.showScreen(.push) { router in
-            builder.createWorkoutView(router: router, delegate: delegate)
+            builder.nameWorkoutView(router: router, delegate: delegate)
         }
     }
 }
@@ -63,7 +78,7 @@ extension CoreRouter {
     let builder = CoreBuilder(interactor: interactor)
 
     RouterView { router in
-        builder.createWorkoutView(router: router, delegate: NameWorkoutDelegate())
+        builder.nameWorkoutView(router: router, delegate: NameWorkoutDelegate())
     }
     
 }

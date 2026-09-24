@@ -195,12 +195,12 @@ class ExpenditurePresenter {
         guard !hasAnimated else { return }
         hasAnimated = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.easeOut(duration: 1.6)) {
+            withReducedMotionAnimation(.easeOut(duration: 1.6)) {
                 self.displayedKcal = self.totalExpenditureKcal
             }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            withAnimation(.easeOut(duration: 1.0)) {
+            withReducedMotionAnimation(.easeOut(duration: 1.0)) {
                 self.animateBreakdown = true
             }
         }

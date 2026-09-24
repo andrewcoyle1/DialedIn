@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct CreateProgramDelegate {
-    let onDismiss: (() -> Void)?
+    /// Set by onboarding, which pushes this flow and resumes when it finishes. Nil when the flow
+    /// is a cover, which is when it needs its own close button.
     let onComplete: (@Sendable () -> Void)?
-    
-    init(onDismiss: (() -> Void)? = nil, onComplete: (@Sendable () -> Void)? = nil) {
-        self.onDismiss = onDismiss
+
+    init(onComplete: (@Sendable () -> Void)? = nil) {
         self.onComplete = onComplete
     }
 }
@@ -45,19 +45,23 @@ struct CreateProgramView: View {
             } label: {
                 Text("Continue")
             }
+            .accessibilityIdentifier("CreateProgram.continue")
             .padding(.bottom)
         }
     }
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        if delegate.onDismiss != nil {
+        // The library entry passed no dismiss closure, so its cover had no way out but to finish.
+        if delegate.onComplete == nil {
             ToolbarItem(placement: .cancellationAction) {
                 Button {
                     presenter.onDismissPressed()
                 } label: {
                     Image(systemName: "xmark")
                 }
+                .accessibilityLabel("Close")
+                .accessibilityIdentifier("CreateProgram.close")
             }
         }
     }
@@ -95,7 +99,7 @@ extension CoreRouter {
 #Preview("Sheet presentations") {
     let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    let delegate = CreateProgramDelegate(onDismiss: { print("dismissed") })
+    let delegate = CreateProgramDelegate()
     
     return RouterView { router in
         builder.createProgramView(router: router, delegate: delegate)
@@ -106,7 +110,7 @@ extension CoreRouter {
 #Preview("Onboarding presentations") {
     let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    let delegate = CreateProgramDelegate()
+    let delegate = CreateProgramDelegate(onComplete: { })
     
     return RouterView { router in
         builder.createProgramView(router: router, delegate: delegate)

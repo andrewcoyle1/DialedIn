@@ -68,6 +68,7 @@ struct EquipmentPickerView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
     }
     

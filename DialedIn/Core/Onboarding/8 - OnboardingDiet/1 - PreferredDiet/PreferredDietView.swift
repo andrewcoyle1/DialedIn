@@ -65,6 +65,7 @@ struct PreferredDietView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
     }
     #endif

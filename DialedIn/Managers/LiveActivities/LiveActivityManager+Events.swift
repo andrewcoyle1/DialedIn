@@ -31,6 +31,7 @@ extension LiveActivityManager {
         case updateLiveActivityFail(error: Error)
         case endLiveActivityStart
         case endLiveActivitySuccess
+        case endLiveActivityFail(error: Error)
 
         var eventName: String {
             switch self {
@@ -43,12 +44,14 @@ extension LiveActivityManager {
             case .updateLiveActivityFail:       return "LiveActivityMan_UpdateLiveActivity_Fail"
             case .endLiveActivityStart:         return "LiveActivityMan_EndLiveActivity_Start"
             case .endLiveActivitySuccess:       return "LiveActivityMan_EndLiveActivity_Success"
+            case .endLiveActivityFail:          return "LiveActivityMan_EndLiveActivity_Fail"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .startLiveActivityFail(error: let error), .updateLiveActivityFail(error: let error):
+            case .startLiveActivityFail(error: let error), .updateLiveActivityFail(error: let error),
+                 .endLiveActivityFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -57,7 +60,7 @@ extension LiveActivityManager {
         
         var type: LogType {
             switch self {
-            case .startLiveActivityFail, .updateLiveActivityFail:
+            case .startLiveActivityFail, .updateLiveActivityFail, .endLiveActivityFail:
                 return .severe
             default:
                 return .analytic

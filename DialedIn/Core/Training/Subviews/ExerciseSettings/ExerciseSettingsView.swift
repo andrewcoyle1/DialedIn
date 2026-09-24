@@ -25,6 +25,7 @@ struct ExerciseSettingsView: View {
                     } label: {
                         Image(systemName: "chevron.right")
                     }
+                    .accessibilityLabel("Exercise info")
                 }
                 CustomLabelButtonView(
                     symbolName: "scalemass",

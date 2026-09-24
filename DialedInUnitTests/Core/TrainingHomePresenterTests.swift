@@ -91,6 +91,7 @@ struct TrainingHomePresenterTests {
         var favouriteGymProfile: GymProfileModel?
         var startWorkoutError: Error?
         private(set) var startedTemplateNames: [String] = []
+        private(set) var blankWorkoutStarts = 0
         private(set) var didDeleteActiveSession = false
 
         func getAuthId() throws -> String { "author-1" }
@@ -108,6 +109,11 @@ struct TrainingHomePresenterTests {
             startedTemplateNames.append(template.name)
         }
 
+        func startBlankWorkout() async throws {
+            if let startWorkoutError { throw startWorkoutError }
+            blankWorkoutStarts += 1
+        }
+
         func deleteActiveSession() throws {
             didDeleteActiveSession = true
             activeSession = nil
@@ -123,6 +129,11 @@ struct TrainingHomePresenterTests {
     private final class Router: TrainingRouter {
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var shown: [String] = []
+        private(set) var alertTitles: [String] = []
+
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+            alertTitles.append(title)
+        }
         private(set) var sessionDetailDelegates: [WorkoutSessionDetailDelegate] = []
         private(set) var addTrainingDelegates: [AddTrainingDelegate] = []
         private(set) var createWorkoutDelegates: [CreateWorkoutDelegate] = []
@@ -298,54 +309,43 @@ struct TrainingHomePresenterTests {
 
     // MARK: - Starting an empty workout
 
-    /// "Start an empty workout" is really "build one now and start it", so the screen that opens is
-    /// the workout builder, and starting happens in its completion.
-    @Test("Test Starting An Empty Workout Opens The Builder")
-    func testStartingAnEmptyWorkoutOpensTheBuilder() {
+    /// "Start Empty Workout" used to run the template wizard and save a template. It now starts a
+    /// blank session and opens the tracker, which adds exercises as it goes.
+    @Test("Test Starting An Empty Workout Opens The Tracker On A Blank Session")
+    func testStartingAnEmptyWorkoutOpensTheTrackerOnABlankSession() async {
         let screen = makeScreen()
 
         screen.presenter.onStartEmptyWorkoutPressed()
 
-        #expect(screen.router.shown == ["createWorkout"])
-        #expect(screen.router.createWorkoutDelegates.first?.onWorkoutCreated != nil)
+        #expect(await TestManagers.eventually { screen.router.shown == ["tracker"] })
+        #expect(screen.interactor.blankWorkoutStarts == 1)
+        #expect(screen.interactor.startedTemplateNames.isEmpty)
     }
 
-    @Test("Test The Built Workout Is Started And Tracked")
-    func testTheBuiltWorkoutIsStartedAndTracked() async {
-        let screen = makeScreen()
-        screen.presenter.onStartEmptyWorkoutPressed()
-
-        screen.router.createWorkoutDelegates.first?.onWorkoutCreated?(TrainingTabFixture.template("Push"))
-        await TestManagers.eventually { screen.router.shown.contains("tracker") }
-
-        #expect(screen.interactor.startedTemplateNames == ["Push"])
-    }
-
-    /// With a workout already running, building another asks what to do with the live one rather
+    /// With a workout already running, starting another asks what to do with the live one rather
     /// than silently replacing it — so nothing is started and the tracker does not open.
-    @Test("Test Building A Workout While One Is Running Starts Nothing")
-    func testBuildingAWorkoutWhileOneIsRunningStartsNothing() async {
+    @Test("Test Starting While One Is Running Asks First")
+    func testStartingWhileOneIsRunningAsksFirst() async {
         let live = TrainingTabFixture.session(id: "live", on: TrainingTabFixture.date(day: 11), finished: false)
         let screen = makeScreen(active: live)
-        screen.presenter.onStartEmptyWorkoutPressed()
 
-        screen.router.createWorkoutDelegates.first?.onWorkoutCreated?(TrainingTabFixture.template("Push"))
+        screen.presenter.onStartEmptyWorkoutPressed()
         try? await Task.sleep(for: .milliseconds(150))
 
-        #expect(screen.interactor.startedTemplateNames.isEmpty)
-        #expect(screen.router.shown == ["createWorkout"])
+        #expect(screen.router.alertTitles == ["Active Workout"])
+        #expect(screen.interactor.blankWorkoutStarts == 0)
+        #expect(screen.router.shown.isEmpty)
         #expect(!screen.interactor.didDeleteActiveSession)
     }
 
-    /// A workout that cannot be started leaves the user on the builder with an explanation rather
+    /// A workout that cannot be started leaves the user where they were with an explanation rather
     /// than pushing them into an empty tracker.
     @Test("Test A Workout That Fails To Start Does Not Open The Tracker")
     func testAWorkoutThatFailsToStartDoesNotOpenTheTracker() async {
         let screen = makeScreen()
         screen.interactor.startWorkoutError = TrainingTabTestError.failed
-        screen.presenter.onStartEmptyWorkoutPressed()
 
-        screen.router.createWorkoutDelegates.first?.onWorkoutCreated?(TrainingTabFixture.template("Push"))
+        screen.presenter.onStartEmptyWorkoutPressed()
         try? await Task.sleep(for: .milliseconds(150))
 
         #expect(!screen.router.shown.contains("tracker"))

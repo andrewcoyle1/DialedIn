@@ -27,7 +27,9 @@ struct FinalExerciseDetailsView: View {
                 .listSectionMargins(.top, 0)
             stabilitySection
 
-            bodyweightSection
+            if delegate.isBodyweight {
+                bodyweightSection
+            }
 
             alternateNamesSection
 
@@ -47,6 +49,8 @@ struct FinalExerciseDetailsView: View {
             } label: {
                 Text("Next")
             }
+            .accessibilityIdentifier("FinalExerciseDetails.next")
+            .disabled(!presenter.canContinue(delegate: delegate))
             .padding(.bottom)
         }
     }
@@ -89,6 +93,7 @@ struct FinalExerciseDetailsView: View {
             HStack {
                 TextField("", value: $presenter.bodyweightContribution, format: .number)
                     .keyboardType(.numberPad)
+                    .accessibilityIdentifier("FinalExerciseDetails.contribution")
                 Text("%")
                     .foregroundStyle(.secondary)
             }
@@ -100,7 +105,7 @@ struct FinalExerciseDetailsView: View {
                     .font(.caption)
             }
         } footer: {
-            Text("XX kg at your current weight.")
+            Text(presenter.contributionFooter(delegate: delegate))
         }
     }
 

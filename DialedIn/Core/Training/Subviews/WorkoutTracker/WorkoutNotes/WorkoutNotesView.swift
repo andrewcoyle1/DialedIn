@@ -22,9 +22,8 @@ struct WorkoutNotesView: View {
         VStack {
             TextEditor(text: delegate.notes)
                 .padding()
-                .background(.white)
+                .background(Color.secondaryBackground, in: .rect(cornerRadius: 24))
                 .padding()
-                .cornerRadius(24)
             Spacer()
         }
         .navigationTitle("Workout Notes")

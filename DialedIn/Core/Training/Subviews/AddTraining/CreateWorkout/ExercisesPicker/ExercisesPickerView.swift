@@ -38,6 +38,7 @@ struct ExercisesPickerView<ExerciseList: View>: View {
                     Button(role: .confirm) {
                         presenter.onSavePressed()
                     }
+                    .accessibilityIdentifier("ExercisesPicker.confirm")
                 }
 
             }

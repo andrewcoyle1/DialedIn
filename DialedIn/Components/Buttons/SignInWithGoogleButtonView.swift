@@ -47,7 +47,7 @@ struct SignInWithGoogleButtonView: View {
             Text(scheme.description)
                 .foregroundStyle(resolvedStyle.accentColour)
                 .fontWeight(.medium)
-                .font(.system(size: 21))
+                .font(.title3)
             Spacer()
         }
         .padding(.horizontal, 16)

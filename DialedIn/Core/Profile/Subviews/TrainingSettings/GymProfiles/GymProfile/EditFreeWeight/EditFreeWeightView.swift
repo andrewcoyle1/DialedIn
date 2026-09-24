@@ -75,6 +75,7 @@ struct EditFreeWeightView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
         
         ToolbarItem(placement: .topBarTrailing) {
@@ -83,6 +84,7 @@ struct EditFreeWeightView: View {
             } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Add free weight")
         }
     }
 }

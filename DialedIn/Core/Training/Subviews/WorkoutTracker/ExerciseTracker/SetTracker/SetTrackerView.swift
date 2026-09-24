@@ -176,6 +176,7 @@ struct SetTrackerView<SetTrackerRow: View>: View {
                 Image(systemName: "plus")
                     .font(.caption)
             }
+            .accessibilityLabel("Add set")
             .tint(.secondary)
             .buttonStyle(.bordered)
             .buttonBorderShape(.circle)

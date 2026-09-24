@@ -162,6 +162,8 @@ struct DefineWorkoutView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add exercise")
+                .accessibilityIdentifier("DefineWorkout.addExercise")
                 .buttonStyle(.bordered)
             }
         }

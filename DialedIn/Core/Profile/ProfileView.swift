@@ -274,6 +274,7 @@ struct ProfileView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
     }
 }

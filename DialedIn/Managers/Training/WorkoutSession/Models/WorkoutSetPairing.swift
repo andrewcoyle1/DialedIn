@@ -36,6 +36,24 @@ extension Collection where Element == WorkoutSetModel {
         return count
     }
 
+    /// How many sets are fully done, a pair counting only once both halves are. The tracker lets
+    /// the user tick the right side first, so both sides are checked.
+    ///
+    /// `pairedSetCount` on the completed rows alone reads a lone left row as a finished set, which
+    /// is right for "the set the user is on" (`loggedSetCount`) and wrong for "is the work done":
+    /// it would put the banner on "Set 2 of 4" with the right arm of set 1 still to come, and offer
+    /// Finish with the last row of the workout unlogged.
+    var fullyCompletedPairedSetCount: Int {
+        filter { row in
+            guard row.completedAt != nil else { return false }
+            let pair = pairedSetIds(for: row.id)
+            guard pair.count == 2,
+                  let partnerId = pair.first(where: { $0 != row.id }),
+                  let partner = first(where: { $0.id == partnerId }) else { return true }
+            return partner.completedAt != nil
+        }.pairedSetCount
+    }
+
     /// The ids of every row making up the same set as `setId`: itself, plus the opposite side when
     /// it is half of a pair.
     ///

@@ -80,6 +80,7 @@ struct ActivityView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
     }
     #endif

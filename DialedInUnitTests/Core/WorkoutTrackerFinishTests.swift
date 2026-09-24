@@ -20,10 +20,9 @@ import HealthKit
 /// not lost — the active session is only cleared once the save succeeds, so Training still offers
 /// to resume it — but a user who is told nothing has no way to know that.
 ///
-/// Finishing also runs several steps that are not the save: the streak, the rest-day
-/// pre-completion, the Strava upload and the Live Activity teardown. None of them may stand
-/// between the user and their workout being stored, and none of them may be skipped because
-/// another one failed.
+/// The finish itself — HealthKit, the Live Activity, the streak, the rest days, Strava — is the
+/// routine shared with the Live Activity's Finish button and is pinned on real managers in
+/// `LiveActivityIntentHandlerTests`; here it is a double, and only the retry around it is tested.
 @MainActor
 struct WorkoutTrackerFinishTests {
 
@@ -89,38 +88,6 @@ struct WorkoutTrackerFinishTests {
         #expect(screen.interactor.stravaUploads == ["session-1"])
         // A save that works first time is not news, so nothing is put in front of the user.
         #expect(screen.interactor.shownToasts.isEmpty)
-    }
-
-    /// The streak is a side effect of finishing, not a condition of it. It used to share a `do`
-    /// with the save, so a failed streak write skipped the Strava upload and — with the screen
-    /// already dismissed — left the Live Activity running with nothing left to end it.
-    @Test("Test A Failed Streak Write Still Ends The Live Activity")
-    func testAFailedStreakWriteStillEndsTheLiveActivity() async throws {
-        let screen = try makeScreen()
-        screen.interactor.streakError = URLError(.notConnectedToInternet)
-
-        screen.presenter.finishWorkout()
-        await screen.presenter.pendingFinishTask?.value
-
-        #expect(screen.interactor.endedSessions.map(\.id) == ["session-1"])
-        #expect(screen.interactor.stravaUploads == ["session-1"])
-        #expect(screen.interactor.endedLiveActivities.count == 1)
-    }
-
-    /// A workout that could not be saved is still over, so its Live Activity still has to end —
-    /// and it must not claim the workout was saved.
-    @Test("Test A Failed Save Ends The Live Activity Without Claiming It Saved")
-    func testAFailedSaveEndsTheLiveActivityWithoutClaimingItSaved() async throws {
-        let screen = try makeScreen()
-        screen.interactor.endWorkoutSessionError = URLError(.notConnectedToInternet)
-
-        screen.presenter.finishWorkout()
-        await screen.presenter.pendingFinishTask?.value
-
-        #expect(screen.interactor.endedSessions.isEmpty)
-        #expect(screen.interactor.endedLiveActivities.count == 1)
-        #expect(screen.interactor.endedLiveActivities.first?.isCompleted == false)
-        #expect(screen.interactor.endedLiveActivities.first?.statusMessage != "Workout ended & saved.")
     }
 
     // MARK: - Saving a finished workout

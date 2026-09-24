@@ -16,10 +16,12 @@ class ProgramDesignPresenter {
     }
     
     var program: TrainingProgram
-    
-    static let defaultWorkoutTemplateModels: [WorkoutTemplateModel] = [
-        
-    ]
+    private(set) var isSaving: Bool = false
+
+    /// A program of rest days alone has nothing to activate, and a second tap mid-save wrote twice.
+    var canSave: Bool {
+        !isSaving && dayPlans.contains { !$0.exercises.isEmpty }
+    }
     
     /// The program's days, read and written straight through to `program.workoutTemplates`.
     ///
@@ -61,11 +63,8 @@ class ProgramDesignPresenter {
         self.router = router
 
         var program = program
-        let initialPlans = program.workoutTemplates.isEmpty ? Self.defaultWorkoutTemplateModels : program.workoutTemplates
-
-        if let firstPlan = initialPlans.first {
+        if let firstPlan = program.workoutTemplates.first {
             self.selectedWorkoutTemplateModel = firstPlan
-            program.workoutTemplates = initialPlans
         } else {
             let restDay = WorkoutTemplateModel(
                 id: UUID().uuidString,
@@ -134,6 +133,7 @@ class ProgramDesignPresenter {
     }
     
     func onActivatePressed(delegate: ProgramDesignDelegate) {
+        guard canSave else { return }
         router.showAlert(title: "Save Workout Templates", subtitle: "Would you like to save the workout templates in the training program for use independently?") {
             AnyView(
                 VStack {
@@ -153,12 +153,17 @@ class ProgramDesignPresenter {
         }
     }
 
-    /// Saves each day plan as a standalone workout template, then activates. A failure here
+    /// Saves each workout day as a standalone template, then activates. A failure here
     /// used to be swallowed by an unstructured `Task`, leaving the program un-activated with
     /// no feedback; now it surfaces and activation is skipped.
-    private func saveTemplatesAndActivate(delegate: ProgramDesignDelegate) async {
+    ///
+    /// Rest days are skipped: an empty template in the library is nothing anyone would start.
+    /// ponytail: sequential saves; a failure part-way leaves the earlier templates saved.
+    func saveTemplatesAndActivate(delegate: ProgramDesignDelegate) async {
+        isSaving = true
+        defer { isSaving = false }
         do {
-            for workoutTemplate in dayPlans {
+            for workoutTemplate in dayPlans where !workoutTemplate.exercises.isEmpty {
                 try await interactor.saveWorkoutTemplate(workoutTemplate: workoutTemplate, image: nil)
             }
         } catch {
@@ -173,12 +178,16 @@ class ProgramDesignPresenter {
     /// it returned immediately and could never throw — the callers' `try await` was a no-op
     /// and the nested task's errors went nowhere. It is now a plain `async` call that handles
     /// its own errors, which is what the alert path already assumed.
-    private func activateProgram(delegate: ProgramDesignDelegate) async {
+    func activateProgram(delegate: ProgramDesignDelegate) async {
+        isSaving = true
+        defer { isSaving = false }
         do {
             try await interactor.saveTrainingProgram(trainingProgram: program)
             try await interactor.setActiveTrainingProgram(programId: program.id)
-            if delegate.onComplete != nil {
-                handleNavigation()
+            // Onboarding hands in the closure that resumes it. This screen used to route
+            // onboarding itself and never call it, so the closure was carried four screens for nothing.
+            if let onComplete = delegate.onComplete {
+                onComplete()
             } else {
                 router.dismissEnvironment()
             }
@@ -187,19 +196,10 @@ class ProgramDesignPresenter {
         }
     }
 
-    // MARK: Handle Navigation
-    func handleNavigation() {
-        if let currentUser = interactor.currentUser {
-            let step = currentUser.inferredOnboardingStep
-            route(to: step)
-        }
-    }
-
-    private func route(to step: OnboardingStep) {
-        router.routeToOnboardingStep(step, onComplete: handleNavigation)
-    }
-    
-    func onDismissPressed() {
+    /// Confirming used to pop one screen, back to the icon picker, with the program intact.
+    /// Under onboarding this screen is pushed, so one screen back is all there is to discard;
+    /// as a cover or the edit sheet the whole environment goes.
+    func onDismissPressed(delegate: ProgramDesignDelegate) {
         router.showAlert(
             title: "Discard Program",
             subtitle: "Are you sure you want to discard your changes?",
@@ -207,8 +207,12 @@ class ProgramDesignPresenter {
                 AnyView(
                     HStack {
                         Button(role: .cancel) { }
-                        Button(role: .destructive) {
-                            self.router.dismissScreen()
+                        Button("Discard", role: .destructive) {
+                            if delegate.onComplete == nil {
+                                self.router.dismissEnvironment()
+                            } else {
+                                self.router.dismissScreen()
+                            }
                         }
                     }
                 )
@@ -217,7 +221,10 @@ class ProgramDesignPresenter {
     }
 
     func onSavePressed(delegate: ProgramDesignDelegate) {
+        guard canSave else { return }
+        isSaving = true
         Task {
+            defer { isSaving = false }
             do {
                 try await interactor.saveTrainingProgram(trainingProgram: program)
                 router.dismissEnvironment()

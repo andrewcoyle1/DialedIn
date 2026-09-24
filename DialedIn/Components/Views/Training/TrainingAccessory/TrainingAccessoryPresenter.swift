@@ -51,7 +51,7 @@ class TrainingAccessoryPresenter {
 
     /// A left/right pair is one set, so the accessory's "4/12 sets" matches the screen behind it.
     func completedSetsCount(_ session: WorkoutSessionModel) -> Int {
-        session.exercises.reduce(0) { $0 + $1.sets.filter { $0.completedAt != nil }.pairedSetCount }
+        session.exercises.reduce(0) { $0 + $1.sets.fullyCompletedPairedSetCount }
     }
 
     func totalSetsCount(_ session: WorkoutSessionModel) -> Int {

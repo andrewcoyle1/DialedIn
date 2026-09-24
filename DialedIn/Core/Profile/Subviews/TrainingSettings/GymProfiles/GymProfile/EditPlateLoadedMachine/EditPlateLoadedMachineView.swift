@@ -52,6 +52,7 @@ struct EditPlateLoadedMachineView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
     }
 }

@@ -111,6 +111,7 @@ struct CreateRecipeView: View {
                     Image(systemName: "plus")
                         .font(.system(size: 24))
                 }
+                .accessibilityLabel("Add ingredient")
                 .buttonStyle(.bordered)
                 .buttonBorderShape(.circle)
             }
@@ -125,6 +126,7 @@ struct CreateRecipeView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
 #if DEBUG || MOCK
         ToolbarSpacer(.fixed, placement: .topBarLeading)
@@ -134,6 +136,7 @@ struct CreateRecipeView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
 #endif
     }

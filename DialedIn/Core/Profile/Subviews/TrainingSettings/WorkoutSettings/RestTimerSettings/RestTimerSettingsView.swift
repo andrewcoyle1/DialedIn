@@ -46,11 +46,12 @@ struct RestTimerSettingsView: View {
                         .anyButton(.press) {
                             presenter.onTimerDurationPressed()
                         }
+                    .accessibilityLabel("Timer Duration")
                 }
             CustomToggleView(
                 symbolName: "flag",
                 title: "Rest After Last Warm-Up Set",
-                subtitle: "Use rest timers after the last warm-up set",
+                subtitle: "Rest before the first working set. Warm-up sets never rest between themselves",
                 bool: $presenter.restAfterLastWarmUp
             )
             CustomToggleView(

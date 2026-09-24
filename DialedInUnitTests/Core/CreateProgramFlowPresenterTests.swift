@@ -154,6 +154,20 @@ struct ProgramFlowNameProgramPresenterTests {
         #expect(!screen.presenter.canSave)
     }
 
+    /// Whitespace alone passed the old check.
+    @Test("Test A Blank Name Cannot Be Saved And A Padded One Is Trimmed")
+    func testABlankNameCannotBeSavedAndAPaddedOneIsTrimmed() {
+        let screen = makeScreen()
+        screen.presenter.programName = "  \n"
+        #expect(!screen.presenter.canSave)
+        screen.presenter.onNextPressed(delegate: NameProgramDelegate())
+        #expect(screen.router.iconDelegates.isEmpty)
+
+        screen.presenter.programName = "  Block "
+        screen.presenter.onNextPressed(delegate: NameProgramDelegate())
+        #expect(screen.router.iconDelegates.first?.name == "Block")
+    }
+
     @Test("Test The Typed Name Reaches The Icon Step")
     func testTheTypedNameReachesTheIconStep() {
         let screen = makeScreen()
@@ -201,6 +215,7 @@ struct ProgramFlowProgramIconPresenterTests {
     }
 
     private final class Router: ProgramIconRouter {
+        let router: AnyRouter = TestRouting.anyRouter
         private(set) var designDelegates: [ProgramDesignDelegate] = []
 
         func showProgramDesignView(delegate: ProgramDesignDelegate) {
@@ -339,6 +354,7 @@ struct ProgramFlowProgramDesignPresenterTests {
         var favouriteGymProfile: GymProfileModel?
         var activeTrainingProgram: TrainingProgram?
         var saveProgramError: Error?
+        var saveDelay: Duration = .zero
         private(set) var savedPrograms: [TrainingProgram] = []
         private(set) var savedTemplates: [WorkoutTemplateModel] = []
         private(set) var activatedProgramIds: [String] = []
@@ -348,6 +364,7 @@ struct ProgramFlowProgramDesignPresenterTests {
         }
 
         func saveTrainingProgram(trainingProgram: TrainingProgram) async throws {
+            try? await Task.sleep(for: saveDelay)
             if let saveProgramError { throw saveProgramError }
             savedPrograms.append(trainingProgram)
         }
@@ -622,7 +639,7 @@ struct ProgramFlowProgramDesignPresenterTests {
 
     @Test("Test Saving Stores The Program As It Stands")
     func testSavingStoresTheProgramAsItStands() async {
-        let screen = makeScreen(program: program(days: [day("Push")]))
+        let screen = makeScreen(program: program(days: [day("Push", exercises: 1)]))
         screen.presenter.onAddDayPressed()
 
         screen.presenter.onSavePressed(delegate: ProgramDesignDelegate(
@@ -638,7 +655,7 @@ struct ProgramFlowProgramDesignPresenterTests {
     /// a double — what is checked here is that nothing was stored.
     @Test("Test A Failed Save Stores Nothing")
     func testAFailedSaveStoresNothing() async {
-        let screen = makeScreen()
+        let screen = makeScreen(program: program(days: [day("Push", exercises: 1)]))
         screen.interactor.saveProgramError = ProgramFlowTestError()
 
         screen.presenter.onSavePressed(delegate: ProgramDesignDelegate(
@@ -662,27 +679,63 @@ struct ProgramFlowProgramDesignPresenterTests {
         #expect(screen.presenter.isProgramActive)
     }
 
-    /// Finishing a program during onboarding must return the user to onboarding, at the step their
-    /// profile says they still owe — here, an account that has filled in nothing.
-    @Test("Test Finishing During Onboarding Resumes Onboarding")
-    func testFinishingDuringOnboardingResumesOnboarding() {
+    private func designDelegate(onComplete: (@Sendable () -> Void)? = nil) -> ProgramDesignDelegate {
+        ProgramDesignDelegate(onComplete: onComplete, id: "program-1", authorId: "user-1", name: "Block", colour: .red, icon: "flag")
+    }
+    @Test("Test A Program Of Rest Days Cannot Be Saved Or Activated")
+    func testAProgramOfRestDaysCannotBeSavedOrActivated() async {
         let screen = makeScreen()
-        screen.interactor.currentUser = UserModel(userId: "user-1")
+        #expect(!screen.presenter.canSave)
 
-        screen.presenter.handleNavigation()
+        screen.presenter.onSavePressed(delegate: designDelegate())
+        screen.presenter.onActivatePressed(delegate: designDelegate())
+        _ = await TestManagers.eventually(timeout: .milliseconds(200)) { !screen.interactor.savedPrograms.isEmpty }
+        #expect(screen.interactor.savedPrograms.isEmpty)
+        #expect(screen.router.alertTitles.isEmpty)
 
-        #expect(screen.router.shown == ["completeAccountSetup"])
+        screen.presenter.selectedWorkoutTemplateModelExercises.wrappedValue = [
+            WorkoutTemplateExercise(exercise: ExerciseModel.mock, setRestTimers: false)
+        ]
+        #expect(screen.presenter.canSave)
     }
 
-    /// Without a signed-in user there is no onboarding step to infer, so nothing is routed to
-    /// rather than guessing at a destination.
-    @Test("Test No Route Is Taken Without A Signed In User")
-    func testNoRouteIsTakenWithoutASignedInUser() {
-        let screen = makeScreen()
+    /// Save had no in-flight state, so a second tap mid-save stored the program twice.
+    @Test("Test A Second Tap During A Save Stores Nothing Extra")
+    func testASecondTapDuringASaveStoresNothingExtra() async {
+        let screen = makeScreen(program: program(days: [day("Push", exercises: 1)]))
+        screen.interactor.saveDelay = .milliseconds(150)
 
-        screen.presenter.handleNavigation()
+        screen.presenter.onSavePressed(delegate: designDelegate())
+        #expect(screen.presenter.isSaving)
+        screen.presenter.onSavePressed(delegate: designDelegate())
 
-        #expect(screen.router.shown.isEmpty)
+        _ = await TestManagers.eventually { !screen.interactor.savedPrograms.isEmpty }
+        try? await Task.sleep(for: .milliseconds(100))
+        #expect(screen.interactor.savedPrograms.count == 1)
+        #expect(!screen.presenter.isSaving)
+    }
+
+    /// The screen used to route onboarding itself and never call the closure onboarding passed.
+    @Test("Test Finishing During Onboarding Calls The Completion Handler")
+    func testFinishingDuringOnboardingCallsTheCompletionHandler() async {
+        let screen = makeScreen(program: program(days: [day("Push", exercises: 1)]))
+        let flag = CompletionFlag()
+
+        await screen.presenter.activateProgram(delegate: designDelegate(onComplete: { flag.fire() }))
+
+        #expect(flag.fired)
+        #expect(screen.interactor.activatedProgramIds == ["program-1"])
+    }
+
+    /// "Yes" files each workout day as its own template; a rest day is not a workout.
+    @Test("Test Activating With Templates Skips The Rest Days")
+    func testActivatingWithTemplatesSkipsTheRestDays() async {
+        let screen = makeScreen(program: program(days: [day("Push", exercises: 1), day("Rest"), day("Pull", exercises: 2)]))
+
+        await screen.presenter.saveTemplatesAndActivate(delegate: designDelegate())
+
+        #expect(screen.interactor.activatedProgramIds == ["program-1"])
+        #expect(Set(screen.interactor.savedTemplates.map(\.name)) == ["Push", "Pull"])
     }
 
     @Test("Test Appearing Is Tracked As A Screen View")

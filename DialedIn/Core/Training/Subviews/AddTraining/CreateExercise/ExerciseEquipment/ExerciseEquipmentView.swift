@@ -19,6 +19,7 @@ struct ExerciseEquipmentView: View {
             Section {
                 ActionRow(title: "Bodyweight Exercise", subtitle: "This exercise is performed with bodyweight, without additional resistance.") {
                     Toggle(isOn: $presenter.bodyweightExercise) { }
+                        .accessibilityIdentifier("ExerciseEquipment.bodyweight")
                 }
             }
             .listSectionMargins(.top, 0)
@@ -64,6 +65,7 @@ struct ExerciseEquipmentView: View {
                                     Image(systemName: "trash")
                                         .font(.caption)
                                 }
+                                .accessibilityLabel("Delete variation")
                                 .buttonStyle(.plain)
                                 .foregroundStyle(.red)
                             }
@@ -94,6 +96,7 @@ struct ExerciseEquipmentView: View {
             } label: {
                 Text("Next")
             }
+            .accessibilityIdentifier("ExerciseEquipment.next")
             .padding(.bottom)
             .opacity(presenter.canContinue ? 1 : 0.3)
             .disabled(!presenter.canContinue)

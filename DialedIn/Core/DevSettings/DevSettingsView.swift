@@ -55,6 +55,7 @@ struct DevSettingsView: View {
             .anyButton {
                 presenter.onDismissPressed()
             }
+        .accessibilityLabel("Close")
     }
 
     private var authSection: some View {

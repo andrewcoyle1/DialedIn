@@ -31,7 +31,7 @@ struct TabBarView<TrainingTabAccessory: View, MealTabAccessory: View, Search: Vi
     /// The search tab is SwiftUI's own, so it has no `TabBarScreen` to take a title from.
     /// Computed rather than `static let`: `TabBarView` is generic, and generic types cannot hold
     /// static stored properties.
-    private var searchTabTitle: String { "Add" }
+    private var searchTabTitle: String { DeepLink.Tab.search.title }
 
     var body: some View {
         TabView(selection: $presenter.selectedTabTitle) {
@@ -46,7 +46,7 @@ struct TabBarView<TrainingTabAccessory: View, MealTabAccessory: View, Search: Vi
             Tab(value: searchTabTitle, role: .search) {
                 searchView()
             } label: {
-                Label("Add", systemImage: "plus")
+                Label(searchTabTitle, systemImage: "magnifyingglass")
             }
         }
         // `compound://tab/nutrition` and the equivalent push payload land here. This is the only

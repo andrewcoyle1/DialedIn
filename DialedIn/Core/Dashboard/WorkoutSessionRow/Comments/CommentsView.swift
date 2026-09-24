@@ -105,6 +105,7 @@ struct CommentsView: View {
                     Image(systemName: "paperplane.fill")
                 }
             }
+            .accessibilityLabel("Send comment")
             .disabled(
                 presenter.commentDraft.trimmingCharacters(in: .whitespaces).isEmpty ||
                 presenter.isSending

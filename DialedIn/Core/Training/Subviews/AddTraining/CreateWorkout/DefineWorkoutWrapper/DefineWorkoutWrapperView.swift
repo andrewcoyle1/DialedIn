@@ -3,7 +3,8 @@ import SwiftUI
 struct DefineWorkoutWrapperDelegate {
     let name: String
     let gymProfile: GymProfileModel
-    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
+    /// Set when editing: the saved model keeps this template's id so the save updates it in place.
+    var workoutTemplate: WorkoutTemplateModel?
 }
 
 struct DefineWorkoutWrapperView<DefineWorkout: View>: View {
@@ -12,10 +13,6 @@ struct DefineWorkoutWrapperView<DefineWorkout: View>: View {
     let delegate: DefineWorkoutWrapperDelegate
 
     @ViewBuilder var defineWorkoutView: (DefineWorkoutDelegate) -> DefineWorkout
-
-    private var isStartWorkoutMode: Bool {
-        delegate.onWorkoutCreated != nil
-    }
 
     var body: some View {
         let defineDelegate = DefineWorkoutDelegate(
@@ -39,8 +36,10 @@ struct DefineWorkoutWrapperView<DefineWorkout: View>: View {
                 CallToActionButton {
                     presenter.onConfirmPressed(delegate: self.delegate)
                 } label: {
-                    Text(isStartWorkoutMode ? "Start Workout" : "Save")
+                    Text("Save")
                 }
+                .accessibilityIdentifier("DefineWorkoutWrapper.save")
+                .disabled(!presenter.canSave)
             }
     }
 }
@@ -51,7 +50,8 @@ extension CoreBuilder {
         DefineWorkoutWrapperView(
             presenter: DefineWorkoutWrapperPresenter(
                 interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
+                router: CoreRouter(router: router, builder: self),
+                exercises: delegate.workoutTemplate?.exercises ?? []
             ),
             delegate: delegate,
             defineWorkoutView: { delegate in
@@ -76,23 +76,6 @@ extension CoreRouter {
     let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     let delegate = DefineWorkoutWrapperDelegate(name: "Sample Workout", gymProfile: GymProfileModel.mock)
-    
-    return RouterView { router in
-        builder.defineWorkoutWrapperView(router: router, delegate: delegate)
-    }
-    
-}
-
-#Preview("Start Workout Mode") {
-    let container = DevPreview.shared.container()
-    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    let delegate = DefineWorkoutWrapperDelegate(
-        name: "Sample Workout",
-        gymProfile: GymProfileModel.mock,
-        onWorkoutCreated: { _ in
-            
-        }
-    )
     
     return RouterView { router in
         builder.defineWorkoutWrapperView(router: router, delegate: delegate)

@@ -41,7 +41,7 @@ struct DashboardView<
         .scrollIndicators(.hidden)
         .navigationTitle("Dashboard")
         .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
-        .navigationBarTitleDisplayMode(.inline)
+        .minimizingLargeTitleBar()
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
@@ -180,6 +180,7 @@ struct DashboardView<
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
         
@@ -191,6 +192,7 @@ struct DashboardView<
             } label: {
                 Image(systemName: "bell")
             }
+            .accessibilityLabel("Notifications")
             .badge(presenter.activityNotifications.filter({ !$0.isRead }).count)
         }
         

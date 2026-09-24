@@ -70,6 +70,7 @@ struct EditFixedWeightBarView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
 
         ToolbarItem(placement: .topBarTrailing) {
@@ -78,6 +79,7 @@ struct EditFixedWeightBarView: View {
             } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Add fixed-weight bar")
         }
 
     }

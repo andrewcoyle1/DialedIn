@@ -115,7 +115,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     }
 
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
             }
             .padding(.horizontal)
         }
@@ -132,7 +132,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                         .foregroundStyle(colorScheme.backgroundPrimary)
                         .fontWeight(.bold)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
             } else {
                 Button {
                     presenter.onWorkoutTemplateModelSelected(dayPlan)
@@ -140,7 +140,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     Text(dayPlan.name)
                         .fontWeight(.regular)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
             }
         }
     }
@@ -160,6 +160,8 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                 } label: {
                     Text("Activate Program")
                 }
+                .accessibilityIdentifier("ProgramDesign.activate")
+                .disabled(!presenter.canSave)
             }
 
             if delegate.onComplete == nil {
@@ -168,6 +170,8 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                 } label: {
                     Text("Save Program")
                 }
+                .accessibilityIdentifier("ProgramDesign.save")
+                .disabled(!presenter.canSave)
             }
         }
         .padding(.bottom)
@@ -182,7 +186,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     } label: {
                         Label("Remove", systemImage: "minus.circle.fill")
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
                     .disabled(!presenter.canRemoveWorkoutTemplateModel)
                         .padding(.leading)
                     
@@ -191,8 +195,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     } label: {
                         Label("Rename", systemImage: "pencil")
                     }
-                    .buttonStyle(.bordered)
-                    .disabled(presenter.selectedWorkoutTemplateModel.exercises.isEmpty)
+                    .buttonStyle(.glass)
                     .padding(.trailing)
                 }
             }
@@ -206,10 +209,12 @@ struct ProgramDesignView<DefineWorkout: View>: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onDismissPressed()
+                presenter.onDismissPressed(delegate: delegate)
             } label: {
                 Image(systemName: "chevron.left")
             }
+            .accessibilityLabel("Back")
+            .accessibilityIdentifier("ProgramDesign.back")
         }
         
         ToolbarItem(placement: .topBarTrailing) {
@@ -218,6 +223,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
             } label: {
                 Image(systemName: "slider.horizontal.3")
             }
+            .accessibilityLabel("Program settings")
         }
     }
 }

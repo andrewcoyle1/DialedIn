@@ -51,6 +51,7 @@ struct EditLoadableAccessoryView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
     }
 }

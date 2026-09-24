@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ChooseGymProfileDelegate {
     let name: String
-    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
+    var workoutTemplate: WorkoutTemplateModel?
 }
 
 struct ChooseGymProfileView: View {
@@ -12,6 +12,19 @@ struct ChooseGymProfileView: View {
     
     var body: some View {
         List {
+            if presenter.gymProfiles.isEmpty {
+                // Every workout needs a gym, so an empty list was a dead end with no way to make one.
+                ContentUnavailableView {
+                    Label("No Gym Profiles", systemImage: "building.2")
+                } description: {
+                    Text("A workout is built around the equipment at a gym. Create one to continue.")
+                } actions: {
+                    Button("Create Gym Profile") {
+                        presenter.onCreateGymProfilePressed()
+                    }
+                }
+                .removeListRowFormatting()
+            }
             Section {
                 ForEach(presenter.gymProfiles) { profile in
                     CustomListCellView(
@@ -22,6 +35,7 @@ struct ChooseGymProfileView: View {
                     .anyButton {
                         presenter.onGymProfilePressed(name: delegate.name, profile: profile, delegate: delegate)
                     }
+                    .accessibilityIdentifier("ChooseGymProfile.profile")
                 }
                 .removeListRowFormatting()
             } header: {

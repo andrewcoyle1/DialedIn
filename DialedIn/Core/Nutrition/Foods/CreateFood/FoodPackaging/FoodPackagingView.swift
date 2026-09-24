@@ -48,6 +48,7 @@ struct FoodPackagingView: View {
                     .anyButton(.press) {
                         presenter.onFrontImageSelectorPressed()
                     }
+                .accessibilityLabel("Add product front photo")
             } header: {
                 Text("Product Front")
             }
@@ -58,6 +59,7 @@ struct FoodPackagingView: View {
                     .anyButton(.press) {
                         presenter.onRearImageSelectorPressed()
                     }
+                .accessibilityLabel("Add nutrition facts photo")
             } header: {
                 Text("Nutrition Facts")
             }

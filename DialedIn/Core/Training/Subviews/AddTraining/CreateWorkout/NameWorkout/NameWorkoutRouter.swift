@@ -8,6 +8,7 @@
 @MainActor
 protocol NameWorkoutRouter: GlobalRouter {
     func showChooseGymProfileView(delegate: ChooseGymProfileDelegate)
+    func showDefineWorkoutWrapperView(delegate: DefineWorkoutWrapperDelegate)
 }
 
 extension CoreRouter: NameWorkoutRouter { }

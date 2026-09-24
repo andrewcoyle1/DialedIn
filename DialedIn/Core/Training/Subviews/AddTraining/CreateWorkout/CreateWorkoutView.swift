@@ -9,8 +9,8 @@ import SwiftUI
 import PhotosUI
 
 struct CreateWorkoutDelegate {
+    /// Set when editing; the wizard opens prefilled and the save updates this template.
     var workoutTemplate: WorkoutTemplateModel?
-    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
 struct CreateWorkoutView: View {
@@ -28,7 +28,7 @@ struct CreateWorkoutView: View {
                 Text("Create Workout")
                     .font(.title)
                     .fontWeight(.bold)
-                Text("You will create a new workout for you library.")
+                Text("You will create a new workout for your library.")
             }
             .padding(.top)
             .frame(maxWidth: .infinity)
@@ -40,6 +40,7 @@ struct CreateWorkoutView: View {
             } label: {
                 Text("Continue")
             }
+            .accessibilityIdentifier("CreateWorkout.continue")
         }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -62,11 +63,20 @@ struct CreateWorkoutView: View {
 }
 
 extension CoreBuilder {
+    /// Editing skips the splash: the template already exists, so the cover opens on its name.
+    @ViewBuilder
     func createWorkoutView(router: AnyRouter, delegate: CreateWorkoutDelegate) -> some View {
-        CreateWorkoutView(
-            presenter: CreateWorkoutPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate
-        )
+        if let template = delegate.workoutTemplate {
+            nameWorkoutView(
+                router: router,
+                delegate: NameWorkoutDelegate(workoutTemplate: template)
+            )
+        } else {
+            CreateWorkoutView(
+                presenter: CreateWorkoutPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+                delegate: delegate
+            )
+        }
     }
 }
 

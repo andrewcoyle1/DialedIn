@@ -42,6 +42,7 @@ struct AboutView: View {
                 } label: {
                     Image(systemName: "xmark")
                 }
+                .accessibilityLabel("Close")
             }
         }
         .onAppear {

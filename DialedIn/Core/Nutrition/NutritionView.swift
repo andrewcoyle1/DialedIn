@@ -38,7 +38,7 @@ struct NutritionView<
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
-        .navigationBarTitleDisplayMode(.inline)
+        .minimizingLargeTitleBar()
         .onAppear { presenter.onViewAppear(delegate: delegate) }
         .onDisappear { presenter.onViewDisappear(delegate: delegate) }
         .toolbar {
@@ -175,6 +175,7 @@ struct NutritionView<
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
         #endif
@@ -185,6 +186,7 @@ struct NutritionView<
             } label: {
                 Image(systemName: "calendar")
             }
+            .accessibilityLabel("Show calendar")
         }
 
         ToolbarItem(placement: .topBarTrailing) {
@@ -193,6 +195,7 @@ struct NutritionView<
             } label: {
                 Image(systemName: "line.3.horizontal")
             }
+            .accessibilityLabel("Timeline actions")
         }
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
         ToolbarItem(placement: .topBarTrailing) {

@@ -16,12 +16,13 @@ import Foundation
 /// No `HKWorkoutSession` can be started in a test process, so everything here is the half of the
 /// manager that does not need one: the rest timer, the shared storage it writes for the widget, and
 /// the announcement the tracker screen listens for. `state` therefore stays `.notStarted`
-/// throughout, which is why every Live Activity update below carries `isActive == false`.
+/// throughout, which the manager reports as active: only a paused HealthKit session reads as not.
 ///
 /// Serialized because the three things under test — `NotificationCenter.default`, the app group's
 /// `UserDefaults`, and the process-wide dispatch queues the rest timer fires on — are all shared,
 /// and two of these tests running at once would read each other's posts.
-@Suite(.serialized)
+extension WorkoutRestSharedStateTests {
+
 @MainActor
 struct HKWorkoutManagerRestTests {
 
@@ -95,7 +96,7 @@ struct HKWorkoutManagerRestTests {
 
         let update = try #require(spy.fullUpdates.last)
         #expect(update.restEndsAt == manager.restEndTime)
-        #expect(update.statusMessage == "Resting")
+        #expect(update.restEndsAt != nil)
         #expect(update.currentExerciseIndex == 3)
     }
 
@@ -138,7 +139,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test A Rest That Runs Out Announces Itself")
     func testARestThatRunsOutAnnouncesItself() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
 
         manager.startRest(duration: Self.briefRest, session: session)
 
@@ -153,7 +154,7 @@ struct HKWorkoutManagerRestTests {
     func testARestAnnouncesItselfWithNoLiveActivityUpdater() async {
         SharedWorkoutStorage.clearRestEndTime()
         let manager = HKWorkoutManager(logger: LogManager(), liveActivityUpdater: nil)
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
 
         manager.startRest(duration: Self.briefRest, session: session)
 
@@ -176,7 +177,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test A Cancelled Rest Announces Nothing")
     func testACancelledRestAnnouncesNothing() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
 
         manager.startRest(duration: Self.briefRest, session: session)
         manager.cancelRest()
@@ -207,7 +208,6 @@ struct HKWorkoutManagerRestTests {
         manager.cancelRest()
 
         #expect(spy.restAndActiveUpdates.last?.restEndsAt == nil)
-        #expect(spy.restAndActiveUpdates.last?.statusMessage == nil)
         #expect(spy.fullUpdates.count == updatesBefore)
     }
 
@@ -217,7 +217,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test Starting A Second Rest Replaces The First Rather Than Running Both")
     func testStartingASecondRestReplacesTheFirst() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
 
         manager.startRest(duration: Self.briefRest, session: session)
         manager.startRest(durationSeconds: 90, session: session)
@@ -226,49 +226,29 @@ struct HKWorkoutManagerRestTests {
         #expect((manager.restEndTime?.timeIntervalSinceNow ?? 0) > 60)
     }
 
-    // MARK: - Widget Changes
+    /// Replacing used to go through `cancelRest()`, whose "no rest" push and the new countdown's
+    /// push were two unordered tasks: a "Rest over" frame before every countdown, and the countdown
+    /// lost if they ever swapped. Only the timer is cancelled now; the activity sees one push.
+    @Test("Test Replacing A Rest Pushes The New Countdown And Never A Cleared One")
+    func testReplacingARestPushesTheNewCountdownAndNeverAClearedOne() throws {
+        let (manager, spy) = makeManager()
 
-    /// The widget can extend a rest, and the phone then has to ding at the new time rather than the
-    /// old one. The reschedule used to overwrite the stored timer without cancelling it, leaving
-    /// the original still scheduled and still able to fire.
-    @Test("Test A Rest Extended From The Widget Does Not Announce At The Old Time")
-    func testARestExtendedFromTheWidgetDoesNotAnnounceAtTheOldTime() async {
-        let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
-        manager.startRest(duration: Self.briefRest, session: session)
-
-        SharedWorkoutStorage.restEndTime = Date().addingTimeInterval(3600)
-        manager.syncRestEndTimeFromSharedStorage()
-
-        #expect(await announced(posts) == false)
-        #expect((manager.restEndTime?.timeIntervalSinceNow ?? 0) > 60)
-    }
-
-    @Test("Test A Rest Cleared From The Widget Cancels The Timer")
-    func testARestClearedFromTheWidgetCancelsTheTimer() async {
-        let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
-        manager.startRest(duration: Self.briefRest, session: session)
-
-        SharedWorkoutStorage.clearRestEndTime()
-        manager.syncRestEndTimeFromSharedStorage()
-
-        #expect(manager.restEndTime == nil)
-        #expect(await announced(posts) == false)
-    }
-
-    /// Both sides write the same rest a moment apart, so only a difference worth acting on counts
-    /// as a change — otherwise every tick would reschedule the timer.
-    @Test("Test A Shared End Time Within Half A Second Is Left Alone")
-    func testASharedEndTimeWithinHalfASecondIsLeftAlone() throws {
-        let (manager, _) = makeManager()
+        manager.startRest(durationSeconds: 60, session: session)
         manager.startRest(durationSeconds: 90, session: session)
-        let end = try #require(manager.restEndTime)
 
-        SharedWorkoutStorage.restEndTime = end.addingTimeInterval(0.2)
-        manager.syncRestEndTimeFromSharedStorage()
+        #expect(!spy.restAndActiveUpdates.contains { $0.restEndsAt == nil })
+        #expect(try #require(spy.fullUpdates.last).restEndsAt == manager.restEndTime)
+    }
 
-        #expect(manager.restEndTime == end)
+    /// The split must not cost the cancel its push: one cleared countdown, no more.
+    @Test("Test Cancelling A Rest Pushes Exactly One Cleared Countdown")
+    func testCancellingARestPushesExactlyOneClearedCountdown() {
+        let (manager, spy) = makeManager()
+        manager.startRest(durationSeconds: 90, session: session)
+
+        manager.cancelRest()
+
+        #expect(spy.restAndActiveUpdates.filter { $0.restEndsAt == nil }.count == 1)
     }
 
     // MARK: - Workout Lifecycle
@@ -276,7 +256,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test Ending The Workout Cancels The Rest Without Announcing It")
     func testEndingTheWorkoutCancelsTheRestWithoutAnnouncingIt() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
         manager.startRest(duration: Self.briefRest, session: session)
 
         manager.endWorkout()
@@ -289,7 +269,7 @@ struct HKWorkoutManagerRestTests {
     @Test("Test Discarding The Workout Cancels The Rest And Clears The Metrics")
     func testDiscardingTheWorkoutCancelsTheRestAndClearsTheMetrics() async {
         let (manager, _) = makeManager()
-        let posts = RestCompletionSpy()
+        let posts = RestCompletionSpy(manager)
         manager.startRest(duration: Self.briefRest, session: session)
         manager.metrics.elapsedTime = 120
         manager.metrics.heartRate = 140
@@ -316,6 +296,8 @@ struct HKWorkoutManagerRestTests {
 
         #expect(weakManager == nil)
     }
+}
+
 }
 
 #endif

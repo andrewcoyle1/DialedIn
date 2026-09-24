@@ -31,12 +31,13 @@ struct ProfileModalView: View {
                 
                 Image(systemName: "xmark.circle.fill")
                     .font(.title)
-                    .foregroundStyle(Color.black)
+                    .foregroundStyle(.primary)
                     .padding(4)
                     .tappableBackground()
                     .anyButton {
                         onXMarkPressed()
                     }
+                    .accessibilityLabel("Close")
                     .padding(8)
             }
             
@@ -64,8 +65,7 @@ struct ProfileModalView: View {
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(.thinMaterial)
-        .cornerRadius(16)
+        .glassEffect(.regular, in: .rect(cornerRadius: 16))
     }
 }
 

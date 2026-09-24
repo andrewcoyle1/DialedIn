@@ -26,6 +26,7 @@ struct NameProgramView: View {
                 Text("")
             }
             .textFieldStyle(.roundedBorder)
+            .accessibilityIdentifier("NameProgram.name")
             
             Spacer()
         }
@@ -45,6 +46,7 @@ struct NameProgramView: View {
             } label: {
                 Text("Continue")
             }
+            .accessibilityIdentifier("NameProgram.continue")
             .disabled(!presenter.canSave)
             .padding(.bottom)
         }

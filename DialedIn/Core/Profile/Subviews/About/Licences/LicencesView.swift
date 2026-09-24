@@ -36,6 +36,7 @@ struct LicencesView: View {
                 } label: {
                     Image(systemName: "xmark")
                 }
+                .accessibilityLabel("Close")
             }
         }
         .onAppear {

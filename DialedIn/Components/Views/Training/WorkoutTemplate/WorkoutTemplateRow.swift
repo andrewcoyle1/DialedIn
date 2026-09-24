@@ -62,7 +62,7 @@ struct WorkoutTemplateRow: View {
                                 .font(.caption2)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(.thinMaterial, in: Capsule())
+                                .background(Color.secondary.opacity(0.2), in: Capsule())
                         }
                     }
                 }

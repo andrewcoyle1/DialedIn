@@ -10,6 +10,7 @@ struct BarcodeScannerDelegate {
 struct BarcodeScannerView: View {
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     @State var presenter: BarcodeScannerPresenter
     let delegate: BarcodeScannerDelegate
@@ -42,8 +43,8 @@ struct BarcodeScannerView: View {
                     || (presenter.scanningMode == .barcode && presenter.barcodeError != nil)
                 if showOverlay {
                     parsedIngredientOverlay
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .animation(.spring(duration: 0.3), value: showOverlay)
+                        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                        .reducedMotionAnimation(.spring(duration: 0.3), value: showOverlay)
                 }
             } else {
                 Text("Scanner not supported on this device.")
@@ -157,7 +158,7 @@ struct BarcodeScannerView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-            .background(.regularMaterial, in: Capsule())
+            .glassEffect()
             .padding(.bottom, 32)
         } else if presenter.scannedCode == nil {
             Text("Point camera at a barcode")
@@ -165,7 +166,7 @@ struct BarcodeScannerView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
-                .background(.regularMaterial, in: Capsule())
+                .glassEffect()
                 .padding(.bottom, 32)
         }
     }
@@ -183,10 +184,10 @@ struct BarcodeScannerView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 12)
-                .background(.regularMaterial, in: Capsule())
+                .glassEffect()
 
                 Button("Re-scan", action: presenter.onRescanPressed)
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
             } else if presenter.scannedCode != nil {
                 Text("Label text captured")
                     .font(.caption)
@@ -194,7 +195,7 @@ struct BarcodeScannerView: View {
 
                 HStack(spacing: 12) {
                     Button("Re-scan", action: presenter.onRescanPressed)
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.glass)
 
                     Button {
                         Task { await presenter.onParseLabelPressed() }
@@ -202,7 +203,7 @@ struct BarcodeScannerView: View {
                         Text("Parse Label")
                             .foregroundStyle(colorScheme.backgroundPrimary)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
                 }
             } else {
                 Text("Point camera at a nutrition label")
@@ -210,7 +211,7 @@ struct BarcodeScannerView: View {
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)
                     .padding(.vertical, 12)
-                    .background(.regularMaterial, in: Capsule())
+                    .glassEffect()
             }
         }
         .padding(.bottom, 32)
@@ -301,7 +302,7 @@ struct BarcodeScannerView: View {
             if presenter.scanningMode == .barcode {
                 HStack(spacing: 12) {
                     Button("Re-scan", action: presenter.onRescanPressed)
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.glass)
                         .frame(maxWidth: .infinity)
 
                     if let ingredient = presenter.parsedIngredient {
@@ -312,7 +313,7 @@ struct BarcodeScannerView: View {
                             Text("Use This Food")
                                 .foregroundStyle(colorScheme.backgroundPrimary)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
                         .frame(maxWidth: .infinity)
                     }
                 }
@@ -321,7 +322,7 @@ struct BarcodeScannerView: View {
                     Button("Dismiss") {
                         presenter.onDismissLabelResultPressed()
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
                     .frame(maxWidth: .infinity)
 
                     if presenter.parsedIngredient != nil {
@@ -338,14 +339,14 @@ struct BarcodeScannerView: View {
                                     .foregroundStyle(colorScheme.backgroundPrimary)
                             }
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
                         .disabled(presenter.isSavingIngredient)
                     }
                 }
             }
         }
         .padding(20)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+        .glassEffect(.regular, in: .rect(cornerRadius: 20))
         .padding(.horizontal, 12)
         .padding(.bottom, 32)
     }

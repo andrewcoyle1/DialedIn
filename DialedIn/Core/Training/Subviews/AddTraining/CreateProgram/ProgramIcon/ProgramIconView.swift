@@ -83,6 +83,7 @@ struct ProgramIconView: View {
             } label: {
                 Text("Continue")
             }
+            .accessibilityIdentifier("ProgramIcon.continue")
             .padding(.bottom)
         }
     }

@@ -61,6 +61,7 @@ struct EnumPickerView<Item: PickableItem>: View {
         .anyButton(.press) {
             presenter.onSelect(item: item, binding: delegate.chosenItem)
         }
+        .accessibilityIdentifier("EnumPicker.\(item.name)")
     }
     
     @ToolbarContentBuilder
@@ -71,6 +72,7 @@ struct EnumPickerView<Item: PickableItem>: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
 
         if delegate.canDelete {
@@ -80,6 +82,7 @@ struct EnumPickerView<Item: PickableItem>: View {
                 } label: {
                     Image(systemName: "trash")
                 }
+                .accessibilityLabel("Clear selection")
             }
         }
     }

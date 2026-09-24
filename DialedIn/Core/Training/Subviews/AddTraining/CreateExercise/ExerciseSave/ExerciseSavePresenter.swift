@@ -7,6 +7,8 @@ class ExerciseSavePresenter {
     private let interactor: ExerciseSaveInteractor
     private let router: ExerciseSaveRouter
 
+    private(set) var isSaving: Bool = false
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -17,6 +19,7 @@ class ExerciseSavePresenter {
     }
 
     func onCreatePressed(delegate: ExerciseSaveDelegate) {
+        guard !isSaving else { return }
         interactor.trackEvent(event: Event.createExerciseStart)
 
         // The whole wizard ends here, so a silent return threw away everything the user entered
@@ -29,7 +32,9 @@ class ExerciseSavePresenter {
         }
 
         let model = ExerciseModel(from: delegate, authorId: userId)
+        isSaving = true
         Task {
+            defer { isSaving = false }
             do {
                 try await interactor.saveExerciseModel(exercise: model, image: nil)
                 interactor.trackEvent(event: Event.createExerciseSuccess)

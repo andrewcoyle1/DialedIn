@@ -120,6 +120,7 @@ struct ExerciseModelDetailView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
@@ -128,6 +129,7 @@ struct ExerciseModelDetailView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
     }

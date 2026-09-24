@@ -38,22 +38,12 @@ extension WorkoutTrackerPresenter {
         )
     }
 
-    /// What one attempt at the save came back with.
-    private enum SaveOutcome: Equatable {
-        case saved
-        /// The same request could plausibly succeed later — worth another go.
-        case failedTransiently
-        /// The request itself was rejected, and will be rejected identically every time.
-        case failedPermanently
-    }
-
     // MARK: - Finishing
 
     func finishWorkout() {
-        interactor.setActiveWorkoutGymProfile(nil)
         workoutSession.endSession(at: Date())
+        isDone = true
         UIApplication.shared.isIdleTimerDisabled = false
-        SharedWorkoutStorage.clearHKStartedSessionId()
         router.dismissScreen()
 
         let sessionSnapshot = workoutSession
@@ -81,29 +71,9 @@ extension WorkoutTrackerPresenter {
             ],
             type: .info
         )
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        interactor.endWorkout()
-        #endif
-
-        let firstAttempt = await attemptSave(session)
-
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        // Torn down on the first answer rather than the last. Waiting for a whole retry schedule
-        // would leave the Dynamic Island claiming a workout was under way for half a minute after
-        // the user finished it, so the message says where the save stood at this moment instead.
-        interactor.endLiveActivity(
-            session: session,
-            isCompleted: firstAttempt == .saved,
-            statusMessage: statusMessage(for: firstAttempt)
-        )
-        #endif
-
-        // The side effects of finishing, each independent of the save and of each other: a failed
-        // streak write must not skip the Strava upload, and neither may stand between the user and
-        // a retry of the thing that actually matters.
-        await runFinishSideEffects(session)
-
-        switch firstAttempt {
+        // The finish itself is shared with the Live Activity's Finish button; only the retry and
+        // what the user is told about it are this screen's.
+        switch await interactor.finishWorkout(session) {
         case .saved:
             break
         case .failedPermanently:
@@ -113,28 +83,9 @@ extension WorkoutTrackerPresenter {
         }
     }
 
-    private func statusMessage(for outcome: SaveOutcome) -> String {
-        switch outcome {
-        case .saved:              return "Workout ended & saved."
-        case .failedTransiently:  return "Workout ended. Still saving…"
-        case .failedPermanently:  return "Workout ended, but could not be saved."
-        }
-    }
+    // MARK: - The retry
 
-    private func runFinishSideEffects(_ session: WorkoutSessionModel) async {
-        do {
-            try await interactor.addWorkoutStreakEvent()
-        } catch {
-            interactor.trackEvent(eventName: "finish_workout_streak_error", parameters: ["error": error.localizedDescription], type: .warning)
-        }
-
-        await interactor.preCompleteConsecutiveRestDays(after: session)
-        await interactor.uploadToStravaIfConnected(session)
-    }
-
-    // MARK: - The save
-
-    private func attemptSave(_ session: WorkoutSessionModel) async -> SaveOutcome {
+    private func attemptSave(_ session: WorkoutSessionModel) async -> WorkoutSaveOutcome {
         do {
             try await interactor.endWorkoutSession(session)
             return .saved

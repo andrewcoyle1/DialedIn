@@ -51,6 +51,22 @@ extension GlobalRouter {
         router.showAlert(.alert, title: title, subtitle: subtitle, buttons: { })
     }
 
+    /// Starting a workout while one is running asks first. Two screens can start one, so the
+    /// prompt lives here rather than in each presenter.
+    func showActiveWorkoutAlert(onResume: @escaping @Sendable () -> Void, onReplace: @escaping @Sendable () -> Void) {
+        showAlert(
+            title: "Active Workout",
+            subtitle: "You already have an active workout.",
+            buttons: {
+                AnyView(VStack {
+                    Button("Resume", action: onResume)
+                    Button("Discard & Start New", role: .destructive, action: onReplace)
+                    Button("Cancel", role: .cancel) { }
+                })
+            }
+        )
+    }
+
     func showConfirmationDialog(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
         router.showAlert(
             .confirmationDialog,

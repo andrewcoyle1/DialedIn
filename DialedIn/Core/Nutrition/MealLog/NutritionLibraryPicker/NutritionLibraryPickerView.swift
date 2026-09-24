@@ -75,7 +75,7 @@ struct NutritionLibraryPickerView<
                                     .tag(mode)
                                     .foregroundStyle(colorScheme.backgroundPrimary)
                             }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.glassProminent)
                         } else {
                             Button {
                                 presenter.onModePressed(mode)
@@ -83,7 +83,7 @@ struct NutritionLibraryPickerView<
                                 Label(mode.title, systemImage: mode.systemName)
                                     .tag(mode)
                             }
-                            .buttonStyle(.bordered)
+                            .buttonStyle(.glass)
                         }
                     }
                 }

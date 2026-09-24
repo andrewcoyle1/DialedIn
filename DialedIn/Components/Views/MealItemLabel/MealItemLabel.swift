@@ -54,6 +54,7 @@ struct MealItemLabel: View {
             } label: {
                 Image(systemName: "pencil")
             }
+            .accessibilityLabel("Edit meal item")
             .buttonStyle(.bordered)
             .buttonBorderShape(.circle)
         }

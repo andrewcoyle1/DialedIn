@@ -25,13 +25,19 @@ class HKWorkoutManager: NSObject {
     private var restTimer: DispatchSourceTimer?
     private(set) var restEndTime: Date?
 
+    /// What the Live Activity's `isActive` means from here: the workout is not paused. The
+    /// tracker treats a workout as active from the moment it opens, whether or not a HealthKit
+    /// session ever got going, so `state == .running` was the wrong test: with HealthKit declined
+    /// the state stays `.notStarted` and every rest push showed the banner as paused, until the
+    /// next push from the tracker or the intent handler put it back.
+    var isWorkoutActive: Bool { state != .paused }
+
     private var isDiscarding = false
     private var workout: HKWorkout?
+    /// Only tells `endRest` whether a workout is running. It is the session as it was at
+    /// `startWorkout`, so it must never be pushed to the Live Activity: ending the activity with it
+    /// from here raced the real end and put a zero-set summary on the Lock Screen.
     private var activeSessionModel: WorkoutSessionModel?
-
-    // Pending completions from widget, surfaced as observable properties
-    private(set) var pendingSetCompletion: SharedWorkoutStorage.PendingSetCompletion?
-    private(set) var pendingWorkoutCompletion: SharedWorkoutStorage.PendingWorkoutCompletion?
 
     // Weak reference to avoid circular dependency
     private weak var liveActivityUpdater: LiveActivityUpdating?
@@ -211,24 +217,9 @@ class HKWorkoutManager: NSObject {
             finishedWorkout = try await builder.finishWorkout()
             self.metrics.elapsedTime = finishedWorkout?.duration ?? 0
             logger.trackEvent(event: Event.finishWorkoutSuccess)
-
-            if let sessionModel = activeSessionModel {
-                liveActivityUpdater?.endLiveActivity(
-                    session: sessionModel,
-                    isCompleted: true,
-                    statusMessage: "Workout ended"
-                )
-            }
             session?.end()
         } catch {
             logger.trackEvent(event: Event.finishWorkoutFail(error: error))
-            if let sessionModel = activeSessionModel {
-                liveActivityUpdater?.endLiveActivity(
-                    session: sessionModel,
-                    isCompleted: false,
-                    statusMessage: "Failed to finish workout"
-                )
-            }
             return
         }
         workout = finishedWorkout
@@ -241,8 +232,6 @@ class HKWorkoutManager: NSObject {
             guard let self else { return }
             Task { @MainActor in
                 self.metrics.elapsedTime = self.builder?.elapsedTime ?? 0
-                self.syncRestEndTimeFromSharedStorage()
-                self.syncPendingCompletionsFromSharedStorage()
             }
         }
     }
@@ -308,68 +297,6 @@ extension HKWorkoutManager: HKLiveWorkoutBuilderDelegate {
 
 // MARK: - Rest Timer Management
 extension HKWorkoutManager {
-    /// Sync pending set/workout completions from shared storage (called by timer to pick up widget writes).
-    func syncPendingCompletionsFromSharedStorage() {
-        let newSetCompletion = SharedWorkoutStorage.pendingSetCompletion
-        if pendingSetCompletion?.setId != newSetCompletion?.setId {
-            pendingSetCompletion = newSetCompletion
-        }
-
-        let newWorkoutCompletion = SharedWorkoutStorage.pendingWorkoutCompletion
-        if pendingWorkoutCompletion?.sessionId != newWorkoutCompletion?.sessionId {
-            pendingWorkoutCompletion = newWorkoutCompletion
-        }
-    }
-
-    func clearPendingSetCompletion() {
-        SharedWorkoutStorage.clearPendingSetCompletion()
-        pendingSetCompletion = nil
-    }
-
-    func clearPendingWorkoutCompletion() {
-        SharedWorkoutStorage.clearPendingWorkoutCompletion()
-        pendingWorkoutCompletion = nil
-    }
-
-    /// Sync rest end time from shared storage (called by timer to pick up widget changes)
-    func syncRestEndTimeFromSharedStorage() {
-        let sharedRestEndTime = SharedWorkoutStorage.restEndTime
-        
-        // Only update if there's a meaningful difference (more than 0.5 seconds)
-        if let sharedTime = sharedRestEndTime, let currentTime = restEndTime {
-            let difference = abs(sharedTime.timeIntervalSince(currentTime))
-            if difference > 0.5 {
-                restEndTime = sharedTime
-                // Reschedule the timer with new end time
-                if let endTime = restEndTime {
-                    scheduleRestEndTimer(endTime: endTime)
-                }
-                // Push an immediate Live Activity update so UI reflects changes without 1s delay
-                if activeSessionModel != nil {
-                    liveActivityUpdater?.updateRestAndActive(
-                        isActive: state == .running,
-                        restEndsAt: restEndTime,
-                        statusMessage: "Resting"
-                    )
-                }
-            }
-        } else if sharedRestEndTime == nil && restEndTime != nil {
-            // Rest was cleared by widget
-            restEndTime = nil
-            // Cancel any scheduled timer
-            restTimer?.cancel()
-            restTimer = nil
-            // Push an immediate Live Activity update to clear UI
-            if activeSessionModel != nil {
-                liveActivityUpdater?.updateRestAndActive(
-                    isActive: state == .running,
-                    restEndsAt: nil,
-                    statusMessage: nil
-                )
-            }
-        }
-    }
-    
     /// Begin a rest period and schedule a background-safe update at rest end.
     @MainActor
     func startRest(durationSeconds: Int, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {
@@ -389,8 +316,10 @@ extension HKWorkoutManager {
         // front, before either the logged value or the stored duration is derived from it.
         let duration = durationSeconds.clamped(to: 0...86_400, whenNotFinite: 0)
         logger.trackEvent(event: Event.startRestCalled(durationSeconds: Int(duration), liveActivityUpdaterIsNil: liveActivityUpdater == nil))
-        // Cancel any existing rest to avoid multiple timers
-        cancelRest()
+        // Only the timer: `cancelRest()` also pushes "no rest" to the Live Activity, and that push
+        // and the one below are two unordered tasks — a "Rest over" frame before every countdown,
+        // or the countdown lost if they ever swap.
+        cancelRestTimer()
 
         restEndTime = Date().addingTimeInterval(duration)
 
@@ -400,12 +329,9 @@ extension HKWorkoutManager {
         // Update Live Activity immediately to show Resting countdown
         liveActivityUpdater?.updateLiveActivity(params: LiveActivityUpdateParams(
             session: session,
-            isActive: state == .running,
+            isActive: isWorkoutActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: restEndTime,
-            statusMessage: "Resting",
-            totalVolumeKg: nil,
-            elapsedTime: metrics.elapsedTime
+            restEndsAt: restEndTime
         ))
 
         // Schedule timer to fire exactly at rest end, even when app is backgrounded
@@ -414,38 +340,33 @@ extension HKWorkoutManager {
         }
     }
 
-    /// Cancel any pending rest and clear countdown from Live Activity.
-    func cancelRest() {
-        logger.trackEvent(event: Event.cancelRestCalled)
+    /// Stops the timer and forgets the end time, here and in the app group. No Live Activity push.
+    private func cancelRestTimer() {
         restTimer?.cancel()
         restTimer = nil
         restEndTime = nil
-
-        // Clear from shared storage
         SharedWorkoutStorage.clearRestEndTime()
+    }
+
+    /// Cancel any pending rest and clear countdown from Live Activity.
+    func cancelRest() {
+        logger.trackEvent(event: Event.cancelRestCalled)
+        cancelRestTimer()
 
         // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
-        liveActivityUpdater?.updateRestAndActive(
-            isActive: state == .running,
-            restEndsAt: nil,
-            statusMessage: nil
-        )
+        liveActivityUpdater?.updateRestAndActive(isActive: isWorkoutActive, restEndsAt: nil)
     }
 
     /// Called automatically when the scheduled rest end time is reached.
     func endRest() {
         logger.trackEvent(event: Event.endRestCalled)
-        restTimer?.cancel()
-        restTimer = nil
-        restEndTime = nil
-
-        // Clear from shared storage
-        SharedWorkoutStorage.clearRestEndTime()
+        cancelRestTimer()
 
         // Announced before the Live Activity guards below: a rest that has run out is over whether
         // or not there is an activity left to redraw, and the screen that tells the user is not
-        // this manager's business.
-        NotificationCenter.default.post(name: Constants.workoutRestDidComplete, object: nil)
+        // this manager's business. Posted as `self` so a listener can tell one manager's rest
+        // from another's; the tracker listens by name alone.
+        NotificationCenter.default.post(name: Constants.workoutRestDidComplete, object: self)
 
         guard activeSessionModel != nil else {
             logger.trackEvent(event: Event.endRestNoSession)
@@ -458,18 +379,14 @@ extension HKWorkoutManager {
         }
         
         // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
-        liveActivityUpdater?.updateRestAndActive(
-            isActive: state == .running,
-            restEndsAt: nil,
-            statusMessage: nil
-        )
+        liveActivityUpdater?.updateRestAndActive(isActive: isWorkoutActive, restEndsAt: nil)
     }
 
     // Deliberately MainActor-isolated rather than `nonisolated`, and both callers are already on
     // MainActor. `timer.resume()` arms the timer immediately, and storing it into `restTimer` used
     // to be deferred to a separate `Task { @MainActor ... }` hop — which meant a caller that started
     // a rest and cancelled it again in the same synchronous scope (as `cancelRest()`,
-    // `syncRestEndTimeFromSharedStorage()`, `endWorkout()` and `discardWorkout()` can all do) found
+    // `endWorkout()` and `discardWorkout()` can all do) found
     // `restTimer` still nil and had nothing to cancel, leaving the real timer armed to fire and
     // announce a rest that had already been called off. Assigning synchronously here closes that
     // window: `restTimer` holds the live timer before this function returns.
@@ -595,11 +512,6 @@ extension CoreInteractor {
     }
 
     // Rest Timer Management
-    @MainActor
-    func syncRestEndTimeFromSharedStorage() {
-        hkWorkoutManager.syncRestEndTimeFromSharedStorage()
-    }
-
     /// Begin a rest period and schedule a background-safe update at rest end.
     @MainActor
     func startRest(durationSeconds: Int, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {

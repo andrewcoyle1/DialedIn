@@ -27,7 +27,7 @@ struct PaywallView: View {
                             Text("Try Again")
                                 .foregroundStyle(colorScheme.backgroundPrimary)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
                     }
                     .padding()
                 } else if presenter.products.isEmpty {
@@ -81,6 +81,7 @@ struct PaywallView: View {
                     } label: {
                         Image(systemName: "xmark")
                     }
+                    .accessibilityLabel("Close")
                 }
             }
         }

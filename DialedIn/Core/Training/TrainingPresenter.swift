@@ -76,7 +76,7 @@ class TrainingPresenter {
     func onAddPressed() {
         let delegate = AddTrainingDelegate(
             onSelectProgram: { [weak self] in
-                self?.router.showCreateProgramView(delegate: CreateProgramDelegate(onDismiss: { self?.router.dismissScreen() }))
+                self?.router.showCreateProgramView(delegate: CreateProgramDelegate())
             },
             onSelectWorkout: { [weak self] in
                 self?.router.showCreateWorkoutView(delegate: CreateWorkoutDelegate())
@@ -105,39 +105,30 @@ class TrainingPresenter {
     }
         
     func onStartEmptyWorkoutPressed() {
-        router.showCreateWorkoutView(delegate: CreateWorkoutDelegate(
-            onWorkoutCreated: { [weak self] template in
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    if activeSession != nil {
-                        router.showAlert(
-                            title: "Active Workout",
-                            subtitle: "You already have an active workout.",
-                            buttons: {
-                                AnyView(VStack {
-                                    Button("Resume") { self.router.showWorkoutTrackerView() }
-                                    Button("Discard & Start New") {
-                                        try? self.interactor.deleteActiveSession()
-                                        Task {
-                                            try? await self.interactor.startWorkout(for: template, in: nil)
-                                            self.router.showWorkoutTrackerView()
-                                        }
-                                    }
-                                    Button("Cancel", role: .cancel) {}
-                                })
-                            }
-                        )
-                    } else {
-                        do {
-                            try await interactor.startWorkout(for: template, in: nil)
-                            router.showWorkoutTrackerView()
-                        } catch {
-                            router.showSimpleAlert(title: "Could Not Start Workout", subtitle: "Please try again.")
-                        }
+        if activeSession != nil {
+            router.showActiveWorkoutAlert(
+                onResume: { [weak self] in
+                    Task { @MainActor in self?.router.showWorkoutTrackerView() }
+                },
+                onReplace: { [weak self] in
+                    Task { @MainActor in
+                        try? self?.interactor.deleteActiveSession()
+                        await self?.startBlankWorkout()
                     }
                 }
-            }
-        ))
+            )
+        } else {
+            Task { await startBlankWorkout() }
+        }
+    }
+
+    private func startBlankWorkout() async {
+        do {
+            try await interactor.startBlankWorkout()
+            router.showWorkoutTrackerView()
+        } catch {
+            router.showSimpleAlert(title: "Could Not Start Workout", subtitle: "Please try again.")
+        }
     }
     
     func onDatePressed(date: Date) {

@@ -177,7 +177,8 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                 } label: {
                     Image(systemName: "plus")
                 }
-                .buttonStyle(.bordered)
+                .accessibilityLabel("Add exercise")
+                .buttonStyle(.glass)
                 .buttonBorderShape(.circle)
             }
         }

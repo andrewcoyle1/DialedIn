@@ -10,6 +10,9 @@ import Foundation
 enum ExerciseWeightUnit: String, Codable, CaseIterable {
     case kilograms
     case pounds
+
+    /// The same unit as the Live Activity's own copy, which lives in `Shared/`.
+    var liveActivityUnit: LiveActivityWeightUnit { self == .pounds ? .pounds : .kilograms }
     
     var abbreviation: String {
         switch self {

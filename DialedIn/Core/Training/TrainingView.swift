@@ -43,7 +43,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             moreSection
         }
         .navigationTitle("Training")
-        .navigationBarTitleDisplayMode(.inline)
+        .minimizingLargeTitleBar()
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
@@ -89,7 +89,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
                     Label("Choose Program", systemImage: "plus.circle.fill")
                         .foregroundStyle(colorScheme.backgroundPrimary)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .padding(.top, 8)
             }
             .frame(maxWidth: .infinity)
@@ -146,6 +146,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
 
@@ -155,6 +156,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             } label: {
                 Image(systemName: "calendar")
             }
+            .accessibilityLabel("Show calendar")
         }
 
         ToolbarItem(placement: .topBarTrailing) {
@@ -163,6 +165,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Add training")
         }
         
         ToolbarSpacer(.fixed, placement: .topBarTrailing)

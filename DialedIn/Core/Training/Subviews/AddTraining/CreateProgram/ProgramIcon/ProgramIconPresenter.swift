@@ -62,7 +62,12 @@ class ProgramIconPresenter {
     }
     
     func onNextPressed(delegate: ProgramIconDelegate) {
-        guard let userId = interactor.userId else { return }
+        // Reachable: the user document arrives on the sync engine's own task. Silently doing
+        // nothing left the button looking broken.
+        guard let userId = interactor.userId else {
+            router.showSimpleAlert(title: "Unable to Create Program", subtitle: "Please try again.")
+            return
+        }
         router.showProgramDesignView(
             delegate: ProgramDesignDelegate(
                 onComplete: delegate.onComplete,
