@@ -53,6 +53,9 @@ struct AppViewForUITesting: View {
             WorkoutShareCardView(content: .preview, format: .story)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.black)
+        } else if let screen = screenDeckScreen {
+            // MARK: - ScreenDeck
+            startScreen { screen($0) }
         } else {
             builder.build()
         }
@@ -71,6 +74,89 @@ struct AppViewForUITesting: View {
                     router.showScreen(.fullScreenCover) { router in
                         screen(router)
                     }
+                }
+        }
+    }
+}
+
+// MARK: - ScreenDeck
+
+/// One `STARTSCREEN_*` argument per top-level and major detail screen, for the screenshot deck.
+/// `scripts/screenshots.sh` finds every argument by grepping this file for `"STARTSCREEN_`, so a
+/// new entry here (or a new branch above) is picked up by the next run without touching the script.
+extension AppViewForUITesting {
+
+    private var screenDeckScreen: ((AnyRouter) -> AnyView)? {
+        let arguments = ProcessInfo.processInfo.arguments
+        return screenDeck.first { arguments.contains($0.argument) }?.screen
+    }
+
+    private var screenDeck: [(argument: String, screen: (AnyRouter) -> AnyView)] {
+        let builder = builder
+        let interactor = interactor
+        return [
+            ("STARTSCREEN_DASHBOARD", { builder.dashboardView(router: $0, delegate: DashboardDelegate()).any() }),
+            ("STARTSCREEN_TRAINING", { builder.trainingView(delegate: TrainingDelegate(), router: $0).any() }),
+            ("STARTSCREEN_WORKOUT_TRACKER", { router in
+                ActiveSessionScreen(interactor: interactor) { try? builder.workoutTrackerView(router: router) }.any()
+            }),
+            ("STARTSCREEN_TEMPLATE_DETAIL", {
+                builder.workoutTemplateDetailView(
+                    router: $0,
+                    delegate: WorkoutTemplateDetailDelegate(workoutTemplate: .mock, trainingProgramId: nil, onStartWorkoutPressed: nil)
+                ).any()
+            }),
+            ("STARTSCREEN_PROGRAM_LIBRARY", { builder.trainingProgramLibraryView(router: $0).any() }),
+            ("STARTSCREEN_ACTIVE_PROGRAM", {
+                builder.activeTrainingProgramView(router: $0, delegate: ActiveTrainingProgramDelegate(program: .mock)).any()
+            }),
+            ("STARTSCREEN_EXERCISE_DETAIL", {
+                builder.exerciseModelDetailView(router: $0, delegate: ExerciseModelDetailDelegate(exerciseModel: .mock)).any()
+            }),
+            ("STARTSCREEN_EXERCISES", { builder.exercisesView(router: $0).any() }),
+            ("STARTSCREEN_WORKOUT_HISTORY", { builder.workoutHistoryView(router: $0).any() }),
+            ("STARTSCREEN_SESSION_DETAIL", {
+                builder.workoutSessionDetailView(router: $0, delegate: WorkoutSessionDetailDelegate(workoutSession: .mock)).any()
+            }),
+            ("STARTSCREEN_GYM_PROFILES", { builder.gymProfilesView(router: $0).any() }),
+            ("STARTSCREEN_NUTRITION", { builder.nutritionView(delegate: NutritionDelegate(), router: $0).any() }),
+            ("STARTSCREEN_MEAL_DETAIL", { builder.mealDetailView(router: $0, delegate: MealDetailDelegate(meal: .mock)).any() }),
+            ("STARTSCREEN_RECIPES", { builder.recipesView(router: $0).any() }),
+            ("STARTSCREEN_RECIPE_DETAIL", {
+                builder.recipeDetailView(router: $0, delegate: RecipeDetailDelegate(recipeTemplate: .mock)).any()
+            }),
+            ("STARTSCREEN_FOODS", { builder.foodsView(router: $0).any() }),
+            ("STARTSCREEN_FOOD_DETAIL", { builder.foodDetailView(router: $0, delegate: FoodDetailDelegate(food: .mock)).any() }),
+            ("STARTSCREEN_ANALYTICS", { builder.analyticsView(delegate: AnalyticsDelegate(), router: $0).any() }),
+            ("STARTSCREEN_BODY_METRICS", { builder.bodyMetricsView(router: $0, delegate: BodyMetricsDelegate()).any() }),
+            ("STARTSCREEN_SCALE_WEIGHT", { builder.scaleWeightView(router: $0, delegate: ScaleWeightDelegate()).any() }),
+            ("STARTSCREEN_MEASUREMENT_DETAIL", { builder.bodyMeasurementDetailView(router: $0, kind: .waist).any() }),
+            ("STARTSCREEN_PROFILE", { builder.profileView(router: $0).any() }),
+            ("STARTSCREEN_ACCOUNT", { builder.accountView(router: $0, delegate: AccountDelegate()).any() }),
+            ("STARTSCREEN_SEARCH", { builder.searchView(router: $0).any() }),
+            ("STARTSCREEN_FOLLOWERS", {
+                builder.followersListView(router: $0, delegate: FollowersListDelegate(followers: UserModel.mocks)).any()
+            })
+        ]
+    }
+}
+
+/// Starts a workout from the mock template before showing the tracker, which cannot be built
+/// without an active session. The mock scenario keeps the session in memory, so it does not
+/// leak into the next launch.
+private struct ActiveSessionScreen<Content: View>: View {
+    let interactor: CoreInteractor
+    @ViewBuilder let content: () -> Content
+    @State private var isReady = false
+
+    var body: some View {
+        if isReady {
+            content()
+        } else {
+            ProgressView()
+                .task {
+                    try? await interactor.startWorkout(for: .mock, in: nil)
+                    isReady = true
                 }
         }
     }
