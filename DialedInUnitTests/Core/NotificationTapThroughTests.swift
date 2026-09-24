@@ -49,6 +49,13 @@ struct NotificationTapThroughTests {
             return session
         }
 
+        var shares: [ShareModel] = []
+
+        func fetchShare(id: String) async throws -> ShareModel {
+            guard let share = shares.first(where: { $0.id == id }) else { throw URLError(.fileDoesNotExist) }
+            return share
+        }
+
         func getUser(userId: String) async throws -> UserModel {
             guard let user = users.first(where: { $0.userId == userId }) else { throw URLError(.fileDoesNotExist) }
             return user
@@ -66,6 +73,7 @@ struct NotificationTapThroughTests {
         func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { shown.append("session:\(delegate.initialSession.id)") }
         func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { shown.append("thread:\(delegate.initialSession.id)") }
         func showSocialProfileView(delegate: SocialProfileDelegate) { shown.append("profile:\(delegate.user.userId)") }
+        func showSharedItemView(delegate: SharedItemDelegate) { shown.append("share:\(delegate.share.id)|\(delegate.senderName)") }
     }
 
     private struct Screen {
@@ -142,6 +150,35 @@ struct NotificationTapThroughTests {
         await TestManagers.eventually { screen.router.alertTitles.count == 2 }
 
         #expect(screen.router.alertTitles == ["Unable to Open", "Unable to Open"])
+        #expect(screen.router.shown.isEmpty)
+    }
+
+    // MARK: - Sharing
+
+    @Test("Test Tapping A Share Opens The Shared Item")
+    func testTappingAShareOpensTheSharedItem() async {
+        let screen = makeScreen()
+        screen.interactor.shares = ShareModel.mocks
+        var share = notification(.share)
+        share.shareId = "mock_share_program"
+
+        screen.presenter.onNotificationPressed(share)
+        await TestManagers.eventually { !screen.router.shown.isEmpty }
+
+        #expect(screen.router.shown == ["share:mock_share_program|Fan"])
+        #expect(screen.interactor.sessionRequests.isEmpty)
+    }
+
+    @Test("Test A Share That Cannot Be Read Alerts")
+    func testAShareThatCannotBeReadAlerts() async {
+        let screen = makeScreen()
+        var share = notification(.share)
+        share.shareId = "gone"
+
+        screen.presenter.onNotificationPressed(share)
+        await TestManagers.eventually { !screen.router.alertTitles.isEmpty }
+
+        #expect(screen.router.alertTitles == ["Unable to Open"])
         #expect(screen.router.shown.isEmpty)
     }
 }

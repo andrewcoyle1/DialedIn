@@ -45,6 +45,9 @@ struct AppViewForUITesting: View {
             startScreen { builder.notificationsView(router: $0) }
         } else if processInfoContains("STARTSCREEN_USERNAME") {
             startScreen { builder.editUsernameView(router: $0) }
+        } else if processInfoContains("STARTSCREEN_SHARED_ITEM") {
+            // MARK: - Sharing
+            startScreen { builder.sharedItemView(router: $0, delegate: SharedItemDelegate(share: ShareModel.mocks[0], senderName: "Alice")) }
         } else {
             builder.build()
         }

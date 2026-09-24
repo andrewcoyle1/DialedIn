@@ -452,6 +452,7 @@ struct DevToolsNotificationsPresenterTests {
         }
 
         func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel { throw DevToolsTestError.failed }
+        func fetchShare(id: String) async throws -> ShareModel { throw DevToolsTestError.failed }
     }
 
     private final class Router: NotificationsRouter {
@@ -464,6 +465,7 @@ struct DevToolsNotificationsPresenterTests {
         func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { }
         func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { }
         func showSocialProfileView(delegate: SocialProfileDelegate) { }
+        func showSharedItemView(delegate: SharedItemDelegate) { }
     }
 
     private struct Screen {

@@ -112,6 +112,7 @@ struct ReportFlowTests {
     }
 
     private final class Router: WorkoutSessionRowRouter {
+        func showShareToFollowerView(delegate: ShareToFollowerDelegate) { }
         let router: AnyRouter = TestRouting.anyRouter
         private(set) var alertTitles: [String] = []
 

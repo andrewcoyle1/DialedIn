@@ -22,6 +22,10 @@ struct ActivityNotificationModel: Identifiable {
         /// A private profile accepted the user's follow request. Written by the
         /// `onFollowRequestUpdated` Cloud Function, with the accepting user as the actor.
         case followAccepted
+        // MARK: - Sharing
+        /// Someone shared a workout template or program with the user. `shareId` is the
+        /// `shares/{id}` document, `commentText` the shared item's name, and `sessionId` is empty.
+        case share
     }
 
     let id: String
@@ -34,6 +38,9 @@ struct ActivityNotificationModel: Identifiable {
     let commentText: String?
     let dateCreated: Date
     var isRead: Bool
+    // MARK: - Sharing
+    /// The `shares/{id}` document behind a `.share` notification; nil for every other type.
+    var shareId: String?
 }
 
 extension ActivityNotificationModel {

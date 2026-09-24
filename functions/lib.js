@@ -27,6 +27,7 @@ export const SOCIAL_PUSH_PREFERENCE_KEYS = {
     mention: "social_push_mentions",
     followAccepted: "social_push_follows",
     follow_request: "social_push_follows",
+    share: "social_push_shares",
 };
 
 // The token and preferences moved from the public user doc to users/{uid}/private/settings. Each
@@ -86,6 +87,10 @@ export function buildActivityPush(notification, recipient) {
         break;    case "follow_request":
         title = "Follow request";
         body = `${actor} wants to follow you`;
+        break;
+    case "share":
+        title = "Shared with you";
+        body = `${actor} shared a workout with you`;
         break;
     }
 

@@ -160,6 +160,19 @@ class WorkoutSessionRowPresenter {
         }
     }
 
+    // MARK: Share
+
+    /// The template the session was started from, when the reader has it — their own or a seeded
+    /// one. Someone else's own template is not in the reader's library, so the option is hidden.
+    var shareableTemplate: WorkoutTemplateModel? {
+        guard let id = session.workoutTemplateId else { return nil }
+        return interactor.allWorkoutTemplates.first { $0.id == id }
+    }
+
+    func onShareTemplatePressed(_ template: WorkoutTemplateModel) {
+        router.showShareToFollowerView(delegate: ShareToFollowerDelegate(payload: .template(template)))
+    }
+
     func onOpenSavedTemplatePressed(_ template: WorkoutTemplateModel) {
         router.showWorkoutTemplateDetailView(
             delegate: WorkoutTemplateDetailDelegate(workoutTemplate: template, trainingProgramId: nil, onStartWorkoutPressed: nil)

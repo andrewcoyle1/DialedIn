@@ -66,6 +66,7 @@ struct NotificationsFollowRequestTests {
         func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws { }
         var privateUserSettings = PrivateUserSettings()
         func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel { throw DevToolsTestError.failed }
+        func fetchShare(id: String) async throws -> ShareModel { throw DevToolsTestError.failed }
     }
 
     private final class Router: NotificationsRouter {
@@ -78,6 +79,7 @@ struct NotificationsFollowRequestTests {
         func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { }
         func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { }
         func showSocialProfileView(delegate: SocialProfileDelegate) { }
+        func showSharedItemView(delegate: SharedItemDelegate) { }
     }
 
     private func request(_ id: String) -> FollowRequestModel {

@@ -53,6 +53,7 @@ class DevPreview {
         container.register(ActivityNotificationManager.self, service: activityNotificationManager)
         container.register(StravaManager.self, service: stravaManager)
         container.register(OpenFoodFactsServiceContainer.self, service: OpenFoodFactsServiceContainer(openFoodFactsService))
+        container.register(ShareManager.self, service: ShareManager(service: MockShareService()))
 
         return container
     }

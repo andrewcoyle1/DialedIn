@@ -10,6 +10,8 @@ protocol NotificationsRouter: GlobalRouter {
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
     func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate)
     func showSocialProfileView(delegate: SocialProfileDelegate)
+    // MARK: - Sharing
+    func showSharedItemView(delegate: SharedItemDelegate)
 }
 
 extension CoreRouter: NotificationsRouter { }

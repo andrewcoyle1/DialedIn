@@ -199,4 +199,8 @@ class WorkoutTemplateDetailPresenter {
     func onEditWorkoutPressed(template: WorkoutTemplateModel) {
         router.showCreateWorkoutView(delegate: CreateWorkoutDelegate(workoutTemplate: template))
     }
+
+    func onSharePressed(template: WorkoutTemplateModel) {
+        router.showShareToFollowerView(delegate: ShareToFollowerDelegate(payload: .template(template)))
+    }
 }

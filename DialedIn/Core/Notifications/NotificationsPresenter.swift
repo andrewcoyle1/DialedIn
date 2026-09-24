@@ -57,6 +57,12 @@ class NotificationsPresenter {
         set { onSocialPushToggled(.nudge, isEnabled: newValue) }
     }
 
+    // MARK: - Sharing
+    var isSharesPushEnabled: Bool {
+        get { isSocialPushEnabled(.share) }
+        set { onSocialPushToggled(.share, isEnabled: newValue) }
+    }
+
     private func isSocialPushEnabled(_ type: ActivityNotificationModel.ActivityType) -> Bool {
         interactor.privateUserSettings.isSocialPushEnabled(for: type)
     }
@@ -188,7 +194,8 @@ class NotificationsPresenter {
     }
 
     /// A like, comment or mention opens the session it is about — a comment or mention with its
-    /// thread on top — and a follow, an accepted request or a nudge opens the other person's profile.
+    /// thread on top — a follow, an accepted request or a nudge opens the other person's profile, and
+    /// a share opens the shared template or program.
     func onNotificationPressed(_ notification: ActivityNotificationModel) {
         interactor.trackEvent(event: Event.notificationPressed(type: notification.type))
         router.showLoadingModal()
@@ -208,6 +215,10 @@ class NotificationsPresenter {
                     } else {
                         router.showWorkoutSessionThread(delegate: delegate)
                     }
+                case .share:
+                    let share = try await interactor.fetchShare(id: notification.shareId ?? "")
+                    router.dismissModal()
+                    router.showSharedItemView(delegate: SharedItemDelegate(share: share, senderName: notification.actorName))
                 }
             } catch {
                 router.dismissModal()

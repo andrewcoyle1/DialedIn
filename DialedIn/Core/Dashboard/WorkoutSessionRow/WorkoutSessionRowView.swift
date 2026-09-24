@@ -178,6 +178,11 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
                 Button("Save as Template", systemImage: "square.and.arrow.down") {
                     presenter.onSaveAsTemplatePressed()
                 }
+                if let template = presenter.shareableTemplate {
+                    Button("Share Workout with Friends", systemImage: "paperplane") {
+                        presenter.onShareTemplatePressed(template)
+                    }
+                }
                 if presenter.canReport {
                     Button("Report Workout", systemImage: "exclamationmark.bubble") {
                         presenter.onReportPressed()
