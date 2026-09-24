@@ -150,6 +150,11 @@ extension AppViewForUITesting {
                         DeepLink.join(code: MockInviteService.sampleCode).post()
                     }
                     .any()
+            }),
+            // MARK: - Keyboards
+            // The tracker with the first set's weight keyboard open; `SetKeyboardLaunch` opens it.
+            ("STARTSCREEN_SET_KEYBOARD", { router in
+                ActiveSessionScreen(interactor: interactor) { try? builder.workoutTrackerView(router: router) }.any()
             })
         ]
     }
