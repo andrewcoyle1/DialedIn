@@ -56,8 +56,11 @@ struct TabBarView<TrainingTabAccessory: View, MealTabAccessory: View, Search: Vi
         .onOpenURL { url in
             presenter.onOpenURL(url)
         }
-        .onNotificationReceived(name: .pushNotification) { notification in
-            presenter.onPushNotificationReceived(notification)
+        .onNotificationReceived(name: .pushNotification) { _ in
+            presenter.onPushNotificationReceived()
+        }
+        .onAppear {
+            presenter.onViewAppear()
         }
         // A screen inside a tab asking for a different tab — see `DeepLink.post()`.
         .onNotificationReceived(name: Constants.selectTab) { notification in
