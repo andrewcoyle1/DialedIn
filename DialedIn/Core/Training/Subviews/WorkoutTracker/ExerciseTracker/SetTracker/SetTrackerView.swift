@@ -149,6 +149,9 @@ struct SetTrackerView<SetTrackerRow: View>: View {
         }
         .font(.caption2)
         .foregroundColor(.secondary)
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
+        .dynamicTypeSize(...SetTrackerRowView.maxDynamicTypeSize)
         .padding(.top, 4)
     }
     

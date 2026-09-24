@@ -32,6 +32,9 @@ struct SetTrackerRowView: View {
             Spacer()
             completeButton(exercise: delegate.exercise.wrappedValue, set: delegate.set)
         }
+        // A five-column table of numbers: past this size the fixed columns truncated every
+        // value to "4…". Capped here and on the headers, which share the column widths.
+        .dynamicTypeSize(...SetTrackerRowView.maxDynamicTypeSize)
         .padding(.vertical, 4)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
@@ -59,6 +62,8 @@ struct SetTrackerRowView: View {
         }
     }
     
+    static let maxDynamicTypeSize = DynamicTypeSize.xxxLarge
+
     func setNumber(set: Binding<WorkoutSetModel>) -> some View {
         Menu {
             Button {

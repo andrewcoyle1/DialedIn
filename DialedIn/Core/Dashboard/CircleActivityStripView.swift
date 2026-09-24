@@ -44,6 +44,9 @@ struct CircleActivityStripView: View {
     var onSetGoalPressed: (() -> Void)?
 
     private let avatarSize: CGFloat = 52
+    /// Grows with the text so "Nudge" and the name keep to one line at accessibility sizes,
+    /// instead of wrapping a letter per line inside a column sized for the face.
+    @ScaledMetric(relativeTo: .caption) private var cellWidth: CGFloat = 64
 
     var body: some View {
         ScrollView(.horizontal) {
@@ -70,12 +73,14 @@ struct CircleActivityStripView: View {
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.orange)
                             .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     } else {
                         // First name only: a full name under a 56pt face truncates to "Alice Coo…".
                         Text(member.user.firstNameCalculated ?? member.name)
                             .font(.caption)
                             .foregroundStyle(member.trainedToday ? .primary : .secondary)
                             .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                 }
             }
@@ -92,6 +97,7 @@ struct CircleActivityStripView: View {
                     onNudgePressed(member)
                 }
                 .font(.caption2.weight(.semibold))
+                .lineLimit(1)
                 .buttonStyle(.bordered)
                 .buttonBorderShape(.capsule)
                 .controlSize(.mini)
@@ -101,13 +107,14 @@ struct CircleActivityStripView: View {
             if member.isCurrentUser, let onSetGoalPressed {
                 Button("Set goal", action: onSetGoalPressed)
                     .font(.caption2.weight(.semibold))
+                    .lineLimit(1)
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.capsule)
                     .controlSize(.mini)
                     .accessibilityLabel("Set your weekly session goal")
             }
         }
-        .frame(width: avatarSize + 16)
+        .frame(width: max(avatarSize + 16, cellWidth))
     }
 
     /// The ring is the week's sessions over goal; the check is still today.

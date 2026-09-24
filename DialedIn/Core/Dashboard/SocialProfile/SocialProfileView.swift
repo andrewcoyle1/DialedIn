@@ -63,7 +63,9 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
     private var profileSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 16) {
-                HStack(spacing: 16) {
+                // Stacked at accessibility sizes: beside an 80pt face and the follow button the
+                // name had a third of the row and hyphenated onto three lines.
+                AdaptiveStack(spacing: 16) {
                     UserAvatarView(imageUrl: delegate.user.profileImageNameCalculated, size: 80)
 
                     VStack(alignment: .leading, spacing: 4) {
@@ -223,7 +225,7 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
     }
 
     private var mutualFollowersImagesSection: some View {
-        HStack {
+        AdaptiveStack(spacing: 8) {
             // The avatars overlap; the label beside them must not, so the negative spacing is
             // scoped to the stack that wants it instead of the whole row.
             HStack(spacing: -10) {
@@ -231,6 +233,7 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                     mutualFollowersImageCircle(user: user)
                 }
             }
+            .accessibilityHidden(true)
 
             Text("People you both follow")
                 .font(.caption)

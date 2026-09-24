@@ -138,12 +138,16 @@ struct WorkoutTemplateDetailView: View {
     private var exercisesSection: some View {
         Section {
             ForEach(delegate.workoutTemplate.exercises) { exercise in
-                HStack {
+                // The image goes above the details at accessibility sizes; beside them it left the
+                // name a few letters before the ellipsis.
+                AdaptiveStack {
                     ImageLoaderView(urlString: exercise.exercise.imageURL ?? Constants.randomImage, resizingMode: .fit)
                         .frame(width: 60, height: 60)
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(exercise.exercise.name)
                             .fontWeight(.semibold)
+                            .fixedSize(horizontal: false, vertical: true)
                         LazyHGrid(rows: [GridItem(), GridItem()]) {
                             ForEach(exercise.setTargets) { target in
                                 setTarget(target)
@@ -155,10 +159,14 @@ struct WorkoutTemplateDetailView: View {
                                     exercise.exercise.muscleGroups.sorted { $0.key.name < $1.key.name },
                                     id: \.key
                                 ) { key, value in
+                                    // Primary muscles were told from secondary by a darker fill
+                                    // alone; the weight and the label say it without colour.
                                     Text(key.name)
                                         .font(.caption2)
+                                        .fontWeight(value == .secondary ? .regular : .semibold)
                                         .foregroundStyle(.secondary)
                                         .lineLimit(1)
+                                        .accessibilityLabel("\(key.name), \(value == .secondary ? "secondary" : "primary")")
                                         .padding(4)
                                         .padding(.horizontal, 4)
                                         .background(value == .secondary ? Color.secondary.opacity(0.2) : Color.secondary.opacity(0.4), in: Capsule())
@@ -202,16 +210,20 @@ struct WorkoutTemplateDetailView: View {
             descriptionString = "\(minReps)+ reps"
         }
            
+        // The number sizes its own badge: a fixed 12pt circle drew over the text beside it once
+        // the number outgrew it.
         return HStack {
-            Circle()
-                .frame(width: 12, height: 12)
-                .foregroundStyle(.secondary)
-                .overlay {
-                    Text("\(target.setNumber)")
-                }
+            Text("\(target.setNumber)")
+                .font(.caption2.weight(.semibold))
+                .monospacedDigit()
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(.quaternary, in: .capsule)
             Text(descriptionString)
         }
         .font(.caption)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Set \(target.setNumber), \(descriptionString)")
     }
 
 }

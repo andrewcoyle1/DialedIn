@@ -20,6 +20,7 @@ struct WorkoutSessionRowDelegate {
 struct WorkoutSessionRowView<AuthorHeader: View>: View {
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State var presenter: WorkoutSessionRowPresenter
 
@@ -69,9 +70,13 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
             sessionTitleAndStats
             exerciseList
         }
+        // One VoiceOver stop for the title, highlights, stats and exercises; the author header
+        // above and the like, comment, share and menu controls below stay separate stops.
+        .accessibilityElement(children: .combine)
         .anyButton {
             presenter.onWorkoutPressed()
         }
+        .accessibilityHint("Opens the workout")
 
     }
     
@@ -80,15 +85,18 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
             Text(presenter.session.name)
                 .font(.headline)
             highlights
-            HStack(spacing: 20) {
+            // Four stats side by side stop fitting at the accessibility text sizes.
+            AdaptiveStack(verticalAlignment: .top, spacing: dynamicTypeSize.isAccessibilitySize ? 8 : 20) {
                 StatItem(header: "Exercises", value: "\(presenter.session.exercises.count)")
                 StatItem(header: "Sets", value: "\(workingSets.count)")
                 if totalVolumeKg > 0 {
                     StatItem(header: "Volume", value: formatVolume(totalVolumeKg))
                 }
-                Spacer()
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Spacer()
+                }
                 if let duration = durationFormatted {
-                    StatItem(alignment: .trailing, header: "Duration", value: duration)
+                    StatItem(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, header: "Duration", value: duration)
                 }
             }
         }
@@ -120,13 +128,15 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
         // An `HStack`, not a `Label`: inside the card's tappable content the label rendered its
         // icon and dropped its title.
         HStack(spacing: 4) {
+            // The text says what the capsule is; the icon and tint only repeat it.
             Image(systemName: systemImage)
                 .foregroundStyle(tint)
+                .accessibilityHidden(true)
             Text(text)
                 .foregroundStyle(.primary)
         }
         .font(.caption.weight(.medium))
-        .lineLimit(1)
+        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(tint.opacity(0.15), in: .capsule)
@@ -137,15 +147,15 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
     private var exerciseList: some View {
         VStack(alignment: .leading, spacing: 4) {
             ForEach(presenter.session.exercises) { exercise in
-                HStack {
+                AdaptiveStack(spacing: 0) {
                     Text(exercise.name)
                         .font(.subheadline)
-                    Spacer()
+                    Spacer(minLength: 8)
                     Text(setsDescription(for: exercise))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                .lineLimit(1)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
             }
         }
     }
@@ -162,6 +172,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
             .frame(maxWidth: .infinity)
             .foregroundStyle(presenter.isLiked ? Color.accentColor : Color.secondary)
             .accessibilityLabel(presenter.isLiked ? "Unlike" : "Like")
+            .accessibilityValue(presenter.likeCount == 1 ? "1 like" : "\(presenter.likeCount) likes")
             Button {
                 presenter.onCommentButtonPressed()
             } label: {

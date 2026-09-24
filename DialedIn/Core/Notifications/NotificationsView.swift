@@ -97,33 +97,39 @@ struct NotificationsView: View {
     @ViewBuilder
     private var activityNotificationsList: some View {
         ForEach(presenter.activityNotifications) { notification in
-            Button {
-                presenter.onNotificationPressed(notification)
-            } label: {
-                activityNotificationRow(notification)
-            }
-            .buttonStyle(.plain)
-            .swipeActions {
-                Button(role: .destructive) {
-                    presenter.onNotificationDeleted(notification)
+            activityNotificationRow(notification)
+                .swipeActions {
+                    Button(role: .destructive) {
+                        presenter.onNotificationDeleted(notification)
+                    }
                 }
-            }
         }
     }
 
+    /// The text is one button, and so one VoiceOver stop reading the title, the time and whether
+    /// it is unread; the follow-back button sits beside it rather than inside it, so it stays a
+    /// stop of its own instead of a button nested in a button.
     private func activityNotificationRow(_ notification: ActivityNotificationModel) -> some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(activityNotificationTitle(notification))
-                    .font(.headline)
-                    .foregroundStyle(notification.isRead ? .secondary : .primary)
+        AdaptiveStack(spacing: 12) {
+            Button {
+                presenter.onNotificationPressed(notification)
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(activityNotificationTitle(notification))
+                        .font(.headline)
+                        .foregroundStyle(notification.isRead ? .secondary : .primary)
 
-                Text(notification.dateCreated.formatted(date: .abbreviated, time: .shortened))
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    Text(notification.dateCreated.formatted(date: .abbreviated, time: .shortened))
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(.rect)
             }
-
-            Spacer(minLength: 0)
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            // Read and unread differ only by text colour on screen.
+            .accessibilityValue(notification.isRead ? "" : "Unread")
 
             if presenter.showsFollowBack(for: notification) {
                 FollowButton(state: presenter.followBackState(for: notification)) {
@@ -131,44 +137,57 @@ struct NotificationsView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(.rect)
         .padding(.vertical, 4)
     }
 
     private var followRequestsSection: some View {
         Section {
             ForEach(presenter.incomingFollowRequests) { request in
-                HStack(spacing: 12) {
-                    UserAvatarView(imageUrl: request.requesterImageUrl, size: 40)
+                // Buttons move under the name at accessibility sizes, where beside it they
+                // wrapped "Accept" a letter per line.
+                AdaptiveStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        UserAvatarView(imageUrl: request.requesterImageUrl, size: 40)
 
-                    // Name and verb on their own lines: on one line the two buttons truncated it.
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(request.requesterName)
-                            .font(.subheadline.weight(.medium))
-                            .lineLimit(1)
-                        Text("Wants to follow you")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        // Name and verb on their own lines: on one line the two buttons truncated it.
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(request.requesterName)
+                                .font(.subheadline.weight(.medium))
+                                .lineLimit(1)
+                            Text("Wants to follow you")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    .accessibilityElement(children: .combine)
 
                     Spacer(minLength: 0)
 
-                    Button("Accept") {
-                        presenter.onAcceptRequestPressed(request)
+                    // Side by side while both fit, one above the other once they do not.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 12) { followRequestButtons(request) }
+                        VStack(alignment: .leading, spacing: 8) { followRequestButtons(request) }
                     }
-                    .buttonStyle(.borderedProminent)
-
-                    Button("Decline") {
-                        presenter.onDeclineRequestPressed(request)
-                    }
-                    .buttonStyle(.bordered)
+                    .lineLimit(1)
                 }
                 .controlSize(.small)
             }
         } header: {
             Text("Follow Requests")
         }
+    }
+
+    @ViewBuilder
+    private func followRequestButtons(_ request: FollowRequestModel) -> some View {
+        Button("Accept") {
+            presenter.onAcceptRequestPressed(request)
+        }
+        .buttonStyle(.borderedProminent)
+
+        Button("Decline") {
+            presenter.onDeclineRequestPressed(request)
+        }
+        .buttonStyle(.bordered)
     }
 
     private func activityNotificationTitle(_ notification: ActivityNotificationModel) -> String {
