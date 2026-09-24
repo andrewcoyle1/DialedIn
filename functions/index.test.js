@@ -1,7 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { buildActivityPush, cleanJson, normaliseName, requireAuth } from "./lib.js";
+import {
+    buildActivityPush, buildFollowAcceptedNotification, cleanJson, followAcceptedMessage, normaliseName,
+    planFollowAccepted, requireAuth, userDisplayName,
+} from "./lib.js";
 
 test("cleanJson strips the code fences Gemini adds and leaves bare JSON alone", () => {
     assert.equal(cleanJson('```json\n{"a":1}\n```'), '{"a":1}');
@@ -74,4 +77,56 @@ test("buildActivityPush sends nothing without a token, for an unknown type, or w
     assert.equal(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_follows: false }), null);
     // Opting out of one type leaves the others on.
     assert.notEqual(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_likes: false }), null);
+});
+
+test("planFollowAccepted acts only when a request has just become accepted", () => {
+    const params = { targetId: "t1", requesterId: "r1" };
+    const pending = { requester_id: "r1", status: "pending" };
+    const accepted = { requester_id: "r1", status: "accepted" };
+
+    assert.deepEqual(planFollowAccepted(pending, accepted, params), {
+        requesterId: "r1", targetId: "t1", notificationId: "follow_accepted_t1",
+    });
+    assert.equal(planFollowAccepted(pending, { ...pending, status: "declined" }, params), null);
+    assert.equal(planFollowAccepted(pending, pending, params), null);
+    // Already accepted before this write: the follow was handled then.
+    assert.equal(planFollowAccepted(accepted, accepted, params), null);
+    // Deleted, or a request whose body names someone other than its document id.
+    assert.equal(planFollowAccepted(pending, undefined, params), null);
+    assert.equal(planFollowAccepted(pending, { requester_id: "intruder", status: "accepted" }, params), null);
+    assert.equal(planFollowAccepted(pending, accepted, { targetId: "r1", requesterId: "r1" }), null);
+    assert.equal(planFollowAccepted(pending, accepted, {}), null);
+});
+
+test("buildFollowAcceptedNotification names the accepting user in the shape the app parses", () => {
+    const now = new Date(0);
+    const plan = { targetId: "t1", requesterId: "r1" };
+    const doc = buildFollowAcceptedNotification(
+        { submitted_first_name: "Jane", last_name: "Smith", photo_url: "https://img" }, plan, now
+    );
+    assert.deepEqual(doc, {
+        type: "followAccepted",
+        actor_id: "t1",
+        actor_name: "Jane Smith",
+        actor_image_url: "https://img",
+        session_id: "",
+        session_author_id: "r1",
+        date_created: now,
+        is_read: false,
+    });
+    assert.equal(buildFollowAcceptedNotification(undefined, plan, now).actor_name, "Someone");
+    assert.equal("actor_image_url" in buildFollowAcceptedNotification({}, plan, now), false);
+});
+
+test("userDisplayName prefers the submitted name and falls back to Someone", () => {
+    assert.equal(userDisplayName({ submitted_first_name: "Sam", first_name: "Samuel" }), "Sam");
+    assert.equal(userDisplayName({ first_name: "Al", last_name: "Bo" }), "Al Bo");
+    assert.equal(userDisplayName({}), "Someone");
+    assert.equal(followAcceptedMessage("Jane"), "Jane accepted your follow request");
+});
+
+test("buildActivityPush sends a followAccepted push under the follows preference", () => {
+    const push = buildActivityPush({ type: "followAccepted", actor_name: "Jane", actor_id: "t1" }, { fcm_token: "tok" });
+    assert.deepEqual(push.notification, { title: "Request accepted", body: "Jane accepted your follow request" });
+    assert.equal(buildActivityPush({ type: "followAccepted" }, { fcm_token: "tok", social_push_follows: false }), null);
 });
