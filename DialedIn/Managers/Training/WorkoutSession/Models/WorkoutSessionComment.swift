@@ -23,6 +23,8 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
     /// Everyone tagged with an `@FirstName` in the text. Identity lives here rather than in the
     /// text, so two people with the same first name stay distinct.
     var mentionedUserIds: [String] = []
+    /// Set by the `onReportCreated` function once three people have reported this comment.
+    var hidden: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -36,6 +38,13 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
         case deletedAt = "deleted_at"
         case parentId = "parent_id"
         case mentionedUserIds = "mentioned_user_ids"
+        case hidden
+    }
+
+    /// Whether the thread leaves this comment out for `readerId`: hidden by moderation and not
+    /// the reader's own.
+    func isHidden(from readerId: String?) -> Bool {
+        hidden == true && readerId != authorId
     }
 
     /// Who hears about this comment. The session's author hears about every one, and a reply also

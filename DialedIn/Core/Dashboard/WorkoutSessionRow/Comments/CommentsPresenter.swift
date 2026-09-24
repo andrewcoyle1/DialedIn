@@ -59,11 +59,12 @@ class CommentsPresenter {
         }
     }
 
-    /// Drops comments by anyone the reader has blocked, and the replies under them — which would
-    /// otherwise surface at the top level as orphans.
+    /// Drops comments by anyone the reader has blocked, and comments hidden by moderation that are
+    /// not the reader's own, along with the replies under them — which would otherwise surface at
+    /// the top level as orphans.
     private func hidingBlocked(_ comments: [WorkoutSessionComment]) -> [WorkoutSessionComment] {
-        guard let reader = interactor.currentUser else { return comments }
-        let hiddenIds = Set(comments.filter { reader.hasBlocked($0.authorId) }.map(\.id))
+        guard let reader = interactor.currentUser else { return comments.filter { $0.hidden != true } }
+        let hiddenIds = Set(comments.filter { reader.hasBlocked($0.authorId) || $0.isHidden(from: reader.userId) }.map(\.id))
         return comments.filter { comment in
             !hiddenIds.contains(comment.id) && !hiddenIds.contains(comment.parentId ?? "")
         }
