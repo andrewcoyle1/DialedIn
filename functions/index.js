@@ -2,6 +2,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { requireAuth, cleanJson, normaliseName } from "./lib.js";
 import { GoogleAuth } from "google-auth-library";
 import { genkit } from "genkit";
 import { vertexAI, gemini20Flash, imagen3Fast } from "@genkit-ai/vertexai";
@@ -18,13 +19,6 @@ const FCM_URL = `https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:s
 // Firestore rules, so they cannot be left open to arbitrary HTTPS callers.
 const CALLABLE_OPTIONS = { region: REGION, enforceAppCheck: true };
 
-// Callers must also be signed in, so AI spend and writes are attributable to a uid.
-function requireAuth(request) {
-    if (!request.auth) {
-        throw new HttpsError("unauthenticated", "Sign in required to call this function.");
-    }
-    return request.auth.uid;
-}
 
 // ---------------------------------------------------------------------------
 // Genkit / Firebase AI Logic setup
@@ -34,14 +28,6 @@ const ai = genkit({
     plugins: [vertexAI({ projectId: PROJECT_ID, location: REGION })],
 });
 
-// Strip markdown code fences Gemini sometimes wraps JSON in
-function cleanJson(text) {
-    return text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-}
-
-function normaliseName(name) {
-    return name.trim().toLowerCase();
-}
 
 async function findOrCreateIngredient(uid, item) {
     const db = getFirestore();

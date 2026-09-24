@@ -423,6 +423,13 @@ Two things live outside the code and are easy to miss:
 Deploy with `firebase deploy --only functions` — this is not part of the Xcode build, so changes
 under `functions/` have no effect until deployed.
 
+`npm test` in `functions/` runs five `node:test` cases (`index.test.js`) with no emulator: the
+pure helpers in `lib.js`, a source check that every `onCall` takes `CALLABLE_OPTIONS` and opens
+with `requireAuth`, and a `.run()` of each callable without auth expecting `unauthenticated`.
+CI runs them in a separate `functions` job on Ubuntu. `npm ci` needs the lock file in sync with
+`package.json`; if it fails with "Missing: … from lock file", run `npm install` and commit the
+lock.
+
 ## Code Health Baseline
 
 As of the latest commit on `main`, all three schemes build with **zero warnings** and
