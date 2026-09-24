@@ -58,7 +58,7 @@ enum NotificationGrouping {
     static func isGroupable(_ notification: ActivityNotificationModel) -> Bool {
         switch notification.type {
         case .like, .comment, .mention: return !notification.sessionId.isEmpty
-        case .follow, .nudge, .followAccepted, .share: return false
+        case .follow, .nudge, .followAccepted, .share, .challengeComplete: return false
         }
     }
 
