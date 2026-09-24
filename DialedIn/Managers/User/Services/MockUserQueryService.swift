@@ -76,6 +76,8 @@ class MockUserQueryService: UserQueryService {
     private func notifyListeners(targetId: String) {
         let requests = pending(for: targetId)
         listeners[targetId]?.values.forEach { $0(requests) }
+    }
+
     // MARK: Usernames
 
     /// Reservations by handle, standing in for `usernames/{handle}`, seeded from the mock roster.
