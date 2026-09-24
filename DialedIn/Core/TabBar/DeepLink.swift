@@ -28,6 +28,10 @@ enum DeepLink: Equatable {
     /// and opens the inviter's profile. The code is already normalised by `InviteCode`.
     case join(code: String)
 
+    /// `compound://workout`, from the Today's Workout widget. Opens the tracker when a session is
+    /// under way, otherwise the Dashboard, whose today card starts one.
+    case workout
+
     /// The tab bar's roots. `search` is SwiftUI's own tab, owned through `Tab(role: .search)`;
     /// it still selects by title like the rest.
     enum Tab: String, CaseIterable, Identifiable {
@@ -74,6 +78,10 @@ enum DeepLink: Equatable {
             self = .join(code: code)
             return
         }
+        if host == "workout" {
+            self = .workout
+            return
+        }
         guard host == "tab" else { return nil }
         guard let name = firstPath ?? queryName, let tab = Tab(name: name) else { return nil }
         self = .tab(tab)
@@ -100,6 +108,12 @@ enum DeepLink: Equatable {
             NotificationCenter.default.post(name: Constants.openNotifications, object: nil)
         case .join(let code):
             NotificationCenter.default.post(name: Constants.acceptInvite, object: nil, userInfo: ["code": code])
+        case .workout:
+            NotificationCenter.default.post(
+                name: Constants.selectTab,
+                object: nil,
+                userInfo: ["deep_link": WidgetSnapshotStore.workoutURL.absoluteString]
+            )
         }
     }
 

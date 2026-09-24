@@ -107,6 +107,14 @@ func finishWorkout(_ session: WorkoutSessionModel, using managers: WorkoutFinish
             logger.trackEvent(eventName: "strava_upload_error", parameters: ["error": error.localizedDescription], type: .warning)
         }
     }
+    if outcome == .saved {
+        refreshWidgetSnapshot(
+            users: managers.users,
+            programs: managers.programs,
+            sessions: managers.sessions.workoutSessions.filter { $0.id != session.id } + [session],
+            streak: managers.streak?.currentStreakData.currentStreak
+        )
+    }
     return outcome
 }
 

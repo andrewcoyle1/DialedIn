@@ -76,6 +76,17 @@ class TabBarPresenter {
             // The Dashboard accepts the invite and opens the inviter's profile.
             selectedTabTitle = DeepLink.Tab.dashboard.title
             deepLink.post()
+        case .workout:
+            interactor.trackEvent(
+                eventName: "TabBarView_DeepLink_Workout",
+                parameters: ["has_active_session": activeSession != nil],
+                type: .analytic
+            )
+            if activeSession != nil {
+                router.showWorkoutTrackerView()
+            } else {
+                selectedTabTitle = DeepLink.Tab.dashboard.title
+            }
         }
     }
 

@@ -30,6 +30,8 @@
 		D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D0AB1C992EA1907100682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
+		D0F1D6E12F90000100A1B2C3 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F1D6E02F90000100A1B2C3 /* WidgetSnapshot.swift */; };
+		D0F1D6E22F90000100A1B2C3 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F1D6E02F90000100A1B2C3 /* WidgetSnapshot.swift */; };
 		D0BF744D2F4CADF300DE875A /* SwiftfulAuthUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0BF744C2F4CADF300DE875A /* SwiftfulAuthUI */; };
 		D0BF744F2F4CADF300DE875A /* SwiftfulAuthenticating in Frameworks */ = {isa = PBXBuildFile; productRef = D0BF744E2F4CADF300DE875A /* SwiftfulAuthenticating */; };
 		D0C4A7032F6D0001009C0A01 /* QuickCharts in Frameworks */ = {isa = PBXBuildFile; productRef = D0C4A7022F6D0001009C0A01 /* QuickCharts */; };
@@ -114,6 +116,7 @@
 		D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
 		D0A2993D2E54AEA700DA64F7 /* DialedIn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DialedIn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWorkoutStorage.swift; sourceTree = "<group>"; };
+		D0F1D6E02F90000100A1B2C3 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
 		D0BC0E4D2EA29936008A1E22 /* WorkoutSessionActivityExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WorkoutSessionActivityExtension.entitlements; sourceTree = "<group>"; };
 		D0E7D5A62EE31E7F00BEE79F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		D0FA1E102EB0A11000682653 /* LiveActivityPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityPhase.swift; sourceTree = "<group>"; };
@@ -264,6 +267,7 @@
 				D0FA1E202EB0A12000682653 /* LiveActivityIntentHandling.swift */,
 				D0FA1E102EB0A11000682653 /* LiveActivityPhase.swift */,
 				D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */,
+				D0F1D6E02F90000100A1B2C3 /* WidgetSnapshot.swift */,
 				D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */,
 			);
 			path = Shared;
@@ -603,6 +607,7 @@
 			files = (
 				D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */,
 				D0AB1C992EA1907100682653 /* SharedWorkoutStorage.swift in Sources */,
+				D0F1D6E12F90000100A1B2C3 /* WidgetSnapshot.swift in Sources */,
 				D0FA1E112EB0A11100682653 /* LiveActivityPhase.swift in Sources */,
 				D0FA1E212EB0A12100682653 /* LiveActivityIntentHandling.swift in Sources */,
 			);
@@ -614,6 +619,7 @@
 			files = (
 				D08F58622E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */,
 				D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */,
+				D0F1D6E22F90000100A1B2C3 /* WidgetSnapshot.swift in Sources */,
 				D0FA1E122EB0A11200682653 /* LiveActivityPhase.swift in Sources */,
 				D0FA1E222EB0A12200682653 /* LiveActivityIntentHandling.swift in Sources */,
 			);
