@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
     buildActivityPush, buildFollowAcceptedNotification, cleanJson, followAcceptedMessage, newlyBlockedIds, normaliseName,
     planFollowAccepted, pushRecipientSettings, requireAuth, userDisplayName,
+    buildFollowRequestPush, removedFollowingIds, planAutoAccept, removeFollowerTarget,
 } from "./lib.js";
 
 test("cleanJson strips the code fences Gemini adds and leaves bare JSON alone", () => {
@@ -29,7 +30,7 @@ test("every callable enforces App Check and requires auth", () => {
     const src = readFileSync(new URL("./index.js", import.meta.url), "utf8");
     assert.match(src, /const CALLABLE_OPTIONS = \{[^}]*enforceAppCheck: true/);
     const callables = [...src.matchAll(/export const (\w+) = onCall\(([^,]+),\s*async \(request\) => \{\s*([^\n]*)/g)];
-    assert.equal(callables.length, 6, "expected six callables");
+    assert.equal(callables.length, 7, "expected seven callables");
     for (const [, name, options, firstLine] of callables) {
         assert.equal(options.trim(), "CALLABLE_OPTIONS", `${name} must use CALLABLE_OPTIONS`);
         assert.match(firstLine, /requireAuth\(request\)/, `${name} must call requireAuth first`);
@@ -38,7 +39,7 @@ test("every callable enforces App Check and requires auth", () => {
 
 test("each deployed callable rejects an unauthenticated request before doing any work", async () => {
     const fns = await import("./index.js");
-    for (const name of ["foodAnalyze", "mealDescribe", "nutritionLabelAnalyze", "chatGenerate", "imageGenerate", "foodSearch"]) {
+    for (const name of ["foodAnalyze", "mealDescribe", "nutritionLabelAnalyze", "chatGenerate", "imageGenerate", "foodSearch", "removeFollower"]) {
         await assert.rejects(fns[name].run({ data: {}, auth: null }), { code: "unauthenticated" }, name);
     }
 });
@@ -185,4 +186,51 @@ test("buildActivityPush sends a followAccepted push under the follows preference
     const push = buildActivityPush({ type: "followAccepted", actor_name: "Jane", actor_id: "t1" }, { fcm_token: "tok" });
     assert.deepEqual(push.notification, { title: "Request accepted", body: "Jane accepted your follow request" });
     assert.equal(buildActivityPush({ type: "followAccepted" }, { fcm_token: "tok", social_push_follows: false }), null);
+});
+
+test("buildFollowRequestPush asks the target, routes to notifications and respects the follows opt-out", () => {
+    const request = { requester_id: "r1", requester_name: "Jane", status: "pending" };
+    const push = buildFollowRequestPush(request, { fcm_token: "tok" }, {});
+    assert.equal(push.token, "tok");
+    assert.deepEqual(push.notification, { title: "Follow request", body: "Jane wants to follow you" });
+    assert.deepEqual(push.data, { tab: "dashboard", type: "follow_request", session_id: "", session_author_id: "", actor_id: "r1" });
+    assert.equal(buildFollowRequestPush({ ...request, requester_name: undefined }, { fcm_token: "tok" }).notification.body, "Someone wants to follow you");
+
+    assert.equal(buildFollowRequestPush(request, { fcm_token: "tok", social_push_follows: false }, {}), null);
+    assert.equal(buildFollowRequestPush(request, {}, {}), null);
+    assert.equal(buildFollowRequestPush({ ...request, status: "accepted" }, { fcm_token: "tok" }, {}), null);
+    assert.equal(buildFollowRequestPush(request, { fcm_token: "tok" }, { blocked_user_ids: ["r1"] }), null);
+    assert.equal(buildFollowRequestPush(undefined, { fcm_token: "tok" }, {}), null);
+});
+
+test("removedFollowingIds returns only the ids an update dropped from following_ids", () => {
+    assert.deepEqual(removedFollowingIds({ following_ids: ["a", "b"] }, { following_ids: ["a"] }), ["b"]);
+    assert.deepEqual(removedFollowingIds({ following_ids: ["a"] }, {}), ["a"]);
+    assert.deepEqual(removedFollowingIds({}, { following_ids: ["a"] }), []);
+    assert.deepEqual(removedFollowingIds(undefined, undefined), []);
+    assert.deepEqual(removedFollowingIds({ following_ids: ["a"] }, { following_ids: ["a"], is_private: true }), []);
+});
+
+test("planAutoAccept accepts every valid pending request only when a profile goes public", () => {
+    const requests = [
+        { id: "r1", data: { requester_id: "r1", status: "pending" } },
+        { id: "r2", data: { requester_id: "r2", status: "declined" } },
+        { id: "r3", data: { requester_id: "intruder", status: "pending" } },
+        { id: "r4", data: { requester_id: "r4", status: "pending" } },
+    ];
+    assert.deepEqual(planAutoAccept({ is_private: true }, { is_private: false }, requests), ["r1", "r4"]);
+    assert.deepEqual(planAutoAccept({ is_private: true }, { is_private: false }, []), []);
+    assert.equal(planAutoAccept({ is_private: false }, { is_private: true }, requests), null);
+    assert.equal(planAutoAccept({ is_private: true }, { is_private: true }, requests), null);
+    assert.equal(planAutoAccept({}, { is_private: false }, requests), null);
+    assert.equal(planAutoAccept(undefined, undefined, requests), null);
+});
+
+test("removeFollowerTarget takes a follower id that is not the caller", () => {
+    assert.equal(removeFollowerTarget({ followerId: "f1" }, "me"), "f1");
+    assert.equal(removeFollowerTarget({ followerId: "me" }, "me"), null);
+    assert.equal(removeFollowerTarget({ followerId: " " }, "me"), null);
+    assert.equal(removeFollowerTarget({ followerId: 3 }, "me"), null);
+    assert.equal(removeFollowerTarget({}, "me"), null);
+    assert.equal(removeFollowerTarget(undefined, "me"), null);
 });

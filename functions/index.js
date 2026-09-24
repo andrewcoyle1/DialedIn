@@ -6,6 +6,7 @@ import { getMessaging } from "firebase-admin/messaging";
 import {
     requireAuth, cleanJson, normaliseName, buildActivityPush, newlyBlockedIds, pushRecipientSettings,
     planFollowAccepted, buildFollowAcceptedNotification,
+    buildFollowRequestPush, removedFollowingIds, planAutoAccept, removeFollowerTarget,
 } from "./lib.js";
 import { genkit } from "genkit";
 import { vertexAI, gemini20Flash, imagen3Fast } from "@genkit-ai/vertexai";
@@ -483,5 +484,101 @@ export const onFollowRequestUpdated = onDocumentUpdated(
         );
         batch.delete(event.data.after.ref);
         await batch.commit();
+    }
+);
+
+// ---------------------------------------------------------------------------
+// Follow requests, live: push, removing a follower, cleanup and auto-accept
+// ---------------------------------------------------------------------------
+
+// A new request pushes "<Name> wants to follow you" to the target, under the follows preference.
+// The payload's type is follow_request, which the app opens on its notifications screen.
+export const onFollowRequestCreated = onDocumentCreated(
+    { document: "users/{targetId}/follow_requests/{requesterId}", region: REGION },
+    async (event) => {
+        const request = event.data?.data();
+        if (!request) return;
+
+        const targetId = event.params.targetId;
+        const userRef = getFirestore().collection("users").doc(targetId);
+        const [userDoc, privateDoc] = await Promise.all([
+            userRef.get(),
+            userRef.collection("private").doc("settings").get(),
+        ]);
+        const message = buildFollowRequestPush(request, pushRecipientSettings(privateDoc.data(), userDoc.data()), userDoc.data());
+        if (!message) return;
+
+        try {
+            await getMessaging().send(message);
+        } catch (error) {
+            console.error(`Error sending follow request push to user ${targetId}: ${error.message}`);
+        }
+    }
+);
+
+// A follow lives in the follower's own following_ids, which the person followed cannot write, so
+// removing a follower comes through here. The follow notification it left in the caller's bell goes
+// too. There is no follower count stored anywhere to decrement.
+export const removeFollower = onCall(CALLABLE_OPTIONS, async (request) => {
+    const uid = requireAuth(request);
+    const followerId = removeFollowerTarget(request.data, uid);
+    if (!followerId) {
+        throw new HttpsError("invalid-argument", "followerId is required");
+    }
+
+    const users = getFirestore().collection("users");
+    try {
+        // update, not set: a deleted account must not come back as a stub document.
+        await users.doc(followerId).update({ following_ids: FieldValue.arrayRemove(uid) });
+    } catch (error) {
+        if (error.code !== 5) throw error; // 5 = NOT_FOUND: the follower's account is gone already.
+    }
+    await users.doc(uid).collection("notifications").doc(`follow_${followerId}`).delete();
+    return { removed: followerId };
+});
+
+// When following_ids loses an id (an unfollow, a block, or removeFollower), any pending request
+// between the pair is deleted, in both directions.
+export const onUserFollowingChanged = onDocumentUpdated(
+    { document: "users/{uid}", region: REGION },
+    async (event) => {
+        const removed = removedFollowingIds(event.data?.before?.data(), event.data?.after?.data());
+        if (removed.length === 0) return;
+
+        const uid = event.params.uid;
+        const users = getFirestore().collection("users");
+        const results = await Promise.allSettled(removed.flatMap((otherId) => [
+            users.doc(otherId).collection("follow_requests").doc(uid).delete(),
+            users.doc(uid).collection("follow_requests").doc(otherId).delete(),
+        ]));
+        for (const result of results) {
+            if (result.status === "rejected") {
+                console.error(`Follow request cleanup for user ${uid}: ${result.reason?.message}`);
+            }
+        }
+    }
+);
+
+// A profile going from private to public accepts every pending request, as Instagram does. Each
+// becomes an ordinary acceptance, so onFollowRequestUpdated writes the follow and the notification.
+export const onUserPrivacyChanged = onDocumentUpdated(
+    { document: "users/{uid}", region: REGION },
+    async (event) => {
+        const before = event.data?.before?.data();
+        const after = event.data?.after?.data();
+        if (!planAutoAccept(before, after, [])) return;
+
+        const requestsRef = getFirestore().collection("users").doc(event.params.uid).collection("follow_requests");
+        const pending = await requestsRef.where("status", "==", "pending").get();
+        const accept = planAutoAccept(before, after, pending.docs.map((doc) => ({ id: doc.id, data: doc.data() })));
+
+        // A batch takes at most 500 writes.
+        for (let start = 0; start < accept.length; start += 500) {
+            const batch = getFirestore().batch();
+            for (const requesterId of accept.slice(start, start + 500)) {
+                batch.update(requestsRef.doc(requesterId), { status: "accepted" });
+            }
+            await batch.commit();
+        }
     }
 );
