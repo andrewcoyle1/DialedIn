@@ -114,9 +114,10 @@ service cloud.firestore {
           // Owner can update any field but `hidden`, which only report moderation sets
           (request.auth.uid == user_id && resource.data.author_id == user_id
             && request.resource.data.get('hidden', false) == resource.data.get('hidden', false)) ||
-          // Any authenticated user can toggle their like (only liked_by_user_ids may change),
-          // unless the session's author has blocked them.
+          // Any authenticated user can toggle their own like (only their id in liked_by_user_ids
+          // may change), unless the session's author has blocked them.
           (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['liked_by_user_ids'])
+            && isOwnLikeToggle(resource.data.get('liked_by_user_ids', []), request.resource.data.liked_by_user_ids)
             && !isBlockedBy(user_id))
         );
         allow delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
