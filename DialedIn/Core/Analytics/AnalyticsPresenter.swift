@@ -531,6 +531,10 @@ class AnalyticsPresenter {
         router.showCustomiseAnalyticsView(delegate: CustomiseAnalyticsDelegate())
     }
 
+    func onWeeklyReviewPressed() {
+        router.showWeeklyReviewView()
+    }
+
     enum Event: LoggableEvent {
         case onAppear(delegate: AnalyticsDelegate)
         case onDisappear(delegate: AnalyticsDelegate)

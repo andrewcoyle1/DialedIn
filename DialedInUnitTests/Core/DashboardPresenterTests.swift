@@ -170,6 +170,8 @@ struct DashboardFeedPresenterTests {
         // MARK: - Challenges
         func showChallengeDetailView(delegate: ChallengeDetailDelegate) { shown.append("challenge:\(delegate.challenge.id)") }
         func showCreateChallengeView() { shown.append("createChallenge") }
+        // MARK: - WeeklyReview
+        func showWeeklyReviewView() { shown.append("weeklyReview") }
 
         func showAddMealView(delegate: AddMealDelegate) {
             shown.append("addMeal")
