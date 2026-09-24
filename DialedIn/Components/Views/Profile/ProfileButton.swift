@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ProfileButton: View {
     
-    let avatarSize: CGFloat = 36
+    let avatarSize: CGFloat = 40
     let action: () -> Void
     let imageUrl: String?
     
