@@ -7,11 +7,8 @@
 
 import SwiftUI
 
+/// The first screen collects fields and hands them on; nothing is saved or generated here.
 @MainActor
-protocol CreateExerciseInteractor: GlobalInteractor {
-    var currentUser: UserModel? { get }
-    func saveExerciseModel(exercise: ExerciseModel, image: PlatformImage?) async throws
-    func generateImage(input: String) async throws -> UIImage
-}
+protocol CreateExerciseInteractor: GlobalInteractor { }
 
 extension CoreInteractor: CreateExerciseInteractor { }

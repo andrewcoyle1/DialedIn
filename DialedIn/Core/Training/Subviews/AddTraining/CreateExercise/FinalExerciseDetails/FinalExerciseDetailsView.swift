@@ -27,7 +27,9 @@ struct FinalExerciseDetailsView: View {
                 .listSectionMargins(.top, 0)
             stabilitySection
 
-            bodyweightSection
+            if delegate.isBodyweight {
+                bodyweightSection
+            }
 
             alternateNamesSection
 
@@ -47,6 +49,7 @@ struct FinalExerciseDetailsView: View {
             } label: {
                 Text("Next")
             }
+            .disabled(!presenter.canContinue(delegate: delegate))
             .padding(.bottom)
         }
     }
@@ -100,7 +103,7 @@ struct FinalExerciseDetailsView: View {
                     .font(.caption)
             }
         } footer: {
-            Text("XX kg at your current weight.")
+            Text(presenter.contributionFooter(delegate: delegate))
         }
     }
 

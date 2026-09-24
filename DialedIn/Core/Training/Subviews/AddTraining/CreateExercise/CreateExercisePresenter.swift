@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import PhotosUI
 
 @Observable
 @MainActor
@@ -14,12 +13,7 @@ class CreateExercisePresenter {
     private let interactor: CreateExerciseInteractor
     private let router: CreateExerciseRouter
 
-    var selectedPhotoItem: PhotosPickerItem?
-    private(set) var selectedImageData: Data?
-    var isImagePickerPresented: Bool = false
     var exerciseName: String?
-    var exerciseDescription: String?
-    private(set) var instructions: [String] = []
 
     var trackableMetricA: TrackableExerciseMetric?
     var trackableMetricB: TrackableExerciseMetric?
@@ -28,14 +22,6 @@ class CreateExercisePresenter {
     
     var laterality: Laterality?
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-
-    private(set) var isGenerating: Bool = false
-    private(set) var generatedImage: UIImage?
-    var isSaving: Bool = false
-
     var canSave: Bool {
         let trimmedName = exerciseName?.trimmingCharacters(in: .whitespacesAndNewlines)
         let hasName = !(trimmedName?.isEmpty ?? true)

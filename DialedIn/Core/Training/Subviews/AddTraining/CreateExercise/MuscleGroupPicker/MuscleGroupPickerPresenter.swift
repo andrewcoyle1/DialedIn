@@ -30,10 +30,6 @@ class MuscleGroupPickerPresenter {
         Muscles.allCases.filter { $0.bodyRegion == .lowerBody }
     }
 
-    var canSave: Bool {
-        true
-    }
-    
     var primaryCount: Int {
         selectedMuscleGroups.values.filter { $0 == .primary }.count
     }

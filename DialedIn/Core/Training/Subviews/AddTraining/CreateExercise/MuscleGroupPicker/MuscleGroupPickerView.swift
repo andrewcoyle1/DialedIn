@@ -50,8 +50,6 @@ struct MuscleGroupPickerView: View {
                 } label: {
                     Text(!presenter.selectedMuscleGroups.isEmpty ? "Next" : "Skip")
                 }
-                .opacity(presenter.canSave ? 1 : 0.3)
-                .disabled(!presenter.canSave)
             }
             .padding(.bottom)
             .background(.bar)

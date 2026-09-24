@@ -115,7 +115,8 @@ class ExerciseEquipmentPresenter {
                 laterality: delegate.laterality,
                 targetMuscles: delegate.muscleGroups,
                 isBodyweight: bodyweightExercise,
-                equipmentVariations: finalVariations
+                // The toggle only hid the variations; their drafts were still saved on the exercise.
+                equipmentVariations: bodyweightExercise ? [] : finalVariations
             )
         )
     }
