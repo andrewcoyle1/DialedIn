@@ -32,6 +32,8 @@ struct ExerciseModelDetailPresenterTests {
             preferenceReads.append(templateId)
             return preferences[templateId] ?? ExerciseUnitPreference(exerciseModelId: templateId)
         }
+
+        func deleteExerciseModel(exerciseId: String) async throws { }
     }
 
     /// Declared unguarded: the test target builds without `-DDEV`, so guarding it the way the

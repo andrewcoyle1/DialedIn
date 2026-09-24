@@ -91,6 +91,22 @@ struct RecipeDetailView: View {
             }
             .buttonStyle(.glassProminent)
         }
+
+        if presenter.canDelete(recipe: delegate.recipeTemplate) {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button(role: .destructive) {
+                        presenter.showDeleteConfirmation(recipe: delegate.recipeTemplate)
+                    } label: {
+                        Label("Delete Recipe", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .disabled(presenter.isDeleting)
+                .accessibilityLabel("Recipe options")
+            }
+        }
     }
 }
 

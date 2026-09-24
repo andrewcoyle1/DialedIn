@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 26/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 @Observable
 @MainActor
@@ -66,5 +66,38 @@ func onDevSettingsPressed() {
 
     func onStartRecipePressed(recipe: RecipeTemplateModel) {
         router.showStartRecipeView(delegate: RecipeStartDelegate(recipe: recipe))
+    }
+
+    private(set) var isDeleting: Bool = false
+
+    func canDelete(recipe: RecipeTemplateModel) -> Bool {
+        recipe.authorId != nil && recipe.authorId == currentUser?.userId
+    }
+
+    func showDeleteConfirmation(recipe: RecipeTemplateModel) {
+        router.showAlert(title: "Delete Recipe", subtitle: "Are you sure you want to delete '\(recipe.name)'? This action cannot be undone.", buttons: {
+            AnyView(
+                HStack {
+                    Button("Delete", role: .destructive) {
+                        Task {
+                            await self.deleteRecipe(recipe, onDismiss: { self.router.dismissScreen() })
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                }
+            )
+        })
+    }
+
+    /// `onDismiss` is the router's dismiss in the app; a parameter so a test can see it happen.
+    func deleteRecipe(_ recipe: RecipeTemplateModel, onDismiss: @escaping () -> Void) async {
+        isDeleting = true
+        do {
+            try await interactor.deleteRecipeTemplate(id: recipe.id)
+            onDismiss()
+        } catch {
+            isDeleting = false
+            router.showSimpleAlert(title: "Failed to delete recipe", subtitle: "Please try again later")
+        }
     }
 }

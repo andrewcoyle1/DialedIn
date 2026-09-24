@@ -132,6 +132,21 @@ struct ExerciseModelDetailView: View {
             .accessibilityLabel("Developer settings")
         }
         #endif
+        if presenter.canDelete(exercise: delegate.exerciseModel) {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button(role: .destructive) {
+                        presenter.showDeleteConfirmation(exercise: delegate.exerciseModel)
+                    } label: {
+                        Label("Delete Exercise", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .disabled(presenter.isDeleting)
+                .accessibilityLabel("Exercise options")
+            }
+        }
     }
 }
 

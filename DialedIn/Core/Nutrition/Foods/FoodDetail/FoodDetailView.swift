@@ -205,6 +205,22 @@ struct FoodDetailView: View {
             }
             .accessibilityLabel(presenter.isFavourited ? "Remove from favourites" : "Add to favourites")
         }
+
+        if presenter.canDelete(food: delegate.food) {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button(role: .destructive) {
+                        presenter.showDeleteConfirmation(food: delegate.food)
+                    } label: {
+                        Label("Delete Food", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .disabled(presenter.isDeleting)
+                .accessibilityLabel("Food options")
+            }
+        }
     }
 }
 
