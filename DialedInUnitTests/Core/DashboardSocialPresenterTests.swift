@@ -21,10 +21,13 @@ struct SocialWorkoutSessionRowTests {
 
     private final class Interactor: SpyGlobalInteractor, WorkoutSessionRowInteractor {
         var currentUser: UserModel? = DashboardFixture.user("me")
+        var history: [WorkoutSessionModel] = []
         var likeError: Error?
         var unlikeError: Error?
         private(set) var likes: [String] = []
         private(set) var unlikes: [String] = []
+
+        func workoutSessions(authoredBy authorId: String) -> [WorkoutSessionModel] { history.filter { $0.authorId == authorId } }
 
         func likeSession(sessionId: String, authorId: String, userId: String) async throws {
             if let likeError { throw likeError }
@@ -66,9 +69,11 @@ struct SocialWorkoutSessionRowTests {
         session: WorkoutSessionModel,
         author: UserModel,
         signedInUser: UserModel? = nil,
-        signedOut: Bool = false
+        signedOut: Bool = false,
+        history: [WorkoutSessionModel] = []
     ) -> Screen {
         let interactor = Interactor()
+        interactor.history = history
         // The default has to be built here rather than in the parameter list: a default value is
         // evaluated outside the main actor, and the fixtures are main-actor isolated.
         interactor.currentUser = signedOut ? nil : (signedInUser ?? DashboardFixture.user("me"))
@@ -93,6 +98,7 @@ struct SocialWorkoutSessionRowTests {
             weightKg: weightKg,
             side: side,
             isWarmup: isWarmup,
+            completedAt: DashboardFixture.date(day: 2),
             dateCreated: DashboardFixture.date(day: 2)
         )
     }
@@ -331,6 +337,18 @@ struct SocialWorkoutSessionRowTests {
         let screen = makeScreen(session: session, author: DashboardFixture.user("friend"))
 
         #expect(screen.presenter.shareSummary == "Core · 1 exercises · 1 sets")
+    }
+
+    /// The card's highlights come from the author's own history, asked of the interactor.
+    @Test("Test The Row Shows The Author's Records And Weekly Count")
+    func testTheRowShowsTheAuthorsRecordsAndWeeklyCount() {
+        let bench = { (weight: Double) in [self.exercise("Bench", sets: [self.set(1, reps: 5, weightKg: weight)])] }
+        let earlier = DashboardFixture.session(id: "a", author: "friend", on: DashboardFixture.date(day: 2), exercises: bench(90))
+        let session = DashboardFixture.session(id: "b", author: "friend", on: DashboardFixture.date(day: 4), exercises: bench(100))
+        let screen = makeScreen(session: session, author: DashboardFixture.user("friend"), history: [earlier, session])
+
+        #expect(screen.presenter.personalRecords == [.init(exerciseName: "Bench", detail: "100 kg × 5")])
+        #expect(screen.presenter.weeklyWorkoutText == "2nd workout of the week")
     }
 }
 

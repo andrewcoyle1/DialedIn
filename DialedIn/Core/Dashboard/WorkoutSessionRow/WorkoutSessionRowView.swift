@@ -79,6 +79,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(presenter.session.name)
                 .font(.headline)
+            highlights
             HStack(spacing: 20) {
                 StatItem(header: "Exercises", value: "\(presenter.session.exercises.count)")
                 StatItem(header: "Sets", value: "\(workingSets.count)")
@@ -91,6 +92,39 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
                 }
             }
         }
+    }
+
+    // MARK: - Highlights
+
+    /// Records first, then the weekly count, each a small capsule. Wraps rather than truncates:
+    /// three PRs do not fit on one line of a phone.
+    @ViewBuilder
+    private var highlights: some View {
+        if !presenter.personalRecords.isEmpty || presenter.weeklyWorkoutText != nil {
+            FlowLayout(spacing: 6) {
+                ForEach(presenter.personalRecords, id: \.exerciseName) { record in
+                    highlightCapsule("PR: \(record.exerciseName) \(record.detail)", systemImage: "trophy.fill", tint: .yellow)
+                }
+                if let weekly = presenter.weeklyWorkoutText {
+                    highlightCapsule(weekly, systemImage: "flame.fill", tint: .orange)
+                }
+            }
+        }
+    }
+
+    private func highlightCapsule(_ text: String, systemImage: String, tint: Color) -> some View {
+        Label {
+            Text(text)
+                .foregroundStyle(.primary)
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundStyle(tint)
+        }
+        .font(.caption.weight(.medium))
+        .lineLimit(1)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(tint.opacity(0.15), in: .capsule)
     }
 
     // MARK: - Exercise List

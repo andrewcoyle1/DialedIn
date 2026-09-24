@@ -20,6 +20,11 @@ class WorkoutSessionRowPresenter {
     private(set) var isLiked: Bool
     private(set) var likeCount: Int
 
+    /// The lifts in this session that beat the author's earlier best, at most three.
+    let personalRecords: [WorkoutSessionHighlights.PersonalRecord]
+    /// Where this session falls in the author's week: 3 for their third workout that week.
+    let weeklyWorkoutNumber: Int
+
     init(
         interactor: WorkoutSessionRowInteractor,
         router: WorkoutSessionRowRouter,
@@ -32,6 +37,20 @@ class WorkoutSessionRowPresenter {
         self.sessionAuthorId = delegate.session.authorId
         self.isLiked = delegate.session.likedByUserIds.contains(interactor.currentUser?.userId ?? "")
         self.likeCount = delegate.session.likedByUserIds.count
+
+        let history = interactor.workoutSessions(authoredBy: delegate.session.authorId)
+        self.personalRecords = WorkoutSessionHighlights.personalRecords(in: delegate.session, priorSessions: history)
+        self.weeklyWorkoutNumber = WorkoutSessionHighlights.weeklyWorkoutNumber(of: delegate.session, history: history)
+    }
+
+    /// "3rd workout of the week", from the second one on — a first is not news. "Of the week"
+    /// rather than "this week", because the card can be read long after the week is over.
+    var weeklyWorkoutText: String? {
+        guard weeklyWorkoutNumber >= 2 else { return nil }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .ordinal
+        let ordinal = formatter.string(from: NSNumber(value: weeklyWorkoutNumber)) ?? "\(weeklyWorkoutNumber)"
+        return "\(ordinal) workout of the week"
     }
 
     func onWorkoutPressed() {
