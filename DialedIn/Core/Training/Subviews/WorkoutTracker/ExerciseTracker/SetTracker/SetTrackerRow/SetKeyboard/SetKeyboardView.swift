@@ -24,6 +24,7 @@ struct SetKeyboardView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
+        .background(.regularMaterial, ignoresSafeAreaEdges: .bottom)
         .animation(reduceMotion ? nil : .snappy, value: presenter.activeField)
         .animation(reduceMotion ? nil : .snappy, value: presenter.showsPlates)
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)

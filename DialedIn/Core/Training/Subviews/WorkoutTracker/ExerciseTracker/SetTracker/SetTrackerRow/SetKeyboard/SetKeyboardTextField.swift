@@ -20,30 +20,19 @@ enum SetKeyboardLaunch {
 /// dismiss and re-present it.
 @MainActor
 final class SetKeyboardInputHost {
-    private var inputView: UIInputView?
+    private var hostingController: UIHostingController<SetKeyboardView>?
 
-    func view(for presenter: SetKeyboardPresenter) -> UIInputView {
-        if let inputView { return inputView }
+    /// The hosting view is the input view itself and sizes to the SwiftUI content, so the
+    /// keyboard grows when the plate strip or effort row appears.
+    func view(for presenter: SetKeyboardPresenter) -> UIView {
+        if let view = hostingController?.view { return view }
         let host = UIHostingController(rootView: SetKeyboardView(presenter: presenter))
         host.sizingOptions = .intrinsicContentSize
         host.view.backgroundColor = .clear
         host.view.translatesAutoresizingMaskIntoConstraints = false
-
-        let container = UIInputView(frame: .zero, inputViewStyle: .keyboard)
-        container.allowsSelfSizing = true
-        container.addSubview(host.view)
-        NSLayoutConstraint.activate([
-            host.view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            host.view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            host.view.topAnchor.constraint(equalTo: container.topAnchor),
-            host.view.bottomAnchor.constraint(equalTo: container.safeAreaLayoutGuide.bottomAnchor)
-        ])
-        inputView = container
         hostingController = host
-        return container
+        return host.view
     }
-
-    private var hostingController: UIHostingController<SetKeyboardView>?
 }
 
 struct SetKeyboardTextField: UIViewRepresentable {
