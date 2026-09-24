@@ -90,9 +90,11 @@ struct WorkoutBuildWrapperPresenterTests {
     private final class Interactor: SpyGlobalInteractor, DefineWorkoutWrapperInteractor {
         var currentUser: UserModel? = UserModel(userId: "user-1")
         var saveError: Error?
+        var saveDelay: Duration = .zero
         private(set) var savedTemplates: [WorkoutTemplateModel] = []
 
         func saveWorkoutTemplate(workoutTemplate: WorkoutTemplateModel, image: PlatformImage?) async throws {
+            try? await Task.sleep(for: saveDelay)
             if let saveError {
                 throw saveError
             }
@@ -134,11 +136,13 @@ struct WorkoutBuildWrapperPresenterTests {
     private func delegate(
         name: String = "Push Day",
         gymId: String = "gym-1",
+        workoutTemplate: WorkoutTemplateModel? = nil,
         onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)? = nil
     ) -> DefineWorkoutWrapperDelegate {
         DefineWorkoutWrapperDelegate(
             name: name,
             gymProfile: GymProfileModel(id: gymId, authorId: "user-1", name: "Home Gym"),
+            workoutTemplate: workoutTemplate,
             onWorkoutCreated: onWorkoutCreated
         )
     }
@@ -148,6 +152,7 @@ struct WorkoutBuildWrapperPresenterTests {
     @Test("Test The Workout Is Saved Under The Name The User Typed")
     func testTheWorkoutIsSavedUnderTheNameTheUserTyped() async {
         let screen = makeScreen()
+        screen.presenter.exercises = [flowTemplateExercise(exercise: flowExercise())]
 
         screen.presenter.onConfirmPressed(delegate: delegate(name: "Leg Day"))
 
@@ -162,6 +167,7 @@ struct WorkoutBuildWrapperPresenterTests {
     @Test("Test The Chosen Gym Is Saved With The Workout")
     func testTheChosenGymIsSavedWithTheWorkout() async {
         let screen = makeScreen()
+        screen.presenter.exercises = [flowTemplateExercise(exercise: flowExercise())]
 
         screen.presenter.onConfirmPressed(delegate: delegate(gymId: "gym-7"))
 
@@ -190,6 +196,7 @@ struct WorkoutBuildWrapperPresenterTests {
     @Test("Test Nothing Is Saved Without A Signed In User")
     func testNothingIsSavedWithoutASignedInUser() async {
         let screen = makeScreen()
+        screen.presenter.exercises = [flowTemplateExercise(exercise: flowExercise())]
         screen.interactor.currentUser = nil
 
         screen.presenter.onConfirmPressed(delegate: delegate())
@@ -204,12 +211,75 @@ struct WorkoutBuildWrapperPresenterTests {
     @Test("Test A Failed Save Is Survived")
     func testAFailedSaveIsSurvived() async {
         let screen = makeScreen()
+        screen.presenter.exercises = [flowTemplateExercise(exercise: flowExercise())]
         screen.interactor.saveError = URLError(.notConnectedToInternet)
 
         screen.presenter.onConfirmPressed(delegate: delegate())
 
         let saved = await TestManagers.eventually(timeout: .milliseconds(400)) { !screen.interactor.savedTemplates.isEmpty }
         #expect(!saved)
+    }
+
+    /// An empty template starts a workout with nothing in it, so Save stays off until there is one.
+    @Test("Test A Workout With No Exercises Cannot Be Saved")
+    func testAWorkoutWithNoExercisesCannotBeSaved() async {
+        let screen = makeScreen()
+
+        #expect(!screen.presenter.canSave)
+        screen.presenter.onConfirmPressed(delegate: delegate())
+
+        let saved = await TestManagers.eventually(timeout: .milliseconds(200)) { !screen.interactor.savedTemplates.isEmpty }
+        #expect(!saved)
+    }
+
+    /// Editing kept the name and gym but built a brand-new model, so "Edit" saved a duplicate and
+    /// left the original in the library.
+    @Test("Test Editing Saves Under The Original Id")
+    func testEditingSavesUnderTheOriginalId() async {
+        let screen = makeScreen()
+        let created = Date(timeIntervalSince1970: 1_000)
+        let original = WorkoutTemplateModel(
+            id: "wt-1", authorId: "user-1", name: "Old Name", description: "keep", gymProfileId: "gym-1", dateCreated: created
+        )
+        screen.presenter.exercises = [flowTemplateExercise(exercise: flowExercise())]
+
+        screen.presenter.onConfirmPressed(delegate: delegate(name: "New Name", workoutTemplate: original))
+
+        #expect(await TestManagers.eventually { !screen.interactor.savedTemplates.isEmpty })
+        let saved = screen.interactor.savedTemplates.first
+        #expect(saved?.id == "wt-1")
+        #expect(saved?.name == "New Name")
+        #expect(saved?.description == "keep")
+        #expect(saved?.dateCreated == created)
+    }
+
+    /// The exercises a template already has are the starting point when editing it.
+    @Test("Test Editing Starts From The Existing Exercises")
+    func testEditingStartsFromTheExistingExercises() {
+        let presenter = DefineWorkoutWrapperPresenter(
+            interactor: Interactor(),
+            router: Router(),
+            exercises: [flowTemplateExercise(exercise: flowExercise(name: "Squat"))]
+        )
+
+        #expect(presenter.exercises.map(\.exercise.name) == ["Squat"])
+    }
+
+    /// The screen used to dismiss on the same tick it started the save, so the failure alert was
+    /// torn down before it could be read. Now nothing is saved twice and the flag clears after.
+    @Test("Test A Second Tap During A Save Is Ignored")
+    func testASecondTapDuringASaveIsIgnored() async {
+        let screen = makeScreen()
+        screen.presenter.exercises = [flowTemplateExercise(exercise: flowExercise())]
+        screen.interactor.saveDelay = .milliseconds(150)
+
+        screen.presenter.onConfirmPressed(delegate: delegate())
+        screen.presenter.onConfirmPressed(delegate: delegate())
+
+        #expect(await TestManagers.eventually { !screen.interactor.savedTemplates.isEmpty })
+        try? await Task.sleep(for: .milliseconds(100))
+        #expect(screen.interactor.savedTemplates.count == 1)
+        #expect(!screen.presenter.isSaving)
     }
 
     // MARK: Building a workout to start right now

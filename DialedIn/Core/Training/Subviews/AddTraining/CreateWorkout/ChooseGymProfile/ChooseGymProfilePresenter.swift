@@ -37,9 +37,20 @@ class ChooseGymProfilePresenter {
     }
 
     func onGymProfilePressed(name: String, profile: GymProfileModel, delegate: ChooseGymProfileDelegate) {
-        router.showDefineWorkoutWrapperView(delegate: DefineWorkoutWrapperDelegate(name: name, gymProfile: profile, onWorkoutCreated: delegate.onWorkoutCreated))
+        router.showDefineWorkoutWrapperView(
+            delegate: DefineWorkoutWrapperDelegate(
+                name: name,
+                gymProfile: profile,
+                workoutTemplate: delegate.workoutTemplate,
+                onWorkoutCreated: delegate.onWorkoutCreated
+            )
+        )
     }
     
+    func onCreateGymProfilePressed() {
+        router.showCreateGymProfileView(delegate: CreateGymProfileDelegate())
+    }
+
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear

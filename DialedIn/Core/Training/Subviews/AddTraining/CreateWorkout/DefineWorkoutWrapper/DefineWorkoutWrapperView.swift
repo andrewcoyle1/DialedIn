@@ -3,6 +3,8 @@ import SwiftUI
 struct DefineWorkoutWrapperDelegate {
     let name: String
     let gymProfile: GymProfileModel
+    /// Set when editing: the saved model keeps this template's id so the save updates it in place.
+    var workoutTemplate: WorkoutTemplateModel?
     var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
@@ -41,6 +43,7 @@ struct DefineWorkoutWrapperView<DefineWorkout: View>: View {
                 } label: {
                     Text(isStartWorkoutMode ? "Start Workout" : "Save")
                 }
+                .disabled(!presenter.canSave)
             }
     }
 }
@@ -51,7 +54,8 @@ extension CoreBuilder {
         DefineWorkoutWrapperView(
             presenter: DefineWorkoutWrapperPresenter(
                 interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
+                router: CoreRouter(router: router, builder: self),
+                exercises: delegate.workoutTemplate?.exercises ?? []
             ),
             delegate: delegate,
             defineWorkoutView: { delegate in

@@ -7,15 +7,26 @@ class DefineWorkoutWrapperPresenter {
     private let interactor: DefineWorkoutWrapperInteractor
     private let router: DefineWorkoutWrapperRouter
     
-    var exercises: [WorkoutTemplateExercise] = []
+    var exercises: [WorkoutTemplateExercise]
+    private(set) var isSaving: Bool = false
 
     var currentUser: UserModel? {
         interactor.currentUser
     }
+
+    /// An empty template starts a workout with nothing to do, and a second tap mid-save wrote it twice.
+    var canSave: Bool {
+        !exercises.isEmpty && !isSaving
+    }
     
-    init(interactor: DefineWorkoutWrapperInteractor, router: DefineWorkoutWrapperRouter) {
+    init(
+        interactor: DefineWorkoutWrapperInteractor,
+        router: DefineWorkoutWrapperRouter,
+        exercises: [WorkoutTemplateExercise] = []
+    ) {
         self.interactor = interactor
         self.router = router
+        self.exercises = exercises
     }
     
     func onViewAppear() {
@@ -27,14 +38,22 @@ class DefineWorkoutWrapperPresenter {
     }
     
     func onConfirmPressed(delegate: DefineWorkoutWrapperDelegate) {
-        guard let uid = currentUser?.userId else { return }
+        guard canSave else { return }
+        // Reachable: the user document arrives on the sync engine's own task. A silent return threw
+        // the whole wizard away.
+        guard let uid = currentUser?.userId else {
+            router.showSimpleAlert(title: "Unable to Save Workout", subtitle: "Please try again.")
+            return
+        }
+        let existing = delegate.workoutTemplate
         let workout = WorkoutTemplateModel(
-            authorId: uid,
+            id: existing?.id ?? UUID().uuidString,
+            authorId: existing?.authorId ?? uid,
             name: delegate.name,
-            description: nil,
+            description: existing?.description,
             gymProfileId: delegate.gymProfile.id,
-            imageURL: nil,
-            dateCreated: Date.now,
+            imageURL: existing?.imageURL,
+            dateCreated: existing?.dateCreated ?? Date.now,
             dateModified: Date.now,
             exercises: exercises
         )
@@ -62,15 +81,11 @@ class DefineWorkoutWrapperPresenter {
                 }
             )
         } else {
-            defer {
-                router.dismissEnvironment()
-            }
-            Task {
-                do {
-                    try await interactor.saveWorkoutTemplate(workoutTemplate: workout, image: nil)
-                } catch {
-                    router.showSimpleAlert(title: "Unable to Create Workout", subtitle: "Please try again.")
-                }
+            // Dismissing before the save returned tore the failure alert down with the screen.
+            // The flag is raised here, not in the task, so a second tap on the same tick is refused.
+            isSaving = true
+            Task { @MainActor in
+                await saveThenFinish(workout: workout, onWorkoutCreated: nil)
             }
         }
     }
@@ -80,8 +95,10 @@ class DefineWorkoutWrapperPresenter {
     /// under it — otherwise the alert is torn down before it can be read and the template is silently lost.
     private func saveThenFinish(
         workout: WorkoutTemplateModel,
-        onWorkoutCreated: @escaping @Sendable (WorkoutTemplateModel) -> Void
+        onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
     ) async {
+        isSaving = true
+        defer { isSaving = false }
         do {
             try await interactor.saveWorkoutTemplate(workoutTemplate: workout, image: nil)
         } catch {
@@ -94,10 +111,10 @@ class DefineWorkoutWrapperPresenter {
     /// The user answered "No", so start the workout without adding it to the library.
     private func finishWithoutSaving(
         workout: WorkoutTemplateModel,
-        onWorkoutCreated: @escaping @Sendable (WorkoutTemplateModel) -> Void
+        onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
     ) {
         router.dismissEnvironment()
-        onWorkoutCreated(workout)
+        onWorkoutCreated?(workout)
     }
 
 }

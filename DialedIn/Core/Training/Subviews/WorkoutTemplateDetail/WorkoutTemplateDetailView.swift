@@ -34,11 +34,9 @@ struct WorkoutTemplateDetailView: View {
         .navigationSubtitle(delegate.workoutTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        #if DEBUG || MOCK
         .toolbar {
             toolbarContent
         }
-        #endif
         .safeAreaInset(edge: .bottom) {
             CallToActionButton(isPrimaryAction: true) {
                 presenter.onStartWorkoutPressed(
@@ -54,35 +52,18 @@ struct WorkoutTemplateDetailView: View {
         }
     }
 
-    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        // Show edit button when not in edit mode
-        //        if isAuthor {
-        //            ToolbarItem(placement: .topBarLeading) {
-        //                Button {
-        //                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
-        //                } label: {
-        //                    Image(systemName: "pencil")
-        //                }
-        //            }
-        //        }
-        //
-        //        // Show delete button only in edit mode
-        //        if isAuthor {
-        //            ToolbarItem(placement: .topBarLeading) {
-        //                Button(role: .destructive) {
-        //                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
-        //                } label: {
-        //                    if presenter.isDeleting {
-        //                        ProgressView()
-        //                    } else {
-        //                        Image(systemName: "trash")
-        //                    }
-        //                }
-        //                .disabled(presenter.isDeleting)
-        //            }
-        //        }
+        if isAuthor {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
+                } label: {
+                    Image(systemName: "pencil")
+                }
+                .accessibilityLabel("Edit workout")
+            }
+        }
 
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
@@ -95,7 +76,6 @@ struct WorkoutTemplateDetailView: View {
         }
         #endif
     }
-    #endif
     
     private var targetMusclesSection: some View {
         Section {

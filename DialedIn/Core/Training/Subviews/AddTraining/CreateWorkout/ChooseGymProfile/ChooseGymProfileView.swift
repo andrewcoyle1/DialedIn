@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ChooseGymProfileDelegate {
     let name: String
+    var workoutTemplate: WorkoutTemplateModel?
     var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
@@ -12,6 +13,19 @@ struct ChooseGymProfileView: View {
     
     var body: some View {
         List {
+            if presenter.gymProfiles.isEmpty {
+                // Every workout needs a gym, so an empty list was a dead end with no way to make one.
+                ContentUnavailableView {
+                    Label("No Gym Profiles", systemImage: "building.2")
+                } description: {
+                    Text("A workout is built around the equipment at a gym. Create one to continue.")
+                } actions: {
+                    Button("Create Gym Profile") {
+                        presenter.onCreateGymProfilePressed()
+                    }
+                }
+                .removeListRowFormatting()
+            }
             Section {
                 ForEach(presenter.gymProfiles) { profile in
                     CustomListCellView(

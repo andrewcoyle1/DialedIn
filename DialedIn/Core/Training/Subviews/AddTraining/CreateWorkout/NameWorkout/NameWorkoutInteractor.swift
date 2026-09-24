@@ -9,9 +9,7 @@ import SwiftUI
 
 @MainActor
 protocol NameWorkoutInteractor: GlobalInteractor {
-    var currentUser: UserModel? { get }
-    func saveWorkoutTemplate(workoutTemplate: WorkoutTemplateModel, image: PlatformImage?) async throws
-    func generateImage(input: String) async throws -> UIImage
+    var gymProfiles: [GymProfileModel] { get }
 }
 
 extension CoreInteractor: NameWorkoutInteractor { }
