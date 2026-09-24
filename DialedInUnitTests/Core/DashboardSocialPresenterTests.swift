@@ -38,6 +38,8 @@ struct SocialWorkoutSessionRowTests {
             if let unlikeError { throw unlikeError }
             unlikes.append("\(sessionId)|\(authorId)|\(userId)")
         }
+
+        func report(contentType: ReportContentType, contentId: String, authorUserId: String?, reason: ReportReason, notes: String?) async throws { }
     }
 
     private final class Router: WorkoutSessionRowRouter {

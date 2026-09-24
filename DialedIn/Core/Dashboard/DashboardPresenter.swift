@@ -21,10 +21,15 @@ class DashboardPresenter {
     /// program pre-creates for the days ahead were posted to the feed as if they had already
     /// happened. A session with no resolvable author is dropped here rather than in the view, so an
     /// empty feed is recognised as empty instead of drawing a header over nothing.
+    ///
+    /// A blocked author's sessions are dropped too — blocking unfollows, but the following sync can
+    /// still hold their sessions until it next emits.
     var feedSessions: [WorkoutSessionModel] {
         let combined = interactor.workoutSessions + interactor.followingWorkoutSessions
+        let reader = interactor.currentUser
         return combined
             .filter { $0.endedAt != nil && !$0.isRestDay && author(for: $0) != nil }
+            .filter { !(reader?.hasBlocked($0.authorId) ?? false) }
             .sorted { $0.dateCreated > $1.dateCreated }
     }
 

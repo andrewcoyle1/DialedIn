@@ -169,6 +169,17 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
             }
             .frame(maxWidth: .infinity)
             .accessibilityLabel("Share workout")
+            if presenter.canReport {
+                Menu {
+                    Button("Report Workout", systemImage: "exclamationmark.bubble") {
+                        presenter.onReportPressed()
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .frame(maxWidth: .infinity)
+                .accessibilityLabel("More actions")
+            }
         }
         .font(.subheadline)
         // Three actions of equal weight. The like button turns accented once it is on, so the "on"

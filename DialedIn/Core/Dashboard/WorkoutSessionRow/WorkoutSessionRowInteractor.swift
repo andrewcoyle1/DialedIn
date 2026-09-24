@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol WorkoutSessionRowInteractor: GlobalInteractor {
+protocol WorkoutSessionRowInteractor: ReportInteractor {
     var currentUser: UserModel? { get }
     func workoutSessions(authoredBy authorId: String) -> [WorkoutSessionModel]
     func likeSession(sessionId: String, authorId: String, userId: String) async throws

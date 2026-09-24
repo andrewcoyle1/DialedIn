@@ -18,8 +18,13 @@ class UserManager {
 
     var currentUser: UserModel? { userSyncEngine.currentDocument }
 
+    /// Blocked accounts are left out even while their follow is still being taken back.
     var followingUsers: [UserModel] {
-        followingUsersSyncEngine.currentCollection
+        followingUsersSyncEngine.currentCollection.filter { !isBlocked($0) }
+    }
+
+    private func isBlocked(_ user: UserModel) -> Bool {
+        currentUser?.hasBlocked(user.userId) ?? false
     }
 
     init(
@@ -235,13 +240,13 @@ class UserManager {
     // MARK: - User Followers
 
     func fetchFollowers(userId: String) async throws -> [UserModel] {
-        try await queryService.fetchFollowers(userId: userId)
+        try await queryService.fetchFollowers(userId: userId).filter { !isBlocked($0) }
     }
 
     // MARK: - User Search
 
     func searchUsers(query: String) async throws -> [UserModel] {
-        try await queryService.searchUsers(query: query)
+        try await queryService.searchUsers(query: query).filter { !isBlocked($0) }
     }
 
     /// People worth following when the reader follows nobody: the newest accounts, minus the
@@ -273,14 +278,18 @@ class UserManager {
 
     // MARK: - User Blocking
 
+    /// Blocking also takes back the reader's follow, in the same write, so there is no moment where
+    /// the block has landed and the follow has not.
     func blockUser(userId: String) async throws {
         var blockList = currentUser?.blockedUserIds ?? []
         if !blockList.contains(userId) {
             blockList.append(userId)
         }
-        
+        let followingIds = (currentUser?.followingIds ?? []).filter { $0 != userId }
+
         try await userSyncEngine.updateDocument(data: [
-            UserModel.CodingKeys.blockedUserIds.rawValue: blockList
+            UserModel.CodingKeys.blockedUserIds.rawValue: blockList,
+            UserModel.CodingKeys.followingIds.rawValue: followingIds
         ])
     }
     
@@ -436,7 +445,11 @@ extension CoreInteractor {
     // User Blocking
 
     func blockUser(userId: String) async throws {
+        let wasFollowing = currentUser?.followingIds?.contains(userId) ?? false
         try await userManager.blockUser(userId: userId)
+        if wasFollowing {
+            await didUnfollow(userId: userId)
+        }
     }
 
     func unblockUser(userId: String) async throws {
@@ -480,7 +493,14 @@ extension CoreInteractor {
 
     func unfollowUser(userId: String) async throws {
         try await userManager.unfollowUser(userId: userId)
-        let ids = userManager.currentUser?.followingIds ?? []
+        await didUnfollow(userId: userId)
+    }
+
+    /// Stops syncing an unfollowed user's sessions and profile, and takes back the follow
+    /// notification. `userId` is removed explicitly because the engine may not have applied the
+    /// write yet.
+    private func didUnfollow(userId: String) async {
+        let ids = (userManager.currentUser?.followingIds ?? []).filter { $0 != userId }
         async let refreshSessions: () = workoutSessionManager.refreshFollowingSync(followingIds: ids)
         async let refreshProfiles: () = userManager.refreshFollowingUsers(followingIds: ids)
         await refreshSessions

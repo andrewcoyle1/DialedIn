@@ -6,6 +6,7 @@ class SocialProfilePresenter {
 
     private let interactor: SocialProfileInteractor
     private let router: SocialProfileRouter
+    let reportFlow: ReportFlow
 
     private var profileUser: UserModel?
     var followers: [UserModel] = []
@@ -34,6 +35,25 @@ class SocialProfilePresenter {
         guard let profileUser, profileUser.isPrivate == true, !isOwnProfile else { return false }
         guard let readerId = interactor.currentUser?.userId else { return true }
         return !(profileUser.followingIds ?? []).contains(readerId)
+    }
+
+    /// Whether the reader has blocked this profile, read live so the menu flips when the write lands.
+    var isBlocked: Bool {
+        guard let profileUser else { return false }
+        return interactor.currentUser?.hasBlocked(profileUser.userId) ?? false
+    }
+
+    /// Nobody follows an account they have blocked, or themselves.
+    var showsFollowButton: Bool {
+        !isOwnProfile && !isBlocked
+    }
+
+    private var displayName: String {
+        profileUser?.fullNameCalculated ?? "User"
+    }
+
+    var blockMenuTitle: String {
+        isBlocked ? "Unblock" : "Block \(displayName)"
     }
 
     var mutualFollowers: [UserModel] {
@@ -74,6 +94,7 @@ class SocialProfilePresenter {
     init(interactor: SocialProfileInteractor, router: SocialProfileRouter) {
         self.interactor = interactor
         self.router = router
+        self.reportFlow = ReportFlow(interactor: interactor, router: router)
     }
 
     func onViewAppear(delegate: SocialProfileDelegate) {
@@ -145,6 +166,62 @@ class SocialProfilePresenter {
         }
     }
 
+    func onBlockMenuPressed() {
+        if isBlocked {
+            onUnblockPressed()
+        } else {
+            onBlockPressed()
+        }
+    }
+
+    /// Blocking is asked about first: it also unfollows, and hides the person everywhere.
+    func onBlockPressed() {
+        guard profileUser != nil, !isOwnProfile else { return }
+        router.showAlert(
+            title: "Block \(displayName)?",
+            subtitle: "They will be hidden from your feed, comments, search and notifications, and you will stop following them.",
+            buttons: {
+                AnyView(
+                    Group {
+                        Button("Block", role: .destructive) {
+                            self.onBlockConfirmed()
+                        }
+                        Button("Cancel", role: .cancel) { }
+                    }
+                )
+            }
+        )
+    }
+
+    func onBlockConfirmed() {
+        guard let profileUser else { return }
+        interactor.trackEvent(event: Event.blockConfirmed)
+        Task {
+            do {
+                try await interactor.blockUser(userId: profileUser.userId)
+            } catch {
+                router.showSimpleAlert(title: "Unable to block user", subtitle: "Please try again.")
+            }
+        }
+    }
+
+    func onUnblockPressed() {
+        guard let profileUser else { return }
+        interactor.trackEvent(event: Event.unblockPressed)
+        Task {
+            do {
+                try await interactor.unblockUser(userId: profileUser.userId)
+            } catch {
+                router.showSimpleAlert(title: "Unable to unblock user", subtitle: "Please try again.")
+            }
+        }
+    }
+
+    func onReportPressed() {
+        guard let profileUser, !isOwnProfile else { return }
+        reportFlow.start(ReportedContent(type: .user, id: profileUser.userId, authorUserId: profileUser.userId, noun: "profile"))
+    }
+
     func onViewDisappear(delegate: SocialProfileDelegate) {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
@@ -158,6 +235,8 @@ extension SocialProfilePresenter {
         case onDisappear(delegate: SocialProfileDelegate)
         case followPressed
         case unfollowPressed
+        case blockConfirmed
+        case unblockPressed
 
         var eventName: String {
             switch self {
@@ -165,6 +244,8 @@ extension SocialProfilePresenter {
             case .onDisappear:              return "SocialProfileView_Disappear"
             case .followPressed:            return "SocialProfileView_Follow_Pressed"
             case .unfollowPressed:          return "SocialProfileView_Unfollow_Pressed"
+            case .blockConfirmed:           return "SocialProfileView_Block_Confirmed"
+            case .unblockPressed:           return "SocialProfileView_Unblock_Pressed"
             }
         }
         

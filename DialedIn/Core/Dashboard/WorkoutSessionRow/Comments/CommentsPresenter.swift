@@ -13,6 +13,7 @@ class CommentsPresenter {
 
     private let interactor: CommentsInteractor
     private let router: CommentsRouter
+    let reportFlow: ReportFlow
     let session: WorkoutSessionModel
 
     private(set) var comments: [WorkoutSessionComment] = []
@@ -30,6 +31,7 @@ class CommentsPresenter {
     ) {
         self.interactor = interactor
         self.router = router
+        self.reportFlow = ReportFlow(interactor: interactor, router: router)
         self.session = delegate.session
     }
 
@@ -42,8 +44,19 @@ class CommentsPresenter {
         // Sorted here because the query that fetches them has no order clause, so they arrive in
         // document-id order — effectively at random. A reply read before the thing it replies to is
         // nonsense, and new comments are appended to the end, so the thread is oldest first.
-        comments = Self.threaded((try? await interactor.fetchComments(sessionId: session.id)) ?? [])
+        let fetched = (try? await interactor.fetchComments(sessionId: session.id)) ?? []
+        comments = Self.threaded(hidingBlocked(fetched))
         isLoading = false
+    }
+
+    /// Drops comments by anyone the reader has blocked, and the replies under them — which would
+    /// otherwise surface at the top level as orphans.
+    private func hidingBlocked(_ comments: [WorkoutSessionComment]) -> [WorkoutSessionComment] {
+        guard let reader = interactor.currentUser else { return comments }
+        let hiddenIds = Set(comments.filter { reader.hasBlocked($0.authorId) }.map(\.id))
+        return comments.filter { comment in
+            !hiddenIds.contains(comment.id) && !hiddenIds.contains(comment.parentId ?? "")
+        }
     }
 
     /// Top-level comments oldest first, each followed by its replies oldest first. A reply whose
@@ -113,44 +126,9 @@ class CommentsPresenter {
 
     /// The Report swipe action was a `Button` with an empty closure. `ReportManager` and its remote
     /// service were already built and wired into the container with no caller anywhere in the app;
-    /// this is the first one.
+    /// this was the first one.
     func onReportPressed(_ comment: WorkoutSessionComment) {
-        router.showAlert(
-            title: "Report Comment",
-            subtitle: "Why are you reporting this comment?",
-            buttons: {
-                AnyView(
-                    ForEach(ReportReason.allCases) { reason in
-                        Button(reason.displayName) {
-                            self.submitReport(comment, reason: reason)
-                        }
-                    }
-                )
-            }
-        )
-    }
-
-    private func submitReport(_ comment: WorkoutSessionComment, reason: ReportReason) {
-        Task {
-            do {
-                try await interactor.report(
-                    contentType: .comment,
-                    contentId: comment.id,
-                    authorUserId: comment.authorId,
-                    reason: reason,
-                    notes: nil
-                )
-                router.showSimpleAlert(
-                    title: "Report Sent",
-                    subtitle: "Thanks — we will take a look at this comment."
-                )
-            } catch {
-                router.showSimpleAlert(
-                    title: "Unable to Send Report",
-                    subtitle: "Please try again."
-                )
-            }
-        }
+        reportFlow.start(ReportedContent(type: .comment, id: comment.id, authorUserId: comment.authorId, noun: "comment"))
     }
 
     func onDeletePressed(_ comment: WorkoutSessionComment) {

@@ -295,6 +295,12 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         return displayName
     }
     
+    /// Whether this user has blocked `userId`. Every surface that shows another person's content
+    /// asks this, so a block hides them everywhere at once.
+    func hasBlocked(_ userId: String) -> Bool {
+        blockedUserIds?.contains(userId) ?? false
+    }
+
     /// Full name, per user's Auth info
     var fullNameCalculated: String? {
         if let firstNameCalculated, let lastNameCalculated {

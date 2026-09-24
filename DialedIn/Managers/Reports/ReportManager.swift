@@ -14,6 +14,10 @@ enum ReportContentType: String, Codable {
     case card
     /// A comment on a workout session — the first content in this app anything can actually report.
     case comment
+    /// A finished workout session in the feed.
+    case session
+    /// A user's profile.
+    case user
 }
 
 enum ReportReason: String, CaseIterable, Codable, Identifiable {
