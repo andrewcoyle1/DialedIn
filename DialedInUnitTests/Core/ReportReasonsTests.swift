@@ -162,7 +162,6 @@ struct ReportHiddenCommentsTests {
         func deleteComment(id: String) async throws { }
         func toggleCommentLike(id: String, userId: String, isLiked: Bool) async throws { }
         func report(contentType: ReportContentType, contentId: String, authorUserId: String?, reason: ReportReason, notes: String?) async throws { }
-        func toggleCommentLike(id: String, userId: String, isLiked: Bool) async throws { }
     }
 
     private final class Router: CommentsRouter {
