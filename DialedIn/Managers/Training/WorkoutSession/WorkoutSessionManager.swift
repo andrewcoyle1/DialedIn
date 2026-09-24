@@ -228,6 +228,12 @@ extension CoreInteractor {
         workoutSessionManager.followingWorkoutSessions
     }
 
+    /// Every session by `authorId` this device holds: the reader's own history, or what the
+    /// following feed has synced of someone they follow.
+    func workoutSessions(authoredBy authorId: String) -> [WorkoutSessionModel] {
+        authorId == currentUser?.userId ? workoutSessions : followingWorkoutSessions.filter { $0.authorId == authorId }
+    }
+
     var restEndTime: Date? {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         return hkWorkoutManager.restEndTime
