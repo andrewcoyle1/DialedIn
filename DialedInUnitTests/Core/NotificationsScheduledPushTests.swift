@@ -47,6 +47,7 @@ struct NotificationsScheduledPushTests {
         func clearAllDeliveredNotifications() { }
         func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws { }
         func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel { throw DevToolsTestError.failed }
+        func fetchShare(id: String) async throws -> ShareModel { throw DevToolsTestError.failed }
     }
 
     private final class Router: NotificationsRouter {
@@ -59,6 +60,7 @@ struct NotificationsScheduledPushTests {
         func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { }
         func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { }
         func showSocialProfileView(delegate: SocialProfileDelegate) { }
+        func showSharedItemView(delegate: SharedItemDelegate) { }
     }
 
     /// The stored JSON keys, which are what `functions/lib.js` reads.
