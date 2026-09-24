@@ -193,3 +193,55 @@ export function removeFollowerTarget(data, uid) {
     if (typeof followerId !== "string" || followerId.trim() === "" || followerId === uid) return null;
     return followerId;
 }
+
+// ---------------------------------------------------------------------------
+// Account deletion: everything a deleted users/{uid} leaves behind
+// ---------------------------------------------------------------------------
+
+export const USER_DELETION_BATCH_SIZE = 400;
+
+// Turns what onUserDeleted read into the writes that remove the user from everyone else's data.
+// Each list holds document paths (the ids for recipeTemplates, foods and exercises, which are also
+// Storage names): followers and blockers have uid removed from following_ids / blocked_user_ids;
+// sent follow requests, likes, comments, notifications, username reservations and exercises go.
+// Paths under users/{uid} are dropped, as the recursive delete has already taken them, and an update
+// to a missing document would fail its whole batch. Writes come back in batches of 400.
+export function planUserDeletion(uid, lists = {}) {
+    const own = `users/${uid}`;
+    const isOwn = (path) => path === own || path.startsWith(`${own}/`);
+    const writes = [];
+    const deleted = new Set();
+    const remove = (path) => {
+        if (isOwn(path) || deleted.has(path)) return;
+        deleted.add(path);
+        writes.push({ type: "delete", path });
+    };
+    const pull = (paths, field) => {
+        for (const path of new Set(paths ?? [])) {
+            if (!isOwn(path)) writes.push({ type: "arrayRemove", path, field, value: uid });
+        }
+    };
+
+    pull(lists.followers, "following_ids");
+    pull(lists.blockers, "blocked_user_ids");
+    pull(lists.likedSessions, "liked_by_user_ids");
+    for (const path of lists.followRequests ?? []) remove(path);
+    for (const path of lists.comments ?? []) remove(path);
+    for (const path of lists.notifications ?? []) remove(path);
+    for (const path of lists.usernames ?? []) remove(path);
+    for (const id of lists.exercises ?? []) remove(`exercise_templates/${id}`);
+    remove(`diet_plans/${uid}`);
+
+    const batches = [];
+    for (let start = 0; start < writes.length; start += USER_DELETION_BATCH_SIZE) {
+        batches.push(writes.slice(start, start + USER_DELETION_BATCH_SIZE));
+    }
+    // The upload paths the app uses: everything under users/{uid}/ (profile, workout templates, gym
+    // profiles), and one file per exercise, recipe template and food, named by its id.
+    const storageFiles = [
+        ...(lists.exercises ?? []).map((id) => `exercises/${id}`),
+        ...(lists.recipeTemplates ?? []).map((id) => `recipe_templates/${id}`),
+        ...(lists.foods ?? []).map((id) => `ingredient_templates/${id}`),
+    ];
+    return { batches, storagePrefixes: [`${own}/`], storageFiles };
+}
