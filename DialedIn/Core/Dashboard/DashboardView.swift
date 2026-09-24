@@ -141,11 +141,24 @@ struct DashboardView<
     /// header that only appeared when the feed was non-empty in exactly the right way.
     private var workoutFeedSection: some View {
         Section {
+            if let summary = presenter.weeklySummary {
+                CircleWeeklySummaryCard(summary: summary) { presenter.onWeeklySummaryDismissed() }
+                    .removeListRowFormatting()
+                    .listRowSeparator(.hidden)
+            }
             if !presenter.circleMembers.isEmpty {
                 CircleActivityStripView(
                     members: presenter.circleMembers,
                     onMemberPressed: { presenter.onCircleMemberPressed($0) },
-                    onNudgePressed: { presenter.onNudgePressed($0) }
+                    onNudgePressed: { presenter.onNudgePressed($0) },
+                    onSetGoalPressed: presenter.showsWeeklyGoalPrompt ? { presenter.onSetWeeklyGoalPressed() } : nil
+                )
+                .removeListRowFormatting()
+                .listRowSeparator(.hidden)
+                CircleLeaderboardView(
+                    standings: presenter.circleStandings,
+                    currentUserId: presenter.currentUserId,
+                    onRowPressed: { presenter.onLeaderboardRowPressed($0) }
                 )
                 .removeListRowFormatting()
                 .listRowSeparator(.hidden)

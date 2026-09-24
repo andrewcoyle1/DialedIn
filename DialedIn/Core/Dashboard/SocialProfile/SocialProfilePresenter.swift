@@ -297,3 +297,24 @@ extension SocialProfilePresenter {
     }
 
 }
+
+// MARK: - CircleGoals
+
+extension SocialProfilePresenter {
+
+    /// The owner's own weekly goal, read live so it changes when the sheet saves. Nil on anyone
+    /// else's profile.
+    var weeklyGoalText: String? {
+        guard isOwnProfile, let user = interactor.currentUser else { return nil }
+        let goal = CircleWeek.goal(for: user)
+        return user.weeklySessionGoal == nil
+            ? "Set a weekly goal"
+            : "Goal: \(goal) \(goal == 1 ? "session" : "sessions") a week"
+    }
+
+    func onWeeklyGoalPressed() {
+        guard isOwnProfile else { return }
+        interactor.trackEvent(eventName: "SocialProfileView_WeeklyGoal_Pressed", parameters: nil, type: .analytic)
+        router.showWeeklyGoalView()
+    }
+}

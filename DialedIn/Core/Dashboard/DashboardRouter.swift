@@ -11,6 +11,7 @@ protocol DashboardRouter: GlobalRouter {
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
     func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate)
     func showEditUsernameView()
+    func showWeeklyGoalView()
     #if DEV || MOCK
     func showDevSettingsView()
     #endif

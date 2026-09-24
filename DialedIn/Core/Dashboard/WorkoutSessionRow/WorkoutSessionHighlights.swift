@@ -52,12 +52,8 @@ enum WorkoutSessionHighlights {
         history: [WorkoutSessionModel],
         calendar: Calendar = .current
     ) -> Int {
-        let earlierThisWeek = history.filter {
-            counts($0, author: session.authorId)
-                && $0.id != session.id
-                && $0.dateCreated <= session.dateCreated
-                && calendar.isDate($0.dateCreated, equalTo: session.dateCreated, toGranularity: .weekOfYear)
-        }
+        let earlierThisWeek = sessions(of: session.authorId, inWeekOf: session.dateCreated, history: history, calendar: calendar)
+            .filter { $0.id != session.id && $0.dateCreated <= session.dateCreated }
         return earlierThisWeek.count + 1
     }
 
@@ -76,6 +72,20 @@ enum WorkoutSessionHighlights {
     static func streakText(_ streakCount: Int?) -> String? {
         guard let streakCount, streakCount > 1 else { return nil }
         return "\(streakCount)-day streak"
+    }
+
+    /// `author`'s finished, non-rest sessions dated in the calendar week containing `date`. The one
+    /// weekly bucketing rule: the feed's "3rd workout this week" and the circle's weekly goal both
+    /// count through here, so they cannot disagree.
+    static func sessions(
+        of author: String,
+        inWeekOf date: Date,
+        history: [WorkoutSessionModel],
+        calendar: Calendar = .current
+    ) -> [WorkoutSessionModel] {
+        history.filter {
+            counts($0, author: author) && calendar.isDate($0.dateCreated, equalTo: date, toGranularity: .weekOfYear)
+        }
     }
 
     // MARK: - Helpers

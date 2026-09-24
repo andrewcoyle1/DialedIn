@@ -109,6 +109,9 @@ struct SocialProfilePresenterTests {
             followersDelegates.append(delegate)
         }
 
+        private(set) var weeklyGoalShownCount = 0
+        func showWeeklyGoalView() { weeklyGoalShownCount += 1 }
+
         func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
             alertTitles.append(title)
         }
