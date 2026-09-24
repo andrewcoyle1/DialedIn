@@ -284,6 +284,18 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
             }
         }
         
+        ToolbarItem(placement: .topBarTrailing) {
+            Menu {
+                ForEach(WorkoutShareCardView.Format.allCases, id: \.self) { format in
+                    Button(format.title) {
+                        presenter.onShareImagePressed(session: session, format: format)
+                    }
+                }
+            } label: {
+                Label("Share Image", systemImage: "square.and.arrow.up")
+            }
+        }
+
         if presenter.isAuthor(sessionAuthorId: session.authorId) {
 //            ToolbarItem(placement: .topBarTrailing) {
 //                if presenter.isEditMode {

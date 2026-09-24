@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol WorkoutSessionRowRouter: GlobalRouter {
+protocol WorkoutSessionRowRouter: ShareSheetRouter {
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
     func showSocialProfileView(delegate: SocialProfileDelegate)
     func showCommentsView(delegate: CommentsDelegate)
