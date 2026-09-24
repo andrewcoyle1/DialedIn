@@ -220,6 +220,22 @@ struct SocialProfilePresenterTests {
         #expect(screen.router.followersDelegates.last?.followers.map(\.userId) == ["shared"])
     }
 
+    /// Only the reader's own followers list offers Remove.
+    @Test("Test Only The Readers Own Followers Can Be Removed")
+    func testOnlyTheReadersOwnFollowersCanBeRemoved() async {
+        let screen = makeScreen()
+        screen.interactor.followers = [DashboardFixture.user("a")]
+
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+        await TestManagers.eventually { !screen.presenter.followers.isEmpty }
+        screen.presenter.onFollowersPressed()
+
+        screen.presenter.onViewAppear(delegate: profile("me", following: []))
+        screen.presenter.onFollowersPressed()
+
+        #expect(screen.router.followersDelegates.map(\.canRemoveFollowers) == [false, true])
+    }
+
     /// The button reads the reader's own following list, so following flips it and unfollowing
     /// flips it back — and the reader's own profile never shows one.
     @Test("Test Following A Profile Flips The Button And Is Tracked")
@@ -557,6 +573,7 @@ struct SocialFollowersListTests {
             if let followError { throw followError }
             unfollowed.append(userId)
         }
+        func removeFollower(userId: String) async throws { }
     }
 
     private final class Router: FollowersListRouter {

@@ -149,7 +149,7 @@ class SocialProfilePresenter {
 
     func onFollowersPressed() {
         guard !isLocked else { return }
-        let delegate = FollowersListDelegate(followers: followers)
+        let delegate = FollowersListDelegate(followers: followers, canRemoveFollowers: isOwnProfile)
         router.showFollowersList(delegate: delegate)
     }
 
