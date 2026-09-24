@@ -64,7 +64,7 @@ class SearchPresenter {
     }
     
     var filteredUsers: [UserModel] {
-        (interactor.followingUsers + users).filter { matches([$0.firstNameCalculated]) }
+        (interactor.followingUsers + users).filter { matches([$0.firstNameCalculated, $0.username]) }
     }
     
     private(set) var users: [UserModel] = []
@@ -117,7 +117,9 @@ class SearchPresenter {
             return
         }
 
-        let query = trimmedSearchString
+        // Not `trimmedSearchString`, which strips a leading `@`: that `@` is what routes a query to
+        // handles only. See `Username.searchRoute`.
+        let query = searchString.trimmingCharacters(in: .whitespacesAndNewlines)
         // Raised here, not in the task, so the header shows the spinner on the same tick. A task
         // superseded by a newer query leaves the flag to that query.
         isLoadingPeople = true

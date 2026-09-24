@@ -40,7 +40,7 @@ extension UserModel {
             followingIds: ["user1", "user3", "user4", "user5"],
             didCompleteOnboarding: true,
             acceptedHealthDisclaimerVersion: "2025.10.05"
-        )
+        ).withUsername("alice.cooper")
     }
 
     static func mockWithStep(_ step: OnboardingStep) -> Self {
@@ -306,7 +306,30 @@ extension UserModel {
                 submittedWeightKilograms: 67.0,
                 didCompleteOnboarding: false
             )
-        ]
+        ].map { $0.withUsername(mockUsernames[$0.userId]) }
     }
 
+}
+
+// MARK: - Usernames
+
+extension UserModel {
+
+    /// Handles for the mock roster, by user id. `user7` is left without one, so the unset state is
+    /// exercised too. `MockUserQueryService` seeds its reservations from this and `mockExisting`.
+    static let mockUsernames: [String: String] = [
+        "mock_user_123": "andrew",
+        "user1": "alice",
+        "user2": "bob_lifts",
+        "user3": "charlie.c",
+        "user4": "priya_runs",
+        "user5": "dev.patel",
+        "user6": "david_s"
+    ]
+
+    func withUsername(_ username: String?) -> Self {
+        var copy = self
+        copy.username = username
+        return copy
+    }
 }

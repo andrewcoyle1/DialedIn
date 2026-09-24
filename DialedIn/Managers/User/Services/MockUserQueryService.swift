@@ -46,4 +46,23 @@ class MockUserQueryService: UserQueryService {
             requests.contains { $0.requesterId == requesterId && $0.status == .pending } ? targetId : nil
         }
     }
+
+    // MARK: Usernames
+
+    /// Reservations by handle, standing in for `usernames/{handle}`, seeded from the mock roster.
+    private(set) var usernameReservations: [String: String] = UserModel.mockUsernames
+        .reduce(into: ["alice.cooper": "mock_user_123"]) { $0[$1.value] = $1.key }
+
+    func usernameOwner(_ handle: String) async throws -> String? {
+        usernameReservations[handle]
+    }
+
+    func reserveUsername(_ handle: String, userId: String) async throws {
+        guard usernameReservations[handle] == nil else { throw UsernameError.taken }
+        usernameReservations[handle] = userId
+    }
+
+    func searchUsers(usernamePrefix: String) async throws -> [UserModel] {
+        UserModel.mocks.filter { $0.username?.hasPrefix(usernamePrefix) == true }
+    }
 }

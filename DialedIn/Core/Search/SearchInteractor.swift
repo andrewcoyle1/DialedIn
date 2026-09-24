@@ -33,7 +33,7 @@ extension CoreInteractor: SearchInteractor {
     }
 
     func searchUsers(query: String) async throws -> [UserModel] {
-        let results = try await userManager.searchUsers(query: query)
+        let results = try await userManager.searchUsersByNameOrHandle(query: query)
         // Private profiles are found like any other; following one sends a request.
         return results.filter { $0.userId != currentUser?.userId }
     }
