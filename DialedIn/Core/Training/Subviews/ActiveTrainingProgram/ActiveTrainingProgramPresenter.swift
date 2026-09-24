@@ -186,7 +186,7 @@ class ActiveTrainingProgramPresenter {
                 AnyView(
                     HStack {
                         Button(role: .destructive) {
-                            Task { try? await self.deleteTrainingProgram(programId: program.id) }
+                            Task { await self.deleteTrainingProgram(programId: program.id) }
                         }
                         Button(role: .cancel) { }
                     }
@@ -195,8 +195,13 @@ class ActiveTrainingProgramPresenter {
         )
     }
 
-    private func deleteTrainingProgram(programId: String) async throws {
-        try await interactor.deleteTrainingProgram(programId: programId)
+    func deleteTrainingProgram(programId: String) async {
+        do {
+            try await interactor.deleteTrainingProgram(programId: programId)
+        } catch {
+            interactor.trackEvent(event: Event.deleteProgramFail(error: error))
+            router.showSimpleAlert(title: "Unable to Delete Program", subtitle: "Please try again.")
+        }
     }
 
     // MARK: - Active Workout Safeguard
@@ -238,9 +243,11 @@ extension ActiveTrainingProgramPresenter {
         case openCompletedSessionStart
         case openCompletedSessionSuccess
         case openCompletedSessionFail(error: Error)
+        case deleteProgramFail(error: Error)
 
         var eventName: String {
             switch self {
+            case .deleteProgramFail: return "ActiveTrainingProgramView_DeleteProgram_Fail"
             case .onAppear:                      return "ActiveTrainingProgramView_Appear"
             case .onDisappear:                   return "ActiveTrainingProgramView_Disappear"
             case .openCompletedSessionStart:     return "ActiveTrainingProgramView_OpenCompletedSession_Start"
@@ -251,6 +258,7 @@ extension ActiveTrainingProgramPresenter {
 
         var parameters: [String: Any]? {
             switch self {
+            case .deleteProgramFail(error: let error): return error.eventParameters
             case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
                 return delegate.eventParameters
             case .openCompletedSessionFail(error: let error):
@@ -262,6 +270,7 @@ extension ActiveTrainingProgramPresenter {
 
         var type: LogType {
             switch self {
+            case .deleteProgramFail: return .severe
             case .openCompletedSessionFail:
                 return .severe
             default:

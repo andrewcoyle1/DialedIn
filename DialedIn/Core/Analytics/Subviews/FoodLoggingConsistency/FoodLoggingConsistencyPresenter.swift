@@ -27,6 +27,7 @@ final class FoodLoggingConsistencyPresenter: @MainActor MetricDetailPresenter {
         let startDayKey = calendar.startOfDay(for: startDate).dayKey
         let endDayKey = calendar.startOfDay(for: endDate).dayKey
 
+        // Silent: local read for a chart; no data draws an empty grid.
         let totalsData = (try? interactor.getDailyTotals(startDayKey: startDayKey, endDayKey: endDayKey)) ?? []
         var newEntries: [NutritionMetricEntry] = []
         for item in totalsData {

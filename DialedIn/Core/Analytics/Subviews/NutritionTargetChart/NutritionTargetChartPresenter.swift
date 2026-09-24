@@ -92,6 +92,7 @@ class NutritionTargetChartPresenter {
         for offset in 0..<Self.daysInWeek {
             let date = Calendar.current.date(byAdding: .day, value: offset, to: start) ?? start
             let key = date.dayKey
+            // Silent: local read for a chart; a missing day is a gap.
             if let dayTotals = try? interactor.getDailyTotals(dayKey: key) {
                 totals.append(dayTotals)
             } else {

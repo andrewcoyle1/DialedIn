@@ -98,6 +98,7 @@ class NotificationsPresenter {
     func loadNotifications() async {
         isLoading = true
         // Follow requests are live from the user manager's listener, so only activity is fetched here.
+        // Background load: an empty list or a stale unread badge is the right fallback, not an alert.
         try? await interactor.fetchActivityNotifications()
         try? await interactor.markActivityNotificationsRead()
         interactor.clearAllDeliveredNotifications()
@@ -106,6 +107,7 @@ class NotificationsPresenter {
     
     /// Pull-to-refresh re-reads the follow requests too, in case the listener has dropped.
     func onPullToRefresh() async {
+        // Silent: the live listener still owns this list; the refresh is only a backstop.
         try? await interactor.fetchIncomingFollowRequests()
         await loadNotifications()
     }
@@ -140,7 +142,12 @@ class NotificationsPresenter {
     
     func onNotificationDeleted(_ notification: ActivityNotificationModel) {
         Task {
-            try? await interactor.deleteActivityNotification(id: notification.id)
+            do {
+                try await interactor.deleteActivityNotification(id: notification.id)
+            } catch {
+                interactor.trackEvent(event: Event.deleteNotificationFail(error: error))
+                router.showSimpleAlert(title: "Unable to Delete Notification", subtitle: "Please try again.")
+            }
         }
     }
 
@@ -236,9 +243,11 @@ extension NotificationsPresenter {
         case notificationPressed(type: ActivityNotificationModel.ActivityType)
         case followBackPressed
         case followRequestAnswered(accept: Bool)
+        case deleteNotificationFail(error: Error)
 
         var eventName: String {
             switch self {
+            case .deleteNotificationFail: return "NotificationsView_DeleteNotification_Fail"
             case .onAppear:     return "NotificationsView_Appear"
             case .onDisappear:  return "NotificationsView_Disappear"
             case .socialPushToggled: return "NotificationsView_SocialPush_Toggle"
@@ -250,6 +259,7 @@ extension NotificationsPresenter {
         
         var parameters: [String: Any]? {
             switch self {
+            case .deleteNotificationFail(error: let error): return error.eventParameters
             case .socialPushToggled(let type, let isEnabled):
                 return ["type": type.rawValue, "is_enabled": isEnabled]
             case .notificationPressed(let type):
@@ -263,6 +273,7 @@ extension NotificationsPresenter {
         
         var type: LogType {
             switch self {
+            case .deleteNotificationFail: return .severe
             default:
                 return .analytic
                 

@@ -56,11 +56,13 @@ class NutritionOverviewPresenter {
         self.dayKey = dayKey
         proposal = interactor.targetProposal
         checkInState = interactor.checkInState
+        // Silent: local reads on appear; the previous or empty value is the right fallback.
         totals = (try? interactor.getDailyTotals(dayKey: dayKey)) ?? totals
         breakdown = (try? interactor.getDailyNutritionBreakdown(dayKey: dayKey)) ?? .empty
         guard let userId = interactor.userId else { return }
         let date = Date(dayKey: dayKey) ?? Date()
         Task {
+            // Silent: background read; the rings show no target until one loads.
             target = try? await interactor.getDailyTarget(for: date, userId: userId)
         }
     }
@@ -162,6 +164,7 @@ class NutritionOverviewPresenter {
 
     var topContributors: [MealItemContributor] {
         guard showsContributors else { return [] }
+        // Silent: local read for a derived list; empty hides the section.
         let meals = (try? interactor.getMeals(for: dayKey)) ?? []
         // swiftlint:disable:next large_tuple
         var totals: [String: (cal: Double, pro: Double, carb: Double, fat: Double)] = [:]

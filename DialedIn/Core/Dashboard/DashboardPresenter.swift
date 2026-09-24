@@ -117,6 +117,7 @@ class DashboardPresenter {
 
     func loadSuggestedUsers() async {
         guard feedSessions.isEmpty else { return }
+        // Silent: suggestions are a background extra; none is the right fallback.
         suggestedUsers = (try? await interactor.fetchSuggestedUsers()) ?? []
     }
 
@@ -128,6 +129,7 @@ class DashboardPresenter {
             case .session(let id, let authorId, let openComments)? = DeepLink(pushUserInfo: userInfo)
         else { return }
         Task {
+            // Silent: best-effort push tap-through, documented above.
             guard let session = try? await interactor.fetchWorkoutSession(id: id, authorId: authorId) else { return }
             let delegate = WorkoutSessionDetailDelegate(workoutSession: session)
             if openComments {
@@ -354,6 +356,7 @@ class DashboardPresenter {
     #endif
 
     func loadNotifications() async {
+        // Silent: background refresh of the unread badge.
         try? await interactor.fetchActivityNotifications()
     }
 
@@ -405,9 +408,11 @@ class DashboardPresenter {
 
     private func loadNutrition() {
         let dayKey = Date().dayKey
+        // Silent: local read; a missing total shows as no data on the card.
         nutritionTotals = try? interactor.getDailyTotals(dayKey: dayKey)
         guard let userId = interactor.userId else { return }
         Task {
+            // Silent: background read; the card shows no target until one loads.
             nutritionTarget = try? await interactor.getDailyTarget(for: Date(), userId: userId)
         }
     }

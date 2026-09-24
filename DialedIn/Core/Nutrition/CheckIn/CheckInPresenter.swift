@@ -96,6 +96,7 @@ class CheckInPresenter {
         weekDays = (0..<7).compactMap { offset in
             guard let date = calendar.date(byAdding: .day, value: offset - 6, to: yesterday) else { return nil }
             let dayKey = date.dayKey
+            // Silent: local read for the week summary; a missing day counts as unlogged.
             let meals = (try? interactor.getMeals(for: dayKey)) ?? []
             let annotation = interactor.nutritionDayAnnotation(dayKey: dayKey)
             return CheckInDayRow(
@@ -380,8 +381,14 @@ class CheckInPresenter {
         interactor.trackEvent(event: Event.completed(weekStart: weekStart))
         let weekStart = weekStart
         Task {
-            try? await interactor.markCheckInCompleted(weekStart: weekStart)
-            router.dismissScreen()
+            do {
+                try await interactor.markCheckInCompleted(weekStart: weekStart)
+                router.dismissScreen()
+            } catch {
+                isCompleted = false
+                interactor.trackEvent(event: Event.completeFail(error: error))
+                router.showSimpleAlert(title: "Unable to Complete Check-In", subtitle: "Please try again.")
+            }
         }
     }
 }

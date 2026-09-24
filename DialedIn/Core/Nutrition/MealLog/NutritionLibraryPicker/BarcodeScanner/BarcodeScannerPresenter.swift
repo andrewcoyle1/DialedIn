@@ -165,6 +165,7 @@ class BarcodeScannerPresenter {
                     return
                 }
                 let food = try await interactor.lookupBarcode(code)
+                // Silent: caching the looked-up food is a side effect; the scan itself still succeeds.
                 try? await interactor.saveFood(food.withAuthorId(interactor.currentUser?.userId ?? ""), image: nil)
                 parsedIngredient = food
             } catch {

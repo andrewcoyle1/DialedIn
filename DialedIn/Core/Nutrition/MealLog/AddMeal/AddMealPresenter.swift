@@ -119,6 +119,7 @@ class AddMealPresenter {
     var plateFat: Double { mealLog.totalFatGrams }
 
     private var committedDailyTotals: DailyMacroTarget? {
+        // Silent: computed local read for the preview totals.
         try? interactor.getDailyTotals(dayKey: mealLog.dayKey)
     }
 
@@ -185,6 +186,7 @@ class AddMealPresenter {
         let plate = mealLog.totalNutrients
         guard nutritionScope == .day else { return plate }
 
+        // Silent: local read for a derived hint; empty is the fallback.
         let logged = (try? interactor.getMeals(for: mealLog.dayKey)) ?? []
         return logged
             .filter { $0.mealId != mealLog.mealId }
