@@ -41,6 +41,11 @@ class NotificationsPresenter {
         set { onSocialPushToggled(.follow, isEnabled: newValue) }
     }
 
+    var isNudgesPushEnabled: Bool {
+        get { isSocialPushEnabled(.nudge) }
+        set { onSocialPushToggled(.nudge, isEnabled: newValue) }
+    }
+
     private func isSocialPushEnabled(_ type: ActivityNotificationModel.ActivityType) -> Bool {
         interactor.currentUser?.isSocialPushEnabled(for: type) ?? true
     }

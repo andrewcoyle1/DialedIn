@@ -57,6 +57,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     let socialPushLikes: Bool?
     let socialPushComments: Bool?
     let socialPushFollows: Bool?
+    let socialPushNudges: Bool?
     var didCompleteOnboarding: Bool
     let acceptedHealthDisclaimerVersion: String?
     let acceptedHealthDisclaimerDate: Date?
@@ -108,6 +109,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         socialPushLikes: Bool? = nil,
         socialPushComments: Bool? = nil,
         socialPushFollows: Bool? = nil,
+        socialPushNudges: Bool? = nil,
         fcmToken: String? = nil,
         didCompleteOnboarding: Bool = false,
         acceptedHealthDisclaimerVersion: String? = nil,
@@ -150,6 +152,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         self.socialPushLikes = socialPushLikes
         self.socialPushComments = socialPushComments
         self.socialPushFollows = socialPushFollows
+        self.socialPushNudges = socialPushNudges
         self.fcmToken = fcmToken
         self.didCompleteOnboarding = didCompleteOnboarding
         self.acceptedHealthDisclaimerVersion = acceptedHealthDisclaimerVersion
@@ -212,6 +215,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         case socialPushLikes = "social_push_likes"
         case socialPushComments = "social_push_comments"
         case socialPushFollows = "social_push_follows"
+        case socialPushNudges = "social_push_nudges"
         case fcmToken = "fcm_token"
         case acceptedHealthDisclaimerVersion = "accepted_health_disclaimer_version"
         case acceptedHealthDisclaimerDate = "accepted_health_disclaimer_date"
@@ -529,6 +533,7 @@ extension UserModel {
         case .like: return .socialPushLikes
         case .comment: return .socialPushComments
         case .follow: return .socialPushFollows
+        case .nudge: return .socialPushNudges
         }
     }
 
@@ -538,6 +543,7 @@ extension UserModel {
         case .like: socialPushLikes
         case .comment: socialPushComments
         case .follow: socialPushFollows
+        case .nudge: socialPushNudges
         }
         return stored ?? true
     }
