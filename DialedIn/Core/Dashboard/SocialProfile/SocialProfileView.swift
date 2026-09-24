@@ -126,6 +126,7 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
             .padding()
             .background(colorScheme.backgroundPrimary, in: .rect(cornerRadius: 24))
             .padding(.horizontal)
+            .padding(.bottom, 12)
             .removeListRowFormatting()
         }
         .listSectionMargins(.all, 0)
@@ -144,8 +145,6 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
     private var consistencySection: some View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Consistency")
-                    .font(.headline)
                 ContributionChart(
                     data: [presenter.consistencySeries],
                     configuration: ChartConfiguration(
@@ -161,9 +160,13 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
             .padding()
             .background(colorScheme.backgroundPrimary, in: .rect(cornerRadius: 24))
             .padding(.horizontal)
+            .padding(.bottom, 12)
             .removeListRowFormatting()
+        } header: {
+            SectionHeaderView(title: "Consistency")
         }
-        .listSectionMargins(.all, 0)
+        .listSectionMargins(.vertical, 0)
+        .listSectionMargins(.horizontal, 0)
         .listSectionSeparator(.hidden)
     }
 
@@ -186,9 +189,9 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                 }
             }
         } header: {
-            Text("Recent Workouts")
-                .padding(.horizontal)
+            SectionHeaderView(title: "Recent Workouts")
         }
+        .listSectionMargins(.top, 0)
         .listSectionMargins(.horizontal, 0)
         .listSectionSeparator(.hidden)
     }
