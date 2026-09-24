@@ -77,8 +77,12 @@ struct FoodPhotoScannerView: View {
                         .multilineTextAlignment(.center)
                         .padding()
                 } else {
-                    ForEach(presenter.analysisResults) { item in
-                        resultRow(for: item)
+                    GlassEffectContainer(spacing: 16) {
+                        VStack(spacing: 16) {
+                            ForEach(presenter.analysisResults) { item in
+                                resultRow(for: item)
+                            }
+                        }
                     }
                 }
 
@@ -118,7 +122,7 @@ struct FoodPhotoScannerView: View {
             capturedImage = nil
             presenter.onRetakePressed()
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.glass)
     }
 
     private func resultRow(for item: FoodAnalysisItem) -> some View {
@@ -151,10 +155,10 @@ struct FoodPhotoScannerView: View {
                 Text("Add")
                     .foregroundStyle(colorScheme.backgroundPrimary)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glassProminent)
         }
         .padding()
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .glassEffect(.regular, in: .rect(cornerRadius: 12))
     }
 
     private func macroChip(_ text: String, color: Color) -> some View {

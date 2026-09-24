@@ -115,7 +115,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     }
 
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
             }
             .padding(.horizontal)
         }
@@ -132,7 +132,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                         .foregroundStyle(colorScheme.backgroundPrimary)
                         .fontWeight(.bold)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
             } else {
                 Button {
                     presenter.onWorkoutTemplateModelSelected(dayPlan)
@@ -140,7 +140,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     Text(dayPlan.name)
                         .fontWeight(.regular)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
             }
         }
     }
@@ -182,7 +182,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     } label: {
                         Label("Remove", systemImage: "minus.circle.fill")
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
                     .disabled(!presenter.canRemoveWorkoutTemplateModel)
                         .padding(.leading)
                     
@@ -191,7 +191,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     } label: {
                         Label("Rename", systemImage: "pencil")
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
                     .disabled(presenter.selectedWorkoutTemplateModel.exercises.isEmpty)
                     .padding(.trailing)
                 }

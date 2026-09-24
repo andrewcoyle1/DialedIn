@@ -105,7 +105,7 @@ struct MealDescribeView: View {
                 Text("Add")
                     .foregroundStyle(colorScheme.backgroundPrimary)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glassProminent)
         }
         .padding(.vertical, 4)
     }

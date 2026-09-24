@@ -89,7 +89,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
                     Label("Choose Program", systemImage: "plus.circle.fill")
                         .foregroundStyle(colorScheme.backgroundPrimary)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .padding(.top, 8)
             }
             .frame(maxWidth: .infinity)

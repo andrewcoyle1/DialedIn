@@ -48,7 +48,7 @@ struct CustomModalView: View {
                         .frame(maxWidth: .infinity)
                         .foregroundStyle(colorScheme.foregroundSecondary)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
 
                 Text(secondaryButtonTitle)
                     .font(.headline)
