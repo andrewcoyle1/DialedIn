@@ -21,7 +21,7 @@ class CreateProgramPresenter {
     }
 
     func onDismissPressed() {
-        router.dismissScreen()
+        router.dismissEnvironment()
     }
     
     func onNextPressed(delegate: CreateProgramDelegate) {

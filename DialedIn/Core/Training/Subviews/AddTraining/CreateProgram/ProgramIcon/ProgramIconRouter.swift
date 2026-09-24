@@ -1,7 +1,7 @@
 import SwiftUI
 
 @MainActor
-protocol ProgramIconRouter {
+protocol ProgramIconRouter: GlobalRouter {
     func showProgramDesignView(delegate: ProgramDesignDelegate)
 }
 

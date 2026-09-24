@@ -160,6 +160,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                 } label: {
                     Text("Activate Program")
                 }
+                .disabled(!presenter.canSave)
             }
 
             if delegate.onComplete == nil {
@@ -168,6 +169,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                 } label: {
                     Text("Save Program")
                 }
+                .disabled(!presenter.canSave)
             }
         }
         .padding(.bottom)
@@ -192,7 +194,6 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                         Label("Rename", systemImage: "pencil")
                     }
                     .buttonStyle(.glass)
-                    .disabled(presenter.selectedWorkoutTemplateModel.exercises.isEmpty)
                     .padding(.trailing)
                 }
             }
@@ -206,7 +207,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onDismissPressed()
+                presenter.onDismissPressed(delegate: delegate)
             } label: {
                 Image(systemName: "chevron.left")
             }

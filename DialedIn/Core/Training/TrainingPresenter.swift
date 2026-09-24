@@ -76,7 +76,7 @@ class TrainingPresenter {
     func onAddPressed() {
         let delegate = AddTrainingDelegate(
             onSelectProgram: { [weak self] in
-                self?.router.showCreateProgramView(delegate: CreateProgramDelegate(onDismiss: { self?.router.dismissScreen() }))
+                self?.router.showCreateProgramView(delegate: CreateProgramDelegate())
             },
             onSelectWorkout: { [weak self] in
                 self?.router.showCreateWorkoutView(delegate: CreateWorkoutDelegate())
