@@ -133,12 +133,6 @@ class WorkoutTemplateManager {
         try await userWorkoutTemplateSyncEngine.deleteDocument(id: id)
     }
 
-    func deleteAllWorkoutTemplateForAuthor() async throws {
-        for workoutTemplate in userWorkoutTemplates {
-            try await userWorkoutTemplateSyncEngine.deleteDocument(id: workoutTemplate.id)
-        }
-    }
-
 }
 
 // MARK: - Supporting Types

@@ -60,12 +60,6 @@ class BodyMeasurementsManager {
         try await bodyMeasurementsSyncEngine.deleteDocument(id: entryId)
     }
 
-    func deleteAllWeightEntriesForUser() async throws {
-        for entry in self.bodyMeasurements {
-            try await bodyMeasurementsSyncEngine.deleteDocument(id: entry.id)
-        }
-    }
-
 #if canImport(HealthKit)
     // MARK: HealthKit Sync
     func syncWithHealthKit(userId: String) async {

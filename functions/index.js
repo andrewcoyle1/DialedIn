@@ -691,3 +691,80 @@ export const weeklyDigest = onSchedule(
         await sendAll("Weekly digest", messages.filter(Boolean));
     }
 );
+
+// Account deletion cleanup
+// ---------------------------------------------------------------------------
+
+// Imported here rather than at the top so this block merges without touching the shared import lines.
+import { onDocumentDeleted } from "firebase-functions/v2/firestore";
+import { getStorage } from "firebase-admin/storage";
+import { planUserDeletion } from "./lib.js";
+
+// The app deletes only users/{uid} (after stopping its listeners) and then the Auth user. This removes
+// everything else: every subcollection, the user's id in other people's following_ids,
+// blocked_user_ids and liked_by_user_ids, their sent follow requests, comments (theirs, and others' on
+// their sessions), notifications they caused, username reservations, exercises, diet plan and Storage
+// uploads. What to write is decided by planUserDeletion in lib.js.
+export const onUserDeleted = onDocumentDeleted(
+    { document: "users/{uid}", region: REGION, timeoutSeconds: 540, memory: "512MiB" },
+    async (event) => {
+        const uid = event.params.uid;
+        const db = getFirestore();
+        const userRef = db.collection("users").doc(uid);
+        const paths = (query) => query.select().get().then((snap) => snap.docs.map((doc) => doc.ref.path));
+        const ids = (collection) => collection.listDocuments().then((refs) => refs.map((ref) => ref.id));
+
+        // Everything is read before the recursive delete, which takes the recipe and food ids with it.
+        const comments = db.collection("workout_session_comments");
+        const [
+            followers, blockers, followRequests, likedSessions, commentsByUser, commentsOnSessions,
+            notifications, usernames, exercises, recipeTemplates, foods,
+        ] = await Promise.all([
+            paths(db.collection("users").where("following_ids", "array-contains", uid)),
+            paths(db.collection("users").where("blocked_user_ids", "array-contains", uid)),
+            paths(db.collectionGroup("follow_requests").where("requester_id", "==", uid)),
+            paths(db.collectionGroup("workout_sessions").where("liked_by_user_ids", "array-contains", uid)),
+            paths(comments.where("author_id", "==", uid)),
+            paths(comments.where("session_author_id", "==", uid)),
+            paths(db.collectionGroup("notifications").where("actor_id", "==", uid)),
+            paths(db.collection("usernames").where("user_id", "==", uid)),
+            db.collection("exercise_templates").where("author_id", "==", uid).select().get()
+                .then((snap) => snap.docs.map((doc) => doc.id)),
+            ids(userRef.collection("recipe_templates")),
+            ids(userRef.collection("foods")),
+        ]);
+
+        await db.recursiveDelete(userRef);
+
+        const plan = planUserDeletion(uid, {
+            followers, blockers, followRequests, likedSessions,
+            comments: [...commentsByUser, ...commentsOnSessions],
+            notifications, usernames, exercises, recipeTemplates, foods,
+        });
+        for (const writes of plan.batches) {
+            const batch = db.batch();
+            for (const write of writes) {
+                const ref = db.doc(write.path);
+                if (write.type === "delete") batch.delete(ref);
+                else batch.update(ref, { [write.field]: FieldValue.arrayRemove(write.value) });
+            }
+            try {
+                await batch.commit();
+            } catch (error) {
+                // One document deleted meanwhile fails its batch; the others still run.
+                console.error(`Account cleanup for user ${uid}: ${error.message}`);
+            }
+        }
+
+        const bucket = getStorage().bucket();
+        const results = await Promise.allSettled([
+            ...plan.storagePrefixes.map((prefix) => bucket.deleteFiles({ prefix })),
+            ...plan.storageFiles.map((file) => bucket.file(file).delete({ ignoreNotFound: true })),
+        ]);
+        for (const result of results) {
+            if (result.status === "rejected") {
+                console.error(`Storage cleanup for user ${uid}: ${result.reason?.message}`);
+            }
+        }
+    }
+);

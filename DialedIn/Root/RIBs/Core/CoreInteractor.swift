@@ -237,36 +237,13 @@ struct CoreInteractor: GlobalInteractor {
 
         // Delete auth
         try await authManager.deleteAccountWithReauthentication(option: option, revokeToken: false) {
-            // Delete User profile (Firestore)
-            // Note: this must be done within this closure
-            // So that it completes before auth is revoked
-            // Once auth is revoked, security rules may restrict user from reading/writing to Firestore
-            async let deleteExerciseModels: () = exerciseModelManager.deleteAllExercises()
-            async let deleteWorkoutTemplates: () = workoutTemplateManager.deleteAllWorkoutTemplateForAuthor()
-            async let deleteWorkoutSessions: () = workoutSessionManager.deleteAllWorkoutSessionsForAuthor(authorId: auth.uid)
-            async let deleteRecipeTemplates: () = recipeTemplateManager.deleteAllRecipeTemplates()
-            async let deleteFoods: () = foodManager.deleteAllFoods()
-            async let deleteMealLogs: () = mealLogManager.deleteAllMealLogsForAuthor(authorId: auth.uid)
-            async let deleteWeightEntries: () = bodyMeasurementsManager.deleteAllWeightEntriesForUser()
-            async let deleteStepsEntries: () = stepsManager.signOut()
-            async let deleteGoals: () = goalManager.deleteGoal()
-            async let deleteUser: () = userManager.deleteCurrentUser()
-
-            _ = try await (
-                deleteExerciseModels,
-                deleteWorkoutTemplates,
-                deleteWorkoutSessions,
-                deleteRecipeTemplates,
-                deleteFoods,
-                deleteMealLogs,
-                deleteWeightEntries,
-                deleteStepsEntries,
-                deleteGoals,
-                deleteUser
-            )
-            
+            // Must run inside this closure, before Auth is revoked and the rules shut the user out.
+            // Only the user document is deleted here; the onUserDeleted Cloud Function deletes the
+            // rest, so every listener is stopped first rather than left watching it disappear.
+            stopListeningBeforeAccountDeletion()
+            try await userManager.deleteCurrentUser(userId: auth.uid)
         }
-        
+
         // Delete Purchases (RevenueCat)
         try await purchaseManager.logOut()
         

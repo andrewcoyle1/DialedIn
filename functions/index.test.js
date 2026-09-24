@@ -344,3 +344,51 @@ test("isNudgeOnCooldown holds for just under 24 hours after the last nudge", () 
     assert.equal(isNudgeOnCooldown(hoursAgo(30), now), false);
     assert.equal(isNudgeOnCooldown(undefined, now), false);
 });
+
+// Account deletion cleanup
+// ---------------------------------------------------------------------------
+
+import { planUserDeletion, USER_DELETION_BATCH_SIZE } from "./lib.js";
+
+test("planUserDeletion removes the user from others' data and skips what the recursive delete took", () => {
+    const plan = planUserDeletion("me", {
+        followers: ["users/a", "users/a", "users/me"],
+        blockers: ["users/b"],
+        likedSessions: ["users/a/workout_sessions/s1", "users/me/workout_sessions/s2"],
+        followRequests: ["users/a/follow_requests/me"],
+        comments: ["workout_session_comments/c1", "workout_session_comments/c1", "workout_session_comments/c2"],
+        notifications: ["users/a/notifications/n1", "users/me/notifications/n2"],
+        usernames: ["usernames/jane"],
+        exercises: ["e1"],
+        recipeTemplates: ["r1"],
+        foods: ["f1"],
+    });
+    assert.deepEqual(plan.batches, [[
+        { type: "arrayRemove", path: "users/a", field: "following_ids", value: "me" },
+        { type: "arrayRemove", path: "users/b", field: "blocked_user_ids", value: "me" },
+        { type: "arrayRemove", path: "users/a/workout_sessions/s1", field: "liked_by_user_ids", value: "me" },
+        { type: "delete", path: "users/a/follow_requests/me" },
+        { type: "delete", path: "workout_session_comments/c1" },
+        { type: "delete", path: "workout_session_comments/c2" },
+        { type: "delete", path: "users/a/notifications/n1" },
+        { type: "delete", path: "usernames/jane" },
+        { type: "delete", path: "exercise_templates/e1" },
+        { type: "delete", path: "diet_plans/me" },
+    ]]);
+    assert.deepEqual(plan.storagePrefixes, ["users/me/"]);
+    assert.deepEqual(plan.storageFiles, ["exercises/e1", "recipe_templates/r1", "ingredient_templates/f1"]);
+});
+
+test("planUserDeletion chunks its writes into batches of 400", () => {
+    assert.equal(USER_DELETION_BATCH_SIZE, 400);
+    const followers = Array.from({ length: 850 }, (_, i) => `users/u${i}`);
+    const plan = planUserDeletion("me", { followers });
+    assert.deepEqual(plan.batches.map((batch) => batch.length), [400, 400, 51]);
+    assert.deepEqual(plan.batches.flat().at(-1), { type: "delete", path: "diet_plans/me" });
+    assert.equal(plan.batches[1][0].path, "users/u400");
+
+    // Nothing to clean elsewhere: only the diet plan and the user's own Storage folder.
+    const empty = planUserDeletion("me");
+    assert.deepEqual(empty.batches, [[{ type: "delete", path: "diet_plans/me" }]]);
+    assert.deepEqual(empty.storageFiles, []);
+});
