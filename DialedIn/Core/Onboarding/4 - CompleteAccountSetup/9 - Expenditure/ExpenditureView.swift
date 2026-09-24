@@ -39,6 +39,7 @@ struct ExpenditureDelegate {
 struct ExpenditureView: View {
 
     @State var presenter: ExpenditurePresenter
+    @ScaledMetric(relativeTo: .largeTitle) private var kcalFontSize: CGFloat = 56
 
     var delegate: ExpenditureDelegate
 
@@ -92,7 +93,7 @@ struct ExpenditureView: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text("\(presenter.displayedKcal)")
-                        .font(.system(size: 56, weight: .bold, design: .rounded))
+                        .font(.system(size: kcalFontSize, weight: .bold, design: .rounded))
                         .monospacedDigit()
                         .contentTransition(.numericText())
                         .frame(minWidth: 170)

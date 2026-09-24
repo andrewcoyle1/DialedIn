@@ -20,7 +20,7 @@ struct SignUpWithEmailButton: View {
             .overlay(alignment: .center) {
                 Text("Sign Up with Email")
                     .fontWeight(.medium)
-                    .font(.system(size: 21))
+                    .font(.title3)
             }
             .anyButton(.press) {
                 action()
