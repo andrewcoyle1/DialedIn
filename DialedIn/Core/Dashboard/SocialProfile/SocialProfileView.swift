@@ -187,7 +187,12 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
 
     private var sessionsSection: some View {
         Section {
-            if presenter.sessions.isEmpty {
+            if presenter.isLoadingSessions && presenter.sessions.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .removeListRowFormatting()
+            } else if presenter.sessions.isEmpty {
                 Text("No workouts yet")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
