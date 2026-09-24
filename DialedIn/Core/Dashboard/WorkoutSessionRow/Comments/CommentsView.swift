@@ -97,8 +97,33 @@ struct CommentsView: View {
                 Text(presenter.attributedText(for: comment))
                     .font(.subheadline)
             }
+            likeButton(comment)
         }
         .padding(.vertical, 4)
+    }
+
+    private func likeButton(_ comment: WorkoutSessionComment) -> some View {
+        let isLiked = presenter.isLikedByReader(comment)
+        let count = comment.likedByUserIds.count
+        return Button {
+            presenter.onLikePressed(comment)
+        } label: {
+            VStack(spacing: 2) {
+                Image(systemName: isLiked ? "heart.fill" : "heart")
+                    .foregroundStyle(isLiked ? Color.red : Color.secondary)
+                    .contentTransition(.symbolEffect(.replace))
+                if count > 0 {
+                    Text("\(count)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+            }
+            .frame(minWidth: 32)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isLiked ? "Unlike comment" : "Like comment")
+        .accessibilityValue(count == 1 ? "1 like" : "\(count) likes")
     }
 
     private var inputBar: some View {

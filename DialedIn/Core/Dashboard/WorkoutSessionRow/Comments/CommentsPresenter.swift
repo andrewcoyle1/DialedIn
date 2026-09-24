@@ -219,6 +219,36 @@ class CommentsPresenter {
         reportFlow.start(ReportedContent(type: .comment, id: comment.id, authorUserId: comment.authorId, noun: "comment"))
     }
 
+    // MARK: - Likes
+
+    func isLikedByReader(_ comment: WorkoutSessionComment) -> Bool {
+        guard let readerId = interactor.currentUser?.userId else { return false }
+        return comment.likedByUserIds.contains(readerId)
+    }
+
+    /// Flips the heart at once and writes in the background, putting it back if the write fails.
+    func onLikePressed(_ comment: WorkoutSessionComment) {
+        guard let readerId = interactor.currentUser?.userId,
+              let current = comments.first(where: { $0.id == comment.id }) else { return }
+        let isLiked = !current.likedByUserIds.contains(readerId)
+        setLike(isLiked, commentId: comment.id, userId: readerId)
+        Task {
+            do {
+                try await interactor.toggleCommentLike(id: comment.id, userId: readerId, isLiked: isLiked)
+            } catch {
+                setLike(!isLiked, commentId: comment.id, userId: readerId)
+            }
+        }
+    }
+
+    private func setLike(_ isLiked: Bool, commentId: String, userId: String) {
+        guard let index = comments.firstIndex(where: { $0.id == commentId }) else { return }
+        comments[index].likedByUserIds.removeAll { $0 == userId }
+        if isLiked {
+            comments[index].likedByUserIds.append(userId)
+        }
+    }
+
     func onDeletePressed(_ comment: WorkoutSessionComment) {
         router.showAlert(title: "Delete Comment?", subtitle: "Are you sure you want to delete your comment? This cannot be undone.", buttons: {
             AnyView(

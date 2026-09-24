@@ -23,6 +23,8 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
     /// Everyone tagged with an `@FirstName` in the text. Identity lives here rather than in the
     /// text, so two people with the same first name stay distinct.
     var mentionedUserIds: [String] = []
+    /// Everyone who has liked the comment. Each reader may add or remove only their own id.
+    var likedByUserIds: [String] = []
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -36,6 +38,7 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
         case deletedAt = "deleted_at"
         case parentId = "parent_id"
         case mentionedUserIds = "mentioned_user_ids"
+        case likedByUserIds = "liked_by_user_ids"
     }
 
     /// Who hears about this comment. The session's author hears about every one, and a reply also
@@ -47,6 +50,35 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
         commented.remove(authorId)
         let mentioned = Set(mentionedUserIds).subtracting(commented).subtracting([authorId])
         return (commented, mentioned)
+    }
+
+    /// The notifications this comment writes, keyed by recipient. The parent comment's author
+    /// hears it as a reply, unless they are the session's author, who hears it as a comment on
+    /// their workout like every other comment.
+    func activityNotifications(parentAuthorId: String?) -> [(userId: String, notification: ActivityNotificationModel)] {
+        let recipients = activityRecipients(parentAuthorId: parentAuthorId)
+        let commented = recipients.commented.sorted().map { userId in
+            var notification = activityNotification(type: .comment)
+            notification.isReply = parentId != nil && userId == parentAuthorId && userId != sessionAuthorId
+            return (userId, notification)
+        }
+        let mentioned = recipients.mentioned.sorted().map { ($0, activityNotification(type: .mention)) }
+        return commented + mentioned
+    }
+
+    private func activityNotification(type: ActivityNotificationModel.ActivityType) -> ActivityNotificationModel {
+        ActivityNotificationModel(
+            id: "\(type.rawValue)_\(id)",
+            type: type,
+            actorId: authorId,
+            actorName: authorName ?? "Someone",
+            actorImageUrl: authorImageUrl,
+            sessionId: sessionId,
+            sessionAuthorId: sessionAuthorId,
+            commentText: text,
+            dateCreated: dateCreated,
+            isRead: false
+        )
     }
 
     @MainActor

@@ -38,7 +38,8 @@ struct FirebaseCommentsService: CommentsManagerService {
                 text: text,
                 dateCreated: dateCreatedTimestamp.dateValue(),
                 parentId: data["parent_id"] as? String,
-                mentionedUserIds: data["mentioned_user_ids"] as? [String] ?? []
+                mentionedUserIds: data["mentioned_user_ids"] as? [String] ?? [],
+                likedByUserIds: data["liked_by_user_ids"] as? [String] ?? []
             )
         }
     }
@@ -61,6 +62,12 @@ struct FirebaseCommentsService: CommentsManagerService {
     func deleteComment(id: String) async throws {
         try await collection.document(id).updateData([
             "deleted_at": Timestamp(date: Date())
+        ])
+    }
+
+    func toggleCommentLike(id: String, userId: String, isLiked: Bool) async throws {
+        try await collection.document(id).updateData([
+            "liked_by_user_ids": isLiked ? FieldValue.arrayUnion([userId]) : FieldValue.arrayRemove([userId])
         ])
     }
 }

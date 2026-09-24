@@ -44,6 +44,9 @@ class FirebaseActivityNotificationService: ActivityNotificationService {
         if let shareId = notification.shareId {
             data["share_id"] = shareId
         }
+        if notification.isReply {
+            data["is_reply"] = true
+        }
         try await collection(userId: userId).document(notification.id).setData(data)
     }
 
@@ -123,7 +126,8 @@ class FirebaseActivityNotificationService: ActivityNotificationService {
             commentText: data["comment_text"] as? String,
             dateCreated: dateCreatedTimestamp.dateValue(),
             isRead: data["is_read"] as? Bool ?? false,
-            shareId: data["share_id"] as? String
+            shareId: data["share_id"] as? String,
+            isReply: data["is_reply"] as? Bool ?? false
         )
     }
 }
