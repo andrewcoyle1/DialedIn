@@ -88,6 +88,12 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
+                        if let goalText = presenter.weeklyGoalText {
+                            Button(goalText, systemImage: "target") { presenter.onWeeklyGoalPressed() }
+                                .font(.caption.weight(.medium))
+                                .buttonStyle(.borderless)
+                                .accessibilityHint("Changes your weekly session goal")
+                        }
                     }
 
                     Spacer(minLength: 0)
