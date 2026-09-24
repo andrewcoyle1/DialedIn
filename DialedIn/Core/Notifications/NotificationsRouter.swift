@@ -12,6 +12,8 @@ protocol NotificationsRouter: GlobalRouter {
     func showSocialProfileView(delegate: SocialProfileDelegate)
     // MARK: - Sharing
     func showSharedItemView(delegate: SharedItemDelegate)
+    // MARK: - Challenges
+    func showChallengeDetailView(delegate: ChallengeDetailDelegate)
 }
 
 extension CoreRouter: NotificationsRouter { }

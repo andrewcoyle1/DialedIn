@@ -20,6 +20,10 @@ protocol DashboardInteractor: FollowInteractor {
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?
     func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel
+    // MARK: - Challenges
+    var challenges: [ChallengeModel] { get }
+    func challengeProgress(challengeId: String) -> [String: Int]
+    func refreshChallenges() async throws
 }
 
 extension CoreInteractor: DashboardInteractor { }

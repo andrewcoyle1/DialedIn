@@ -29,6 +29,8 @@ protocol NotificationsInteractor: FollowInteractor {
     // MARK: - Sharing
     func fetchShare(id: String) async throws -> ShareModel
     func updatePrivateUserSettings(_ change: (inout PrivateUserSettings) -> Void) async throws
+    // MARK: - Challenges
+    func fetchChallenge(id: String) async throws -> ChallengeModel
 }
 
 extension CoreInteractor: NotificationsInteractor { }

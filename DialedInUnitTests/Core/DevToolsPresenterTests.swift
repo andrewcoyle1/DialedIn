@@ -453,6 +453,7 @@ struct DevToolsNotificationsPresenterTests {
 
         func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel { throw DevToolsTestError.failed }
         func fetchShare(id: String) async throws -> ShareModel { throw DevToolsTestError.failed }
+        func fetchChallenge(id: String) async throws -> ChallengeModel { throw DevToolsTestError.failed }
         func updatePrivateUserSettings(_ change: (inout PrivateUserSettings) -> Void) async throws { change(&privateUserSettings) }
     }
 
@@ -467,6 +468,7 @@ struct DevToolsNotificationsPresenterTests {
         func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { }
         func showSocialProfileView(delegate: SocialProfileDelegate) { }
         func showSharedItemView(delegate: SharedItemDelegate) { }
+        func showChallengeDetailView(delegate: ChallengeDetailDelegate) { }
     }
 
     private struct Screen {

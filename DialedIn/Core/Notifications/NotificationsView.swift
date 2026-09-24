@@ -86,6 +86,7 @@ struct NotificationsView: View {
             Toggle("New followers", isOn: $presenter.isFollowsPushEnabled)
             Toggle("Nudges", isOn: $presenter.isNudgesPushEnabled)
             Toggle("Shares", isOn: $presenter.isSharesPushEnabled)
+            Toggle("Challenges", isOn: $presenter.isChallengesPushEnabled)
             scheduledPushRows
         } header: {
             Text("Social")
@@ -209,6 +210,8 @@ struct NotificationsView: View {
             return "\(notification.actorName) accepted your follow request"
         case .share:
             return "\(notification.actorName) shared \(notification.commentText ?? "a workout")"
+        case .challengeComplete:
+            return "You finished \(notification.commentText ?? "a challenge")"
         }
     }
 

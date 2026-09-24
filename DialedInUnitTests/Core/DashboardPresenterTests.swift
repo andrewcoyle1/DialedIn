@@ -138,6 +138,13 @@ struct DashboardFeedPresenterTests {
             }
             return session
         }
+
+        // MARK: - Challenges
+        var challenges: [ChallengeModel] = []
+        var challengeProgressById: [String: [String: Int]] = [:]
+        private(set) var challengeRefreshCount = 0
+        func challengeProgress(challengeId: String) -> [String: Int] { challengeProgressById[challengeId] ?? [:] }
+        func refreshChallenges() async throws { challengeRefreshCount += 1 }
     }
 
     /// `showDevSettingsView()` is declared unguarded: the protocol wraps it in `#if DEV || MOCK` but
@@ -157,6 +164,9 @@ struct DashboardFeedPresenterTests {
         func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { shown.append("thread:\(delegate.initialSession.id)") }
         func showEditUsernameView() { shown.append("editUsername") }
         func showWeeklyGoalView() { shown.append("weeklyGoal") }
+        // MARK: - Challenges
+        func showChallengeDetailView(delegate: ChallengeDetailDelegate) { shown.append("challenge:\(delegate.challenge.id)") }
+        func showCreateChallengeView() { shown.append("createChallenge") }
 
         func showAddMealView(delegate: AddMealDelegate) {
             shown.append("addMeal")
