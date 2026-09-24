@@ -43,6 +43,11 @@ struct AppViewForUITesting: View {
             startScreen { builder.socialProfileView(router: $0, delegate: SocialProfileDelegate(user: UserModel.mocks[0])) }
         } else if processInfoContains("STARTSCREEN_NOTIFICATIONS") {
             startScreen { builder.notificationsView(router: $0) }
+        } else if processInfoContains("STARTSCREEN_SHARE_CARD") {
+            // The card alone, full screen, for a screenshot. Later mock sessions carry records.
+            WorkoutShareCardView(content: .preview, format: .story)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.black)
         } else {
             builder.build()
         }
