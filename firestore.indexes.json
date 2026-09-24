@@ -16,14 +16,6 @@
       ]
     },
     {
-      "collectionGroup": "workout_sessions",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "author_id", "order": "ASCENDING" },
-        { "fieldPath": "id", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "follow_requests",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
