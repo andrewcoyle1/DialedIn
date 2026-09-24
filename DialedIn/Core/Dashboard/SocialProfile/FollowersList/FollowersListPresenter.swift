@@ -12,10 +12,12 @@ import Foundation
 class FollowersListPresenter {
     private let interactor: FollowersListInteractor
     private let router: FollowersListRouter
-    
+    private let followFlow: FollowFlow
+
     init(interactor: FollowersListInteractor, router: FollowersListRouter) {
         self.interactor = interactor
         self.router = router
+        self.followFlow = FollowFlow(interactor: interactor, router: router)
     }
 
     /// The reader's own row carries no follow button.
@@ -23,28 +25,12 @@ class FollowersListPresenter {
         user.userId != interactor.currentUser?.userId
     }
 
-    func isFollowing(userId: String) -> Bool {
-        interactor.currentUser?.followingIds?.contains(userId) ?? false
+    func followState(for user: UserModel) -> FollowState {
+        followFlow.state(for: user)
     }
 
-    func onFollowPressed(user: UserModel) {
-        Task {
-            do {
-                try await interactor.followUser(userId: user.userId)
-            } catch {
-                router.showSimpleAlert(title: "Unable to follow user", subtitle: "Please try again.")
-            }
-        }
-    }
-
-    func onUnfollowPressed(user: UserModel) {
-        Task {
-            do {
-                try await interactor.unfollowUser(userId: user.userId)
-            } catch {
-                router.showSimpleAlert(title: "Unable to unfollow user", subtitle: "Please try again.")
-            }
-        }
+    func onFollowButtonPressed(user: UserModel) {
+        followFlow.onButtonPressed(user: user)
     }
 
     func onUserPressed(user: UserModel) {

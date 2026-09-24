@@ -52,6 +52,20 @@ struct SocialProfilePresenterTests {
             currentUser = UserModel(userId: "me", followingIds: (currentUser?.followingIds ?? []).filter { $0 != userId })
         }
 
+        var sentFollowRequestIds: Set<String> = []
+        func sendFollowRequest(to user: UserModel) async throws {
+            if let followError { throw followError }
+            sentFollowRequestIds.insert(user.userId)
+        }
+        func cancelFollowRequest(userId: String) async throws { sentFollowRequestIds.remove(userId) }
+
+        var usersById: [String: UserModel] = [:]
+        private(set) var fetchedUserIds: [[String]] = []
+        func fetchUsers(userIds: [String]) async throws -> [UserModel] {
+            fetchedUserIds.append(userIds)
+            return userIds.compactMap { usersById[$0] }
+        }
+
         private(set) var blockedIds: [String] = []
         private(set) var unblockedIds: [String] = []
         private(set) var reports: [String] = []
@@ -215,10 +229,10 @@ struct SocialProfilePresenterTests {
         #expect(!screen.presenter.isFollowing)
         #expect(!screen.presenter.isOwnProfile)
 
-        screen.presenter.onFollowPressed()
+        screen.presenter.onFollowButtonPressed()
         await TestManagers.eventually { screen.presenter.isFollowing }
 
-        screen.presenter.onUnfollowPressed()
+        screen.presenter.onFollowButtonPressed()
         await TestManagers.eventually { !screen.presenter.isFollowing }
 
         #expect(screen.interactor.trackedEventNames == [
@@ -242,32 +256,119 @@ struct SocialProfilePresenterTests {
         screen.interactor.followError = DashboardTestError.failed
         screen.presenter.onViewAppear(delegate: profile("friend", following: []))
 
-        screen.presenter.onFollowPressed()
+        screen.presenter.onFollowButtonPressed()
         await TestManagers.eventually { !screen.router.alertTitles.isEmpty }
 
         #expect(screen.router.alertTitles == ["Unable to follow user"])
         #expect(!screen.presenter.isFollowing)
     }
 
-    /// A private profile is locked to strangers, open to anyone it follows back, and never locked
-    /// to its owner.
-    @Test("Test A Private Profile Is Locked Unless It Follows The Reader")
-    func testAPrivateProfileIsLockedUnlessItFollowsTheReader() {
+    private func privateProfile(_ id: String, following: [String] = []) -> SocialProfileDelegate {
+        SocialProfileDelegate(user: UserModel(userId: id, followingIds: following, isPrivate: true))
+    }
+
+    /// Instagram's rule: a private profile is open to its owner and its followers, and locked to
+    /// everyone else — including someone the profile follows but who does not follow it back.
+    @Test("Test A Private Profile Is Open Only To Its Owner And Followers")
+    func testAPrivateProfileIsOpenOnlyToItsOwnerAndFollowers() {
         let screen = makeScreen()
 
-        screen.presenter.onViewAppear(delegate: SocialProfileDelegate(user: UserModel(userId: "friend", followingIds: [], isPrivate: true)))
+        screen.presenter.onViewAppear(delegate: privateProfile("friend"))
         #expect(screen.presenter.isLocked)
         screen.presenter.onFollowersPressed()
+        screen.presenter.onFollowingPressed()
         #expect(screen.router.followersDelegates.isEmpty)
 
-        screen.presenter.onViewAppear(delegate: SocialProfileDelegate(user: UserModel(userId: "friend", followingIds: ["me"], isPrivate: true)))
+        // The profile following the reader is not the reader following the profile.
+        screen.presenter.onViewAppear(delegate: privateProfile("friend", following: ["me"]))
+        #expect(screen.presenter.isLocked)
+
+        screen.interactor.currentUser = UserModel(userId: "me", followingIds: ["friend"])
+        screen.presenter.onViewAppear(delegate: privateProfile("friend"))
         #expect(!screen.presenter.isLocked)
 
-        screen.presenter.onViewAppear(delegate: SocialProfileDelegate(user: UserModel(userId: "me", isPrivate: true)))
+        screen.presenter.onViewAppear(delegate: privateProfile("me"))
         #expect(!screen.presenter.isLocked)
 
+        screen.presenter.onViewAppear(delegate: profile("stranger", following: []))
+        #expect(!screen.presenter.isLocked)
+    }
+
+    /// A pending request does not open the profile; only the follow the accepted request becomes does.
+    @Test("Test A Pending Request Keeps A Private Profile Locked")
+    func testAPendingRequestKeepsAPrivateProfileLocked() {
+        let screen = makeScreen()
+        screen.interactor.sentFollowRequestIds = ["friend"]
+
+        screen.presenter.onViewAppear(delegate: privateProfile("friend"))
+
+        #expect(screen.presenter.followState == .requested)
+        #expect(screen.presenter.isLocked)
+    }
+
+    /// Following a public profile is immediate; following a private one sends a request, the
+    /// button reads Requested, and tapping it again takes the request back.
+    @Test("Test Following A Private Profile Requests And Tapping Again Cancels")
+    func testFollowingAPrivateProfileRequestsAndTappingAgainCancels() async {
+        let screen = makeScreen()
+        screen.presenter.onViewAppear(delegate: privateProfile("friend"))
+        #expect(screen.presenter.followState == .follow)
+
+        screen.presenter.onFollowButtonPressed()
+        await TestManagers.eventually { screen.presenter.followState == .requested }
+        #expect(!screen.presenter.isFollowing)
+        #expect(screen.interactor.currentUser?.followingIds?.contains("friend") != true)
+
+        screen.presenter.onFollowButtonPressed()
+        await TestManagers.eventually { screen.presenter.followState == .follow }
+
+        #expect(screen.interactor.sentFollowRequestIds.isEmpty)
+        #expect(screen.interactor.trackedEventNames == [
+            "SocialProfileView_Follow_Pressed", "SocialProfileView_CancelRequest_Pressed"
+        ])
+    }
+
+    @Test("Test Following A Public Profile Is Immediate")
+    func testFollowingAPublicProfileIsImmediate() async {
+        let screen = makeScreen()
         screen.presenter.onViewAppear(delegate: profile("friend", following: []))
-        #expect(!screen.presenter.isLocked)
+
+        screen.presenter.onFollowButtonPressed()
+        await TestManagers.eventually { screen.presenter.followState == .following }
+
+        #expect(screen.interactor.sentFollowRequestIds.isEmpty)
+    }
+
+    /// "Follows you" is the profile's following list naming the reader — never shown on the
+    /// reader's own profile, and not implied by the reader following them.
+    @Test("Test Follows You Reads The Profiles Following List")
+    func testFollowsYouReadsTheProfilesFollowingList() {
+        let screen = makeScreen()
+
+        screen.presenter.onViewAppear(delegate: profile("friend", following: ["me"]))
+        #expect(screen.presenter.followsYou)
+
+        screen.interactor.currentUser = UserModel(userId: "me", followingIds: ["friend"])
+        screen.presenter.onViewAppear(delegate: profile("friend", following: ["someone"]))
+        #expect(!screen.presenter.followsYou)
+
+        screen.presenter.onViewAppear(delegate: profile("me", following: ["me"]))
+        #expect(!screen.presenter.followsYou)
+    }
+
+    /// The Following stat opens the same list screen, filled with the profile's own following.
+    @Test("Test The Following Stat Opens The Profiles Following List")
+    func testTheFollowingStatOpensTheProfilesFollowingList() async {
+        let screen = makeScreen()
+        screen.interactor.usersById = ["a": DashboardFixture.user("a"), "b": DashboardFixture.user("b")]
+        screen.presenter.onViewAppear(delegate: profile("friend", following: ["a", "b"]))
+
+        screen.presenter.onFollowingPressed()
+        await TestManagers.eventually { !screen.router.followersDelegates.isEmpty }
+
+        #expect(screen.interactor.fetchedUserIds == [["a", "b"]])
+        #expect(screen.router.followersDelegates.first?.title == "Following")
+        #expect(screen.router.followersDelegates.first?.followers.map(\.userId) == ["a", "b"])
     }
 
     // MARK: Sessions
@@ -286,7 +387,7 @@ struct SocialProfilePresenterTests {
 
         let locked = makeScreen()
         locked.interactor.remoteSessions = screen.interactor.remoteSessions
-        locked.presenter.onViewAppear(delegate: SocialProfileDelegate(user: UserModel(userId: "stranger", followingIds: [], isPrivate: true)))
+        locked.presenter.onViewAppear(delegate: privateProfile("stranger", following: ["me"]))
         await TestManagers.eventually { !locked.interactor.fetchedFollowerIds.isEmpty }
         #expect(locked.interactor.fetchedSessionAuthorIds.isEmpty)
         #expect(locked.presenter.sessions.isEmpty)
@@ -441,6 +542,12 @@ struct SocialFollowersListTests {
         var followError: Error?
         private(set) var followed: [String] = []
         private(set) var unfollowed: [String] = []
+        var sentFollowRequestIds: Set<String> = ["pending"]
+        private(set) var requested: [String] = []
+        private(set) var cancelled: [String] = []
+
+        func sendFollowRequest(to user: UserModel) async throws { requested.append(user.userId) }
+        func cancelFollowRequest(userId: String) async throws { cancelled.append(userId) }
 
         func followUser(userId: String) async throws {
             if let followError { throw followError }
@@ -481,25 +588,30 @@ struct SocialFollowersListTests {
     func testRowsKnowWhoTheReaderFollowsAndSkipTheReader() {
         let presenter = FollowersListPresenter(interactor: Interactor(), router: Router())
 
-        #expect(presenter.isFollowing(userId: "a"))
-        #expect(!presenter.isFollowing(userId: "b"))
+        #expect(presenter.followState(for: DashboardFixture.user("a")) == .following)
+        #expect(presenter.followState(for: DashboardFixture.user("b")) == .follow)
+        #expect(presenter.followState(for: DashboardFixture.user("pending")) == .requested)
         #expect(presenter.showsFollowButton(for: DashboardFixture.user("b")))
         #expect(!presenter.showsFollowButton(for: DashboardFixture.user("me")))
     }
 
-    @Test("Test Follow And Unfollow Reach The Interactor And A Row Opens The Profile")
-    func testFollowAndUnfollowReachTheInteractorAndARowOpensTheProfile() async {
+    @Test("Test Each Button State Reaches The Interactor And A Row Opens The Profile")
+    func testEachButtonStateReachesTheInteractorAndARowOpensTheProfile() async {
         let interactor = Interactor()
         let router = Router()
         let presenter = FollowersListPresenter(interactor: interactor, router: router)
 
-        presenter.onFollowPressed(user: DashboardFixture.user("b"))
-        presenter.onUnfollowPressed(user: DashboardFixture.user("a"))
+        presenter.onFollowButtonPressed(user: DashboardFixture.user("b"))
+        presenter.onFollowButtonPressed(user: DashboardFixture.user("a"))
+        presenter.onFollowButtonPressed(user: UserModel(userId: "private", isPrivate: true))
+        presenter.onFollowButtonPressed(user: DashboardFixture.user("pending"))
         presenter.onUserPressed(user: DashboardFixture.user("b"))
-        await TestManagers.eventually { !interactor.unfollowed.isEmpty }
+        await TestManagers.eventually { !interactor.unfollowed.isEmpty && !interactor.cancelled.isEmpty && !interactor.requested.isEmpty }
 
         #expect(interactor.followed == ["b"])
         #expect(interactor.unfollowed == ["a"])
+        #expect(interactor.requested == ["private"])
+        #expect(interactor.cancelled == ["pending"])
         #expect(router.profileUserIds == ["b"])
     }
 
@@ -510,7 +622,7 @@ struct SocialFollowersListTests {
         let router = Router()
         let presenter = FollowersListPresenter(interactor: interactor, router: router)
 
-        presenter.onFollowPressed(user: DashboardFixture.user("b"))
+        presenter.onFollowButtonPressed(user: DashboardFixture.user("b"))
         await TestManagers.eventually { !router.alertTitles.isEmpty }
 
         #expect(router.alertTitles == ["Unable to follow user"])

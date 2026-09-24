@@ -144,7 +144,7 @@ struct AccountView: View {
         } header: {
             Text("Privacy")
         } footer: {
-            Text("A private profile is hidden from search and suggestions, and only the people you follow can see your followers.")
+            Text("People must ask to follow a private profile. Until you accept, they see only your name and counts. Private profiles are left out of suggestions.")
         }
     }
 

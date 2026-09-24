@@ -65,30 +65,35 @@ extension UserRowView where Trailing == EmptyView {
     }
 }
 
-/// The follow/unfollow pill shown beside a person in search results.
+/// The Follow / Following / Requested pill shown beside a person. What a tap does is the
+/// presenter's call — see `FollowFlow`.
 struct FollowButton: View {
 
-    let isFollowing: Bool
-    let onFollowPressed: () -> Void
-    let onUnfollowPressed: () -> Void
+    let state: FollowState
+    let action: () -> Void
+
+    private var title: String {
+        switch state {
+        case .follow: "Follow"
+        case .following: "Following"
+        case .requested: "Requested"
+        }
+    }
+
+    private var isFilled: Bool { state == .follow }
 
     var body: some View {
-        Button {
-            if isFollowing {
-                onUnfollowPressed()
-            } else {
-                onFollowPressed()
-            }
-        } label: {
-            Text(isFollowing ? "Following" : "Follow")
+        Button(action: action) {
+            Text(title)
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
-                .background(isFollowing ? Color(.secondarySystemBackground) : Color.accentColor)
-                .foregroundStyle(isFollowing ? Color.primary : Color.white)
+                .background(isFilled ? Color.accentColor : Color(.secondarySystemBackground))
+                .foregroundStyle(isFilled ? Color.white : Color.primary)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityHint(state == .requested ? "Cancels your follow request" : "")
     }
 }
 
@@ -96,10 +101,13 @@ struct FollowButton: View {
     List {
         UserRowView(user: .mock)
         UserRowView(user: .mock) {
-            FollowButton(isFollowing: false, onFollowPressed: { }, onUnfollowPressed: { })
+            FollowButton(state: .follow, action: { })
         }
         UserRowView(user: .mock) {
-            FollowButton(isFollowing: true, onFollowPressed: { }, onUnfollowPressed: { })
+            FollowButton(state: .following, action: { })
+        }
+        UserRowView(user: .mock) {
+            FollowButton(state: .requested, action: { })
         }
     }
 }

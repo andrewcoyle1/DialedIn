@@ -46,6 +46,9 @@ struct SearchPresenterTests {
         func clearRecentSearches() { recentSearchQueries = [] }
         func followUser(userId: String) async throws { followingIds.append(userId) }
         func unfollowUser(userId: String) async throws { followingIds.removeAll { $0 == userId } }
+        var sentFollowRequestIds: Set<String> = []
+        func sendFollowRequest(to user: UserModel) async throws { sentFollowRequestIds.insert(user.userId) }
+        func cancelFollowRequest(userId: String) async throws { sentFollowRequestIds.remove(userId) }
     }
 
     private final class Router: SearchRouter {

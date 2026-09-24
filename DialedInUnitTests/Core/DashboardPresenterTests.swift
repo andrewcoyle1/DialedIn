@@ -73,6 +73,7 @@ struct DashboardFeedPresenterTests {
         var draftMeal: MealLogModel?
         var workoutSessions: [WorkoutSessionModel] = []
         var activityNotifications: [ActivityNotificationModel] = []
+        var incomingFollowRequests: [FollowRequestModel] = []
         var followingWorkoutSessions: [WorkoutSessionModel] = []
         var followingUsers: [UserModel] = []
         var activeTrainingProgram: TrainingProgram?
@@ -95,6 +96,10 @@ struct DashboardFeedPresenterTests {
         func followUser(userId: String) async throws { followedUserIds.append(userId) }
 
         func unfollowUser(userId: String) async throws { unfollowedUserIds.append(userId) }
+
+        var sentFollowRequestIds: Set<String> = []
+        func sendFollowRequest(to user: UserModel) async throws { sentFollowRequestIds.insert(user.userId) }
+        func cancelFollowRequest(userId: String) async throws { sentFollowRequestIds.remove(userId) }
 
         func fetchActivityNotifications() async throws {
             fetchedNotificationsCount += 1
@@ -301,14 +306,14 @@ struct DashboardFeedPresenterTests {
         screen.interactor.suggestedUsers = [DashboardFixture.user("a"), DashboardFixture.user("b")]
         await screen.presenter.loadSuggestedUsers()
 
-        screen.presenter.onFollowPressed(user: DashboardFixture.user("a"))
+        screen.presenter.onFollowButtonPressed(user: DashboardFixture.user("a"))
         await TestManagers.eventually { !screen.interactor.followedUserIds.isEmpty }
         screen.interactor.currentUser = UserModel(userId: "me", followingIds: ["a"])
         screen.presenter.onSuggestedUserPressed(user: DashboardFixture.user("b"))
 
         #expect(screen.interactor.followedUserIds == ["a"])
         #expect(screen.presenter.visibleSuggestedUsers.map(\.userId) == ["b"])
-        #expect(screen.presenter.isFollowing(userId: "a"))
+        #expect(screen.presenter.followState(for: DashboardFixture.user("a")) == .following)
         #expect(screen.router.shown == ["socialProfile:b"])
     }
 
