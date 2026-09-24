@@ -2,8 +2,8 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { requireAuth, cleanJson, normaliseName } from "./lib.js";
-import { GoogleAuth } from "google-auth-library";
+import { getMessaging } from "firebase-admin/messaging";
+import { requireAuth, cleanJson, normaliseName, buildActivityPush } from "./lib.js";
 import { genkit } from "genkit";
 import { vertexAI, gemini20Flash, imagen3Fast } from "@genkit-ai/vertexai";
 
@@ -11,7 +11,6 @@ initializeApp();
 
 const PROJECT_ID = "dialed-c3cb5";
 const REGION = "us-central1";
-const FCM_URL = `https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send`;
 
 // Every callable requires a valid App Check token, so only genuine app instances
 // (attested via App Attest, or an allowlisted debug token) can invoke them. These
@@ -389,83 +388,30 @@ export const foodSearch = onCall(CALLABLE_OPTIONS, async (request) => {
 });
 
 // ---------------------------------------------------------------------------
-// FCM push notifications for activity (likes / comments)
+// FCM push for social activity (likes / comments / follows)
 // ---------------------------------------------------------------------------
 
-const fcmAuth = new GoogleAuth({
-    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
-});
-
-async function sendPush(fcmToken, title, body, extraData) {
-    const client = await fcmAuth.getClient();
-    const tokenResult = await client.getAccessToken();
-    const accessToken = tokenResult.token;
-
-    const message = {
-        token: fcmToken,
-        notification: { title, body },
-        apns: {
-            payload: {
-                aps: { badge: 1, sound: "default" },
-            },
-        },
-        data: extraData,
-    };
-
-    const res = await fetch(FCM_URL, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message }),
-    });
-
-    const responseText = await res.text();
-    if (!res.ok) {
-        throw new Error(`FCM HTTP ${res.status}: ${responseText}`);
-    }
-    return responseText;
-}
-
+// The app writes users/{uid}/notifications for the in-app bell; this turns each new doc into a
+// push so it still arrives when the app is closed. Message building and the opt-out check live in
+// buildActivityPush (lib.js) so they can be tested without Firestore.
 export const onActivityNotificationCreated = onDocumentCreated(
-    "users/{userId}/notifications/{notificationId}",
+    { document: "users/{userId}/notifications/{notificationId}", region: REGION },
     async (event) => {
-        const snap = event.data;
-        if (!snap) return null;
+        const notification = event.data?.data();
+        if (!notification) return;
 
-        const data = snap.data();
         const userId = event.params.userId;
-
-        const db = getFirestore();
-        const userDoc = await db.collection("users").doc(userId).get();
-        const fcmToken = userDoc.data()?.fcm_token;
-
-        if (!fcmToken) {
-            console.log(`No FCM token for user ${userId} — skipping push.`);
-            return null;
+        const userDoc = await getFirestore().collection("users").doc(userId).get();
+        const message = buildActivityPush(notification, userDoc.data());
+        if (!message) {
+            console.log(`No push for user ${userId} (${notification.type}): no token or opted out.`);
+            return;
         }
 
-        const isLike = data.type === "like";
-        const actorName = data.actor_name || "Someone";
-        const commentText = data.comment_text || "";
-
-        const title = isLike ? "New Like" : "New Comment";
-        const body = isLike
-            ? `${actorName} liked your workout`
-            : `${actorName} commented: "${commentText.substring(0, 60)}"`;
-
         try {
-            const result = await sendPush(fcmToken, title, body, {
-                type: data.type || "",
-                session_id: data.session_id || "",
-                actor_id: data.actor_id || "",
-            });
-            console.log(`Push sent to user ${userId} for ${data.type}: ${result}`);
+            await getMessaging().send(message);
         } catch (error) {
             console.error(`Error sending push to user ${userId}: ${error.message}`);
         }
-
-        return null;
     }
 );

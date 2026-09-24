@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { cleanJson, normaliseName, requireAuth } from "./lib.js";
+import { buildActivityPush, cleanJson, normaliseName, requireAuth } from "./lib.js";
 
 test("cleanJson strips the code fences Gemini adds and leaves bare JSON alone", () => {
     assert.equal(cleanJson('```json\n{"a":1}\n```'), '{"a":1}');
@@ -38,4 +38,40 @@ test("each deployed callable rejects an unauthenticated request before doing any
     for (const name of ["foodAnalyze", "mealDescribe", "nutritionLabelAnalyze", "chatGenerate", "imageGenerate", "foodSearch"]) {
         await assert.rejects(fns[name].run({ data: {}, auth: null }), { code: "unauthenticated" }, name);
     }
+});
+
+test("buildActivityPush titles each social type and routes the tap to the Dashboard tab", () => {
+    const recipient = { fcm_token: "tok" };
+    const like = buildActivityPush({ type: "like", actor_name: "Jane", session_id: "s1", actor_id: "a1" }, recipient);
+    assert.equal(like.token, "tok");
+    assert.deepEqual(like.notification, { title: "New like", body: "Jane liked your workout" });
+    assert.deepEqual(like.data, { tab: "dashboard", type: "like", session_id: "s1", actor_id: "a1" });
+
+    const comment = buildActivityPush({ type: "comment", actor_name: "Jane", comment_text: "Nice!" }, recipient);
+    assert.deepEqual(comment.notification, { title: "New comment", body: "Jane commented: Nice!" });
+
+    const follow = buildActivityPush({ type: "follow", actor_name: "Jane" }, recipient);
+    assert.deepEqual(follow.notification, { title: "New follower", body: "Jane started following you" });
+    assert.equal(follow.data.session_id, "");
+
+    assert.equal(buildActivityPush({ type: "like" }, recipient).notification.body, "Someone liked your workout");
+});
+
+test("buildActivityPush truncates a long comment to a 60-character preview", () => {
+    const long = "x".repeat(100);
+    const { body } = buildActivityPush({ type: "comment", actor_name: "Jane", comment_text: long }, { fcm_token: "tok" }).notification;
+    assert.equal(body, `Jane commented: ${"x".repeat(59)}…`);
+    const exact = buildActivityPush({ type: "comment", actor_name: "Jane", comment_text: "y".repeat(60) }, { fcm_token: "tok" });
+    assert.equal(exact.notification.body, `Jane commented: ${"y".repeat(60)}`);
+});
+
+test("buildActivityPush sends nothing without a token, for an unknown type, or when opted out", () => {
+    assert.equal(buildActivityPush({ type: "like" }, {}), null);
+    assert.equal(buildActivityPush({ type: "like" }, undefined), null);
+    assert.equal(buildActivityPush({ type: "mention" }, { fcm_token: "tok" }), null);
+    assert.equal(buildActivityPush({ type: "like" }, { fcm_token: "tok", social_push_likes: false }), null);
+    assert.equal(buildActivityPush({ type: "comment" }, { fcm_token: "tok", social_push_comments: false }), null);
+    assert.equal(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_follows: false }), null);
+    // Opting out of one type leaves the others on.
+    assert.notEqual(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_likes: false }), null);
 });

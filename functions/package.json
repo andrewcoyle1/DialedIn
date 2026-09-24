@@ -18,8 +18,7 @@
     "@genkit-ai/vertexai": "^1.29.0",
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^7.4.0",
-    "genkit": "^1.29.0",
-    "google-auth-library": "^10.6.1"
+    "genkit": "^1.29.0"
   },
   "devDependencies": {
     "firebase-functions-test": "^3.1.0"
