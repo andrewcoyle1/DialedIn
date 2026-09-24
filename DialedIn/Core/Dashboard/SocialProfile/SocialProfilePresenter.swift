@@ -28,6 +28,13 @@ class SocialProfilePresenter {
         profileUser?.userId == interactor.currentUser?.userId
     }
 
+    /// A private profile shows its lists only to people it follows back, and to its owner.
+    var isLocked: Bool {
+        guard let profileUser, profileUser.isPrivate == true, !isOwnProfile else { return false }
+        guard let readerId = interactor.currentUser?.userId else { return true }
+        return !(profileUser.followingIds ?? []).contains(readerId)
+    }
+
     var mutualFollowers: [UserModel] {
         guard let profileFollowingIds = profileUser?.followingIds else { return [] }
         return interactor.followingUsers.filter { profileFollowingIds.contains($0.userId) }
@@ -55,6 +62,7 @@ class SocialProfilePresenter {
     }
 
     func onFollowersPressed() {
+        guard !isLocked else { return }
         let delegate = FollowersListDelegate(followers: followers)
         router.showFollowersList(delegate: delegate)
     }

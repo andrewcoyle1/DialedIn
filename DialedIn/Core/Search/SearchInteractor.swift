@@ -41,7 +41,7 @@ extension CoreInteractor: SearchInteractor {
 
     func searchUsers(query: String) async throws -> [UserModel] {
         let results = try await userManager.searchUsers(query: query)
-        return results.filter { $0.userId != currentUser?.userId }
+        return results.filter { $0.userId != currentUser?.userId && $0.isPrivate != true }
     }
 
     func addRecentSearch(query: String) {

@@ -37,6 +37,24 @@ class AccountPresenter {
         interactor.currentUser
     }
 
+    /// Written the moment it flips, not on Save: it is a switch, and a switch that waits for a
+    /// button reads as broken.
+    var isPrivate: Bool {
+        get { currentUser?.isPrivate ?? false }
+        set { onPrivacyChanged(isPrivate: newValue) }
+    }
+
+    private func onPrivacyChanged(isPrivate: Bool) {
+        interactor.trackEvent(eventName: "AccountView_Privacy_Toggle", parameters: ["is_private": isPrivate], type: .analytic)
+        Task {
+            do {
+                try await interactor.updatePrivacy(isPrivate: isPrivate)
+            } catch {
+                router.showAlert(error: error)
+            }
+        }
+    }
+
     var canSave: Bool {
         !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }

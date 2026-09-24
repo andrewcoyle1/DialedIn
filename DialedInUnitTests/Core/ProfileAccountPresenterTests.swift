@@ -56,6 +56,9 @@ struct ProfileAccountPresenterTests {
             uploadedImageCount += 1
         }
 
+        private(set) var privacyWrites: [Bool] = []
+        func updatePrivacy(isPrivate: Bool) async throws { privacyWrites.append(isPrivate) }
+
         func updateUser(data: [String: any DMCodableSendable]) async throws {
             if let updateUserError { throw updateUserError }
             savedData.append(data)
@@ -116,6 +119,20 @@ struct ProfileAccountPresenterTests {
 
     /// The profile is how the rest of the app addresses the user, so a nameless one is not a
     /// profile. Blank and whitespace-only both count as nameless.
+    /// The privacy switch writes on flip, reads the stored value, and defaults to public.
+    @Test("Test The Privacy Switch Reads The Profile And Writes On Flip")
+    func testThePrivacySwitchReadsTheProfileAndWritesOnFlip() async {
+        let screen = makeScreen(user: UserModel(userId: "user-1", isPrivate: true))
+        #expect(screen.presenter.isPrivate)
+        #expect(makeScreen().presenter.isPrivate == false)
+
+        screen.presenter.isPrivate = false
+        await TestManagers.eventually { !screen.interactor.privacyWrites.isEmpty }
+
+        #expect(screen.interactor.privacyWrites == [false])
+        #expect(screen.interactor.trackedEventNames.contains("AccountView_Privacy_Toggle"))
+    }
+
     @Test("Test A Profile Cannot Be Saved Without A First Name")
     func testAProfileCannotBeSavedWithoutAFirstName() {
         let screen = makeScreen()

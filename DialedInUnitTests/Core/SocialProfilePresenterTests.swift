@@ -204,6 +204,27 @@ struct SocialProfilePresenterTests {
         #expect(!screen.presenter.isFollowing)
     }
 
+    /// A private profile is locked to strangers, open to anyone it follows back, and never locked
+    /// to its owner.
+    @Test("Test A Private Profile Is Locked Unless It Follows The Reader")
+    func testAPrivateProfileIsLockedUnlessItFollowsTheReader() {
+        let screen = makeScreen()
+
+        screen.presenter.onViewAppear(delegate: SocialProfileDelegate(user: UserModel(userId: "friend", followingIds: [], isPrivate: true)))
+        #expect(screen.presenter.isLocked)
+        screen.presenter.onFollowersPressed()
+        #expect(screen.router.followersDelegates.isEmpty)
+
+        screen.presenter.onViewAppear(delegate: SocialProfileDelegate(user: UserModel(userId: "friend", followingIds: ["me"], isPrivate: true)))
+        #expect(!screen.presenter.isLocked)
+
+        screen.presenter.onViewAppear(delegate: SocialProfileDelegate(user: UserModel(userId: "me", isPrivate: true)))
+        #expect(!screen.presenter.isLocked)
+
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+        #expect(!screen.presenter.isLocked)
+    }
+
     @Test("Test Leaving The Profile Is Tracked")
     func testLeavingTheProfileIsTracked() {
         let screen = makeScreen()

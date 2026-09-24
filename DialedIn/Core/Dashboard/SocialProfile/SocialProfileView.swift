@@ -68,21 +68,27 @@ struct SocialProfileView: View {
 
                 Divider()
 
-                HStack(spacing: 32) {
-                    // An "Activity 1" stat sat here, hardcoded. Nothing counts a user's activity, and
-                    // followers/following beside it are real, which made the fake one look real too.
-                    StatItem(header: "Followers", value: "\(presenter.followersCount)")
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            presenter.onFollowersPressed()
-                        }
-                    StatItem(header: "Following", value: "\(presenter.followingCount)")
-                    Spacer()
-                    // A chat button sat here. There is no messaging anywhere in the app — no model, no
-                    // manager, no screen — so it was an empty closure over a feature that does not exist.
+                if presenter.isLocked {
+                    Label("This profile is private", systemImage: "lock")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    HStack(spacing: 32) {
+                        // An "Activity 1" stat sat here, hardcoded. Nothing counts a user's activity, and
+                        // followers/following beside it are real, which made the fake one look real too.
+                        StatItem(header: "Followers", value: "\(presenter.followersCount)")
+                            .tappableBackground()
+                            .anyButton(.press) {
+                                presenter.onFollowersPressed()
+                            }
+                        StatItem(header: "Following", value: "\(presenter.followingCount)")
+                        Spacer()
+                        // A chat button sat here. There is no messaging anywhere in the app — no model, no
+                        // manager, no screen — so it was an empty closure over a feature that does not exist.
+                    }
                 }
 
-                if !presenter.mutualFollowers.isEmpty {
+                if !presenter.isLocked, !presenter.mutualFollowers.isEmpty {
                     Divider()
                     mutualFollowersImagesSection
                 }

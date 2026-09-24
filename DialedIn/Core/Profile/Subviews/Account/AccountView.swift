@@ -16,6 +16,7 @@ struct AccountView: View {
         List {
             imageSection
             profileSection
+            privacySection
             securitySection
         }
         .ignoresSafeArea(edges: .top)
@@ -134,6 +135,16 @@ struct AccountView: View {
                 Text("Lifting Experience")
                     .fontWeight(.semibold)
             }
+        }
+    }
+
+    private var privacySection: some View {
+        Section {
+            Toggle("Private profile", isOn: $presenter.isPrivate)
+        } header: {
+            Text("Privacy")
+        } footer: {
+            Text("A private profile is hidden from search and suggestions, and only the people you follow can see your followers.")
         }
     }
 

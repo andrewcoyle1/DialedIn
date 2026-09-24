@@ -48,6 +48,9 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     let fcmToken: String?
     let blockedUserIds: [String]?
     let followingIds: [String]?
+    /// A private profile is left out of search and suggestions, and shows strangers nothing but
+    /// a name. Sessions were already visible to followers only, so that does not change.
+    let isPrivate: Bool?
     var didCompleteOnboarding: Bool
     let acceptedHealthDisclaimerVersion: String?
     let acceptedHealthDisclaimerDate: Date?
@@ -95,6 +98,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         submittedFavouriteGymProfileId: String? = nil,
         blockedUserIds: [String]? = nil,
         followingIds: [String]? = nil,
+        isPrivate: Bool? = nil,
         fcmToken: String? = nil,
         didCompleteOnboarding: Bool = false,
         acceptedHealthDisclaimerVersion: String? = nil,
@@ -133,6 +137,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         self.submittedFavouriteGymProfileId = submittedFavouriteGymProfileId
         self.blockedUserIds = blockedUserIds
         self.followingIds = followingIds
+        self.isPrivate = isPrivate
         self.fcmToken = fcmToken
         self.didCompleteOnboarding = didCompleteOnboarding
         self.acceptedHealthDisclaimerVersion = acceptedHealthDisclaimerVersion
@@ -191,6 +196,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         case didCompleteOnboarding = "did_complete_onboarding"
         case blockedUserIds = "blocked_user_ids"
         case followingIds = "following_ids"
+        case isPrivate = "is_private"
         case fcmToken = "fcm_token"
         case acceptedHealthDisclaimerVersion = "accepted_health_disclaimer_version"
         case acceptedHealthDisclaimerDate = "accepted_health_disclaimer_date"

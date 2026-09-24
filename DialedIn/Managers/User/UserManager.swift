@@ -254,9 +254,15 @@ class UserManager {
         )
         // Over-fetch so the exclusions do not leave the list short.
         return try await queryService.fetchSuggestedUsers(limit: limit + excluded.count)
-            .filter { !excluded.contains($0.userId) }
+            .filter { !excluded.contains($0.userId) && $0.isPrivate != true }
             .prefix(limit)
             .map { $0 }
+    }
+
+    func updatePrivacy(isPrivate: Bool) async throws {
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.isPrivate.rawValue: isPrivate
+        ])
     }
 
     // MARK: - User Blocking
@@ -483,6 +489,10 @@ extension CoreInteractor {
 
     func fetchSuggestedUsers() async throws -> [UserModel] {
         try await userManager.fetchSuggestedUsers()
+    }
+
+    func updatePrivacy(isPrivate: Bool) async throws {
+        try await userManager.updatePrivacy(isPrivate: isPrivate)
     }
 
 }
