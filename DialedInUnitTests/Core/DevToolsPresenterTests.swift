@@ -428,6 +428,17 @@ struct DevToolsNotificationsPresenterTests {
 
         func clearAllDeliveredNotifications() { clearDeliveredCount += 1 }
 
+        // Follow requests and follow back are covered in `NotificationsFollowRequestTests`.
+        var incomingFollowRequests: [FollowRequestModel] = []
+        var sentFollowRequestIds: Set<String> = []
+        func fetchIncomingFollowRequests() async throws { }
+        func respondToFollowRequest(requesterId: String, accept: Bool) async throws { }
+        func getUser(userId: String) async throws -> UserModel { UserModel(userId: userId) }
+        func followUser(userId: String) async throws { }
+        func unfollowUser(userId: String) async throws { }
+        func sendFollowRequest(to user: UserModel) async throws { }
+        func cancelFollowRequest(userId: String) async throws { }
+
         var currentUser: UserModel? = UserModel(userId: "user-1")
         var preferenceError: Error?
         private(set) var preferenceWrites: [String: Bool] = [:]

@@ -14,6 +14,9 @@ struct ActivityNotificationModel: Identifiable {
         /// Someone started following the user. `sessionId` is empty and `sessionAuthorId` is
         /// the followed user, since there is no session behind it.
         case follow
+        /// A private profile accepted the user's follow request. Written by the
+        /// `onFollowRequestUpdated` Cloud Function, with the accepting user as the actor.
+        case followAccepted
     }
 
     let id: String

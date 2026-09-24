@@ -48,8 +48,8 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     let fcmToken: String?
     let blockedUserIds: [String]?
     let followingIds: [String]?
-    /// A private profile is left out of search and suggestions, and shows strangers nothing but
-    /// a name. Sessions were already visible to followers only, so that does not change.
+    /// A private profile must accept a follow request before anyone follows it, is left out of
+    /// suggestions, and shows non-followers only its header and counts.
     let isPrivate: Bool?
     /// Per-type opt-outs for social pushes, read by the `onActivityNotificationCreated` Cloud
     /// Function. Nil means on, so profiles written before the setting existed still get pushes.
@@ -528,7 +528,7 @@ extension UserModel {
         switch type {
         case .like: return .socialPushLikes
         case .comment: return .socialPushComments
-        case .follow: return .socialPushFollows
+        case .follow, .followAccepted: return .socialPushFollows
         }
     }
 
@@ -537,7 +537,7 @@ extension UserModel {
         let stored: Bool? = switch type {
         case .like: socialPushLikes
         case .comment: socialPushComments
-        case .follow: socialPushFollows
+        case .follow, .followAccepted: socialPushFollows
         }
         return stored ?? true
     }

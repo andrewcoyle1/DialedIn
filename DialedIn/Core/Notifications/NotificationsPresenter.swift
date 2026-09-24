@@ -13,6 +13,12 @@ import UserNotifications
 class NotificationsPresenter {
     private let interactor: NotificationsInteractor
     private let router: NotificationsRouter
+    private let followFlow: FollowFlow
+
+    /// Requests to follow the reader's private profile, answered from the top of the screen.
+    var incomingFollowRequests: [FollowRequestModel] {
+        interactor.incomingFollowRequests
+    }
 
     var activityNotifications: [ActivityNotificationModel] {
         interactor.activityNotifications
@@ -62,6 +68,7 @@ class NotificationsPresenter {
     ) {
         self.interactor = interactor
         self.router = router
+        self.followFlow = FollowFlow(interactor: interactor, router: router)
     }
     
     func onViewAppear() {
@@ -75,6 +82,7 @@ class NotificationsPresenter {
     func loadNotifications() async {
         isLoading = true
         try? await interactor.fetchActivityNotifications()
+        try? await interactor.fetchIncomingFollowRequests()
         try? await interactor.markActivityNotificationsRead()
         interactor.clearAllDeliveredNotifications()
         isLoading = false
@@ -114,6 +122,51 @@ class NotificationsPresenter {
         }
     }
 
+    // MARK: Follow back and follow requests
+
+    /// Only a follow row offers a follow back, and never for the reader themselves.
+    func showsFollowBack(for notification: ActivityNotificationModel) -> Bool {
+        notification.type == .follow && notification.actorId != interactor.currentUser?.userId
+    }
+
+    func followBackState(for notification: ActivityNotificationModel) -> FollowState {
+        interactor.followState(for: notification.actorId)
+    }
+
+    /// The notification does not carry the actor's privacy, so the profile is read when the button
+    /// is tapped: whether it follows or requests depends on the account as it is now, not as it was
+    /// when they followed.
+    func onFollowBackPressed(_ notification: ActivityNotificationModel) {
+        interactor.trackEvent(event: Event.followBackPressed)
+        Task {
+            do {
+                let actor = try await interactor.getUser(userId: notification.actorId)
+                followFlow.onButtonPressed(user: actor)
+            } catch {
+                router.showSimpleAlert(title: "Unable to follow user", subtitle: "Please try again.")
+            }
+        }
+    }
+
+    func onAcceptRequestPressed(_ request: FollowRequestModel) {
+        respond(to: request, accept: true)
+    }
+
+    func onDeclineRequestPressed(_ request: FollowRequestModel) {
+        respond(to: request, accept: false)
+    }
+
+    private func respond(to request: FollowRequestModel, accept: Bool) {
+        interactor.trackEvent(event: Event.followRequestAnswered(accept: accept))
+        Task {
+            do {
+                try await interactor.respondToFollowRequest(requesterId: request.requesterId, accept: accept)
+            } catch {
+                router.showSimpleAlert(title: "Unable to answer request", subtitle: "Please try again.")
+            }
+        }
+    }
+
     func onDismissPressed() {
         router.dismissScreen()
     }
@@ -124,12 +177,16 @@ extension NotificationsPresenter {
         case onAppear
         case onDisappear
         case socialPushToggled(type: ActivityNotificationModel.ActivityType, isEnabled: Bool)
+        case followBackPressed
+        case followRequestAnswered(accept: Bool)
 
         var eventName: String {
             switch self {
             case .onAppear:     return "NotificationsView_Appear"
             case .onDisappear:  return "NotificationsView_Disappear"
             case .socialPushToggled: return "NotificationsView_SocialPush_Toggle"
+            case .followBackPressed: return "NotificationsView_FollowBack_Pressed"
+            case .followRequestAnswered: return "NotificationsView_FollowRequest_Answered"
             }
         }
         
@@ -137,6 +194,8 @@ extension NotificationsPresenter {
             switch self {
             case .socialPushToggled(let type, let isEnabled):
                 return ["type": type.rawValue, "is_enabled": isEnabled]
+            case .followRequestAnswered(let accept):
+                return ["accept": accept]
             default:
                 return nil
             }
