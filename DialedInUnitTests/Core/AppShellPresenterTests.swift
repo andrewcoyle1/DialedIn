@@ -531,6 +531,28 @@ struct AppShellTabBarPresenterTests {
         #expect(screen.interactor.trackedEventNames == ["TabBarView_DeepLink_Session"])
     }
 
+    /// A follow-request push lands on the Dashboard and asks it to open the notifications screen,
+    /// even if it also carries a tab.
+    @Test("Test A Follow Request Push Opens Notifications From The Dashboard")
+    func testAFollowRequestPushOpensNotificationsFromTheDashboard() async {
+        let payload: [AnyHashable: Any] = ["tab": "dashboard", "type": "follow_request", "session_id": "", "session_author_id": "", "actor_id": "a1"]
+        #expect(DeepLink(pushUserInfo: payload) == .notifications)
+
+        let screen = makeScreen()
+        screen.presenter.selectedTabTitle = "Training"
+        var opened = false
+        let observer = NotificationCenter.default.addObserver(forName: Constants.openNotifications, object: nil, queue: .main) { _ in
+            opened = true
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        screen.presenter.onPushNotificationReceived(Notification(name: .pushNotification, object: nil, userInfo: payload))
+
+        #expect(await TestManagers.eventually { opened })
+        #expect(screen.presenter.selectedTabTitle == "Dashboard")
+        #expect(screen.interactor.trackedEventNames == ["TabBarView_DeepLink_Notifications"])
+    }
+
     // MARK: - The accessory above the tab bar
 
     /// The accessory is how a user gets back to a workout they walked away from, so it shows

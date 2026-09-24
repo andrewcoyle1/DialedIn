@@ -26,6 +26,7 @@ export const SOCIAL_PUSH_PREFERENCE_KEYS = {
     nudge: "social_push_nudges",
     mention: "social_push_mentions",
     followAccepted: "social_push_follows",
+    follow_request: "social_push_follows",
 };
 
 // The token and preferences moved from the public user doc to users/{uid}/private/settings. Each
@@ -82,6 +83,9 @@ export function buildActivityPush(notification, recipient) {
     case "followAccepted":
         title = "Request accepted";
         body = followAcceptedMessage(actor);
+        break;    case "follow_request":
+        title = "Follow request";
+        body = `${actor} wants to follow you`;
         break;
     }
 
@@ -147,4 +151,45 @@ export function buildFollowAcceptedNotification(target, { targetId, requesterId 
     const image = target?.submitted_profile_image ?? target?.photo_url;
     if (image) notification.actor_image_url = image;
     return notification;
+}
+
+// ---------------------------------------------------------------------------
+// Follow requests, live: push, removal and auto-accept
+// ---------------------------------------------------------------------------
+
+// The push for a new users/{targetId}/follow_requests/{requesterId} doc, in buildActivityPush's
+// shape with type "follow_request", which the app routes to its notifications screen. Null for a
+// request that is not pending, one from someone the target blocked, or when buildActivityPush would
+// send nothing (no token, follows opted out).
+export function buildFollowRequestPush(request, recipient, target) {
+    if (request?.status !== "pending" || !request.requester_id) return null;
+    if ((target?.blocked_user_ids ?? []).includes(request.requester_id)) return null;
+    return buildActivityPush(
+        { type: "follow_request", actor_name: request.requester_name, actor_id: request.requester_id },
+        recipient
+    );
+}
+
+// The ids that `after.following_ids` dropped since `before`: an unfollow, a block, or a follower
+// removed by the person they followed. Any pending request between the pair is then deleted.
+export function removedFollowingIds(before, after) {
+    const current = new Set(after?.following_ids ?? []);
+    return [...new Set(before?.following_ids ?? [])].filter((id) => !current.has(id));
+}
+
+// The requester ids to accept when a profile goes from private to public, or null for any other
+// update, so the trigger can return before reading any requests. `requests` are the pending docs as { id, data }; one whose requester_id disagrees with
+// its document id is skipped, as planFollowAccepted would refuse it anyway.
+export function planAutoAccept(before, after, requests) {
+    if (before?.is_private !== true || after?.is_private !== false) return null;
+    return (requests ?? [])
+        .filter(({ id, data }) => data?.status === "pending" && data.requester_id === id)
+        .map(({ id }) => id);
+}
+
+// Validates removeFollower's input against the caller: a non-empty id that is not the caller.
+export function removeFollowerTarget(data, uid) {
+    const followerId = data?.followerId;
+    if (typeof followerId !== "string" || followerId.trim() === "" || followerId === uid) return null;
+    return followerId;
 }

@@ -289,6 +289,26 @@ struct UserManagerTests {
         #expect(manager.incomingFollowRequests.isEmpty)
     }
 
+    /// Requests arrive live after sign-in, without a fetch, and stop arriving after sign-out.
+    @Test("Test Incoming Requests Arrive Live Until Sign Out")
+    func testIncomingRequestsArriveLiveUntilSignOut() async throws {
+        let queries = MockUserQueryService()
+        let manager = try await recordingManager(UserModel(userId: "me"), queryService: queries).manager
+        #expect(manager.incomingFollowRequests.isEmpty)
+
+        try await queries.sendFollowRequest(pending(from: "fan"), targetId: "me")
+        try await queries.sendFollowRequest(pending(from: "other"), targetId: "someone-else")
+
+        #expect(await TestManagers.eventually { manager.incomingFollowRequests.map(\.requesterId) == ["fan"] })
+
+        try await queries.deleteFollowRequest(requesterId: "fan", targetId: "me")
+        #expect(await TestManagers.eventually { manager.incomingFollowRequests.isEmpty })
+
+        manager.signOut()
+        try await queries.sendFollowRequest(pending(from: "late"), targetId: "me")
+        #expect(manager.incomingFollowRequests.isEmpty)
+    }
+
     /// Accepting and declining write only the status; the Cloud Function does the rest.
     @Test("Test Accept And Decline Write The Request Status")
     func testAcceptAndDeclineWriteTheRequestStatus() async throws {

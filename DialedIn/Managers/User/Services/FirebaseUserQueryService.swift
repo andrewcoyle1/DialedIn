@@ -1,5 +1,6 @@
 import Foundation
 import FirebaseFirestore
+import FirebaseFunctions
 
 struct FirebaseUserQueryService: UserQueryService {
 
@@ -72,11 +73,34 @@ struct FirebaseUserQueryService: UserQueryService {
         ])
     }
 
-    func fetchPendingFollowRequests(userId: String) async throws -> [FollowRequestModel] {
-        try await followRequests(targetId: userId)
+    private func pendingFollowRequests(targetId: String) -> Query {
+        followRequests(targetId: targetId)
             .whereField(FollowRequestModel.CodingKeys.status.rawValue, isEqualTo: FollowRequestModel.Status.pending.rawValue)
             .limit(to: 100)
-            .getAllDocuments()
+    }
+
+    func fetchPendingFollowRequests(userId: String) async throws -> [FollowRequestModel] {
+        try await pendingFollowRequests(targetId: userId).getAllDocuments()
+    }
+
+    func removeFollower(followerId: String) async throws {
+        _ = try await Functions.functions(region: "us-central1")
+            .httpsCallable("removeFollower")
+            .call(["followerId": followerId])
+    }
+
+    /// Snapshot callbacks arrive on the main queue (Firestore's default). A failed snapshot, such as
+    /// a rules rejection after sign-out, is skipped rather than clearing the list.
+    func listenToPendingFollowRequests(
+        userId: String,
+        onChange: @escaping @MainActor ([FollowRequestModel]) -> Void
+    ) -> @MainActor () -> Void {
+        let registration = pendingFollowRequests(targetId: userId).addSnapshotListener { snapshot, _ in
+            guard let snapshot else { return }
+            let requests = snapshot.documents.compactMap { try? $0.data(as: FollowRequestModel.self) }
+            MainActor.assumeIsolated { onChange(requests) }
+        }
+        return { registration.remove() }
     }
 
     /// Requests live under their target, so the reader's own outgoing ones are a collection-group

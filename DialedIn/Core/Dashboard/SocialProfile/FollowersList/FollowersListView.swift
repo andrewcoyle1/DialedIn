@@ -5,6 +5,8 @@ struct FollowersListDelegate {
     /// The screen is reached as "Followers", "Following" and "People you both follow", so the title
     /// travels with the list rather than being hardcoded to one of them.
     var title: String = "Followers"
+    /// Set only for the reader's own followers, whose rows can then be removed.
+    var canRemoveFollowers: Bool = false
 }
 
 struct FollowersListView: View {
@@ -23,7 +25,7 @@ struct FollowersListView: View {
                 )
                 .removeListRowFormatting()
             } else {
-                ForEach(delegate.followers) { user in
+                ForEach(presenter.visibleFollowers(delegate.followers)) { user in
                     UserRowView(user: user) {
                         if presenter.showsFollowButton(for: user) {
                             FollowButton(state: presenter.followState(for: user)) {
@@ -34,6 +36,16 @@ struct FollowersListView: View {
                     .tappableBackground()
                     .anyButton(.highlight) {
                         presenter.onUserPressed(user: user)
+                    }
+                    .swipeActions {
+                        if delegate.canRemoveFollowers {
+                            // Not `.destructive`: that role animates the row away before the
+                            // confirmation has been answered.
+                            Button("Remove") {
+                                presenter.onRemoveFollowerPressed(user: user)
+                            }
+                            .tint(.red)
+                        }
                     }
                 }
             }

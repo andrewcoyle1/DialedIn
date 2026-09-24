@@ -70,6 +70,10 @@ struct Constants {
     /// `userInfo` has the push's own keys — `session_id`, `session_author_id` and `type` — so
     /// `DeepLink(pushUserInfo:)` reads it back. See `DeepLink.post()`.
     static let openWorkoutSession = Notification.Name("DialedIn.OpenWorkoutSession")
+
+    /// Posted after a follow-request push tap has selected the Dashboard, asking it to open the
+    /// notifications screen. See `DeepLink.post()`.
+    static let openNotifications = Notification.Name("DialedIn.OpenNotifications")
     
     /// Map exercise template names to bundled asset names for Live Activity
     /// Returns nil for exercises without bundled images

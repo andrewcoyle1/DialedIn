@@ -45,6 +45,7 @@ struct NotificationsView: View {
         .task {
             await presenter.loadNotifications()
         }
+        .refreshable { await presenter.onPullToRefresh() }
     }
     
     @ViewBuilder
