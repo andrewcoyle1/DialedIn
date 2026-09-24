@@ -397,6 +397,8 @@ struct SocialCommentsPresenterTests {
             deletedIds.append(id)
         }
 
+        func toggleCommentLike(id: String, userId: String, isLiked: Bool) async throws { }
+
         func report(
             contentType: ReportContentType,
             contentId: String,

@@ -402,6 +402,24 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleted_at']);
       // No hard deletes
       allow delete: if false;
+
+      // MARK: - CommentLikes
+      // Any signed-in reader the comment's author has not blocked may add or remove their own id
+      // in liked_by_user_ids, one id per write, and change nothing else.
+      allow update: if isAuthed()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['liked_by_user_ids'])
+        && isOwnLikeToggle(resource.data.get('liked_by_user_ids', []), request.resource.data.liked_by_user_ids)
+        && !isBlockedBy(resource.data.author_id);
+    }
+
+    // True when `after` is `before` with exactly the caller's id added, or exactly it removed.
+    function isOwnLikeToggle(before, after) {
+      let me = [request.auth.uid].toSet();
+      return after is list
+        && ((after.size() == before.size() + 1 && after.toSet().difference(before.toSet()) == me
+             && before.toSet().difference(after.toSet()).size() == 0)
+          || (after.size() == before.size() - 1 && before.toSet().difference(after.toSet()) == me
+             && after.toSet().difference(before.toSet()).size() == 0));
     }
 
     // ---------------- USERNAMES ----------------

@@ -401,4 +401,8 @@ extension CoreInteractor {
     func deleteComment(id: String) async throws {
         try await commentsManager.deleteComment(id: id)
     }
+
+    func toggleCommentLike(id: String, userId: String, isLiked: Bool) async throws {
+        try await commentsManager.toggleCommentLike(id: id, userId: userId, isLiked: isLiked)
+    }
 }

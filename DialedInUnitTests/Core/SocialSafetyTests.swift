@@ -26,6 +26,7 @@ struct BlockedCommentsTests {
         func fetchComments(sessionId: String) async throws -> [WorkoutSessionComment] { fetched }
         func addComment(_ comment: WorkoutSessionComment) async throws { }
         func deleteComment(id: String) async throws { }
+        func toggleCommentLike(id: String, userId: String, isLiked: Bool) async throws { }
 
         func report(
             contentType: ReportContentType,
