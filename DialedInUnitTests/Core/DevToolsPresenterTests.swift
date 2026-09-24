@@ -112,7 +112,9 @@ struct DevToolsSettingsPresenterTests {
         static let exercisesVersion = "prebuiltExercisesSeedingVersionV2"
         static let workoutsSeeded = "hasSeededPrebuiltWorkouts"
         static let workoutsVersion = "prebuiltWorkoutsSeedingVersion"
-        static let all = [exercisesSeeded, exercisesVersion, workoutsSeeded, workoutsVersion]
+        static let programsSeeded = "hasSeededPrebuiltPrograms"
+        static let programsVersion = "prebuiltProgramsSeedingVersion"
+        static let all = [exercisesSeeded, exercisesVersion, workoutsSeeded, workoutsVersion, programsSeeded, programsVersion]
     }
 
     /// Marks every seeding flag as already done, and hands back a closure that puts the defaults
@@ -123,6 +125,8 @@ struct DevToolsSettingsPresenterTests {
         UserDefaults.standard.set(9, forKey: SeedingKey.exercisesVersion)
         UserDefaults.standard.set(true, forKey: SeedingKey.workoutsSeeded)
         UserDefaults.standard.set(9, forKey: SeedingKey.workoutsVersion)
+        UserDefaults.standard.set(true, forKey: SeedingKey.programsSeeded)
+        UserDefaults.standard.set(9, forKey: SeedingKey.programsVersion)
         return {
             for (key, value) in previous {
                 if let value {
@@ -172,6 +176,21 @@ struct DevToolsSettingsPresenterTests {
         #expect(!isSeeded(SeedingKey.workoutsVersion))
         #expect(isSeeded(SeedingKey.exercisesSeeded))
         #expect(isSeeded(SeedingKey.exercisesVersion))
+    }
+
+    /// The same for programs: these are the keys `TrainingProgramManager` reads.
+    @Test("Test Resetting Programs Clears Only The Program Keys")
+    func testResettingProgramsClearsOnlyTheProgramKeys() async {
+        let restore = markEverythingSeeded()
+        defer { restore() }
+        let screen = makeScreen()
+
+        await screen.presenter.resetProgramSeeding()
+
+        #expect(!isSeeded(SeedingKey.programsSeeded))
+        #expect(!isSeeded(SeedingKey.programsVersion))
+        #expect(isSeeded(SeedingKey.workoutsSeeded))
+        #expect(isSeeded(SeedingKey.exercisesSeeded))
     }
 
     /// "Reset all" means all four. Workouts reference exercises by id, so half a reset leaves

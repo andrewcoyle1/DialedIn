@@ -274,11 +274,15 @@ enum TestManagers {
 
     static func trainingProgramManager(
         programs: [TrainingProgram] = [],
-        logManager: LogManager? = nil
+        prebuilt: [TrainingProgram] = [],
+        logManager: LogManager? = nil,
+        userDefaults: UserDefaults = .standard
     ) -> TrainingProgramManager {
         TrainingProgramManager(
             trainingProgramSyncEngine: collectionEngine(programs, key: "training-programs"),
-            logManager: logManager ?? LogManager(services: [])
+            systemProgramPersistence: MockLocalCollectionPersistence(collection: prebuilt),
+            logManager: logManager ?? LogManager(services: []),
+            userDefaults: userDefaults
         )
     }
 
