@@ -67,6 +67,7 @@ struct NotificationsFollowRequestTests {
         var privateUserSettings = PrivateUserSettings()
         func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel { throw DevToolsTestError.failed }
         func fetchShare(id: String) async throws -> ShareModel { throw DevToolsTestError.failed }
+        func updatePrivateUserSettings(_ change: (inout PrivateUserSettings) -> Void) async throws { change(&privateUserSettings) }
     }
 
     private final class Router: NotificationsRouter {

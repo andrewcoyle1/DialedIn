@@ -55,6 +55,7 @@ struct NotificationTapThroughTests {
             guard let share = shares.first(where: { $0.id == id }) else { throw URLError(.fileDoesNotExist) }
             return share
         }
+        func updatePrivateUserSettings(_ change: (inout PrivateUserSettings) -> Void) async throws { change(&privateUserSettings) }
 
         func getUser(userId: String) async throws -> UserModel {
             guard let user = users.first(where: { $0.userId == userId }) else { throw URLError(.fileDoesNotExist) }

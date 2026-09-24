@@ -245,6 +245,7 @@ class UserManager {
     func saveUserFCMToken(token: String) async throws {
         var settings = privateSettings
         settings.fcmToken = token
+        settings.timezone = TimeZone.current.identifier
         try await privateSettingsSyncEngine.saveDocument(settings)
         // ponytail: legacy public copy for the Cloud Function deployed before the private doc.
         // Drop this write one release after the functions deploy that reads users/{uid}/private/settings.
@@ -696,4 +697,15 @@ extension CoreInteractor {
 extension UserManager {
     /// `queryService` is private to this file; `UserManager+Username.swift` reaches it through this.
     var usernameQueryService: any UserQueryService { queryService }
+}
+
+// MARK: - ScheduledPush
+
+extension UserManager {
+    /// Merges the streak reminder and digest fields over the private settings document.
+    func updatePrivateSettings(_ change: (inout PrivateUserSettings) -> Void) async throws {
+        var settings = privateSettings
+        change(&settings)
+        try await privateSettingsSyncEngine.saveDocument(settings)
+    }
 }

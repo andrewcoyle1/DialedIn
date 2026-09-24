@@ -21,6 +21,13 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
     var socialPushNudges: Bool?
     var socialPushMentions: Bool?
     var socialPushShares: Bool?
+    // MARK: - ScheduledPush
+    /// Local hour (0-23) for the streak reminder; nil means `defaultReminderHour`.
+    var reminderHour: Int?
+    /// IANA identifier, written with the push token, so the scheduled pushes know the user's clock.
+    var timezone: String?
+    var socialPushStreakReminder: Bool?
+    var socialPushWeeklyDigest: Bool?
 
     enum CodingKeys: String, CodingKey {
         case fcmToken = "fcm_token"
@@ -30,6 +37,11 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
         case socialPushNudges = "social_push_nudges"
         case socialPushMentions = "social_push_mentions"
         case socialPushShares = "social_push_shares"
+        // MARK: - ScheduledPush
+        case reminderHour = "reminder_hour"
+        case timezone
+        case socialPushStreakReminder = "social_push_streak_reminder"
+        case socialPushWeeklyDigest = "social_push_weekly_digest"
     }
 
     var eventParameters: [String: Any] {
@@ -70,4 +82,11 @@ struct PrivateUserSettings: DataSyncModelProtocol, Equatable {
         copy[keyPath: Self.keyPath(for: type)] = isEnabled
         return copy
     }
+}
+
+// MARK: - ScheduledPush
+
+extension PrivateUserSettings {
+    /// Must match `DEFAULT_REMINDER_HOUR` in `functions/lib.js`.
+    static let defaultReminderHour = 19
 }

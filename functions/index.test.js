@@ -5,6 +5,8 @@ import {
     buildActivityPush, buildFollowAcceptedNotification, cleanJson, followAcceptedMessage, newlyBlockedIds, normaliseName,
     planFollowAccepted, pushRecipientSettings, requireAuth, userDisplayName,
     buildFollowRequestPush, removedFollowingIds, planAutoAccept, removeFollowerTarget,
+    buildStreakReminderPush, buildWeeklyDigestPush, countTrainingSessions, digestWindowStart, isNudgeOnCooldown,
+    isStreakReminderDue, isWeeklyDigestDue, localTime,
 } from "./lib.js";
 
 test("cleanJson strips the code fences Gemini adds and leaves bare JSON alone", () => {
@@ -262,4 +264,83 @@ test("buildActivityPush sends a share push under the shares preference", () => {
     const push = buildActivityPush({ type: "share", actor_name: "Jane" }, { fcm_token: "tok" });
     assert.deepEqual(push.notification, { title: "Shared with you", body: "Jane shared a workout with you" });
     assert.equal(buildActivityPush({ type: "share" }, { fcm_token: "tok", social_push_shares: false }), null);
+});
+
+// ---------------------------------------------------------------------------
+// Scheduled pushes
+// ---------------------------------------------------------------------------
+
+test("localTime reads the user's wall clock across time zones and DST, and rejects bad zones", () => {
+    const instant = new Date("2026-03-08T12:30:00Z");
+    assert.deepEqual(localTime(instant, "Europe/London"), { date: "2026-03-08", hour: 12, weekday: 0 });
+    // US clocks sprang forward at 02:00 that morning: 12:30Z is 08:30 EDT, not 07:30 EST.
+    assert.deepEqual(localTime(instant, "America/New_York"), { date: "2026-03-08", hour: 8, weekday: 0 });
+    assert.deepEqual(localTime(instant, "Pacific/Auckland"), { date: "2026-03-09", hour: 1, weekday: 1 });
+    assert.equal(localTime(new Date("2026-06-01T12:00:00Z"), "Asia/Kolkata").hour, 17);
+    assert.equal(localTime(instant, undefined), null);
+    assert.equal(localTime(instant, "Not/AZone"), null);
+});
+
+test("the streak reminder is due only in the user's reminder hour, defaulting to 19", () => {
+    const settings = { fcm_token: "tok", timezone: "America/New_York", reminder_hour: 20 };
+    // 20:00 EST in winter is 01:00Z; after the change 20:00 EDT is 00:00Z.
+    assert.equal(isStreakReminderDue(settings, new Date("2026-01-15T01:00:00Z")), true);
+    assert.equal(isStreakReminderDue(settings, new Date("2026-01-15T00:00:00Z")), false);
+    assert.equal(isStreakReminderDue(settings, new Date("2026-07-15T00:00:00Z")), true);
+    assert.equal(isStreakReminderDue({ fcm_token: "tok", timezone: "Europe/London" }, new Date("2026-01-15T19:00:00Z")), true);
+    assert.equal(isStreakReminderDue({ ...settings, social_push_streak_reminder: false }, new Date("2026-01-15T01:00:00Z")), false);
+    assert.equal(isStreakReminderDue({ timezone: "Europe/London", reminder_hour: 19 }, new Date("2026-01-15T19:00:00Z")), false);
+    assert.equal(isStreakReminderDue(null, new Date()), false);
+});
+
+test("buildStreakReminderPush fires when the last workout was yesterday on the user's clock", () => {
+    const settings = { fcm_token: "tok", timezone: "Australia/Sydney", reminder_hour: 19 };
+    const now = new Date("2026-01-15T08:00:00Z"); // 19:00 AEDT on the 15th
+    const push = buildStreakReminderPush(settings, { current_streak: 5, date_last_event: new Date("2026-01-14T09:00:00Z") }, now);
+    assert.deepEqual(push.notification, { title: "Streak at risk", body: "Your 5-day streak ends at midnight" });
+    assert.deepEqual(push.data, { tab: "training", type: "streakReminder" });
+    assert.equal(push.token, "tok");
+    // A Firestore Timestamp is read through toDate().
+    assert.ok(buildStreakReminderPush(settings, { current_streak: 5, date_last_event: { toDate: () => new Date("2026-01-14T09:00:00Z") } }, now));
+
+    // Trained today (the 15th local, although still the 14th in UTC): no push.
+    assert.equal(buildStreakReminderPush(settings, { current_streak: 5, date_last_event: new Date("2026-01-14T22:00:00Z") }, now), null);
+    // Last workout two days ago: the streak has already gone.
+    assert.equal(buildStreakReminderPush(settings, { current_streak: 5, date_last_event: new Date("2026-01-13T09:00:00Z") }, now), null);
+    assert.equal(buildStreakReminderPush(settings, { current_streak: 0, date_last_event: new Date("2026-01-14T09:00:00Z") }, now), null);
+    assert.equal(buildStreakReminderPush(settings, undefined, now), null);
+    assert.equal(buildStreakReminderPush(settings, { current_streak: 5, date_last_event: new Date("2026-01-14T09:00:00Z") }, new Date("2026-01-15T09:00:00Z")), null);
+});
+
+test("the weekly digest is due at 18:00 on Sunday local time only", () => {
+    const settings = { fcm_token: "tok", timezone: "America/Los_Angeles" };
+    assert.equal(isWeeklyDigestDue(settings, new Date("2026-01-19T02:00:00Z")), true); // Sun 18:00 PST
+    assert.equal(isWeeklyDigestDue(settings, new Date("2026-07-20T01:00:00Z")), true); // Sun 18:00 PDT
+    assert.equal(isWeeklyDigestDue(settings, new Date("2026-01-18T18:00:00Z")), false); // Sun 10:00 PST
+    assert.equal(isWeeklyDigestDue({ fcm_token: "tok", timezone: "Europe/London" }, new Date("2026-01-17T18:00:00Z")), false); // Saturday
+    assert.equal(isWeeklyDigestDue({ ...settings, social_push_weekly_digest: false }, new Date("2026-01-19T02:00:00Z")), false);
+});
+
+test("the digest counts real sessions and needs someone followed", () => {
+    assert.equal(countTrainingSessions([{}, { deleted_at: new Date() }, { is_rest_day: true }, { is_rest_day: false }]), 2);
+    assert.equal(countTrainingSessions(undefined), 0);
+    assert.equal(digestWindowStart(new Date("2026-01-18T18:00:00Z")).toISOString(), "2026-01-11T18:00:00.000Z");
+
+    const push = buildWeeklyDigestPush({ fcm_token: "tok" }, { mine: 3, circle: 11, followingCount: 2 });
+    assert.equal(push.notification.body, "This week: you trained 3 times, your circle 11");
+    assert.deepEqual(push.data, { tab: "dashboard", type: "weeklyDigest" });
+    assert.equal(buildWeeklyDigestPush({ fcm_token: "tok" }, { mine: 1, circle: 0, followingCount: 1 }).notification.body,
+        "This week: you trained 1 time, your circle 0");
+    assert.equal(buildWeeklyDigestPush({ fcm_token: "tok" }, { mine: 3, circle: 0, followingCount: 0 }), null);
+    assert.equal(buildWeeklyDigestPush({}, { mine: 3, circle: 1, followingCount: 1 }), null);
+});
+
+test("isNudgeOnCooldown holds for just under 24 hours after the last nudge", () => {
+    const now = new Date("2026-01-15T00:01:00Z");
+    const hoursAgo = (h) => new Date(now.getTime() - h * 3600 * 1000);
+    assert.equal(isNudgeOnCooldown(hoursAgo(0.05), now), true);
+    assert.equal(isNudgeOnCooldown({ toDate: () => hoursAgo(23.99) }, now), true);
+    assert.equal(isNudgeOnCooldown(hoursAgo(24), now), false);
+    assert.equal(isNudgeOnCooldown(hoursAgo(30), now), false);
+    assert.equal(isNudgeOnCooldown(undefined, now), false);
 });

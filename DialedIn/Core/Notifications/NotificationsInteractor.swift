@@ -28,6 +28,7 @@ protocol NotificationsInteractor: FollowInteractor {
     func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel
     // MARK: - Sharing
     func fetchShare(id: String) async throws -> ShareModel
+    func updatePrivateUserSettings(_ change: (inout PrivateUserSettings) -> Void) async throws
 }
 
 extension CoreInteractor: NotificationsInteractor { }

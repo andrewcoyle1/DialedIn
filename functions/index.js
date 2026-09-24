@@ -2,11 +2,14 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import { getMessaging } from "firebase-admin/messaging";
 import {
     requireAuth, cleanJson, normaliseName, buildActivityPush, newlyBlockedIds, pushRecipientSettings,
     planFollowAccepted, buildFollowAcceptedNotification,
     buildFollowRequestPush, removedFollowingIds, planAutoAccept, removeFollowerTarget,
+    buildStreakReminderPush, isStreakReminderDue, isWeeklyDigestDue, digestWindowStart, countTrainingSessions, buildWeeklyDigestPush,
+    isNudgeOnCooldown, toDate,
 } from "./lib.js";
 import { genkit } from "genkit";
 import { vertexAI, gemini20Flash, imagen3Fast } from "@genkit-ai/vertexai";
@@ -407,6 +410,11 @@ export const onActivityNotificationCreated = onDocumentCreated(
 
         const userId = event.params.userId;
         const userRef = getFirestore().collection("users").doc(userId);
+        if (notification.type === "nudge" && await nudgeOnCooldown(userRef, event.data, notification)) {
+            await event.data.ref.delete();
+            console.log(`Nudge from ${notification.actor_id} to ${userId} dropped: cooldown.`);
+            return;
+        }
         const [userDoc, privateDoc] = await Promise.all([
             userRef.get(),
             userRef.collection("private").doc("settings").get(),
@@ -607,5 +615,79 @@ export const onUsernameChanged = onDocumentWritten(
                 tx.delete(ref);
             }
         });
+    }
+);
+
+// Scheduled pushes: nudge cooldown, streak reminder, Sunday digest
+// ---------------------------------------------------------------------------
+
+// Whether the same actor nudged this recipient within 24 hours before this nudge. Queries on
+// actor_id alone (a single-field index) and filters the type here.
+async function nudgeOnCooldown(userRef, snapshot, notification) {
+    const earlier = await userRef.collection("notifications").where("actor_id", "==", notification.actor_id).get();
+    const latest = earlier.docs
+        .filter((doc) => doc.id !== snapshot.id && doc.data().type === "nudge")
+        .map((doc) => toDate(doc.data().date_created))
+        .filter(Boolean)
+        .sort((a, b) => b - a)[0];
+    return isNudgeOnCooldown(latest, toDate(notification.date_created) ?? new Date());
+}
+
+// Every users/{uid}/private/settings doc, with its uid. Both scheduled pushes run hourly and pick
+// the users whose local hour matches, so each walks all of them.
+// ponytail: a full scan of the private group every hour; store a UTC send hour and query on it
+// once the user count makes this slow.
+async function allPrivateSettings() {
+    const snap = await getFirestore().collectionGroup("private").get();
+    return snap.docs
+        .filter((doc) => doc.id === "settings" && doc.ref.parent.parent)
+        .map((doc) => ({ uid: doc.ref.parent.parent.id, settings: doc.data() }));
+}
+
+async function sendAll(label, messages) {
+    const results = await Promise.allSettled(messages.map((message) => getMessaging().send(message)));
+    const failed = results.filter((result) => result.status === "rejected");
+    for (const result of failed) console.error(`${label} push failed: ${result.reason?.message}`);
+    console.log(`${label}: sent ${messages.length - failed.length} of ${messages.length}.`);
+}
+
+// Hourly, on the hour. In each user's reminder hour (local), a user with a live streak who has not
+// trained today is told it ends at midnight. The streak is StreakManager's document at
+// user_streaks/{uid}/workout/current_streak (SwiftfulGamification's FirebaseRemoteStreakService).
+export const streakReminder = onSchedule(
+    { schedule: "0 * * * *", timeZone: "Etc/UTC", region: REGION },
+    async () => {
+        const now = new Date();
+        const db = getFirestore();
+        const messages = await Promise.all((await allPrivateSettings()).map(async ({ uid, settings }) => {
+            if (!isStreakReminderDue(settings, now)) return null;
+            const streak = await db.collection("user_streaks").doc(uid).collection("workout").doc("current_streak").get();
+            return buildStreakReminderPush(settings, streak.data(), now);
+        }));
+        await sendAll("Streak reminder", messages.filter(Boolean));
+    }
+);
+
+// Hourly, on the hour, sending to the users for whom it is Sunday 18:00: how many sessions they
+// and the people they follow logged in the last seven days. Nobody followed, no digest.
+export const weeklyDigest = onSchedule(
+    { schedule: "0 * * * *", timeZone: "Etc/UTC", region: REGION },
+    async () => {
+        const now = new Date();
+        const since = digestWindowStart(now);
+        const users = getFirestore().collection("users");
+        const sessionsSince = async (uid) => countTrainingSessions(
+            (await users.doc(uid).collection("workout_sessions").where("date_created", ">=", since).get()).docs.map((d) => d.data())
+        );
+        const due = (await allPrivateSettings()).filter(({ settings }) => isWeeklyDigestDue(settings, now));
+        const messages = await Promise.all(due.map(async ({ uid, settings }) => {
+            const following = ((await users.doc(uid).get()).data()?.following_ids ?? []).filter((id) => id !== uid);
+            if (following.length === 0) return null;
+            const [mine, ...circle] = await Promise.all([uid, ...following].map(sessionsSince));
+            return buildWeeklyDigestPush(settings, {
+                mine, circle: circle.reduce((a, b) => a + b, 0), followingCount: following.length,
+            });
+        }));
+        await sendAll("Weekly digest", messages.filter(Boolean));
     }
 );
