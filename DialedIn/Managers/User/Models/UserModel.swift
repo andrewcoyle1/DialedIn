@@ -66,6 +66,10 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     let acceptedHealthDisclaimerDate: Date?
     let acceptedHealthPrivacyPolicyVersion: String?
     let acceptedHealthPrivacyPolicyDate: Date?
+    // MARK: - CircleGoals
+    /// Finished sessions a week the user is aiming for, 1–7. Nil until they pick one; read through
+    /// `CircleWeek.goal(for:)`, which shows it as 3.
+    let weeklySessionGoal: Int?
 
     /// The health notices the app currently presents, and the versions an acceptance is recorded
     /// against. `HealthDisclaimerPresenter` stamps these onto the profile when the user confirms.
@@ -119,7 +123,8 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         acceptedHealthDisclaimerVersion: String? = nil,
         acceptedHealthDisclaimerDate: Date? = nil,
         acceptedHealthPrivacyPolicyVersion: String? = nil,
-        acceptedHealthPrivacyPolicyDate: Date? = nil
+        acceptedHealthPrivacyPolicyDate: Date? = nil,
+        weeklySessionGoal: Int? = nil
     ) {
         self.userId = userId
         self.email = email
@@ -164,6 +169,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         self.acceptedHealthDisclaimerDate = acceptedHealthDisclaimerDate
         self.acceptedHealthPrivacyPolicyVersion = acceptedHealthPrivacyPolicyVersion
         self.acceptedHealthPrivacyPolicyDate = acceptedHealthPrivacyPolicyDate
+        self.weeklySessionGoal = weeklySessionGoal
     }
     
     init(auth: UserAuthInfo, creationVersion: String?) {
@@ -227,6 +233,7 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         case acceptedHealthDisclaimerDate = "accepted_health_disclaimer_date"
         case acceptedHealthPrivacyPolicyVersion = "accepted_health_privacy_policy_version"
         case acceptedHealthPrivacyPolicyDate = "accepted_health_privacy_policy_date"
+        case weeklySessionGoal = "weekly_session_goal"
     }
     
     var eventParameters: [String: Any] {
