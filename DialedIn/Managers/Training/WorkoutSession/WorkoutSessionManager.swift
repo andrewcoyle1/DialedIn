@@ -279,6 +279,10 @@ extension CoreInteractor {
         try await workoutSessionManager.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
     }
 
+    func fetchWorkoutSessions(authorId: String, limit: Int) async throws -> [WorkoutSessionModel] {
+        try await workoutSessionManager.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limit)
+    }
+
     func getLastCompletedSessionForTemplate(
         templateId: String,
         authorId: String,

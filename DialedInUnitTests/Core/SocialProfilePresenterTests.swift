@@ -25,7 +25,16 @@ struct SocialProfilePresenterTests {
         var followers: [UserModel] = []
         var fetchError: Error?
         var followError: Error?
+        var workoutSessions: [WorkoutSessionModel] = []
+        var activeTrainingProgram: TrainingProgram?
+        var remoteSessions: [WorkoutSessionModel] = []
         private(set) var fetchedFollowerIds: [String] = []
+        private(set) var fetchedSessionAuthorIds: [String] = []
+
+        func fetchWorkoutSessions(authorId: String, limit: Int) async throws -> [WorkoutSessionModel] {
+            fetchedSessionAuthorIds.append(authorId)
+            return remoteSessions
+        }
 
         func fetchFollowers(userId: String) async throws -> [UserModel] {
             fetchedFollowerIds.append(userId)
@@ -223,6 +232,91 @@ struct SocialProfilePresenterTests {
 
         screen.presenter.onViewAppear(delegate: profile("friend", following: []))
         #expect(!screen.presenter.isLocked)
+    }
+
+    // MARK: Sessions
+
+    /// Someone else's sessions are fetched for their user id; a locked profile fetches nothing and
+    /// shows nothing, even if sessions were somehow to hand.
+    @Test("Test Appearing Fetches Sessions For The Profile And Never For A Locked One")
+    func testAppearingFetchesSessionsForTheProfileAndNeverForALockedOne() async {
+        let screen = makeScreen()
+        screen.interactor.remoteSessions = [DashboardFixture.session(id: "s1", author: "friend", on: DashboardFixture.date(day: 2))]
+
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+        await TestManagers.eventually { !screen.presenter.sessions.isEmpty }
+        #expect(screen.interactor.fetchedSessionAuthorIds == ["friend"])
+        #expect(screen.presenter.sessions.map(\.id) == ["s1"])
+
+        let locked = makeScreen()
+        locked.interactor.remoteSessions = screen.interactor.remoteSessions
+        locked.presenter.onViewAppear(delegate: SocialProfileDelegate(user: UserModel(userId: "stranger", followingIds: [], isPrivate: true)))
+        await TestManagers.eventually { !locked.interactor.fetchedFollowerIds.isEmpty }
+        #expect(locked.interactor.fetchedSessionAuthorIds.isEmpty)
+        #expect(locked.presenter.sessions.isEmpty)
+    }
+
+    /// The reader's own profile reads the local history instead of going to the network.
+    @Test("Test The Readers Own Profile Reads Local Sessions")
+    func testTheReadersOwnProfileReadsLocalSessions() async {
+        let screen = makeScreen()
+        screen.interactor.workoutSessions = [DashboardFixture.session(id: "mine", on: DashboardFixture.date(day: 3))]
+
+        screen.presenter.onViewAppear(delegate: profile("me", following: []))
+        await TestManagers.eventually { !screen.interactor.fetchedFollowerIds.isEmpty }
+
+        #expect(screen.interactor.fetchedSessionAuthorIds.isEmpty)
+        #expect(screen.presenter.sessions.map(\.id) == ["mine"])
+    }
+
+    /// Only finished, non-rest sessions are shown, newest first.
+    @Test("Test Unfinished And Rest Sessions Are Excluded And Newest Comes First")
+    func testUnfinishedAndRestSessionsAreExcludedAndNewestComesFirst() {
+        let screen = makeScreen()
+        screen.interactor.workoutSessions = [
+            DashboardFixture.session(id: "old", on: DashboardFixture.date(day: 1)),
+            DashboardFixture.session(id: "open", on: DashboardFixture.date(day: 5), finished: false),
+            DashboardFixture.session(id: "rest", on: DashboardFixture.date(day: 6), isRestDay: true),
+            DashboardFixture.session(id: "new", on: DashboardFixture.date(day: 4))
+        ]
+
+        screen.presenter.onViewAppear(delegate: profile("me", following: []))
+
+        #expect(screen.presenter.sessions.map(\.id) == ["new", "old"])
+    }
+
+    /// Two sessions on one day are one training day; skipped and unfinished days are not days.
+    @Test("Test Training Days Has One Entry Per Day With A Finished Session")
+    func testTrainingDaysHasOneEntryPerDayWithAFinishedSession() {
+        let screen = makeScreen()
+        screen.interactor.workoutSessions = [
+            DashboardFixture.session(id: "am", on: DashboardFixture.date(day: 2, hour: 7)),
+            DashboardFixture.session(id: "pm", on: DashboardFixture.date(day: 2, hour: 18)),
+            DashboardFixture.session(id: "next", on: DashboardFixture.date(day: 3)),
+            DashboardFixture.session(id: "open", on: DashboardFixture.date(day: 4), finished: false),
+            DashboardFixture.session(id: "rest", on: DashboardFixture.date(day: 5), isRestDay: true)
+        ]
+
+        screen.presenter.onViewAppear(delegate: profile("me", following: []))
+
+        let calendar = Calendar.current
+        #expect(screen.presenter.trainingDays == [
+            calendar.startOfDay(for: DashboardFixture.date(day: 2)),
+            calendar.startOfDay(for: DashboardFixture.date(day: 3))
+        ])
+    }
+
+    /// The program line names the reader's own program, and nobody else's without a fetch.
+    @Test("Test The Program Line Shows Only On The Readers Own Profile")
+    func testTheProgramLineShowsOnlyOnTheReadersOwnProfile() {
+        let screen = makeScreen()
+        screen.interactor.activeTrainingProgram = TrainingProgram(authorId: "me", name: "5/3/1", icon: "dumbbell", colour: "blue")
+
+        screen.presenter.onViewAppear(delegate: profile("me", following: []))
+        #expect(screen.presenter.programName == "5/3/1")
+
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+        #expect(screen.presenter.programName == nil)
     }
 
     @Test("Test Leaving The Profile Is Tracked")
