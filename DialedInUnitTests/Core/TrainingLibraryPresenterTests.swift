@@ -471,7 +471,12 @@ struct TrainingProgramManagementPresenterTests {
         private(set) var alertTitles: [String] = []
 
         func showAlert(error: Error) { alertTitles.append("Error") }
-        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { alertTitles.append(title) }
+        private(set) var alertSubtitles: [String?] = []
+
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+            alertTitles.append(title)
+            alertSubtitles.append(subtitle)
+        }
         func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
 
         func showDevSettingsView() { shown.append("devSettings") }
@@ -565,6 +570,23 @@ struct TrainingProgramManagementPresenterTests {
         // And reported to the user: the program is still in the list, so the confirmed delete
         // otherwise reads as having done nothing.
         #expect(screen.router.alertTitles == ["Unable to delete program"])
+    }
+
+    /// Swiping a saved program asks first, and the question does not talk about scheduled workouts
+    /// that only the active program has.
+    @Test("Test Deleting A Saved Program Asks With Saved Program Copy")
+    func testDeletingASavedProgramAsksWithSavedProgramCopy() {
+        let push = TrainingTabFixture.program("Push Pull Legs", id: "ppl")
+        let upper = TrainingTabFixture.program("Upper Lower", id: "ul")
+        let screen = makeScreen(programs: [push, upper], active: push)
+
+        screen.presenter.showDeleteAlert(program: upper)
+        screen.presenter.showDeleteAlert(program: push)
+
+        #expect(screen.router.alertTitles == ["Delete Program", "Delete Program"])
+        #expect(screen.router.alertSubtitles.first == "Delete 'Upper Lower'? This can't be undone.")
+        #expect(screen.router.alertSubtitles.last??.contains("active program") == true)
+        #expect(screen.interactor.deletedProgramIds.isEmpty)
     }
 
     @Test("Test Pressing A Saved Program Opens That Program For Editing")

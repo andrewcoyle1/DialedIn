@@ -46,7 +46,9 @@ class TrainingProgramLibraryPresenter {
     func showDeleteAlert(program: TrainingProgram) {
         router.showAlert(
             title: "Delete Program",
-            subtitle: "Are you sure you want to delete your active program '\(program.name)'? This will remove all scheduled workouts and you'll need to create or select a new program.",
+            subtitle: program.id == activeTrainingProgram?.id
+                ? "Are you sure you want to delete your active program '\(program.name)'? This will remove all scheduled workouts and you'll need to create or select a new program."
+                : "Delete '\(program.name)'? This can't be undone.",
             buttons: {
                 AnyView(
                     Group {
