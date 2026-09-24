@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+/// The Search tab. Empty, it offers a row of shortcuts for the things a person records rather
+/// than builds, and the searches they came back to. With a query, it searches every library at
+/// once and the rows act: a workout starts, a person opens.
 struct SearchView: View {
 
     @Environment(\.colorScheme) private var colorScheme
@@ -22,32 +25,31 @@ struct SearchView: View {
                 if presenter.quickActions.isEmpty && presenter.recentQueries.isEmpty {
                     noShortcutsSection
                 } else {
-                    quickActionsGridSection
+                    quickActionsSection
                     recentSearchesSection
                 }
+            } else if presenter.hasResults || presenter.isLoadingPeople {
+                usersSection
+                exercisesSection
+                workoutsSection
+                recipesSection
+                ingredientsSection
             } else {
-                if presenter.isLoading {
-                    loadingSection
-                } else if presenter.hasResults {
-                    usersSection
-                    exercisesSection
-                    workoutsSection
-                    recipesSection
-                    ingredientsSection
-                } else {
-                    emptyResultsSection
-                }
+                emptyResultsSection
             }
         }
         .listSectionMargins(.horizontal, 0)
         .listRowSeparator(.hidden)
-        .navigationTitle("Quick Actions")
+        .navigationTitle("Search")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(
             text: $presenter.searchString,
             placement: .toolbar,
-            prompt: Text("Search exercises, workouts, recipes")
+            prompt: Text("Exercises, workouts, foods, people")
         )
+        .onSubmit(of: .search) {
+            presenter.onSearchSubmitted()
+        }
         .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
             toolbarContent
@@ -61,22 +63,29 @@ struct SearchView: View {
         .scrollIndicators(.hidden)
     }
 
-    /// Driven by the Shortcuts screen. Four hardcoded buttons before that screen existed.
-    @ViewBuilder
-    private var quickActionsGridSection: some View {
-        if !presenter.quickActions.isEmpty {
-            Section {
-                LazyVGrid(columns: [GridItem(), GridItem()]) {
-                    ForEach(presenter.quickActions) { action in
-                        QuickActionButton(
-                            title: action.title,
-                            systemImage: action.systemImage
-                        )
-                        .anyButton {
-                            presenter.onQuickActionPressed(action)
+    /// One horizontal row rather than the two-column grid it replaced: shortcuts are a way in,
+    /// not the screen's content.
+    private var quickActionsSection: some View {
+        Section {
+            if presenter.quickActions.isEmpty {
+                Button("Choose Shortcuts") {
+                    presenter.onChooseShortcutsPressed()
+                }
+                .padding(.horizontal)
+                .removeListRowFormatting()
+            } else {
+                ScrollView(.horizontal) {
+                    HStack(spacing: 8) {
+                        ForEach(presenter.quickActions) { action in
+                            QuickActionChip(title: action.title, systemImage: action.systemImage)
+                                .anyButton(.press) {
+                                    presenter.onQuickActionPressed(action)
+                                }
                         }
                     }
+                    .padding(.horizontal)
                 }
+                .scrollIndicators(.hidden)
                 .removeListRowFormatting()
             }
         }
@@ -108,19 +117,6 @@ struct SearchView: View {
         }
     }
 
-    private var loadingSection: some View {
-        Section {
-            HStack {
-                ProgressView()
-                Text("Searching...")
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.vertical, 24)
-            .removeListRowFormatting()
-        }
-    }
-
     /// `ContentUnavailableView` rather than a hand-rolled stack, so every empty state in the app
     /// looks the same.
     private var emptyResultsSection: some View {
@@ -130,14 +126,14 @@ struct SearchView: View {
         }
     }
 
-    /// The Add tab with every shortcut turned off and nothing searched yet. Without this the tab
-    /// opened onto a blank list with no way back to the Shortcuts screen.
+    /// Every shortcut turned off and nothing searched yet. Without this the tab opened onto a
+    /// blank list with no way back to the Shortcuts screen.
     private var noShortcutsSection: some View {
         Section {
             ContentUnavailableView {
-                Label("No Shortcuts", systemImage: "square.grid.2x2")
+                Label("Search", systemImage: "magnifyingglass")
             } description: {
-                Text("Pick the actions you want here, or search for an exercise, workout or recipe.")
+                Text("Find exercises, workouts, foods and people, or pick shortcuts to show here.")
             } actions: {
                 Button("Choose Shortcuts") {
                     presenter.onChooseShortcutsPressed()
@@ -147,9 +143,10 @@ struct SearchView: View {
         }
     }
 
+    /// The only section that waits on the network, so the only one with a spinner.
     @ViewBuilder
     private var usersSection: some View {
-        if !presenter.filteredUsers.isEmpty {
+        if !presenter.filteredUsers.isEmpty || presenter.isLoadingPeople {
             Section {
                 ForEach(presenter.filteredUsers) { user in
                     UserRowView(user: user) {
@@ -159,10 +156,20 @@ struct SearchView: View {
                             onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
                         )
                     }
+                    .tappableBackground()
+                    .anyButton(.highlight) {
+                        presenter.onUserPressed(user: user)
+                    }
                     .removeListRowFormatting()
                 }
             } header: {
-                Text("People")
+                HStack {
+                    Text("People")
+                    if presenter.isLoadingPeople {
+                        ProgressView()
+                            .controlSize(.mini)
+                    }
+                }
             }
         }
     }
@@ -187,13 +194,20 @@ struct SearchView: View {
             Section {
                 ForEach(presenter.filteredWorkoutTemplates) { workout in
                     let subtitle = workout.exercises.map { $0.exercise.name }.joined(separator: ", ")
-                    CustomListCellView(
-                        imageName: workout.imageURL,
-                        title: workout.name,
-                        subtitle: subtitle.isEmpty ? nil : subtitle
-                    )
-                    .anyButton(.highlight) {
-                        presenter.onWorkoutPressed(workout: workout)
+                    HStack {
+                        CustomListCellView(
+                            imageName: workout.imageURL,
+                            title: workout.name,
+                            subtitle: subtitle.isEmpty ? nil : subtitle
+                        )
+                        .anyButton(.highlight) {
+                            presenter.onWorkoutPressed(workout: workout)
+                        }
+                        Button("Start") {
+                            presenter.onStartWorkoutPressed(workout: workout)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .padding(.trailing)
                     }
                     .removeListRowFormatting()
                 }
@@ -221,7 +235,7 @@ struct SearchView: View {
     private var ingredientsSection: some View {
         if !presenter.filteredFoods.isEmpty {
             searchItemSection(
-                header: "Ingredients",
+                header: "Foods",
                 items: presenter.filteredFoods,
                 action: { item in
                     guard let item = item as? FoodModel else { return }
@@ -271,9 +285,8 @@ protocol SearchListItem: Identifiable {
     var imageURL: String? { get }
 }
 
-/// The Add tab's grid tile. Icon over title rather than a single `Label`, so the two-word and
-/// four-word shortcuts line up with each other instead of each centring their own width.
-private struct QuickActionButton: View {
+/// One shortcut in the empty state's row.
+private struct QuickActionChip: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -281,20 +294,12 @@ private struct QuickActionButton: View {
     let systemImage: String
 
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: systemImage)
-                .font(.title2)
-                .foregroundStyle(Color.accentColor)
-            Text(title)
-                .font(.subheadline.weight(.medium))
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
-        }
-        .padding(.horizontal, 8)
-        .frame(maxWidth: .infinity)
-        .frame(height: 100)
-        .background(colorScheme.backgroundPrimary, in: .containerRelative)
+        Label(title, systemImage: systemImage)
+            .font(.subheadline.weight(.medium))
+            .lineLimit(1)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 14)
+            .background(colorScheme.backgroundPrimary, in: Capsule())
     }
 }
 

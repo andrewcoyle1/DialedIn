@@ -17,148 +17,60 @@ class SearchPresenter {
     var searchString: String = ""
     
     var trimmedSearchString: String {
-        self.searchString
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .trimmingCharacters(in: .alphanumerics.inverted)
-            .lowercased()
+        Self.normalised(searchString)
     }
     
     var currentUser: UserModel? {
         interactor.currentUser
     }
 
-    var filteredExercises: [ExerciseModel] {
-        allExercises
-            .filter {
-                $0.name
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .trimmingCharacters(in: .alphanumerics.inverted)
-                    .lowercased().contains(trimmedSearchString) ||
-                $0.description?
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .trimmingCharacters(in: .alphanumerics.inverted)
-                    .lowercased()
-                    .contains(trimmedSearchString) == true ||
-                $0.muscleGroups
-                    .contains { $0.key.rawValue
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                            .trimmingCharacters(in: .alphanumerics.inverted)
-                            .lowercased()
-                            .contains(trimmedSearchString)
-                    } ||
-                $0.alternateNames
-                    .contains {
-                        $0
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                            .trimmingCharacters(in: .alphanumerics.inverted)
-                            .lowercased()
-                            .contains(trimmedSearchString)
-                    }
-            }
-            .sortedByKeyPath(keyPath: \.name, ascending: true)
+    /// Every collection is matched the same way: substring of the normalised query against each
+    /// normalised field. Five hand-copied filters used to do this, one per section.
+    private static func normalised(_ text: String) -> String {
+        text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: .alphanumerics.inverted)
+            .lowercased()
     }
 
-    var allExercises: [ExerciseModel] {
+    private func matches(_ fields: [String?]) -> Bool {
+        let query = trimmedSearchString
+        return fields.contains { $0.map { Self.normalised($0).contains(query) } == true }
+    }
+
+    var filteredExercises: [ExerciseModel] {
         interactor.allExercises
+            .filter { matches([$0.name, $0.description] + $0.muscleGroups.keys.map(\.rawValue) + $0.alternateNames) }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var filteredWorkoutTemplates: [WorkoutTemplateModel] {
-        allWorkouts
-            .filter {
-                $0.name
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .trimmingCharacters(in: .alphanumerics.inverted)
-                    .lowercased()
-                    .contains(trimmedSearchString.lowercased()) ||
-                $0.description?
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .trimmingCharacters(in: .alphanumerics.inverted)
-                    .lowercased()
-                    .contains(trimmedSearchString.lowercased()) == true ||
-                $0.exercises.contains(where: { $0.exercise.name
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                        .trimmingCharacters(in: .alphanumerics.inverted)
-                        .lowercased()
-                    .contains(trimmedSearchString.lowercased()) })
-            }
-            .sortedByKeyPath(keyPath: \.name, ascending: true)
-    }
-    
-    var allWorkouts: [WorkoutTemplateModel] {
         interactor.allWorkoutTemplates
+            .filter { matches([$0.name, $0.description] + $0.exercises.map(\.exercise.name)) }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var filteredRecipeTemplates: [RecipeTemplateModel] {
-        allRecipeTemplates
-            .filter {
-                $0.name
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .trimmingCharacters(in: .alphanumerics.inverted)
-                    .lowercased()
-                    .contains(trimmedSearchString.lowercased()) ||
-                $0.description?
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .trimmingCharacters(in: .alphanumerics.inverted)
-                    .lowercased()
-                    .contains(trimmedSearchString.lowercased()) == true ||
-                $0.ingredients
-                    .contains { value in
-                        value.name
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                            .trimmingCharacters(in: .alphanumerics.inverted)
-                            .lowercased()
-                            .contains(trimmedSearchString.lowercased())
-                    } == true
-            }
-            .sortedByKeyPath(keyPath: \.name, ascending: true)
-    }
-    
-    var allRecipeTemplates: [RecipeTemplateModel] {
         interactor.userRecipeTemplates
+            .filter { matches([$0.name, $0.description] + $0.ingredients.map(\.name)) }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
 
     var filteredFoods: [FoodModel] {
-        allFoods
-            .filter {
-                $0.name
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .trimmingCharacters(in: .alphanumerics.inverted)
-                    .lowercased()
-                    .contains(trimmedSearchString.lowercased()) ||
-                $0.description?
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .trimmingCharacters(in: .alphanumerics.inverted)
-                    .lowercased()
-                    .contains(trimmedSearchString.lowercased()) == true
-            }
+        interactor.foods
+            .filter { matches([$0.name, $0.description]) }
             .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
-    var allFoods: [FoodModel] {
-        interactor.foods
-    }
-    
     var filteredUsers: [UserModel] {
-        allUsers
-            .filter {
-                $0.firstNameCalculated?
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .trimmingCharacters(in: .alphanumerics.inverted)
-                    .lowercased().contains(trimmedSearchString) == true
-            }
-//            .sortedByKeyPath(keyPath: \.firstNameCalculated, ascending: true)
-    }
-
-    var followingUsers: [UserModel] {
-        interactor.followingUsers
-    }
-
-    var allUsers: [UserModel] {
-        followingUsers + users
+        (interactor.followingUsers + users).filter { matches([$0.firstNameCalculated]) }
     }
     
     private(set) var users: [UserModel] = []
-    private(set) var isLoading: Bool = false
+
+    /// Only the People section waits on the network. The rest is in memory and shows at once;
+    /// it used to hide behind one spinner for the whole 350ms debounce plus the round trip.
+    private(set) var isLoadingPeople: Bool = false
 
     private var searchTask: Task<Void, Never>?
 
@@ -204,8 +116,11 @@ class SearchPresenter {
         }
 
         let query = trimmedSearchString
-        searchTask = Task { 
-            isLoading = true
+        // Raised here, not in the task, so the header shows the spinner on the same tick. A task
+        // superseded by a newer query leaves the flag to that query.
+        isLoadingPeople = true
+        searchTask = Task {
+            defer { if !Task.isCancelled { isLoadingPeople = false } }
             try? await Task.sleep(for: .milliseconds(350))
             guard !Task.isCancelled else { return }
 
@@ -213,9 +128,18 @@ class SearchPresenter {
             guard !Task.isCancelled else { return }
 
             users = fetchedUsers
-            isLoading = false
-            interactor.addRecentSearch(query: query)
         }
+    }
+
+    /// Recents used to be written after the debounce, so every pause mid-word was saved as a
+    /// search. Now only a query the user committed to — submitted, or tapped a result of — is kept.
+    func onSearchSubmitted() {
+        commitRecentSearch()
+    }
+
+    private func commitRecentSearch() {
+        guard hasSearchQuery else { return }
+        interactor.addRecentSearch(query: trimmedSearchString)
     }
 
     func onSearchCleared() {
@@ -232,6 +156,7 @@ class SearchPresenter {
     }
 
     func onExercisePressed(exercise: ExerciseModel) {
+        commitRecentSearch()
         router.showExerciseDetailView(
             templateId: exercise.id,
             name: exercise.name,
@@ -241,6 +166,7 @@ class SearchPresenter {
     }
 
     func onWorkoutPressed(workout: WorkoutTemplateModel) {
+        commitRecentSearch()
         router.showWorkoutTemplateDetailView(
             delegate: WorkoutTemplateDetailDelegate(
                 workoutTemplate: workout,
@@ -254,19 +180,36 @@ class SearchPresenter {
         )
     }
 
+    /// The row's Start button: the workout is started here rather than after a detour through
+    /// its detail screen.
+    func onStartWorkoutPressed(workout: WorkoutTemplateModel) {
+        commitRecentSearch()
+        startAfterActiveSessionCheck { [weak self] in
+            try await self?.interactor.startWorkout(for: workout, in: nil)
+        }
+    }
+
     func onRecipePressed(recipe: RecipeTemplateModel) {
+        commitRecentSearch()
         router.showRecipeDetailView(
             delegate: RecipeDetailDelegate(recipeTemplate: recipe)
         )
     }
 
+    func onIngredientPressed(ingredient: FoodModel) {
+        commitRecentSearch()
+        router.showFoodDetailView(delegate: FoodDetailDelegate(food: ingredient))
+    }
+
+    /// The row used to offer Follow and nothing else; the person's profile was unreachable from here.
+    func onUserPressed(user: UserModel) {
+        commitRecentSearch()
+        router.showSocialProfileView(delegate: SocialProfileDelegate(user: user))
+    }
+
     func onRecentSearchTapped(query: String) {
         searchString = query
         performUnifiedSearch()
-    }
-    
-    func onLogWeightPressed() {
-        router.showLogWeightView()
     }
 
     func onClearRecentSearchesPressed() {
@@ -276,7 +219,7 @@ class SearchPresenter {
 
     // MARK: - Quick actions
 
-    /// The Add tab's grid, as chosen on the Shortcuts screen.
+    /// The empty state's shortcut row, as chosen on the Shortcuts screen.
     var quickActions: [QuickAction] {
         interactor.shortcutSettings.quickActions
     }
@@ -293,10 +236,13 @@ class SearchPresenter {
         )
         switch action {
         case .startWorkout:    onStartWorkoutPressed()
-        case .addExercise:     onAddExercisePressed()
         case .logMeal:         onLogMealPressed()
-        case .logWeight:       onLogWeightPressed()
-        case .browseWorkouts:  router.showWorkoutsView(delegate: WorkoutsDelegate())
+        case .logWeight:       router.showLogWeightView()
+        case .logMeasurement:  router.showBodyMetricsView(delegate: BodyMetricsDelegate())
+        case .addExercise:     router.showCreateExerciseView()
+        case .newWorkout:      router.showCreateWorkoutView(delegate: CreateWorkoutDelegate())
+        case .newFood:         router.showCreateFoodView(delegate: CreateFoodDelegate())
+        case .newRecipe:       router.showCreateRecipeView()
         case .browseExercises: onBrowseExercisesPressed()
         case .browseRecipes:   router.showRecipesView()
         }
@@ -317,6 +263,12 @@ class SearchPresenter {
     /// "Start Workout" opened the workout library, which starts nothing. It now starts a blank
     /// session the tracker fills in as it goes.
     func onStartWorkoutPressed() {
+        startAfterActiveSessionCheck { [weak self] in
+            try await self?.interactor.startBlankWorkout()
+        }
+    }
+
+    private func startAfterActiveSessionCheck(_ start: @escaping @MainActor () async throws -> Void) {
         if interactor.activeSession != nil {
             router.showActiveWorkoutAlert(
                 onResume: { [weak self] in
@@ -325,18 +277,18 @@ class SearchPresenter {
                 onReplace: { [weak self] in
                     Task { @MainActor in
                         try? self?.interactor.deleteActiveSession()
-                        await self?.startBlankWorkout()
+                        await self?.startThenShowTracker(start)
                     }
                 }
             )
         } else {
-            Task { await startBlankWorkout() }
+            Task { await startThenShowTracker(start) }
         }
     }
 
-    private func startBlankWorkout() async {
+    private func startThenShowTracker(_ start: @MainActor () async throws -> Void) async {
         do {
-            try await interactor.startBlankWorkout()
+            try await start()
             router.showWorkoutTrackerView()
         } catch {
             router.showSimpleAlert(title: "Could Not Start Workout", subtitle: "Please try again.")
@@ -388,14 +340,6 @@ class SearchPresenter {
         }
     }
 
-    func onIngredientPressed(ingredient: FoodModel) {
-        router.showFoodDetailView(delegate: FoodDetailDelegate(food: ingredient))
-    }
-    
-    func onAddExercisePressed() {
-        router.showCreateExerciseView()
-    }
-
     func onFollowPressed(user: UserModel) {
         Task {
             do {
@@ -416,7 +360,7 @@ class SearchPresenter {
         }
     }
 
-    /// The empty Add tab's way back to the screen that fills it.
+    /// The way to the screen that fills the shortcut row.
     func onChooseShortcutsPressed() {
         router.showShortcutsView(delegate: ShortcutsDelegate())
     }

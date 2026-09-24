@@ -17,7 +17,7 @@ class ShortcutsPresenter {
         self.settings = interactor.shortcutSettings
     }
 
-    /// In the order they appear on the Add tab.
+    /// In the order they appear on the Search tab.
     var quickActions: [QuickAction] {
         settings.quickActions
     }
@@ -27,12 +27,6 @@ class ShortcutsPresenter {
     var availableActions: [QuickAction] {
         let shown = Set(quickActions)
         return QuickAction.allCases.filter { !shown.contains($0) }
-    }
-
-    /// The grid is two columns, so an odd count leaves a half-empty row. Not prevented — someone may
-    /// want exactly three — but worth saying out loud on the screen.
-    var hasOddCount: Bool {
-        !quickActions.isEmpty && !quickActions.count.isMultiple(of: 2)
     }
 
     func onAddPressed(_ action: QuickAction) {

@@ -7,7 +7,7 @@
 
 @MainActor
 protocol SearchInteractor: GlobalInteractor {
-    /// Which quick actions the Add tab shows — see `ShortcutsView`.
+    /// Which quick actions the Search tab shows — see `ShortcutsView`.
     var shortcutSettings: ShortcutSettings { get }
     var userImageUrl: String? { get }
     var currentUser: UserModel? { get }
@@ -16,7 +16,6 @@ protocol SearchInteractor: GlobalInteractor {
     var recentSearchQueries: [String] { get }
     var allExercises: [ExerciseModel] { get }
     var allWorkoutTemplates: [WorkoutTemplateModel] { get }
-    var userWorkoutTemplates: [WorkoutTemplateModel] { get }
     var userRecipeTemplates: [RecipeTemplateModel] { get }
     var foods: [FoodModel] { get }
     var followingUsers: [UserModel] { get }
@@ -26,9 +25,7 @@ protocol SearchInteractor: GlobalInteractor {
     func deleteActiveSession() throws
     func searchUsers(query: String) async throws -> [UserModel]
     func addRecentSearch(query: String)
-    func updateActiveSession(_ session: WorkoutSessionModel) throws
     func clearRecentSearches()
-    func getPreference(templateId: String) -> ExerciseUnitPreference
     func followUser(userId: String) async throws
     func unfollowUser(userId: String) async throws
 }

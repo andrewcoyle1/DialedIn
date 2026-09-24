@@ -425,17 +425,33 @@ struct AppShellTabBarPresenterTests {
         #expect(screen.presenter.selectedTabTitle == "Analytics")
     }
 
-    /// The in-app route: the Dashboard's empty feed sending the user to the Add tab's people
+    /// The in-app route: the Dashboard's empty feed sending the user to the Search tab's people
     /// search, without iOS prompting to open the app from itself.
     @Test("Test An In App Request Selects The Tab")
     func testAnInAppRequestSelectsTheTab() {
         let screen = makeScreen()
 
         screen.presenter.onSelectTabNotificationReceived(
-            Notification(name: Constants.selectTab, object: nil, userInfo: ["tab": "add"])
+            Notification(name: Constants.selectTab, object: nil, userInfo: ["tab": "search"])
         )
 
-        #expect(screen.presenter.selectedTabTitle == "Add")
+        #expect(screen.presenter.selectedTabTitle == "Search")
+    }
+
+    /// The search tab was called "Add" until it settled on being search. Links and pushes written
+    /// against the old name still land on it rather than doing nothing.
+    @Test("Test The Old Add Name Still Reaches The Search Tab")
+    func testTheOldAddNameStillReachesTheSearchTab() throws {
+        let screen = makeScreen()
+
+        screen.presenter.onOpenURL(try #require(URL(string: "compound://tab/add")))
+        #expect(screen.presenter.selectedTabTitle == "Search")
+
+        screen.presenter.selectedTabTitle = "Training"
+        screen.presenter.onSelectTabNotificationReceived(
+            Notification(name: Constants.selectTab, object: nil, userInfo: ["tab": "add"])
+        )
+        #expect(screen.presenter.selectedTabTitle == "Search")
     }
 
     /// A push with no destination in it is dropped silently. It is not an error — plenty of

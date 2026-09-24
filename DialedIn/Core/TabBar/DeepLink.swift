@@ -16,14 +16,20 @@ enum DeepLink: Equatable {
 
     case tab(Tab)
 
-    /// The tab bar's roots. `add` is the search tab, which SwiftUI owns through
-    /// `Tab(role: .search)`; it still selects by title like the rest.
+    /// The tab bar's roots. `search` is SwiftUI's own tab, owned through `Tab(role: .search)`;
+    /// it still selects by title like the rest.
     enum Tab: String, CaseIterable, Identifiable {
         case dashboard
         case training
         case nutrition
         case analytics
-        case add
+        case search
+
+        /// The search tab was labelled "Add" until it settled on being search. Links and push
+        /// payloads written against the old name still land on it.
+        init?(name: String) {
+            self.init(rawValue: name == "add" ? "search" : name)
+        }
 
         var id: String { rawValue }
 
@@ -52,7 +58,7 @@ enum DeepLink: Equatable {
             .lowercased()
 
         guard host == "tab" else { return nil }
-        guard let name = firstPath ?? queryName, let tab = Tab(rawValue: name) else { return nil }
+        guard let name = firstPath ?? queryName, let tab = Tab(name: name) else { return nil }
         self = .tab(tab)
     }
 
@@ -77,7 +83,7 @@ enum DeepLink: Equatable {
             self.init(url: url)
             return
         }
-        if let name = (pushUserInfo["tab"] as? String)?.lowercased(), let tab = Tab(rawValue: name) {
+        if let name = (pushUserInfo["tab"] as? String)?.lowercased(), let tab = Tab(name: name) {
             self = .tab(tab)
             return
         }

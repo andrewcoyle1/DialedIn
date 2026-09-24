@@ -14,13 +14,17 @@ protocol SearchRouter: GlobalRouter {
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate)
     func showRecipeDetailView(delegate: RecipeDetailDelegate)
     func showFoodDetailView(delegate: FoodDetailDelegate)
+    func showSocialProfileView(delegate: SocialProfileDelegate)
     func showRecipesView()
     func showAddMealView(delegate: AddMealDelegate)
-    func showWorkoutsView(delegate: WorkoutsDelegate)
     func showCreateExerciseView()
+    func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
+    func showCreateFoodView(delegate: CreateFoodDelegate)
+    func showCreateRecipeView()
     func showExerciseListBuilderView(delegate: ExerciseListBuilderDelegate)
     func showWorkoutTrackerView()
     func showLogWeightView()
+    func showBodyMetricsView(delegate: BodyMetricsDelegate)
     func showShortcutsView(delegate: ShortcutsDelegate)
 }
 

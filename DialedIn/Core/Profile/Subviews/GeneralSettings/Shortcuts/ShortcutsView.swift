@@ -13,7 +13,7 @@ struct ShortcutsView: View {
         List {
             Section {
                 if presenter.quickActions.isEmpty {
-                    Text("No shortcuts. The Add tab will show only search until you add one.")
+                    Text("No shortcuts. The Search tab will show only recent searches until you add one.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 } else {
@@ -24,13 +24,9 @@ struct ShortcutsView: View {
                     .onMove { presenter.onMove(from: $0, to: $1) }
                 }
             } header: {
-                Text("On the Add Tab")
+                Text("On the Search Tab")
             } footer: {
-                if presenter.hasOddCount {
-                    Text("Tap Edit to reorder or remove. An odd number leaves a gap in the two-column grid.")
-                } else {
-                    Text("Tap Edit to reorder or remove.")
-                }
+                Text("Tap Edit to reorder or remove.")
             }
 
             if !presenter.availableActions.isEmpty {

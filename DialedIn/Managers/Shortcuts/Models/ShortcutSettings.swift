@@ -5,7 +5,7 @@
 
 import Foundation
 
-/// Which quick actions the Add tab shows, and in what order.
+/// Which quick actions the Search tab's empty state shows, and in what order.
 ///
 /// Backs the Shortcuts screen, which was a `Text("Hello, World!")` under a "Toolbar" header with a
 /// Save button whose action was empty. The Add tab's grid was four hardcoded buttons.
@@ -49,29 +49,38 @@ struct ShortcutSettings: DataSyncModelProtocol {
     }
 }
 
-/// Everything the Add tab can offer. Each case maps to a route `SearchRouter` already declares, so
-/// this list is bounded by what that screen can actually reach.
+/// Everything the Search tab can offer. Each case maps to a route `SearchRouter` declares, so this
+/// list is bounded by what that screen can actually reach.
+///
+/// `browse_workouts` was dropped: it opened the same library "Start Workout" used to, and Start
+/// Workout now starts one. A stored id for it decodes to nothing, see `quickActions`.
 enum QuickAction: String, CaseIterable, Identifiable, Codable {
     case startWorkout = "start_workout"
-    case addExercise = "add_exercise"
     case logMeal = "log_meal"
     case logWeight = "log_weight"
-    case browseWorkouts = "browse_workouts"
+    case logMeasurement = "log_measurement"
+    case addExercise = "add_exercise"
+    case newWorkout = "new_workout"
+    case newFood = "new_food"
+    case newRecipe = "new_recipe"
     case browseExercises = "browse_exercises"
     case browseRecipes = "browse_recipes"
 
     var id: String { rawValue }
 
-    /// The four the grid was hardcoded to, so an existing user sees no change until they choose one.
-    static let defaultActions: [QuickAction] = [.startWorkout, .addExercise, .logMeal, .logWeight]
+    /// The things a person records rather than builds: what the other tabs leave furthest away.
+    static let defaultActions: [QuickAction] = [.startWorkout, .logMeal, .logWeight, .logMeasurement]
 
     var title: String {
         switch self {
         case .startWorkout:    return "Start Workout"
-        case .addExercise:     return "Add Exercise"
         case .logMeal:         return "Log Meal"
         case .logWeight:       return "Log Weight"
-        case .browseWorkouts:  return "Workouts"
+        case .logMeasurement:  return "Log Measurement"
+        case .addExercise:     return "New Exercise"
+        case .newWorkout:      return "New Workout"
+        case .newFood:         return "New Food"
+        case .newRecipe:       return "New Recipe"
         case .browseExercises: return "Exercises"
         case .browseRecipes:   return "Recipes"
         }
@@ -80,12 +89,15 @@ enum QuickAction: String, CaseIterable, Identifiable, Codable {
     var systemImage: String {
         switch self {
         case .startWorkout:    return "play.circle.fill"
-        case .addExercise:     return "plus.circle.fill"
         case .logMeal:         return "fork.knife"
         case .logWeight:       return "scalemass"
-        case .browseWorkouts:  return "figure.strengthtraining.traditional"
+        case .logMeasurement:  return "ruler"
+        case .addExercise:     return "figure.strengthtraining.traditional"
+        case .newWorkout:      return "list.bullet.clipboard"
+        case .newFood:         return "carrot"
+        case .newRecipe:       return "book.closed"
         case .browseExercises: return "dumbbell"
-        case .browseRecipes:   return "book.closed"
+        case .browseRecipes:   return "books.vertical"
         }
     }
 }
