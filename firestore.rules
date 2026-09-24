@@ -217,12 +217,14 @@ service cloud.firestore {
       // their uid, and may delete it to cancel. The target reads their requests and may change only
       // `status`, to accepted or declined. Acting on an acceptance is the onFollowRequestUpdated
       // Cloud Function's job, since only the server can write the requester's document.
+      // Someone the target has blocked cannot ask.
       match /follow_requests/{requester_id} {
         allow read: if isAuthed() && request.auth.uid == user_id;
         allow create, update: if isAuthed() && request.auth.uid == requester_id
                               && requester_id != user_id
                               && request.resource.data.requester_id == requester_id
-                              && request.resource.data.status == 'pending';
+                              && request.resource.data.status == 'pending'
+                              && !isBlockedBy(user_id);
         allow update: if isAuthed() && request.auth.uid == user_id
                       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
                       && request.resource.data.status in ['accepted', 'declined'];
