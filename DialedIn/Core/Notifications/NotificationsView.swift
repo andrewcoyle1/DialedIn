@@ -84,6 +84,7 @@ struct NotificationsView: View {
             Toggle("Mentions", isOn: $presenter.isMentionsPushEnabled)
             Toggle("New followers", isOn: $presenter.isFollowsPushEnabled)
             Toggle("Nudges", isOn: $presenter.isNudgesPushEnabled)
+            scheduledPushRows
         } header: {
             Text("Social")
         } footer: {
@@ -272,4 +273,22 @@ extension CoreRouter {
         builder.notificationsView(router: router)
     }
     
+}
+
+// MARK: - ScheduledPush
+
+extension NotificationsView {
+    @ViewBuilder
+    var scheduledPushRows: some View {
+        Toggle("Streak reminder", isOn: $presenter.isStreakReminderEnabled)
+        if presenter.isStreakReminderEnabled {
+            Picker("Remind me at", selection: $presenter.streakReminderHour) {
+                ForEach(0..<24, id: \.self) { hour in
+                    Text(Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: .now) ?? .now, format: .dateTime.hour())
+                        .tag(hour)
+                }
+            }
+        }
+        Toggle("Weekly digest", isOn: $presenter.isWeeklyDigestEnabled)
+    }
 }

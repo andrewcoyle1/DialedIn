@@ -49,6 +49,8 @@ struct NotificationTapThroughTests {
             return session
         }
 
+        func updatePrivateUserSettings(_ change: (inout PrivateUserSettings) -> Void) async throws { change(&privateUserSettings) }
+
         func getUser(userId: String) async throws -> UserModel {
             guard let user = users.first(where: { $0.userId == userId }) else { throw URLError(.fileDoesNotExist) }
             return user

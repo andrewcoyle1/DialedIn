@@ -26,6 +26,7 @@ protocol NotificationsInteractor: FollowInteractor {
     func getUser(userId: String) async throws -> UserModel
     func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws
     func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel
+    func updatePrivateUserSettings(_ change: (inout PrivateUserSettings) -> Void) async throws
 }
 
 extension CoreInteractor: NotificationsInteractor { }

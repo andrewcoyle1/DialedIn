@@ -220,6 +220,8 @@ struct UserManagerTests {
         try await recording.manager.saveUserFCMToken(token: "abc-123")
 
         #expect(recording.privateRemote.saves.last?.fcmToken == "abc-123")
+        // The scheduled pushes read the user's clock from here.
+        #expect(recording.privateRemote.saves.last?.timezone == TimeZone.current.identifier)
         #expect(recording.remote.updates.last?[UserModel.CodingKeys.fcmToken.rawValue] as? String == "abc-123")
     }
 

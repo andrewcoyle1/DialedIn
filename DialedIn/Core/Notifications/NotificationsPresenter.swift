@@ -253,3 +253,60 @@ extension NotificationsPresenter {
         }
     }
 }
+
+// MARK: - ScheduledPush
+
+extension NotificationsPresenter {
+    /// The streak reminder, its hour, and the Sunday digest. Like the Social switches, each writes
+    /// the moment it changes and reads back from the private settings document.
+    var isStreakReminderEnabled: Bool {
+        get { interactor.privateUserSettings.socialPushStreakReminder ?? true }
+        set { updateScheduledPush(.streakReminder(isEnabled: newValue)) { $0.socialPushStreakReminder = newValue } }
+    }
+
+    var streakReminderHour: Int {
+        get { interactor.privateUserSettings.reminderHour ?? PrivateUserSettings.defaultReminderHour }
+        set { updateScheduledPush(.reminderHour(hour: newValue)) { $0.reminderHour = newValue } }
+    }
+
+    var isWeeklyDigestEnabled: Bool {
+        get { interactor.privateUserSettings.socialPushWeeklyDigest ?? true }
+        set { updateScheduledPush(.weeklyDigest(isEnabled: newValue)) { $0.socialPushWeeklyDigest = newValue } }
+    }
+
+    private func updateScheduledPush(_ event: ScheduledPushEvent, _ change: @escaping (inout PrivateUserSettings) -> Void) {
+        interactor.trackEvent(event: event)
+        Task {
+            do {
+                try await interactor.updatePrivateUserSettings(change)
+            } catch {
+                router.showAlert(error: error)
+            }
+        }
+    }
+
+    enum ScheduledPushEvent: LoggableEvent {
+        case streakReminder(isEnabled: Bool)
+        case reminderHour(hour: Int)
+        case weeklyDigest(isEnabled: Bool)
+
+        var eventName: String {
+            switch self {
+            case .streakReminder: return "NotificationsView_StreakReminder_Toggle"
+            case .reminderHour: return "NotificationsView_ReminderHour_Changed"
+            case .weeklyDigest: return "NotificationsView_WeeklyDigest_Toggle"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .streakReminder(let isEnabled), .weeklyDigest(let isEnabled):
+                return ["is_enabled": isEnabled]
+            case .reminderHour(let hour):
+                return ["hour": hour]
+            }
+        }
+
+        var type: LogType { .analytic }
+    }
+}
