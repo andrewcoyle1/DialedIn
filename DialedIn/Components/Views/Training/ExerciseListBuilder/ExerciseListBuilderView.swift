@@ -54,58 +54,60 @@ struct ExerciseListBuilderView: View {
     /// while you do it. A chip tints and counts itself when its dimension is narrowing the list.
     private var filterSection: some View {
         ScrollView(.horizontal) {
-            HStack {
-                resetChip
-                    .padding(.leading)
+            GlassEffectContainer(spacing: 8) {
+                HStack {
+                    resetChip
+                        .padding(.leading)
 
-                gymChip
+                    gymChip
 
-                multiSelectChip(
-                    "Type",
-                    systemImage: "signpost.right",
-                    options: ExerciseType.allCases,
-                    name: \.name,
-                    selection: $presenter.filters.types
-                )
+                    multiSelectChip(
+                        "Type",
+                        systemImage: "signpost.right",
+                        options: ExerciseType.allCases,
+                        name: \.name,
+                        selection: $presenter.filters.types
+                    )
 
-                multiSelectChip(
-                    "Laterality",
-                    systemImage: "arrowshape.left.arrowshape.right",
-                    options: Laterality.allCases,
-                    name: \.name,
-                    selection: $presenter.filters.lateralities
-                )
+                    multiSelectChip(
+                        "Laterality",
+                        systemImage: "arrowshape.left.arrowshape.right",
+                        options: Laterality.allCases,
+                        name: \.name,
+                        selection: $presenter.filters.lateralities
+                    )
 
-                multiSelectChip(
-                    "Resistance",
-                    systemImage: "scalemass",
-                    options: EquipmentKind.allCases,
-                    name: \.sectionTitle,
-                    selection: $presenter.filters.resistanceKinds
-                )
+                    multiSelectChip(
+                        "Resistance",
+                        systemImage: "scalemass",
+                        options: EquipmentKind.allCases,
+                        name: \.sectionTitle,
+                        selection: $presenter.filters.resistanceKinds
+                    )
 
-                multiSelectChip(
-                    "Support",
-                    systemImage: "bed.double",
-                    options: EquipmentKind.allCases,
-                    name: \.sectionTitle,
-                    selection: $presenter.filters.supportKinds
-                )
+                    multiSelectChip(
+                        "Support",
+                        systemImage: "bed.double",
+                        options: EquipmentKind.allCases,
+                        name: \.sectionTitle,
+                        selection: $presenter.filters.supportKinds
+                    )
 
-                ratingChip(
-                    "Range of Motion",
-                    systemImage: "arrowshape.left.arrowshape.right",
-                    minimum: $presenter.filters.minimumRangeOfMotion
-                )
+                    ratingChip(
+                        "Range of Motion",
+                        systemImage: "arrowshape.left.arrowshape.right",
+                        minimum: $presenter.filters.minimumRangeOfMotion
+                    )
 
-                ratingChip(
-                    "Stability",
-                    systemImage: "camera.metering.center.weighted.average",
-                    minimum: $presenter.filters.minimumStability
-                )
+                    ratingChip(
+                        "Stability",
+                        systemImage: "camera.metering.center.weighted.average",
+                        minimum: $presenter.filters.minimumStability
+                    )
 
-                libraryChip
-                    .padding(.trailing)
+                    libraryChip
+                        .padding(.trailing)
+                }
             }
         }
         .scrollIndicators(.hidden)
@@ -118,7 +120,7 @@ struct ExerciseListBuilderView: View {
         if presenter.filters.isActive {
             Image(systemName: "arrow.counterclockwise")
                 .padding(8)
-                .glassEffect(.clear)
+                .glassEffect(.clear.interactive())
                 .anyButton {
                     presenter.onResetFiltersPressed()
                 }
@@ -246,7 +248,7 @@ struct ExerciseListBuilderView: View {
         .lineLimit(1)
         .padding(8)
         .foregroundStyle(isActive ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
-        .glassEffect(.clear)
+        .glassEffect(.clear.interactive())
     }
 
     private var userExercisesSection: some View {

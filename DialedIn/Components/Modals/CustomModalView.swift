@@ -63,8 +63,7 @@ struct CustomModalView: View {
         }
         .multilineTextAlignment(.center)
         .padding(16)
-        .glassEffect(.regular, in: .rect)
-        .cornerRadius(24)
+        .glassEffect(.regular, in: .rect(cornerRadius: 24))
         .padding(40)
     }
 }
