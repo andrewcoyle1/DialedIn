@@ -407,15 +407,13 @@ class UserManager {
 
     // MARK: - User deletion
     
-    /// Deletes the user profile document and clears local state.
-    /// Note: This method only handles user profile deletion. The caller (typically CoreInteractor)
-    /// is responsible for orchestrating deletion of related data (workout sessions, exercise history, templates, etc.)
-    func deleteCurrentUser() async throws {
-        // Best effort: most users never wrote the private document, and deleting nothing is not a failure.
-        try? await privateSettingsSyncEngine.deleteDocument()
-        try await userSyncEngine.deleteDocument()
-        // Reset UserManager state (does not sign out Auth)
+    /// Stops this manager's listeners, then deletes the user document. Everything else — the
+    /// subcollections (private settings included) and the user's traces in other people's data —
+    /// is deleted by the `onUserDeleted` Cloud Function, so no listener here is left attached to a
+    /// document it is about to lose. Does not sign out of Auth.
+    func deleteCurrentUser(userId: String) async throws {
         signOut()
+        try await userSyncEngine.deleteDocument(id: userId)
     }
         
     enum UserManagerError: LocalizedError {

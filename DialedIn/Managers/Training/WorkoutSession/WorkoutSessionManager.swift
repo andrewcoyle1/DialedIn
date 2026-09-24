@@ -105,17 +105,6 @@ class WorkoutSessionManager {
     func deleteWorkoutSession(id: String) async throws {
         try await userWorkoutSessionSyncEngine.deleteDocument(id: id)
     }
-
-    func deleteAllWorkoutSessionsForAuthor(authorId: String) async throws {
-        await withTaskGroup(of: Void.self) { group in
-            for workoutSession in workoutSessions.filter({ $0.authorId == authorId }) {
-                group.addTask {
-                    try? await self.deleteWorkoutSession(id: workoutSession.id)
-                }
-            }
-            await group.waitForAll()
-        }
-    }
     
     // MARK: - Read
 
@@ -278,10 +267,6 @@ extension CoreInteractor {
 
     func deleteWorkoutSession(id: String) async throws {
         try await workoutSessionManager.deleteWorkoutSession(id: id)
-    }
-
-    func deleteAllWorkoutSessionsForAuthor(authorId: String) async throws {
-        try await workoutSessionManager.deleteAllWorkoutSessionsForAuthor(authorId: authorId)
     }
 
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel {

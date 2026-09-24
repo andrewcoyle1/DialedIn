@@ -278,16 +278,6 @@ struct WorkoutSessionManagerTests {
         #expect(!manager.workoutSessions.map(\.id).contains("s2"))
     }
 
-    @Test("Test Deleting An Author's Sessions Empties Their History")
-    func testDeletingAnAuthorsSessionsEmptiesTheirHistory() async throws {
-        let manager = await TestManagers.signedInWorkoutSessionManager(sessions: history)
-
-        try await manager.deleteAllWorkoutSessionsForAuthor(authorId: "author-1")
-
-        let emptied = await TestManagers.eventually { manager.workoutSessions.isEmpty }
-        #expect(emptied)
-    }
-
     // MARK: - The session in progress
 
     /// A workout being tracked is not history yet, so it must not show up among the logged ones.
