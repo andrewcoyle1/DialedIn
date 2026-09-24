@@ -40,8 +40,7 @@ struct ActivityNotificationBannerView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(.regularMaterial, in: Capsule())
-        .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
+        .glassEffect()
         .padding(.horizontal, 20)
     }
 }

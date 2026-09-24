@@ -65,8 +65,7 @@ struct ProfileModalView: View {
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(.thinMaterial)
-        .cornerRadius(16)
+        .glassEffect(.regular, in: .rect(cornerRadius: 16))
     }
 }
 
