@@ -53,6 +53,8 @@ struct DashboardView<
         .onNotificationReceived(name: Constants.openWorkoutSession) { notification in
             presenter.onOpenWorkoutSessionNotificationReceived(notification)
         }
+        // A follow-request push tap — see `DeepLink.post()`.
+        .onNotificationReceived(name: Constants.openNotifications) { _ in presenter.onPushNotificationsPressed() }
         .task {
             await presenter.loadNotifications()
             await presenter.loadSuggestedUsers()

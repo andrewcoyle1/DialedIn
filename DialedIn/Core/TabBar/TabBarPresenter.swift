@@ -58,6 +58,15 @@ class TabBarPresenter {
             // The Dashboard is where a session opens from; it hears the request and fetches it.
             selectedTabTitle = DeepLink.Tab.dashboard.title
             deepLink.post()
+        case .notifications:
+            interactor.trackEvent(
+                eventName: "TabBarView_DeepLink_Notifications",
+                parameters: nil,
+                type: .analytic
+            )
+            // The bell lives on the Dashboard, so it opens the screen.
+            selectedTabTitle = DeepLink.Tab.dashboard.title
+            deepLink.post()
         }
     }
 

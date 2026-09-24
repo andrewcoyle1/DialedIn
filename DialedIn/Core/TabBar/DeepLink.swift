@@ -20,6 +20,10 @@ enum DeepLink: Equatable {
     /// then opens it — with its comments on top when `openComments` is set.
     case session(id: String, authorId: String, openComments: Bool)
 
+    /// The notifications screen, from a follow-request push. Lands on the Dashboard, which opens it
+    /// from its bell.
+    case notifications
+
     /// The tab bar's roots. `search` is SwiftUI's own tab, owned through `Tab(role: .search)`;
     /// it still selects by title like the rest.
     enum Tab: String, CaseIterable, Identifiable {
@@ -83,15 +87,22 @@ enum DeepLink: Equatable {
                 object: nil,
                 userInfo: ["session_id": id, "session_author_id": authorId, "type": openComments ? "comment" : "like"]
             )
+        case .notifications:
+            NotificationCenter.default.post(name: Constants.openNotifications, object: nil)
         }
     }
 
     /// The same destinations from a push payload, so a notification tap and a link agree on what
     /// they mean. Reads `deep_link` as a full URL string, then `session_id` with
-    /// `session_author_id` (both non-empty) as a session, then `tab` as a bare name.
+    /// `session_author_id` (both non-empty) as a session, then `tab` as a bare name. A
+    /// `follow_request` type opens the notifications screen, where the request is answered.
     init?(pushUserInfo: [AnyHashable: Any]) {
         if let link = pushUserInfo["deep_link"] as? String, let url = URL(string: link) {
             self.init(url: url)
+            return
+        }
+        if pushUserInfo["type"] as? String == "follow_request" {
+            self = .notifications
             return
         }
         if let id = pushUserInfo["session_id"] as? String, !id.isEmpty,
