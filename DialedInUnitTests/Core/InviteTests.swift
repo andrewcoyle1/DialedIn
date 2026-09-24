@@ -143,6 +143,7 @@ struct InviteDeepLinkTests {
 
     private final class TabBarRouterDouble: TabBarRouter {
         let router: AnyRouter = TestRouting.anyRouter
+        func showWorkoutTrackerView() { }
         func showAlert(error: Error) { }
         func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { }
         func showSimpleAlert(title: String, subtitle: String?) { }

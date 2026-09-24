@@ -335,6 +335,7 @@ struct AppShellTabBarPresenterTests {
 
     private final class Router: TabBarRouter {
         let router: AnyRouter = TestRouting.anyRouter
+        func showWorkoutTrackerView() { }
 
         func showAlert(error: Error) { }
         func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { }
