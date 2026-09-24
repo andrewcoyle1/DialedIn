@@ -28,17 +28,6 @@ private final class CreateWorkoutFlowExerciseBox {
     }
 }
 
-/// Stands in for whoever asked for a workout to be built: the start-a-workout flow hands a
-/// callback down the wizard and expects the finished template back through it.
-@MainActor
-private final class CreateWorkoutFlowCreationSpy {
-    private(set) var created: [WorkoutTemplateModel] = []
-
-    var callback: @Sendable (WorkoutTemplateModel) -> Void {
-        { workout in MainActor.assumeIsolated { self.created.append(workout) } }
-    }
-}
-
 /// An exercise targeting whichever muscles the test cares about.
 @MainActor
 private func flowExercise(
@@ -104,29 +93,14 @@ struct WorkoutBuildStartPresenterTests {
         return (CreateWorkoutPresenter(interactor: Interactor(), router: router), router)
     }
 
-    /// Losing the callback here is silent until four hops later, when the built workout has
-    /// nowhere to go and never starts.
-    @Test("Test Continuing Carries The Creation Callback To The Naming Step")
-    func testContinuingCarriesTheCreationCallbackToTheNamingStep() {
-        let (presenter, router) = makeScreen()
-        let spy = CreateWorkoutFlowCreationSpy()
-
-        presenter.onContinuePressed(delegate: CreateWorkoutDelegate(onWorkoutCreated: spy.callback))
-        router.nameDelegates.first?.onWorkoutCreated?(WorkoutTemplateModel(authorId: "user-1", name: "Push"))
-
-        #expect(router.nameDelegates.count == 1)
-        #expect(spy.created.map(\.name) == ["Push"])
-    }
-
-    /// Building a workout from the library has no caller waiting on it, and the next step has to
-    /// be told that rather than handed something that makes it behave like the start flow.
-    @Test("Test No Callback Is Invented When There Was None")
-    func testNoCallbackIsInventedWhenThereWasNone() {
+    @Test("Test Continuing Opens The Naming Step")
+    func testContinuingOpensTheNamingStep() {
         let (presenter, router) = makeScreen()
 
         presenter.onContinuePressed(delegate: CreateWorkoutDelegate())
 
-        #expect(router.nameDelegates.first?.onWorkoutCreated == nil)
+        #expect(router.nameDelegates.count == 1)
+        #expect(router.nameDelegates.first?.workoutTemplate == nil)
     }
 
     /// The template being edited was dropped on this hop, so "Edit" ran the new-workout wizard and
@@ -186,17 +160,14 @@ struct WorkoutBuildNamePresenterTests {
         #expect(presenter.canSave)
     }
 
-    @Test("Test The Typed Name And The Callback Reach The Gym Step")
-    func testTheTypedNameAndTheCallbackReachTheGymStep() {
+    @Test("Test The Typed Name Reaches The Gym Step")
+    func testTheTypedNameReachesTheGymStep() {
         let (presenter, router) = makeScreen()
-        let spy = CreateWorkoutFlowCreationSpy()
         presenter.workoutName = "Push Day"
 
-        presenter.onContinuePressed(delegate: NameWorkoutDelegate(onWorkoutCreated: spy.callback))
-        router.gymDelegates.first?.onWorkoutCreated?(WorkoutTemplateModel(authorId: "user-1", name: "Push Day"))
+        presenter.onContinuePressed(delegate: NameWorkoutDelegate())
 
         #expect(router.gymDelegates.first?.name == "Push Day")
-        #expect(spy.created.count == 1)
     }
 
     @Test("Test The Name Is Trimmed Before It Travels")
@@ -322,21 +293,18 @@ struct WorkoutBuildGymChoicePresenterTests {
 
     /// The name has come two screens by now and is not shown on this one, which is exactly what
     /// makes it easy to drop here.
-    @Test("Test The Name Gym And Callback Reach The Define Step")
-    func testTheNameGymAndCallbackReachTheDefineStep() {
+    @Test("Test The Name And Gym Reach The Define Step")
+    func testTheNameAndGymReachTheDefineStep() {
         let screen = makeScreen()
-        let spy = CreateWorkoutFlowCreationSpy()
 
         screen.presenter.onGymProfilePressed(
             name: "Push Day",
             profile: profile("gym-1", name: "Home Gym"),
-            delegate: ChooseGymProfileDelegate(name: "Push Day", onWorkoutCreated: spy.callback)
+            delegate: ChooseGymProfileDelegate(name: "Push Day")
         )
-        screen.router.defineDelegates.first?.onWorkoutCreated?(WorkoutTemplateModel(authorId: "user-1", name: "Push Day"))
 
         #expect(screen.router.defineDelegates.first?.name == "Push Day")
         #expect(screen.router.defineDelegates.first?.gymProfile.id == "gym-1")
-        #expect(spy.created.count == 1)
     }
 
     @Test("Test The Template Being Edited Reaches The Define Step")

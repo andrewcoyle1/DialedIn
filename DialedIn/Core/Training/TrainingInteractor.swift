@@ -19,6 +19,7 @@ protocol TrainingInteractor: GlobalInteractor {
     func saveWorkoutSession(_ session: WorkoutSessionModel) async throws
     
     func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws
+    func startBlankWorkout() async throws
 
     func deleteActiveSession() throws
     func getPreference(templateId: String) -> ExerciseUnitPreference

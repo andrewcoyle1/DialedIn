@@ -31,8 +31,12 @@ struct SearchQuickActionTests {
         var userRecipeTemplates: [RecipeTemplateModel] = []
         var foods: [FoodModel] = []
         var followingUsers: [UserModel] = []
+        var activeSession: WorkoutSessionModel?
+        private(set) var blankWorkoutStarts = 0
 
         func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws { }
+        func startBlankWorkout() async throws { blankWorkoutStarts += 1 }
+        func deleteActiveSession() throws { activeSession = nil }
         func searchUsers(query: String) async throws -> [UserModel] { [] }
         func addRecentSearch(query: String) { }
         func updateActiveSession(_ session: WorkoutSessionModel) throws { }
@@ -74,6 +78,19 @@ struct SearchQuickActionTests {
     private func makeScreen() -> (SearchPresenter, Router) {
         let router = Router()
         return (SearchPresenter(interactor: Interactor(), router: router), router)
+    }
+
+    /// "Start Workout" opened the workout library, which starts nothing.
+    @Test("Test Start Workout Starts A Blank Session And Opens The Tracker")
+    func testStartWorkoutStartsABlankSessionAndOpensTheTracker() async {
+        let interactor = Interactor()
+        let router = Router()
+        let presenter = SearchPresenter(interactor: interactor, router: router)
+
+        presenter.onQuickActionPressed(.startWorkout)
+
+        #expect(await TestManagers.eventually { router.shown == ["workoutTracker"] })
+        #expect(interactor.blankWorkoutStarts == 1)
     }
 
     @Test("Test Browsing Exercises Opens A List Whose Rows Lead Somewhere")

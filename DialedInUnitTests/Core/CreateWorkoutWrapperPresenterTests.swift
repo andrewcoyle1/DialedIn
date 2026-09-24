@@ -28,17 +28,6 @@ private final class CreateWorkoutFlowExerciseBox {
     }
 }
 
-/// Stands in for whoever asked for a workout to be built: the start-a-workout flow hands a
-/// callback down the wizard and expects the finished template back through it.
-@MainActor
-private final class CreateWorkoutFlowCreationSpy {
-    private(set) var created: [WorkoutTemplateModel] = []
-
-    var callback: @Sendable (WorkoutTemplateModel) -> Void {
-        { workout in MainActor.assumeIsolated { self.created.append(workout) } }
-    }
-}
-
 /// An exercise targeting whichever muscles the test cares about.
 @MainActor
 private func flowExercise(
@@ -82,8 +71,7 @@ private func flowTemplateExercise(
 /// The wrapper around the define screen, which owns the Save (or Start Workout) button and turns
 /// everything the wizard gathered into a `WorkoutTemplateModel`. It is the last chance to lose
 /// what the user chose: the name from step two, the gym from step three and the exercises from
-/// step four all have to reach the saved template. It also forks — a workout built to start now
-/// is handed back to its caller, while one built from the library is saved outright.
+/// step four all have to reach the saved template.
 @MainActor
 struct WorkoutBuildWrapperPresenterTests {
 
@@ -102,19 +90,11 @@ struct WorkoutBuildWrapperPresenterTests {
         }
     }
 
-    /// `DefineWorkoutWrapperRouter` adds no requirements: the confirm path uses `showAlert`,
-    /// `showSimpleAlert` and `dismissEnvironment`, all `GlobalRouter` extension methods that
-    /// dispatch statically and never reach this double. The tests assert what was saved and what
-    /// was handed back instead.
-    /// `showAlert(title:subtitle:buttons:)` is a `GlobalRouter` requirement rather than an
-    /// extension-only helper, so this double really does intercept the save prompt.
+    /// `DefineWorkoutWrapperRouter` adds no requirements: the confirm path uses `showSimpleAlert`
+    /// and `dismissEnvironment`, `GlobalRouter` extension methods that dispatch statically and
+    /// never reach this double. The tests assert what was saved instead.
     private final class Router: DefineWorkoutWrapperRouter {
         let router: AnyRouter = TestRouting.anyRouter
-        private(set) var alertTitles: [String] = []
-
-        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
-            alertTitles.append(title)
-        }
     }
 
     private struct Screen {
@@ -136,14 +116,12 @@ struct WorkoutBuildWrapperPresenterTests {
     private func delegate(
         name: String = "Push Day",
         gymId: String = "gym-1",
-        workoutTemplate: WorkoutTemplateModel? = nil,
-        onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)? = nil
+        workoutTemplate: WorkoutTemplateModel? = nil
     ) -> DefineWorkoutWrapperDelegate {
         DefineWorkoutWrapperDelegate(
             name: name,
             gymProfile: GymProfileModel(id: gymId, authorId: "user-1", name: "Home Gym"),
-            workoutTemplate: workoutTemplate,
-            onWorkoutCreated: onWorkoutCreated
+            workoutTemplate: workoutTemplate
         )
     }
 
@@ -280,28 +258,6 @@ struct WorkoutBuildWrapperPresenterTests {
         try? await Task.sleep(for: .milliseconds(100))
         #expect(screen.interactor.savedTemplates.count == 1)
         #expect(!screen.presenter.isSaving)
-    }
-
-    // MARK: Building a workout to start right now
-
-    /// Starting a workout asks whether to keep it in the library first, and nothing happens until
-    /// that is answered.
-    ///
-    /// It used to happen regardless: the alert's buttons set a flag that was read on the very next
-    /// line, synchronously, so it was always false — tapping Yes never saved — and the screen
-    /// dismissed and started the workout immediately, likely tearing the alert down before it
-    /// could be read.
-    @Test("Test Starting A Workout Waits For The Save Answer")
-    func testStartingAWorkoutWaitsForTheSaveAnswer() {
-        let screen = makeScreen()
-        let spy = CreateWorkoutFlowCreationSpy()
-        screen.presenter.exercises = [flowTemplateExercise(exercise: flowExercise(name: "Squat"), setCount: 3)]
-
-        screen.presenter.onConfirmPressed(delegate: delegate(name: "Leg Day", gymId: "gym-7", onWorkoutCreated: spy.callback))
-
-        #expect(screen.router.alertTitles.count == 1)
-        #expect(spy.created.isEmpty)
-        #expect(screen.interactor.savedTemplates.isEmpty)
     }
 
     @Test("Test Appearing Is Tracked As A Screen View")

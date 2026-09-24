@@ -3,7 +3,6 @@ import SwiftUI
 struct ChooseGymProfileDelegate {
     let name: String
     var workoutTemplate: WorkoutTemplateModel?
-    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
 struct ChooseGymProfileView: View {

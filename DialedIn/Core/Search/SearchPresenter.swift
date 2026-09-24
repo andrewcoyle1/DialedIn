@@ -314,8 +314,33 @@ class SearchPresenter {
         )
     }
 
+    /// "Start Workout" opened the workout library, which starts nothing. It now starts a blank
+    /// session the tracker fills in as it goes.
     func onStartWorkoutPressed() {
-        router.showWorkoutsView(delegate: WorkoutsDelegate())
+        if interactor.activeSession != nil {
+            router.showActiveWorkoutAlert(
+                onResume: { [weak self] in
+                    Task { @MainActor in self?.router.showWorkoutTrackerView() }
+                },
+                onReplace: { [weak self] in
+                    Task { @MainActor in
+                        try? self?.interactor.deleteActiveSession()
+                        await self?.startBlankWorkout()
+                    }
+                }
+            )
+        } else {
+            Task { await startBlankWorkout() }
+        }
+    }
+
+    private func startBlankWorkout() async {
+        do {
+            try await interactor.startBlankWorkout()
+            router.showWorkoutTrackerView()
+        } catch {
+            router.showSimpleAlert(title: "Could Not Start Workout", subtitle: "Please try again.")
+        }
     }
 
     func onLogMealPressed() {

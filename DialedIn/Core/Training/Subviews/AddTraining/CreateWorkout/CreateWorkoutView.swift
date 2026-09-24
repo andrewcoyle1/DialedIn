@@ -9,8 +9,8 @@ import SwiftUI
 import PhotosUI
 
 struct CreateWorkoutDelegate {
+    /// Set when editing; the wizard opens prefilled and the save updates this template.
     var workoutTemplate: WorkoutTemplateModel?
-    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
 struct CreateWorkoutView: View {
@@ -69,7 +69,7 @@ extension CoreBuilder {
         if let template = delegate.workoutTemplate {
             nameWorkoutView(
                 router: router,
-                delegate: NameWorkoutDelegate(workoutTemplate: template, onWorkoutCreated: delegate.onWorkoutCreated)
+                delegate: NameWorkoutDelegate(workoutTemplate: template)
             )
         } else {
             CreateWorkoutView(

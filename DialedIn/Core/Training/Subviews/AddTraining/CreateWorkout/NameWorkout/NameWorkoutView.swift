@@ -10,7 +10,6 @@ import PhotosUI
 
 struct NameWorkoutDelegate {
     var workoutTemplate: WorkoutTemplateModel?
-    var onWorkoutCreated: (@Sendable (WorkoutTemplateModel) -> Void)?
 }
 
 struct NameWorkoutView: View {

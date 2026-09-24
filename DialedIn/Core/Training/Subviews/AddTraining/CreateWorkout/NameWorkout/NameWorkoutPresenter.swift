@@ -38,17 +38,12 @@ class NameWorkoutPresenter {
                 delegate: DefineWorkoutWrapperDelegate(
                     name: name,
                     gymProfile: gym,
-                    workoutTemplate: template,
-                    onWorkoutCreated: delegate.onWorkoutCreated
+                    workoutTemplate: template
                 )
             )
         } else {
             router.showChooseGymProfileView(
-                delegate: ChooseGymProfileDelegate(
-                    name: name,
-                    workoutTemplate: delegate.workoutTemplate,
-                    onWorkoutCreated: delegate.onWorkoutCreated
-                )
+                delegate: ChooseGymProfileDelegate(name: name, workoutTemplate: delegate.workoutTemplate)
             )
         }
     }

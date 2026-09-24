@@ -20,7 +20,10 @@ protocol SearchInteractor: GlobalInteractor {
     var userRecipeTemplates: [RecipeTemplateModel] { get }
     var foods: [FoodModel] { get }
     var followingUsers: [UserModel] { get }
+    var activeSession: WorkoutSessionModel? { get }
     func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws
+    func startBlankWorkout() async throws
+    func deleteActiveSession() throws
     func searchUsers(query: String) async throws -> [UserModel]
     func addRecentSearch(query: String)
     func updateActiveSession(_ session: WorkoutSessionModel) throws
