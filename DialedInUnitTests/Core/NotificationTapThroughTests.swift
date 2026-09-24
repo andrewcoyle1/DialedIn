@@ -61,6 +61,12 @@ struct NotificationTapThroughTests {
             guard let user = users.first(where: { $0.userId == userId }) else { throw URLError(.fileDoesNotExist) }
             return user
         }
+        // MARK: - GroupedNotifications
+        var canLoadMoreActivityNotifications = false
+        private(set) var markedReadIds: [[String]] = []
+        private(set) var fetchMoreCount = 0
+        func fetchMoreActivityNotifications() async throws { fetchMoreCount += 1 }
+        func markActivityNotificationsRead(ids: [String]) async throws { markedReadIds.append(ids) }
     }
 
     private final class Router: NotificationsRouter {
@@ -181,5 +187,70 @@ struct NotificationTapThroughTests {
 
         #expect(screen.router.alertTitles == ["Unable to Open"])
         #expect(screen.router.shown.isEmpty)
+    }
+
+    // MARK: - GroupedNotifications
+
+    private func like(_ id: String, actor: String, isRead: Bool = false, minutesAgo: Double = 0) -> ActivityNotificationModel {
+        ActivityNotificationModel(
+            id: id, type: .like, actorId: actor, actorName: actor, actorImageUrl: nil,
+            sessionId: "s1", sessionAuthorId: "author", commentText: nil,
+            dateCreated: Date(timeIntervalSince1970: 100_000 - minutesAgo * 60), isRead: isRead
+        )
+    }
+
+    @Test("Test Tapping A Group Opens Its Session Once")
+    func testTappingAGroupOpensItsSessionOnce() async throws {
+        let screen = makeScreen()
+        screen.interactor.activityNotifications = [like("a", actor: "Alice"), like("b", actor: "Bob", minutesAgo: 5)]
+        let group = try #require(screen.presenter.notificationGroups.first)
+        #expect(screen.presenter.notificationGroups.count == 1)
+
+        screen.presenter.onGroupPressed(group)
+        await TestManagers.eventually { !screen.router.shown.isEmpty }
+
+        #expect(screen.router.shown == ["session:s1"])
+        #expect(screen.interactor.sessionRequests == ["s1|author"])
+    }
+
+    @Test("Test Tapping A Group Marks Only Its Unread Members Read")
+    func testTappingAGroupMarksOnlyItsUnreadMembersRead() async throws {
+        let screen = makeScreen()
+        screen.interactor.activityNotifications = [
+            like("a", actor: "Alice"),
+            like("b", actor: "Bob", isRead: true, minutesAgo: 5),
+            like("c", actor: "Cara", minutesAgo: 10)
+        ]
+        let group = try #require(screen.presenter.notificationGroups.first)
+
+        screen.presenter.onGroupPressed(group)
+        await TestManagers.eventually { !screen.interactor.markedReadIds.isEmpty }
+
+        #expect(screen.interactor.markedReadIds == [["a", "c"]])
+    }
+
+    @Test("Test Tapping A Read Group Writes Nothing")
+    func testTappingAReadGroupWritesNothing() async throws {
+        let screen = makeScreen()
+        screen.interactor.activityNotifications = [like("a", actor: "Alice", isRead: true)]
+        let group = try #require(screen.presenter.notificationGroups.first)
+
+        screen.presenter.onGroupPressed(group)
+        await TestManagers.eventually { !screen.router.shown.isEmpty }
+
+        #expect(screen.interactor.markedReadIds.isEmpty)
+    }
+
+    @Test("Test Load More Fetches The Next Page")
+    func testLoadMoreFetchesTheNextPage() async {
+        let screen = makeScreen()
+        screen.interactor.canLoadMoreActivityNotifications = true
+        #expect(screen.presenter.canLoadMore)
+
+        screen.presenter.onLoadMorePressed()
+        await TestManagers.eventually { screen.interactor.fetchMoreCount == 1 }
+
+        #expect(screen.interactor.fetchMoreCount == 1)
+        #expect(screen.interactor.trackedEventNames.contains("NotificationsView_LoadMore_Pressed"))
     }
 }

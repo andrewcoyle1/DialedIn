@@ -17,7 +17,7 @@ class DashboardPresenter {
 
     /// The bell's badge: unread activity plus follow requests waiting on an answer, matching the tab.
     var bellBadgeCount: Int {
-        activityNotifications.filter { !$0.isRead }.count + interactor.incomingFollowRequests.count
+        NotificationGrouping.unreadGroupCount(activityNotifications) + interactor.incomingFollowRequests.count
     }
     
     /// What the feed shows: finished workouts, newest first, each one attributable to a person.

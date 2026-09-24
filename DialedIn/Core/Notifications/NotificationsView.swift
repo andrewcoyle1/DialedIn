@@ -73,7 +73,7 @@ struct NotificationsView: View {
             if presenter.activityNotifications.isEmpty {
                 emptyStateContent
             } else {
-                activityNotificationsList
+                groupedNotificationsList
             }
         }
     }
@@ -92,52 +92,6 @@ struct NotificationsView: View {
         } footer: {
             Text("Get a push when someone in your circle interacts with you, even when DialedIn is closed.")
         }
-    }
-
-    @ViewBuilder
-    private var activityNotificationsList: some View {
-        ForEach(presenter.activityNotifications) { notification in
-            activityNotificationRow(notification)
-                .swipeActions {
-                    Button(role: .destructive) {
-                        presenter.onNotificationDeleted(notification)
-                    }
-                }
-        }
-    }
-
-    /// The text is one button, and so one VoiceOver stop reading the title, the time and whether
-    /// it is unread; the follow-back button sits beside it rather than inside it, so it stays a
-    /// stop of its own instead of a button nested in a button.
-    private func activityNotificationRow(_ notification: ActivityNotificationModel) -> some View {
-        AdaptiveStack(spacing: 12) {
-            Button {
-                presenter.onNotificationPressed(notification)
-            } label: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(activityNotificationTitle(notification))
-                        .font(.headline)
-                        .foregroundStyle(notification.isRead ? .secondary : .primary)
-
-                    Text(notification.dateCreated.formatted(date: .abbreviated, time: .shortened))
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            // Read and unread differ only by text colour on screen.
-            .accessibilityValue(notification.isRead ? "" : "Unread")
-
-            if presenter.showsFollowBack(for: notification) {
-                FollowButton(state: presenter.followBackState(for: notification)) {
-                    presenter.onFollowBackPressed(notification)
-                }
-            }
-        }
-        .padding(.vertical, 4)
     }
 
     private var followRequestsSection: some View {
@@ -314,5 +268,77 @@ extension NotificationsView {
             }
         }
         Toggle("Weekly digest", isOn: $presenter.isWeeklyDigestEnabled)
+    }
+}
+
+// MARK: - GroupedNotifications
+
+extension NotificationsView {
+    @ViewBuilder
+    var groupedNotificationsList: some View {
+        ForEach(presenter.notificationGroups) { group in
+            groupedNotificationRow(group)
+                .swipeActions {
+                    Button(role: .destructive) {
+                        presenter.onGroupDeleted(group)
+                    }
+                }
+        }
+        if presenter.canLoadMore {
+            Button("Load more") {
+                presenter.onLoadMorePressed()
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    /// The text is one button, and so one VoiceOver stop reading the title, the time and whether
+    /// it is unread; the follow-back button sits beside it rather than inside it, so it stays a
+    /// stop of its own instead of a button nested in a button.
+    private func groupedNotificationRow(_ group: NotificationGroup) -> some View {
+        AdaptiveStack(spacing: 12) {
+            Button {
+                presenter.onGroupPressed(group)
+            } label: {
+                HStack(spacing: 12) {
+                    stackedAvatars(group.avatarUrls)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(group.groupedTitle ?? activityNotificationTitle(group.newest))
+                            .font(.headline)
+                            .foregroundStyle(group.isRead ? .secondary : .primary)
+
+                        Text(group.newest.dateCreated.formatted(date: .abbreviated, time: .shortened))
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            // Read and unread differ only by text colour on screen.
+            .accessibilityValue(group.isRead ? "" : "Unread")
+
+            if presenter.showsFollowBack(for: group.newest) {
+                FollowButton(state: presenter.followBackState(for: group.newest)) {
+                    presenter.onFollowBackPressed(group.newest)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    /// Up to three overlapping avatars, the most recent actor on top. Decorative: the title names them.
+    private func stackedAvatars(_ urls: [String?]) -> some View {
+        HStack(spacing: -14) {
+            ForEach(Array(urls.enumerated()), id: \.offset) { index, url in
+                UserAvatarView(imageUrl: url, size: 32)
+                    .overlay(Circle().stroke(Color(.systemBackground), lineWidth: 2))
+                    .zIndex(Double(urls.count - index))
+            }
+        }
+        .accessibilityHidden(true)
     }
 }

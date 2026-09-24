@@ -338,3 +338,50 @@ extension NotificationsPresenter {
         var type: LogType { .analytic }
     }
 }
+
+// MARK: - GroupedNotifications
+
+extension NotificationsPresenter {
+    var notificationGroups: [NotificationGroup] {
+        NotificationGrouping.group(activityNotifications)
+    }
+
+    var canLoadMore: Bool {
+        interactor.canLoadMoreActivityNotifications
+    }
+
+    /// Marks every member read and opens what the group is about. Members share a type and a
+    /// session, so the newest one stands for all of them.
+    func onGroupPressed(_ group: NotificationGroup) {
+        let unreadIds = group.unreadIds
+        if !unreadIds.isEmpty {
+            // Silent: a row left looking unread is the fallback, not an alert over the tap-through.
+            Task { try? await interactor.markActivityNotificationsRead(ids: unreadIds) }
+        }
+        onNotificationPressed(group.newest)
+    }
+
+    /// Swiping a group away removes every notification in it.
+    func onGroupDeleted(_ group: NotificationGroup) {
+        group.members.forEach(onNotificationDeleted)
+    }
+
+    func onLoadMorePressed() {
+        interactor.trackEvent(event: GroupedNotificationsEvent.loadMore)
+        Task {
+            do {
+                try await interactor.fetchMoreActivityNotifications()
+            } catch {
+                router.showAlert(error: error)
+            }
+        }
+    }
+
+    enum GroupedNotificationsEvent: LoggableEvent {
+        case loadMore
+
+        var eventName: String { "NotificationsView_LoadMore_Pressed" }
+        var parameters: [String: Any]? { nil }
+        var type: LogType { .analytic }
+    }
+}
