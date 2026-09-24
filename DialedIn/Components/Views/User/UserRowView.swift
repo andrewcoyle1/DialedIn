@@ -46,9 +46,12 @@ struct UserRowView<Trailing: View>: View {
         HStack(spacing: 12) {
             UserAvatarView(imageUrl: user.profileImageNameCalculated, size: avatarSize)
 
-            Text(displayName)
-                .font(.body.weight(.medium))
-                .lineLimit(1)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(displayName)
+                    .font(.body.weight(.medium))
+                    .lineLimit(1)
+                UsernameLabel(username: user.username)
+            }
 
             Spacer(minLength: 0)
 

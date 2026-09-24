@@ -86,6 +86,7 @@ struct AccountView: View {
 
     private var profileSection: some View {
         Section("Profile") {
+            usernameRow
             TextField("First name", text: $presenter.firstName)
                 .textContentType(.givenName)
             TextField("Last name", text: $presenter.lastName)
@@ -135,6 +136,23 @@ struct AccountView: View {
                 Text("Lifting Experience")
                     .fontWeight(.semibold)
             }
+        }
+    }
+
+    private var usernameRow: some View {
+        HStack {
+            Text("Username")
+                .fontWeight(.semibold)
+            Spacer()
+            Text(presenter.currentUser?.username.map { "@\($0)" } ?? "Not set")
+                .foregroundStyle(.secondary)
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .tappableBackground()
+        .anyButton {
+            presenter.onUsernamePressed()
         }
     }
 

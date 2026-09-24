@@ -145,7 +145,7 @@ class CommentsPresenter {
     private var knownPeople: [CommentMentionCandidate] {
         let reader = interactor.currentUser.map { [$0] } ?? []
         let users = (reader + interactor.followingUsers + (sessionAuthor.map { [$0] } ?? [])).compactMap { user in
-            user.fullNameCalculated.map { CommentMentionCandidate(id: user.userId, fullName: $0) }
+            user.fullNameCalculated.map { CommentMentionCandidate(id: user.userId, fullName: $0, username: user.username) }
         }
         let commenters = comments.compactMap { comment in
             comment.authorName.map { CommentMentionCandidate(id: comment.authorId, fullName: $0) }
@@ -155,8 +155,9 @@ class CommentsPresenter {
     }
 
     /// The letters after a trailing `@` in the draft, or nil when the draft is not mid-mention.
+    /// Digits, underscores and dots count too, since a handle can hold them.
     private var mentionQueryText: Substring? {
-        commentDraft.firstMatch(of: #/(?:^|\s)@(\p{L}+)$/#)?.output.1
+        commentDraft.firstMatch(of: #/(?:^|\s)@([\p{L}0-9_.]+)$/#)?.output.1
     }
 
     private var mentionQuery: String? {
@@ -171,21 +172,25 @@ class CommentsPresenter {
         return Array(
             knownPeople
                 .filter { $0.id != readerId }
-                .filter { $0.firstName.lowercased().hasPrefix(query) || $0.fullName.lowercased().filter { !$0.isWhitespace }.hasPrefix(query) }
+                .filter {
+                    $0.firstName.lowercased().hasPrefix(query)
+                        || $0.fullName.lowercased().filter { !$0.isWhitespace }.hasPrefix(query)
+                        || $0.username?.hasPrefix(query) == true
+                }
                 .prefix(5)
         )
     }
 
     func onMentionSuggestionPressed(_ candidate: CommentMentionCandidate) {
         guard let query = mentionQueryText else { return }
-        commentDraft.replaceSubrange(query.startIndex..<commentDraft.endIndex, with: "\(candidate.firstName) ")
+        commentDraft.replaceSubrange(query.startIndex..<commentDraft.endIndex, with: "\(candidate.mentionText) ")
         if !draftMentions.contains(candidate) {
             draftMentions.append(candidate)
         }
     }
 
     private func mentionedUserIds(in text: String) -> [String] {
-        draftMentions.filter { text.contains("@\($0.firstName)") }.map(\.id)
+        draftMentions.filter { text.contains("@\($0.mentionText)") }.map(\.id)
     }
 
     /// The comment's text with each resolvable `@FirstName` in the accent colour. A mention of
@@ -194,7 +199,8 @@ class CommentsPresenter {
         // ponytail: names resolve only from the reader, their follows, the author and the thread;
         // store names on the comment if mentions of strangers need highlighting too.
         var result = AttributedString(comment.text)
-        let names = knownPeople.filter { comment.mentionedUserIds.contains($0.id) }.map(\.firstName)
+        // Both spellings: comments written before handles existed mention by first name.
+        let names = knownPeople.filter { comment.mentionedUserIds.contains($0.id) }.flatMap { [$0.firstName, $0.mentionText] }
         for name in Set(names) {
             var searchStart = result.startIndex
             while let range = result[searchStart...].range(of: "@\(name)") {
@@ -236,11 +242,22 @@ class CommentsPresenter {
     }
  }
 
-/// Someone who can be picked from the mention row. The inserted text is `@firstName`; the id is
-/// what the comment records.
+/// Someone who can be picked from the mention row. The inserted text is `@handle`, or `@firstName`
+/// for someone without one; the id is what the comment records.
 struct CommentMentionCandidate: Identifiable, Equatable {
     let id: String
     let fullName: String
+    var username: String?
+
+    /// What follows the `@` in the draft.
+    var mentionText: String {
+        username ?? firstName
+    }
+
+    /// The suggestion chip's title.
+    var label: String {
+        username.map { "@\($0)" } ?? fullName
+    }
 
     var firstName: String {
         fullName.split(separator: " ").first.map(String.init) ?? fullName

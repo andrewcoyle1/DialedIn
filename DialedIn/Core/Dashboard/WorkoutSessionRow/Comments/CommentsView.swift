@@ -136,7 +136,7 @@ struct CommentsView: View {
                     Button {
                         presenter.onMentionSuggestionPressed(candidate)
                     } label: {
-                        Text(candidate.fullName)
+                        Text(candidate.label)
                             .font(.subheadline)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
