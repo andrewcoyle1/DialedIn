@@ -555,10 +555,11 @@ struct SocialProfilePresenterTests {
         #expect(screen.router.alertTitles == ["Report Profile"])
         #expect(screen.interactor.reports.isEmpty)
 
-        screen.presenter.reportFlow.onReasonSelected(.hatefulOrHarassment)
+        screen.presenter.reportFlow.onReasonSelected(.harassment)
+        screen.presenter.reportFlow.onSendPressed()
         await TestManagers.eventually { !screen.interactor.reports.isEmpty }
 
-        #expect(screen.interactor.reports == ["user|friend|friend|hatefulOrHarassment"])
+        #expect(screen.interactor.reports == ["user|friend|friend|harassment"])
     }
 }
 

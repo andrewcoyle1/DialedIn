@@ -83,7 +83,7 @@ struct BlockedCommentsTests {
 
 // MARK: - Reporting
 
-/// Every report goes through `ReportFlow`: a reason picker first, then one call naming the content
+/// Every report goes through `ReportFlow`: a reason picker, then a note, then one call naming the content
 /// type, its id and its author.
 @MainActor
 struct ReportFlowTests {
@@ -152,10 +152,12 @@ struct ReportFlowTests {
         #expect(interactor.reports.isEmpty)
 
         presenter.reportFlow.onReasonSelected(.spam)
+        #expect(interactor.reports.isEmpty)
+        presenter.reportFlow.onSendPressed()
         await TestManagers.eventually { !interactor.reports.isEmpty }
 
         #expect(interactor.reports == ["session|session-x|friend|spam"])
-        #expect(router.alertTitles == ["Report Workout", "Report Sent"])
+        #expect(router.alertTitles == ["Report Workout", "Add a Note", "Report Sent"])
     }
 
     @Test("Test The Reader Cannot Report Their Own Session")
