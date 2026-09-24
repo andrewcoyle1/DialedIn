@@ -74,8 +74,8 @@ struct WorkoutSettingsView: View {
             )
             CustomToggleView(
                 symbolName: "heart.fill",
-                title: "RIR Tracking",
-                subtitle: "Automatically populate RIR selection in the session log based on program",
+                title: "Effort (RPE)",
+                subtitle: "Log how hard each set was, from RPE 6 to 10, on the reps keyboard",
                 bool: $presenter.rirTracking
             )
             CustomToggleView(
