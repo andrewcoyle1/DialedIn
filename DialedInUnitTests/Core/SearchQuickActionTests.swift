@@ -29,6 +29,9 @@ struct SearchQuickActionTests {
         var followingUsers: [UserModel] = []
         var activeSession: WorkoutSessionModel?
         private(set) var blankWorkoutStarts = 0
+        func acceptInvite(code: String) async throws -> (inviter: UserModel, acceptance: InviteAcceptance) {
+            throw InviteError.notFound
+        }
 
         func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws { }
         func startBlankWorkout() async throws { blankWorkoutStarts += 1 }

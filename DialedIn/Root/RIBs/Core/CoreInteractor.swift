@@ -62,6 +62,8 @@ struct CoreInteractor: GlobalInteractor {
     let soundEffectManager: SoundEffectManager
     // MARK: - Sharing
     let shareManager: ShareManager
+    // MARK: - Invites
+    let inviteManager: InviteManager
 
     init(container: DependencyContainer) {
         self.authManager = container.resolve(AuthManager.self)!
@@ -110,6 +112,8 @@ struct CoreInteractor: GlobalInteractor {
         self.soundEffectManager = container.resolve(SoundEffectManager.self)!
         // MARK: - Sharing
         self.shareManager = container.resolve(ShareManager.self)!
+        // MARK: - Invites
+        self.inviteManager = container.resolve(InviteManager.self)!
     }
 
     // MARK: Shared

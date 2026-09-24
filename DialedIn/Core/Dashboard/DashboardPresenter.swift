@@ -540,3 +540,14 @@ extension DashboardPresenter {
         UserDefaults.standard.set(weekId, forKey: CircleWeek.summaryDismissedWeekKey)
     }
 }
+
+// MARK: - Invites
+
+extension DashboardPresenter {
+    /// A `compound://join/<code>` link, relayed by the tab bar once it has selected this tab.
+    func onAcceptInviteNotificationReceived(_ notification: Notification) {
+        guard let code = notification.userInfo?["code"] as? String else { return }
+        let flow = InviteAcceptFlow(interactor: interactor, router: router)
+        Task { await flow.accept(code: code) }
+    }
+}

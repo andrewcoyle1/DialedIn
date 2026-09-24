@@ -67,6 +67,15 @@ class TabBarPresenter {
             // The bell lives on the Dashboard, so it opens the screen.
             selectedTabTitle = DeepLink.Tab.dashboard.title
             deepLink.post()
+        case .join:
+            interactor.trackEvent(
+                eventName: "TabBarView_DeepLink_Join",
+                parameters: nil,
+                type: .analytic
+            )
+            // The Dashboard accepts the invite and opens the inviter's profile.
+            selectedTabTitle = DeepLink.Tab.dashboard.title
+            deepLink.post()
         }
     }
 

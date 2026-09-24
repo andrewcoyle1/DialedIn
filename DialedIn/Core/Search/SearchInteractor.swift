@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol SearchInteractor: FollowInteractor {
+protocol SearchInteractor: FollowInteractor, InviteAcceptInteractor {
     /// Which quick actions the Search tab shows — see `ShortcutsView`.
     var shortcutSettings: ShortcutSettings { get }
     var userImageUrl: String? { get }

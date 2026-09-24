@@ -707,3 +707,14 @@ extension UserManager {
         try await privateSettingsSyncEngine.saveDocument(settings)
     }
 }
+
+// MARK: - Invites
+
+extension UserManager {
+    /// The `acceptInvite` Cloud Function wrote a request to a private inviter; this records it the
+    /// way `sendFollowRequest` would, so their profile shows Requested. `sentFollowRequestIds` is
+    /// private to this file, hence here.
+    func markFollowRequestSent(to userId: String) {
+        sentFollowRequestIds.insert(userId)
+    }
+}

@@ -137,6 +137,16 @@ extension AppViewForUITesting {
             ("STARTSCREEN_SEARCH", { builder.searchView(router: $0).any() }),
             ("STARTSCREEN_FOLLOWERS", {
                 builder.followersListView(router: $0, delegate: FollowersListDelegate(followers: UserModel.mocks)).any()
+            }),
+            // MARK: - Invites
+            // The Dashboard receiving the mock invite link, as a tapped `compound://join/` would.
+            ("STARTSCREEN_INVITE", { router in
+                builder.dashboardView(router: router, delegate: DashboardDelegate())
+                    .task {
+                        try? await Task.sleep(for: .seconds(1))
+                        DeepLink.join(code: MockInviteService.sampleCode).post()
+                    }
+                    .any()
             })
         ]
     }

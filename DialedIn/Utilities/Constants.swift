@@ -74,6 +74,10 @@ struct Constants {
     /// Posted after a follow-request push tap has selected the Dashboard, asking it to open the
     /// notifications screen. See `DeepLink.post()`.
     static let openNotifications = Notification.Name("DialedIn.OpenNotifications")
+
+    /// Posted after a `compound://join/<code>` link has selected the Dashboard, asking it to accept
+    /// the invite. `userInfo` carries `code`. See `DeepLink.post()`.
+    static let acceptInvite = Notification.Name("DialedIn.AcceptInvite")
     
     /// Map exercise template names to bundled asset names for Live Activity
     /// Returns nil for exercises without bundled images

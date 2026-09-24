@@ -56,6 +56,7 @@ struct DashboardView<
         }
         // A follow-request push tap — see `DeepLink.post()`.
         .onNotificationReceived(name: Constants.openNotifications) { _ in presenter.onPushNotificationsPressed() }
+        .onNotificationReceived(name: Constants.acceptInvite) { presenter.onAcceptInviteNotificationReceived($0) }
         .task {
             await presenter.loadNotifications()
             await presenter.loadSuggestedUsers()
