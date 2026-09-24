@@ -41,6 +41,9 @@ struct ActivityNotificationModel: Identifiable {
     // MARK: - Sharing
     /// The `shares/{id}` document behind a `.share` notification; nil for every other type.
     var shareId: String?
+    // MARK: - CommentLikes
+    /// A `.comment` that answers the recipient's own comment rather than one on their workout.
+    var isReply: Bool = false
 }
 
 extension ActivityNotificationModel {

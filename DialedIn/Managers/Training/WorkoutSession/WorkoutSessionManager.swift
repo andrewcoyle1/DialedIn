@@ -374,28 +374,9 @@ extension CoreInteractor {
             parentAuthorId = try? await commentsManager.fetchComments(sessionId: comment.sessionId)
                 .first(where: { $0.id == parentId })?.authorId
         }
-        let recipients = comment.activityRecipients(parentAuthorId: parentAuthorId)
-        for recipient in recipients.commented {
-            try? await activityNotificationManager.addNotification(activityNotification(for: comment, type: .comment), userId: recipient)
+        for (recipient, notification) in comment.activityNotifications(parentAuthorId: parentAuthorId) {
+            try? await activityNotificationManager.addNotification(notification, userId: recipient)
         }
-        for recipient in recipients.mentioned {
-            try? await activityNotificationManager.addNotification(activityNotification(for: comment, type: .mention), userId: recipient)
-        }
-    }
-
-    private func activityNotification(for comment: WorkoutSessionComment, type: ActivityNotificationModel.ActivityType) -> ActivityNotificationModel {
-        ActivityNotificationModel(
-            id: "\(type.rawValue)_\(comment.id)",
-            type: type,
-            actorId: comment.authorId,
-            actorName: comment.authorName ?? "Someone",
-            actorImageUrl: comment.authorImageUrl,
-            sessionId: comment.sessionId,
-            sessionAuthorId: comment.sessionAuthorId,
-            commentText: comment.text,
-            dateCreated: comment.dateCreated,
-            isRead: false
-        )
     }
 
     func deleteComment(id: String) async throws {

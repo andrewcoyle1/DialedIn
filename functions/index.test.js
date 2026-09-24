@@ -392,3 +392,14 @@ test("planUserDeletion chunks its writes into batches of 400", () => {
     assert.deepEqual(empty.batches, [[{ type: "delete", path: "diet_plans/me" }]]);
     assert.deepEqual(empty.storageFiles, []);
 });
+
+// MARK: - CommentLikes
+test("buildActivityPush words a reply to the recipient's comment as a reply", () => {
+    const recipient = { fcm_token: "tok" };
+    const reply = buildActivityPush({ type: "comment", is_reply: true, actor_name: "Jane", comment_text: "Agreed" }, recipient);
+    assert.deepEqual(reply.notification, { title: "New reply", body: "Jane replied to your comment: Agreed" });
+    assert.equal(reply.data.type, "comment");
+    const plain = buildActivityPush({ type: "comment", is_reply: false, actor_name: "Jane", comment_text: "Agreed" }, recipient);
+    assert.equal(plain.notification.body, "Jane commented: Agreed");
+    assert.equal(buildActivityPush({ type: "comment", is_reply: true }, { fcm_token: "tok", social_push_comments: false }), null);
+});

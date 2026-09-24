@@ -66,8 +66,11 @@ export function buildActivityPush(notification, recipient) {
         body = `${actor} liked your workout`;
         break;
     case "comment":
-        title = "New comment";
-        body = `${actor} commented: ${commentPreview(notification)}`;
+        // is_reply: the comment answers the recipient's own comment, not their workout.
+        title = notification.is_reply === true ? "New reply" : "New comment";
+        body = notification.is_reply === true
+            ? `${actor} replied to your comment: ${commentPreview(notification)}`
+            : `${actor} commented: ${commentPreview(notification)}`;
         break;
     case "mention":
         title = "Mention";

@@ -52,6 +52,35 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
         return (commented, mentioned)
     }
 
+    /// The notifications this comment writes, keyed by recipient. The parent comment's author
+    /// hears it as a reply, unless they are the session's author, who hears it as a comment on
+    /// their workout like every other comment.
+    func activityNotifications(parentAuthorId: String?) -> [(userId: String, notification: ActivityNotificationModel)] {
+        let recipients = activityRecipients(parentAuthorId: parentAuthorId)
+        let commented = recipients.commented.sorted().map { userId in
+            var notification = activityNotification(type: .comment)
+            notification.isReply = parentId != nil && userId == parentAuthorId && userId != sessionAuthorId
+            return (userId, notification)
+        }
+        let mentioned = recipients.mentioned.sorted().map { ($0, activityNotification(type: .mention)) }
+        return commented + mentioned
+    }
+
+    private func activityNotification(type: ActivityNotificationModel.ActivityType) -> ActivityNotificationModel {
+        ActivityNotificationModel(
+            id: "\(type.rawValue)_\(id)",
+            type: type,
+            actorId: authorId,
+            actorName: authorName ?? "Someone",
+            actorImageUrl: authorImageUrl,
+            sessionId: sessionId,
+            sessionAuthorId: sessionAuthorId,
+            commentText: text,
+            dateCreated: dateCreated,
+            isRead: false
+        )
+    }
+
     @MainActor
     static var mock: WorkoutSessionComment {
         WorkoutSessionComment(
