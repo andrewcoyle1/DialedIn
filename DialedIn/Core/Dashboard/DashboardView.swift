@@ -41,7 +41,7 @@ struct DashboardView<
         .scrollIndicators(.hidden)
         .navigationTitle("Dashboard")
         .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
-        .navigationBarTitleDisplayMode(.inline)
+        .minimizingLargeTitleBar()
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }

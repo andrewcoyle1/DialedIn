@@ -38,7 +38,7 @@ struct NutritionView<
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
-        .navigationBarTitleDisplayMode(.inline)
+        .minimizingLargeTitleBar()
         .onAppear { presenter.onViewAppear(delegate: delegate) }
         .onDisappear { presenter.onViewDisappear(delegate: delegate) }
         .toolbar {

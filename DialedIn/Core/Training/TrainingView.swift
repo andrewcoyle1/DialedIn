@@ -43,7 +43,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             moreSection
         }
         .navigationTitle("Training")
-        .navigationBarTitleDisplayMode(.inline)
+        .minimizingLargeTitleBar()
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent

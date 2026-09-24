@@ -41,7 +41,7 @@ struct SearchView: View {
         .listSectionMargins(.horizontal, 0)
         .listRowSeparator(.hidden)
         .navigationTitle("Search")
-        .navigationBarTitleDisplayMode(.inline)
+        .minimizingLargeTitleBar()
         .searchable(
             text: $presenter.searchString,
             placement: .toolbar,
@@ -50,7 +50,6 @@ struct SearchView: View {
         .onSubmit(of: .search) {
             presenter.onSearchSubmitted()
         }
-        .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
             toolbarContent
         }
