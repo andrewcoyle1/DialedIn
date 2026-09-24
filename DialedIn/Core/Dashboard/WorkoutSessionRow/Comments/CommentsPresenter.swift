@@ -19,6 +19,9 @@ class CommentsPresenter {
     private(set) var isLoading = false
     private(set) var isSending = false
     var commentDraft: String = ""
+    /// The comment the draft replies to, if any. Set by the row's Reply action, cleared by the
+    /// bar's cancel or by sending.
+    private(set) var replyingTo: WorkoutSessionComment?
 
     init(
         interactor: CommentsInteractor,
@@ -39,9 +42,33 @@ class CommentsPresenter {
         // Sorted here because the query that fetches them has no order clause, so they arrive in
         // document-id order — effectively at random. A reply read before the thing it replies to is
         // nonsense, and new comments are appended to the end, so the thread is oldest first.
-        comments = ((try? await interactor.fetchComments(sessionId: session.id)) ?? [])
-            .sorted { $0.dateCreated < $1.dateCreated }
+        comments = Self.threaded((try? await interactor.fetchComments(sessionId: session.id)) ?? [])
         isLoading = false
+    }
+
+    /// Top-level comments oldest first, each followed by its replies oldest first. A reply whose
+    /// parent is gone (deleted) is shown at the top level rather than dropped.
+    static func threaded(_ comments: [WorkoutSessionComment]) -> [WorkoutSessionComment] {
+        let byDate = comments.sorted { $0.dateCreated < $1.dateCreated }
+        let ids = Set(byDate.map(\.id))
+        let roots = byDate.filter { $0.parentId == nil || !ids.contains($0.parentId ?? "") }
+        return roots.flatMap { root in
+            [root] + byDate.filter { $0.parentId == root.id }
+        }
+    }
+
+    func isReply(_ comment: WorkoutSessionComment) -> Bool {
+        guard let parentId = comment.parentId else { return false }
+        return comments.contains { $0.id == parentId }
+    }
+
+    func onReplyPressed(_ comment: WorkoutSessionComment) {
+        // Replies stay one level deep: replying to a reply joins its thread.
+        replyingTo = comments.first { $0.id == comment.parentId } ?? comment
+    }
+
+    func onCancelReplyPressed() {
+        replyingTo = nil
     }
 
     func isOwnComment(_ comment: WorkoutSessionComment) -> Bool {
@@ -61,15 +88,19 @@ class CommentsPresenter {
             authorName: user.fullNameCalculated,
             authorImageUrl: user.profileImageNameCalculated,
             text: trimmed,
-            dateCreated: Date()
+            dateCreated: Date(),
+            parentId: replyingTo?.id
         )
+        let parent = replyingTo
         commentDraft = ""
+        replyingTo = nil
         isSending = true
         Task {
             do {
                 try await interactor.addComment(comment)
-                comments.append(comment)
+                comments = Self.threaded(comments + [comment])
             } catch {
+                replyingTo = parent
                 // Was `try?` followed by an unconditional append: a comment that never reached the
                 // server still appeared in the list, and the draft was already cleared, so the text
                 // was gone too.

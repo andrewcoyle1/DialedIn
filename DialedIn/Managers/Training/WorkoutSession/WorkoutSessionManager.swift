@@ -344,7 +344,6 @@ extension CoreInteractor {
 
     func addComment(_ comment: WorkoutSessionComment) async throws {
         try await commentsManager.addComment(comment)
-        guard comment.sessionAuthorId != comment.authorId else { return }
         let notification = ActivityNotificationModel(
             id: "comment_\(comment.id)",
             type: .comment,
@@ -357,7 +356,18 @@ extension CoreInteractor {
             dateCreated: comment.dateCreated,
             isRead: false
         )
-        try? await activityNotificationManager.addNotification(notification, userId: comment.sessionAuthorId)
+        // The session's author hears about every comment; a reply also reaches the person it
+        // answers. Nobody is told about their own comment, and nobody is told twice.
+        var recipients = Set([comment.sessionAuthorId])
+        if let parentId = comment.parentId,
+           let parent = try? await commentsManager.fetchComments(sessionId: comment.sessionId)
+                .first(where: { $0.id == parentId }) {
+            recipients.insert(parent.authorId)
+        }
+        recipients.remove(comment.authorId)
+        for recipient in recipients {
+            try? await activityNotificationManager.addNotification(notification, userId: recipient)
+        }
     }
 
     func deleteComment(id: String) async throws {

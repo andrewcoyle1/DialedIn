@@ -36,6 +36,15 @@ struct CommentsView: View {
                 Section {
                     ForEach(presenter.comments) { comment in
                         commentRow(comment)
+                            .padding(.leading, presenter.isReply(comment) ? 40 : 0)
+                            .swipeActions(edge: .leading) {
+                                Button {
+                                    presenter.onReplyPressed(comment)
+                                } label: {
+                                    Label("Reply", systemImage: "arrowshape.turn.up.left")
+                                }
+                                .tint(.accentColor)
+                            }
                             .swipeActions(edge: .trailing) {
                                 if presenter.isOwnComment(comment) {
                                     Button {
@@ -93,8 +102,33 @@ struct CommentsView: View {
     }
 
     private var inputBar: some View {
+        VStack(spacing: 8) {
+            if let parent = presenter.replyingTo {
+                HStack {
+                    Text("Replying to \(parent.authorName ?? "comment")")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button {
+                        presenter.onCancelReplyPressed()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel("Cancel reply")
+                }
+            }
+            inputRow
+        }
+        .padding()
+        .glassEffect(in: .containerRelative)
+        .padding()
+    }
+
+    private var inputRow: some View {
         HStack(spacing: 8) {
-            TextField("Add a comment…", text: $presenter.commentDraft, axis: .vertical)
+            TextField(presenter.replyingTo == nil ? "Add a comment…" : "Add a reply…", text: $presenter.commentDraft, axis: .vertical)
                 .lineLimit(1...4)
             Button {
                 presenter.onSendPressed()
@@ -111,9 +145,6 @@ struct CommentsView: View {
                 presenter.isSending
             )
         }
-        .padding()
-        .glassEffect(in: .containerRelative)
-        .padding()
     }
 }
 

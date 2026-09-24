@@ -17,6 +17,9 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
     let text: String
     let dateCreated: Date
     var deletedAt: Date?
+    /// The comment this one replies to. One level only: a reply to a reply carries the same
+    /// parent, so a thread is a comment and its replies, never a tree.
+    var parentId: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -28,6 +31,7 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
         case text
         case dateCreated = "date_created"
         case deletedAt = "deleted_at"
+        case parentId = "parent_id"
     }
 
     @MainActor

@@ -36,7 +36,8 @@ struct FirebaseCommentsService: CommentsManagerService {
                 authorName: data["author_name"] as? String,
                 authorImageUrl: data["author_image_url"] as? String,
                 text: text,
-                dateCreated: dateCreatedTimestamp.dateValue()
+                dateCreated: dateCreatedTimestamp.dateValue(),
+                parentId: data["parent_id"] as? String
             )
         }
     }
@@ -50,7 +51,8 @@ struct FirebaseCommentsService: CommentsManagerService {
             "author_name": comment.authorName as Any,
             "author_image_url": comment.authorImageUrl as Any,
             "text": comment.text,
-            "date_created": Timestamp(date: comment.dateCreated)
+            "date_created": Timestamp(date: comment.dateCreated),
+            "parent_id": comment.parentId as Any
         ])
     }
 

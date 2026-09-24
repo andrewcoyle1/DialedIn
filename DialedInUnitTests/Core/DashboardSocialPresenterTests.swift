@@ -538,6 +538,63 @@ struct SocialCommentsPresenterTests {
         #expect(screen.router.alertTitles.isEmpty)
     }
 
+    // MARK: Replies
+
+    /// A thread is a comment followed by its replies, oldest first, and a reply whose parent has
+    /// been deleted is shown rather than lost.
+    @Test("Test Replies Sit Under Their Parent And Orphans Stay Visible")
+    func testRepliesSitUnderTheirParentAndOrphansStayVisible() {
+        var reply = comment("r1", author: "me", text: "Thanks", on: DashboardFixture.date(day: 3))
+        reply.parentId = "c1"
+        var orphan = comment("r2", text: "Lost", on: DashboardFixture.date(day: 4))
+        orphan.parentId = "gone"
+        let thread = CommentsPresenter.threaded([
+            comment("c2", on: DashboardFixture.date(day: 2)),
+            reply,
+            comment("c1", on: DashboardFixture.date(day: 1)),
+            orphan
+        ])
+
+        #expect(thread.map(\.id) == ["c1", "r1", "c2", "r2"])
+    }
+
+    /// Replying carries the parent's id, clears the target on send, and replying to a reply
+    /// joins that reply's thread rather than nesting deeper.
+    @Test("Test Replying Sends The Parent Id And Stays One Level Deep")
+    func testReplyingSendsTheParentIdAndStaysOneLevelDeep() async {
+        let screen = makeScreen()
+        var reply = comment("r1", text: "Thanks", on: DashboardFixture.date(day: 2))
+        reply.parentId = "c1"
+        screen.interactor.fetched = [comment("c1", on: DashboardFixture.date(day: 1)), reply]
+        screen.presenter.onViewAppear()
+        await TestManagers.eventually { screen.presenter.comments.count == 2 }
+        #expect(screen.presenter.isReply(reply))
+
+        screen.presenter.onReplyPressed(reply)
+        #expect(screen.presenter.replyingTo?.id == "c1")
+
+        screen.presenter.commentDraft = "Agreed"
+        screen.presenter.onSendPressed()
+        await TestManagers.eventually { screen.presenter.comments.count == 3 }
+
+        #expect(screen.interactor.added.first?.parentId == "c1")
+        #expect(screen.presenter.replyingTo == nil)
+        #expect(screen.presenter.comments.map(\.id) == ["c1", "r1", screen.interactor.added.first?.id ?? ""])
+    }
+
+    @Test("Test Cancelling A Reply Sends A Plain Comment")
+    func testCancellingAReplySendsAPlainComment() async {
+        let screen = makeScreen()
+        screen.presenter.onReplyPressed(comment("c1", on: DashboardFixture.date(day: 1)))
+        screen.presenter.onCancelReplyPressed()
+        screen.presenter.commentDraft = "Hello"
+
+        screen.presenter.onSendPressed()
+        await TestManagers.eventually { !screen.interactor.added.isEmpty }
+
+        #expect(screen.interactor.added.first?.parentId == nil)
+    }
+
     @Test("Test An Empty Comment Cannot Be Posted")
     func testAnEmptyCommentCannotBePosted() {
         let screen = makeScreen()
