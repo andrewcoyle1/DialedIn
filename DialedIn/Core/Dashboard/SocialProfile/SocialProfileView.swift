@@ -21,9 +21,15 @@ struct SocialProfileView: View {
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        // A toolbar sat here with a share button and an ellipsis menu, both empty actions. Sharing a
-        // profile needs a shareable link, and there is no user-profile deep link route (the `compound`
-        // scheme has none); the ellipsis had no menu items defined at all.
+        // Sharing a profile needs a shareable link, and there is no user-profile deep link route (the
+        // `compound` scheme has none), so the toolbar carries only the safety menu.
+        .toolbar {
+            if !presenter.isOwnProfile {
+                ToolbarItem(placement: .topBarTrailing) {
+                    moreMenu
+                }
+            }
+        }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
@@ -32,6 +38,20 @@ struct SocialProfileView: View {
         }
     }
     
+    private var moreMenu: some View {
+        Menu {
+            Button(presenter.blockMenuTitle, systemImage: presenter.isBlocked ? "hand.raised.slash" : "hand.raised") {
+                presenter.onBlockMenuPressed()
+            }
+            Button("Report", systemImage: "exclamationmark.bubble") {
+                presenter.onReportPressed()
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+        }
+        .accessibilityLabel("More actions")
+    }
+
     /// Sat in a plain list row under a "Profile" header that repeated the navigation title, on the
     /// list's own background. It is a card now, like every other surface the app shows.
     private var profileSection: some View {
@@ -57,7 +77,7 @@ struct SocialProfileView: View {
 
                     Spacer(minLength: 0)
 
-                    if !presenter.isOwnProfile {
+                    if presenter.showsFollowButton {
                         FollowButton(
                             isFollowing: presenter.isFollowing,
                             onFollowPressed: { presenter.onFollowPressed() },
@@ -68,7 +88,11 @@ struct SocialProfileView: View {
 
                 Divider()
 
-                if presenter.isLocked {
+                if presenter.isBlocked {
+                    Label("You have blocked this account", systemImage: "hand.raised")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else if presenter.isLocked {
                     Label("This profile is private", systemImage: "lock")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -88,7 +112,7 @@ struct SocialProfileView: View {
                     }
                 }
 
-                if !presenter.isLocked, !presenter.mutualFollowers.isEmpty {
+                if !presenter.isBlocked, !presenter.isLocked, !presenter.mutualFollowers.isEmpty {
                     Divider()
                     mutualFollowersImagesSection
                 }

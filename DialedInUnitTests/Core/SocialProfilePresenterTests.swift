@@ -42,6 +42,39 @@ struct SocialProfilePresenterTests {
             if let followError { throw followError }
             currentUser = UserModel(userId: "me", followingIds: (currentUser?.followingIds ?? []).filter { $0 != userId })
         }
+
+        private(set) var blockedIds: [String] = []
+        private(set) var unblockedIds: [String] = []
+        private(set) var reports: [String] = []
+
+        /// Mirrors `UserManager.blockUser`: the block and the unfollow land together.
+        func blockUser(userId: String) async throws {
+            blockedIds.append(userId)
+            currentUser = UserModel(
+                userId: "me",
+                blockedUserIds: (currentUser?.blockedUserIds ?? []) + [userId],
+                followingIds: (currentUser?.followingIds ?? []).filter { $0 != userId }
+            )
+        }
+
+        func unblockUser(userId: String) async throws {
+            unblockedIds.append(userId)
+            currentUser = UserModel(
+                userId: "me",
+                blockedUserIds: (currentUser?.blockedUserIds ?? []).filter { $0 != userId },
+                followingIds: currentUser?.followingIds
+            )
+        }
+
+        func report(
+            contentType: ReportContentType,
+            contentId: String,
+            authorUserId: String?,
+            reason: ReportReason,
+            notes: String?
+        ) async throws {
+            reports.append("\(contentType.rawValue)|\(contentId)|\(authorUserId ?? "")|\(reason.rawValue)")
+        }
     }
 
     private final class Router: SocialProfileRouter {
@@ -232,6 +265,70 @@ struct SocialProfilePresenterTests {
         screen.presenter.onViewDisappear(delegate: profile("friend", following: []))
 
         #expect(screen.interactor.trackedEventNames == ["SocialProfileView_Disappear"])
+    }
+
+    // MARK: Blocking and reporting
+
+    /// Blocking asks first, since it also unfollows and hides the person everywhere. Nothing is
+    /// written until the reader confirms.
+    @Test("Test Blocking Asks For Confirmation Then Blocks")
+    func testBlockingAsksForConfirmationThenBlocks() async {
+        let screen = makeScreen()
+        screen.presenter.onViewAppear(delegate: SocialProfileDelegate(user: UserModel(userId: "friend", submittedFirstName: "Sam")))
+        #expect(screen.presenter.blockMenuTitle == "Block Sam")
+
+        screen.presenter.onBlockMenuPressed()
+        #expect(screen.router.alertTitles == ["Block Sam?"])
+        #expect(screen.interactor.blockedIds.isEmpty)
+
+        screen.presenter.onBlockConfirmed()
+        await TestManagers.eventually { screen.presenter.isBlocked }
+
+        #expect(screen.interactor.blockedIds == ["friend"])
+        #expect(screen.presenter.blockMenuTitle == "Unblock")
+        #expect(screen.presenter.showsFollowButton == false)
+    }
+
+    @Test("Test Blocking A Followed Profile Unfollows It")
+    func testBlockingAFollowedProfileUnfollowsIt() async {
+        let screen = makeScreen()
+        screen.interactor.currentUser = UserModel(userId: "me", followingIds: ["friend"])
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+        #expect(screen.presenter.isFollowing)
+
+        screen.presenter.onBlockConfirmed()
+        await TestManagers.eventually { screen.presenter.isBlocked }
+
+        #expect(!screen.presenter.isFollowing)
+    }
+
+    /// Unblocking is not destructive, so it goes straight through.
+    @Test("Test Unblocking Needs No Confirmation")
+    func testUnblockingNeedsNoConfirmation() async {
+        let screen = makeScreen()
+        screen.interactor.currentUser = UserModel(userId: "me", blockedUserIds: ["friend"])
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+
+        screen.presenter.onBlockMenuPressed()
+        await TestManagers.eventually { !screen.presenter.isBlocked }
+
+        #expect(screen.interactor.unblockedIds == ["friend"])
+        #expect(screen.router.alertTitles.isEmpty)
+    }
+
+    @Test("Test Reporting A Profile Sends The User")
+    func testReportingAProfileSendsTheUser() async {
+        let screen = makeScreen()
+        screen.presenter.onViewAppear(delegate: profile("friend", following: []))
+
+        screen.presenter.onReportPressed()
+        #expect(screen.router.alertTitles == ["Report Profile"])
+        #expect(screen.interactor.reports.isEmpty)
+
+        screen.presenter.reportFlow.onReasonSelected(.hatefulOrHarassment)
+        await TestManagers.eventually { !screen.interactor.reports.isEmpty }
+
+        #expect(screen.interactor.reports == ["user|friend|friend|hatefulOrHarassment"])
     }
 }
 
