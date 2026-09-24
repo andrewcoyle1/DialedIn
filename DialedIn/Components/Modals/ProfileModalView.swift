@@ -31,7 +31,7 @@ struct ProfileModalView: View {
                 
                 Image(systemName: "xmark.circle.fill")
                     .font(.title)
-                    .foregroundStyle(Color.black)
+                    .foregroundStyle(.primary)
                     .padding(4)
                     .tappableBackground()
                     .anyButton {
