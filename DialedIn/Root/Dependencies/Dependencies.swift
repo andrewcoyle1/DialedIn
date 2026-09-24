@@ -317,7 +317,8 @@ struct Dependencies {
             #endif
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
             pushManager = PushManager(logManager: logManager)
-            healthKitManager = HealthKitManager(service: HealthKitService())
+            // The real service put the Health permission sheet over the tracker in every mock launch.
+            healthKitManager = HealthKitManager(service: MockHealthService(canRequestAuthorisation: false))
             commentsManager = CommentsManager(service: MockCommentsService())
             activityNotificationManager = ActivityNotificationManager(service: MockActivityNotificationService())
             stravaManager = StravaManager(service: MockStravaService(), clientId: "", clientSecret: "")

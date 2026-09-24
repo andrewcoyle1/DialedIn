@@ -92,7 +92,8 @@ struct FollowButton: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
                 .background(isFilled ? Color.accentColor : Color(.secondarySystemBackground))
-                .foregroundStyle(isFilled ? Color.white : Color.primary)
+                // The accent is the label colour, so a filled capsule needs the background colour on top, not white.
+                .foregroundStyle(isFilled ? Color(.systemBackground) : Color.primary)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)

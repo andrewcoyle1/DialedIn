@@ -183,6 +183,7 @@ struct NotificationsView: View {
             presenter.onAcceptRequestPressed(request)
         }
         .buttonStyle(.borderedProminent)
+        .foregroundStyle(Color(.systemBackground))
 
         Button("Decline") {
             presenter.onDeclineRequestPressed(request)

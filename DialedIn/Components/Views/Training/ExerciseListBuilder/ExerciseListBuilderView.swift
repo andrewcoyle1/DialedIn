@@ -62,7 +62,6 @@ struct ExerciseListBuilderView: View {
             GlassEffectContainer(spacing: 8) {
                 HStack {
                     resetChip
-                        .padding(.leading)
 
                     gymChip
 
@@ -116,6 +115,8 @@ struct ExerciseListBuilderView: View {
             }
         }
         .scrollIndicators(.hidden)
+        // The reset chip used to carry the leading inset, and it is hidden until a filter is active.
+        .contentMargins(.horizontal, 16, for: .scrollContent)
     }
 
     /// Only offered when something is actually filtered — a reset that resets nothing reads as a
