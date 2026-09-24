@@ -182,6 +182,7 @@ struct WidgetSnapshotTests {
     }
 
     private final class TabBarInteractorDouble: SpyGlobalInteractor, TabBarInteractor {
+        func consumePendingDeepLink() -> DeepLink? { nil }
         var activeSession: WorkoutSessionModel?
         var draftMeal: MealLogModel?
         var activityNotifications: [ActivityNotificationModel] = []
