@@ -110,6 +110,7 @@ struct TrainingProgramLibraryView<ProgramDisclosure: View, InactiveSection: View
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
 
         ToolbarItem(placement: .primaryAction) {
@@ -118,6 +119,7 @@ struct TrainingProgramLibraryView<ProgramDisclosure: View, InactiveSection: View
             } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Create program")
             .buttonStyle(.glassProminent)
         }
     }

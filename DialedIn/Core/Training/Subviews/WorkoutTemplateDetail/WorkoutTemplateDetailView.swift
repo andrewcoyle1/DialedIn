@@ -91,6 +91,7 @@ struct WorkoutTemplateDetailView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
     }
@@ -186,6 +187,7 @@ struct WorkoutTemplateDetailView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add exercise")
                 .buttonStyle(.bordered)
             }
         }

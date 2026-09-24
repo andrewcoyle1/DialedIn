@@ -64,6 +64,7 @@ struct ExerciseEquipmentView: View {
                                     Image(systemName: "trash")
                                         .font(.caption)
                                 }
+                                .accessibilityLabel("Delete variation")
                                 .buttonStyle(.plain)
                                 .foregroundStyle(.red)
                             }

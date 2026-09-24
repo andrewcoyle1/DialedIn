@@ -59,6 +59,7 @@ struct IngredientListBuilderView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add ingredient")
                 .buttonStyle(.glassProminent)
             }
         }

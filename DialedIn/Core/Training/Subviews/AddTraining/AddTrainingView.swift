@@ -59,6 +59,7 @@ struct AddTrainingView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
     }
 }

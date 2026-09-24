@@ -144,6 +144,7 @@ struct CreateExerciseView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Cancel")
         }
         
         #if DEBUG || MOCK
@@ -154,6 +155,7 @@ struct CreateExerciseView: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
         

@@ -124,6 +124,7 @@ struct AddMealView: View {
                             } label: {
                                 Image(systemName: "pencil")
                             }
+                            .accessibilityLabel("Edit meal item")
                             .buttonStyle(.bordered)
                             .buttonBorderShape(.circle)
                         }
@@ -243,6 +244,7 @@ struct AddMealView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
 
         ToolbarSpacer(.flexible, placement: .topBarLeading)
@@ -277,6 +279,7 @@ struct AddMealView: View {
                     Image(systemName: "chevron.up")
 
                 }
+                .accessibilityLabel("Show food picker")
             }
             .frame(maxWidth: .infinity)
 

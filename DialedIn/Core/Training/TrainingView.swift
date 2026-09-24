@@ -146,6 +146,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
 
@@ -155,6 +156,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             } label: {
                 Image(systemName: "calendar")
             }
+            .accessibilityLabel("Show calendar")
         }
 
         ToolbarItem(placement: .topBarTrailing) {
@@ -163,6 +165,7 @@ struct TrainingView<CalendarHeaderView: View, ActiveProgramView: View>: View {
             } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Add training")
         }
         
         ToolbarSpacer(.fixed, placement: .topBarTrailing)

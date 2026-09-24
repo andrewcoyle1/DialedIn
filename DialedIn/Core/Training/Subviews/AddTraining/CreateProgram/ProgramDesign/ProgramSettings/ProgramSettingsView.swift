@@ -182,6 +182,7 @@ struct ProgramSettingsView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
     }
     

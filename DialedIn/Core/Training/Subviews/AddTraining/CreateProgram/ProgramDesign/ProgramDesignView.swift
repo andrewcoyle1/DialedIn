@@ -210,6 +210,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
             } label: {
                 Image(systemName: "chevron.left")
             }
+            .accessibilityLabel("Back")
         }
         
         ToolbarItem(placement: .topBarTrailing) {
@@ -218,6 +219,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
             } label: {
                 Image(systemName: "slider.horizontal.3")
             }
+            .accessibilityLabel("Program settings")
         }
     }
 }

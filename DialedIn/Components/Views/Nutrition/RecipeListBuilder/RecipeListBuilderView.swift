@@ -45,6 +45,7 @@ struct RecipeListBuilderView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add recipe")
                 .buttonStyle(.glassProminent)
             }
         }

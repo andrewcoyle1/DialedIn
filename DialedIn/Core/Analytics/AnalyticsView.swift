@@ -154,6 +154,7 @@ struct AnalyticsView<NutritionChart: View>: View {
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
 

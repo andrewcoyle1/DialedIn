@@ -81,6 +81,7 @@ struct EditPinLoadedMachineView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
 
         ToolbarItem(placement: .topBarTrailing) {
@@ -89,6 +90,7 @@ struct EditPinLoadedMachineView: View {
             } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Add pin-loaded machine")
         }
     }
 }

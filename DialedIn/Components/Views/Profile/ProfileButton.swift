@@ -28,6 +28,7 @@ struct ProfileButton: View {
                 }
             }
         }
+        .accessibilityLabel("Profile")
         .buttonStyle(.plain)
         .buttonBorderShape(.circle)
 

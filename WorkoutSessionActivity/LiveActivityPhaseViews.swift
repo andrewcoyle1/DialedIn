@@ -147,6 +147,7 @@ struct LiveActivityPhaseContent: View {
                 .font(.footnote.weight(.semibold))
                 .padding(2)
         }
+        .accessibilityLabel(delta > 0 ? "Add a rep" : "Remove a rep")
         .buttonStyle(.bordered)
         .buttonBorderShape(.circle)
         .tint(.accent)

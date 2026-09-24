@@ -101,6 +101,7 @@ struct FoodPhotoScannerView: View {
                 .foregroundStyle(.white)
                 .shadow(radius: 4)
         }
+        .accessibilityLabel("Take photo")
     }
 
     private func thumbnailView(image: UIImage) -> some View {

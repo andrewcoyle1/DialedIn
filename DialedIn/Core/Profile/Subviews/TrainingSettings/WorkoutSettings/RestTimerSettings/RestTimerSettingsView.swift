@@ -46,6 +46,7 @@ struct RestTimerSettingsView: View {
                         .anyButton(.press) {
                             presenter.onTimerDurationPressed()
                         }
+                    .accessibilityLabel("Timer Duration")
                 }
             CustomToggleView(
                 symbolName: "flag",

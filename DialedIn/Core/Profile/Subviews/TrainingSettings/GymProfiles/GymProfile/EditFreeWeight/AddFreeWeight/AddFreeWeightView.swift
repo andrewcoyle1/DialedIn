@@ -79,6 +79,7 @@ struct AddFreeWeightView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
         
         ToolbarItem(placement: .confirmationAction) {
@@ -87,6 +88,7 @@ struct AddFreeWeightView: View {
             } label: {
                 Image(systemName: "checkmark")
             }
+            .accessibilityLabel("Save")
             .buttonStyle(.glassProminent)
         }
     }

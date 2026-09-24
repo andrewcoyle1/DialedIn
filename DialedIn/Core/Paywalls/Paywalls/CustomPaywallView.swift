@@ -113,6 +113,7 @@ struct CustomPaywallView: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
     }
 }

@@ -180,6 +180,7 @@ struct DashboardView<
             } label: {
                 Image(systemName: "info")
             }
+            .accessibilityLabel("Developer settings")
         }
         #endif
         
@@ -191,6 +192,7 @@ struct DashboardView<
             } label: {
                 Image(systemName: "bell")
             }
+            .accessibilityLabel("Notifications")
             .badge(presenter.activityNotifications.filter({ !$0.isRead }).count)
         }
         

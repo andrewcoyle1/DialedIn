@@ -58,6 +58,7 @@ struct CreateProgramView: View {
                 } label: {
                     Image(systemName: "xmark")
                 }
+                .accessibilityLabel("Close")
             }
         }
     }

@@ -71,6 +71,7 @@ struct EnumPickerView<Item: PickableItem>: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
 
         if delegate.canDelete {
@@ -80,6 +81,7 @@ struct EnumPickerView<Item: PickableItem>: View {
                 } label: {
                     Image(systemName: "trash")
                 }
+                .accessibilityLabel("Clear selection")
             }
         }
     }

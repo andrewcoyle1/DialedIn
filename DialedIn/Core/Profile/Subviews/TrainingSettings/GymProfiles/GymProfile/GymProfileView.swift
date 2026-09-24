@@ -476,6 +476,7 @@ struct GymProfileView: View {
             } label: {
                 Image(systemName: "chevron.left")
             }
+            .accessibilityLabel("Back")
         }
         
         ToolbarItem(placement: .topBarTrailing) {
@@ -484,6 +485,7 @@ struct GymProfileView: View {
             } label: {
                 Image(systemName: presenter.gymProfile.imageUrl == nil ? "photo.badge.plus" : "photo.badge.checkmark")
             }
+            .accessibilityLabel(presenter.gymProfile.imageUrl == nil ? "Add gym photo" : "Change gym photo")
         }
     }
 

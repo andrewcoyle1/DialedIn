@@ -47,6 +47,7 @@ struct AddFoodView: View {
                 } label: {
                     Image(systemName: "xmark")
                 }
+                .accessibilityLabel("Close")
             }
         }
     }

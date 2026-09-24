@@ -80,6 +80,7 @@ struct EditWeightRangeView<Range: WeightRange>: View {
             } label: {
                 Image(systemName: "xmark")
             }
+            .accessibilityLabel("Close")
         }
     }
 }

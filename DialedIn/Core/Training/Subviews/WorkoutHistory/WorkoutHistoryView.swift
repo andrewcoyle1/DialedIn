@@ -45,6 +45,7 @@ struct WorkoutHistoryView<WorkoutSessionRow: View>: View {
                 } label: {
                     Image(systemName: "xmark")
                 }
+                .accessibilityLabel("Close")
             }
         }
     }

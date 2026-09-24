@@ -37,6 +37,7 @@ struct MealHourHeaderView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add meal")
                 .buttonStyle(.bordered)
                 .buttonBorderShape(.circle)
             }

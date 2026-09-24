@@ -93,6 +93,7 @@ struct GymProfilesView: View {
             } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Add gym profile")
         }
     }
 

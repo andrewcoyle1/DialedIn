@@ -39,6 +39,7 @@ struct NotificationsView: View {
                 } label: {
                     Image(systemName: "xmark")
                 }
+                .accessibilityLabel("Close")
             }
         }
         .task {

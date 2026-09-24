@@ -40,6 +40,7 @@ struct WorkoutSettingsView: View {
                         .anyButton(.press) {
                             presenter.onRestTimerSettingsPressed()
                         }
+                    .accessibilityLabel("Rest Timer")
                 }
             CustomLabelButtonView(
                 symbolName: "wand.and.stars",
@@ -51,6 +52,7 @@ struct WorkoutSettingsView: View {
                         .anyButton(.press) {
                             presenter.onSmartProgressionSettingsPressed()
                         }
+                    .accessibilityLabel("Smart Progression")
                 }
             CustomLabelButtonView(
                 symbolName: "arrow.trianglehead.counterclockwise",
@@ -149,6 +151,7 @@ struct WorkoutSettingsView: View {
                         .anyButton(.press) {
                             presenter.onExerciseAssessmentPressed()
                         }
+                    .accessibilityLabel("Exercise Assessment")
                 }
 
         } header: {
