@@ -49,6 +49,15 @@ class TabBarPresenter {
                 type: .analytic
             )
             selectedTabTitle = tab.title
+        case .session:
+            interactor.trackEvent(
+                eventName: "TabBarView_DeepLink_Session",
+                parameters: nil,
+                type: .analytic
+            )
+            // The Dashboard is where a session opens from; it hears the request and fetches it.
+            selectedTabTitle = DeepLink.Tab.dashboard.title
+            deepLink.post()
         }
     }
 

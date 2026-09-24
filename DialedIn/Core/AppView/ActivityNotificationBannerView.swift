@@ -25,6 +25,10 @@ struct ActivityNotificationBannerView: View {
             return "\(notification.actorName) started following you"
         case .nudge:
             return "\(notification.actorName) nudged you to train"
+        case .mention:
+            let text = notification.commentText ?? ""
+            let preview = text.count > 40 ? String(text.prefix(40)) + "…" : text
+            return "\(notification.actorName) mentioned you: \"\(preview)\""
         }
     }
 

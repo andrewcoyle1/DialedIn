@@ -499,6 +499,24 @@ struct AppShellTabBarPresenterTests {
         #expect(screen.interactor.trackedEventNames.isEmpty)
     }
 
+    /// A like, comment or mention push carries the session and its author; the tab bar lands on
+    /// the Dashboard, which opens it. A comment or mention also opens the thread.
+    @Test("Test A Session Push Parses Its Fields And Selects The Dashboard")
+    func testASessionPushParsesItsFieldsAndSelectsTheDashboard() {
+        let payload: [AnyHashable: Any] = ["tab": "dashboard", "type": "mention", "session_id": "s1", "session_author_id": "u1", "actor_id": "a1"]
+        #expect(DeepLink(pushUserInfo: payload) == .session(id: "s1", authorId: "u1", openComments: true))
+        #expect(DeepLink(pushUserInfo: ["type": "like", "session_id": "s1", "session_author_id": "u1"]) == .session(id: "s1", authorId: "u1", openComments: false))
+        // A follow has no session, so it is just the Dashboard tab.
+        #expect(DeepLink(pushUserInfo: ["tab": "dashboard", "type": "follow", "session_id": "", "session_author_id": ""]) == .tab(.dashboard))
+
+        let screen = makeScreen()
+        screen.presenter.selectedTabTitle = "Training"
+        screen.presenter.onPushNotificationReceived(Notification(name: .pushNotification, object: nil, userInfo: payload))
+
+        #expect(screen.presenter.selectedTabTitle == "Dashboard")
+        #expect(screen.interactor.trackedEventNames == ["TabBarView_DeepLink_Session"])
+    }
+
     // MARK: - The accessory above the tab bar
 
     /// The accessory is how a user gets back to a workout they walked away from, so it shows

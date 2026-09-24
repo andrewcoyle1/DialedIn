@@ -388,7 +388,7 @@ export const foodSearch = onCall(CALLABLE_OPTIONS, async (request) => {
 });
 
 // ---------------------------------------------------------------------------
-// FCM push for social activity (likes / comments / follows / nudges)
+// FCM push for social activity (likes / comments / mentions / follows / nudges)
 // ---------------------------------------------------------------------------
 
 // The app writes users/{uid}/notifications for the in-app bell; this turns each new doc into a

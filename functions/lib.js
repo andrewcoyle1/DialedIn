@@ -24,6 +24,7 @@ export const SOCIAL_PUSH_PREFERENCE_KEYS = {
     comment: "social_push_comments",
     follow: "social_push_follows",
     nudge: "social_push_nudges",
+    mention: "social_push_mentions",
 };
 
 // The token and preferences moved from the public user doc to users/{uid}/private/settings. Each
@@ -37,9 +38,17 @@ export function pushRecipientSettings(privateSettings, userDoc) {
 
 const COMMENT_PREVIEW_LENGTH = 60;
 
+function commentPreview(notification) {
+    const text = (notification.comment_text || "").trim();
+    return text.length > COMMENT_PREVIEW_LENGTH
+        ? `${text.slice(0, COMMENT_PREVIEW_LENGTH - 1)}…`
+        : text;
+}
+
 // Builds the push for a users/{uid}/notifications doc, or null when it should not be sent:
 // no token, an unknown type, or the recipient turned that type off. `data.tab` is what
-// DeepLink(pushUserInfo:) reads, so a tap lands on the Dashboard where the bell lives.
+// DeepLink(pushUserInfo:) reads, so a tap lands on the Dashboard where the bell lives; with
+// `session_id` and `session_author_id` as well, the Dashboard then opens that session.
 export function buildActivityPush(notification, recipient) {
     const token = recipient?.fcm_token;
     const preferenceKey = SOCIAL_PUSH_PREFERENCE_KEYS[notification?.type];
@@ -53,15 +62,14 @@ export function buildActivityPush(notification, recipient) {
         title = "New like";
         body = `${actor} liked your workout`;
         break;
-    case "comment": {
-        const text = (notification.comment_text || "").trim();
-        const preview = text.length > COMMENT_PREVIEW_LENGTH
-            ? `${text.slice(0, COMMENT_PREVIEW_LENGTH - 1)}…`
-            : text;
+    case "comment":
         title = "New comment";
-        body = `${actor} commented: ${preview}`;
+        body = `${actor} commented: ${commentPreview(notification)}`;
         break;
-    }
+    case "mention":
+        title = "Mention";
+        body = `${actor} mentioned you: ${commentPreview(notification)}`;
+        break;
     case "follow":
         title = "New follower";
         body = `${actor} started following you`;
@@ -80,6 +88,7 @@ export function buildActivityPush(notification, recipient) {
             tab: "dashboard",
             type: notification.type,
             session_id: notification.session_id || "",
+            session_author_id: notification.session_author_id || "",
             actor_id: notification.actor_id || "",
         },
     };

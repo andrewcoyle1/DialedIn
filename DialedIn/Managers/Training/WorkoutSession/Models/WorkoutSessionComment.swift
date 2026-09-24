@@ -20,6 +20,9 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
     /// The comment this one replies to. One level only: a reply to a reply carries the same
     /// parent, so a thread is a comment and its replies, never a tree.
     var parentId: String?
+    /// Everyone tagged with an `@FirstName` in the text. Identity lives here rather than in the
+    /// text, so two people with the same first name stay distinct.
+    var mentionedUserIds: [String] = []
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -32,6 +35,18 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
         case dateCreated = "date_created"
         case deletedAt = "deleted_at"
         case parentId = "parent_id"
+        case mentionedUserIds = "mentioned_user_ids"
+    }
+
+    /// Who hears about this comment. The session's author hears about every one, and a reply also
+    /// reaches the author of the comment it answers; anyone mentioned who is not already one of
+    /// those gets a mention instead. The writer is told about nothing, and nobody is told twice.
+    func activityRecipients(parentAuthorId: String?) -> (commented: Set<String>, mentioned: Set<String>) {
+        var commented: Set<String> = [sessionAuthorId]
+        if let parentAuthorId { commented.insert(parentAuthorId) }
+        commented.remove(authorId)
+        let mentioned = Set(mentionedUserIds).subtracting(commented).subtracting([authorId])
+        return (commented, mentioned)
     }
 
     @MainActor

@@ -371,6 +371,8 @@ struct SocialCommentsPresenterTests {
     private final class Interactor: SpyGlobalInteractor, CommentsInteractor {
         var currentUser: UserModel? = DashboardFixture.user("me", firstName: "Andrew")
         var fetched: [WorkoutSessionComment] = []
+        var followingUsers: [UserModel] = []
+        func getUser(userId: String) async throws -> UserModel { throw URLError(.fileDoesNotExist) }
         var fetchError: Error?
         var addError: Error?
         var deleteError: Error?

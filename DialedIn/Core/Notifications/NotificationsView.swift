@@ -78,6 +78,7 @@ struct NotificationsView: View {
         Section {
             Toggle("Likes", isOn: $presenter.isLikesPushEnabled)
             Toggle("Comments", isOn: $presenter.isCommentsPushEnabled)
+            Toggle("Mentions", isOn: $presenter.isMentionsPushEnabled)
             Toggle("New followers", isOn: $presenter.isFollowsPushEnabled)
             Toggle("Nudges", isOn: $presenter.isNudgesPushEnabled)
         } header: {
@@ -90,12 +91,17 @@ struct NotificationsView: View {
     @ViewBuilder
     private var activityNotificationsList: some View {
         ForEach(presenter.activityNotifications) { notification in
-            activityNotificationRow(notification)
-                .swipeActions {
-                    Button(role: .destructive) {
-                        presenter.onNotificationDeleted(notification)
-                    }
+            Button {
+                presenter.onNotificationPressed(notification)
+            } label: {
+                activityNotificationRow(notification)
+            }
+            .buttonStyle(.plain)
+            .swipeActions {
+                Button(role: .destructive) {
+                    presenter.onNotificationDeleted(notification)
                 }
+            }
         }
     }
 
@@ -109,6 +115,8 @@ struct NotificationsView: View {
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(.rect)
         .padding(.vertical, 4)
     }
 
@@ -123,6 +131,9 @@ struct NotificationsView: View {
             return "\(notification.actorName) started following you"
         case .nudge:
             return "\(notification.actorName) nudged you to train"
+        case .mention:
+            let preview = notification.commentText.map { ": \"\($0.prefix(60))\"" } ?? ""
+            return "\(notification.actorName) mentioned you\(preview)"
         }
     }
 

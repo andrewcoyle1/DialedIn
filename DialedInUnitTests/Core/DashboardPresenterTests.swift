@@ -125,6 +125,15 @@ struct DashboardFeedPresenterTests {
         func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget? {
             target
         }
+
+        var fetchableSessions: [WorkoutSessionModel] = []
+
+        func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel {
+            guard let session = fetchableSessions.first(where: { $0.id == id && $0.authorId == authorId }) else {
+                throw DashboardTestError.failed
+            }
+            return session
+        }
     }
 
     /// `showDevSettingsView()` is declared unguarded: the protocol wraps it in `#if DEV || MOCK` but
@@ -140,6 +149,8 @@ struct DashboardFeedPresenterTests {
         func showNotificationsView() { shown.append("notifications") }
         func showNutritionView() { shown.append("nutrition") }
         func showSocialProfileView(delegate: SocialProfileDelegate) { shown.append("socialProfile:\(delegate.user.userId)") }
+        func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { shown.append("session:\(delegate.initialSession.id)") }
+        func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) { shown.append("thread:\(delegate.initialSession.id)") }
 
         func showAddMealView(delegate: AddMealDelegate) {
             shown.append("addMeal")
@@ -170,6 +181,44 @@ struct DashboardFeedPresenterTests {
             interactor: interactor,
             router: router
         )
+    }
+
+    // MARK: Opening a session from a push
+
+    /// A push tap relayed by the tab bar opens the session it names, and a comment or mention
+    /// opens its thread on top.
+    @Test("Test A Session Push Opens The Session And A Comment Push Its Thread")
+    func testASessionPushOpensTheSessionAndACommentPushItsThread() async {
+        let screen = makeScreen()
+        screen.interactor.fetchableSessions = [DashboardFixture.session(id: "s1", author: "friend", on: DashboardFixture.date(day: 2))]
+
+        screen.presenter.onOpenWorkoutSessionNotificationReceived(Notification(
+            name: Constants.openWorkoutSession, object: nil,
+            userInfo: ["session_id": "s1", "session_author_id": "friend", "type": "like"]
+        ))
+        await TestManagers.eventually { screen.router.shown == ["session:s1"] }
+        screen.presenter.onOpenWorkoutSessionNotificationReceived(Notification(
+            name: Constants.openWorkoutSession, object: nil,
+            userInfo: ["session_id": "s1", "session_author_id": "friend", "type": "mention"]
+        ))
+        await TestManagers.eventually { screen.router.shown.count == 2 }
+
+        #expect(screen.router.shown == ["session:s1", "thread:s1"])
+    }
+
+    /// Best effort: a session that cannot be fetched leaves the user on the Dashboard, with no alert.
+    @Test("Test A Session Push That Cannot Be Fetched Does Nothing")
+    func testASessionPushThatCannotBeFetchedDoesNothing() async {
+        let screen = makeScreen()
+
+        screen.presenter.onOpenWorkoutSessionNotificationReceived(Notification(
+            name: Constants.openWorkoutSession, object: nil,
+            userInfo: ["session_id": "gone", "session_author_id": "friend", "type": "comment"]
+        ))
+        await TestManagers.eventually(timeout: .milliseconds(200)) { !screen.router.shown.isEmpty }
+
+        #expect(screen.router.shown.isEmpty)
+        #expect(screen.router.alertTitles.isEmpty)
     }
 
     // MARK: Feed contents

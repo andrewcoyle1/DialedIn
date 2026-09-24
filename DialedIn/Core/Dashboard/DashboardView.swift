@@ -49,6 +49,10 @@ struct DashboardView<
             presenter.onViewDisappear(delegate: delegate)
         }
         .toolbar { toolbarContent }
+        // A push tap about a session — see `DeepLink.post()`.
+        .onNotificationReceived(name: Constants.openWorkoutSession) { notification in
+            presenter.onOpenWorkoutSessionNotificationReceived(notification)
+        }
         .task {
             await presenter.loadNotifications()
             await presenter.loadSuggestedUsers()

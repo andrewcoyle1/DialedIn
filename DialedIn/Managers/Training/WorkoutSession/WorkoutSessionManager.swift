@@ -152,6 +152,25 @@ class WorkoutSessionManager {
         .filter { $0.authorId == authorId }
     }
 
+    /// One session by anyone, for a notification tap. Already-synced sessions (the reader's own and
+    /// those of people they follow) answer straight away; anything else is read through the same
+    /// collection group as `getWorkoutSessionsForAuthor`, which needs the `author_id` + `id` index in
+    /// `firestore.indexes.json`. The filter repeats the query's because the mock remote ignores it.
+    func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel {
+        if let synced = (workoutSessions + followingWorkoutSessions).first(where: { $0.id == id }) {
+            return synced
+        }
+        let found = try await followingWorkoutSessionSyncEngine.getDocumentsAsync { query in
+            query
+                .where("author_id", isEqualTo: authorId)
+                .where("id", isEqualTo: id)
+                .limit(to: 1)
+        }
+        .first { $0.id == id }
+        guard let found else { throw URLError(.fileDoesNotExist) }
+        return found
+    }
+
     func likeSession(sessionId: String, authorId: String, userId: String) async throws {
         try await likeService.likeSession(sessionId: sessionId, authorId: authorId, userId: userId)
     }
@@ -285,6 +304,10 @@ extension CoreInteractor {
         try await workoutSessionManager.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
     }
 
+    func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel {
+        try await workoutSessionManager.fetchWorkoutSession(id: id, authorId: authorId)
+    }
+
     func fetchWorkoutSessions(authorId: String, limit: Int) async throws -> [WorkoutSessionModel] {
         try await workoutSessionManager.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limit)
     }
@@ -361,9 +384,24 @@ extension CoreInteractor {
 
     func addComment(_ comment: WorkoutSessionComment) async throws {
         try await commentsManager.addComment(comment)
-        let notification = ActivityNotificationModel(
-            id: "comment_\(comment.id)",
-            type: .comment,
+        var parentAuthorId: String?
+        if let parentId = comment.parentId {
+            parentAuthorId = try? await commentsManager.fetchComments(sessionId: comment.sessionId)
+                .first(where: { $0.id == parentId })?.authorId
+        }
+        let recipients = comment.activityRecipients(parentAuthorId: parentAuthorId)
+        for recipient in recipients.commented {
+            try? await activityNotificationManager.addNotification(activityNotification(for: comment, type: .comment), userId: recipient)
+        }
+        for recipient in recipients.mentioned {
+            try? await activityNotificationManager.addNotification(activityNotification(for: comment, type: .mention), userId: recipient)
+        }
+    }
+
+    private func activityNotification(for comment: WorkoutSessionComment, type: ActivityNotificationModel.ActivityType) -> ActivityNotificationModel {
+        ActivityNotificationModel(
+            id: "\(type.rawValue)_\(comment.id)",
+            type: type,
             actorId: comment.authorId,
             actorName: comment.authorName ?? "Someone",
             actorImageUrl: comment.authorImageUrl,
@@ -373,18 +411,6 @@ extension CoreInteractor {
             dateCreated: comment.dateCreated,
             isRead: false
         )
-        // The session's author hears about every comment; a reply also reaches the person it
-        // answers. Nobody is told about their own comment, and nobody is told twice.
-        var recipients = Set([comment.sessionAuthorId])
-        if let parentId = comment.parentId,
-           let parent = try? await commentsManager.fetchComments(sessionId: comment.sessionId)
-                .first(where: { $0.id == parentId }) {
-            recipients.insert(parent.authorId)
-        }
-        recipients.remove(comment.authorId)
-        for recipient in recipients {
-            try? await activityNotificationManager.addNotification(notification, userId: recipient)
-        }
     }
 
     func deleteComment(id: String) async throws {

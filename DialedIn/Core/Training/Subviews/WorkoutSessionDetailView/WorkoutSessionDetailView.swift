@@ -389,6 +389,20 @@ extension CoreRouter {
             builder.workoutSessionDetailView(router: router, delegate: delegate)
         }
     }
+
+    /// The session with its comments already open on top, for a comment or mention notification.
+    /// One `showScreens` call so the comments sheet is presented from the detail sheet's router,
+    /// not from the screen that asked.
+    func showWorkoutSessionThread(delegate: WorkoutSessionDetailDelegate) {
+        router.showScreens(destinations: [
+            AnyDestination(segue: .sheet) { router in
+                builder.workoutSessionDetailView(router: router, delegate: delegate)
+            },
+            AnyDestination(segue: .sheet) { router in
+                builder.commentsView(router: router, delegate: CommentsDelegate(session: delegate.initialSession))
+            }
+        ])
+    }
 }
 
 #Preview {

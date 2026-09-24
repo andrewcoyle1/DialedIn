@@ -19,6 +19,8 @@ struct BlockedCommentsTests {
     private final class Interactor: SpyGlobalInteractor, CommentsInteractor {
         var currentUser: UserModel? = UserModel(userId: "me", blockedUserIds: ["blocked"])
         var fetched: [WorkoutSessionComment] = []
+        var followingUsers: [UserModel] = []
+        func getUser(userId: String) async throws -> UserModel { throw URLError(.fileDoesNotExist) }
         private(set) var reports: [String] = []
 
         func fetchComments(sessionId: String) async throws -> [WorkoutSessionComment] { fetched }
