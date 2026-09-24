@@ -61,6 +61,23 @@ enum WorkoutSessionHighlights {
         return earlierThisWeek.count + 1
     }
 
+    /// "3rd workout of the week", from the second one on — a first is not news. "Of the week"
+    /// rather than "this week", because the card can be read long after the week is over.
+    static func weeklyWorkoutText(_ number: Int) -> String? {
+        guard number >= 2 else { return nil }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .ordinal
+        let ordinal = formatter.string(from: NSNumber(value: number)) ?? "\(number)"
+        return "\(ordinal) workout of the week"
+    }
+
+    /// "12-day streak", stamped on the session when the author finished it. Only from two days
+    /// on, like the weekly count, and absent on sessions finished before streaks were stamped.
+    static func streakText(_ streakCount: Int?) -> String? {
+        guard let streakCount, streakCount > 1 else { return nil }
+        return "\(streakCount)-day streak"
+    }
+
     // MARK: - Helpers
 
     private static func counts(_ session: WorkoutSessionModel, author: String) -> Bool {
