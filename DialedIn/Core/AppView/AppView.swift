@@ -108,7 +108,18 @@ struct AppView<Content: View>: View {
         logger: nil
     )
     let userQueryService = MockUserQueryService()
-    container.register(UserManager.self, service: UserManager(queryService: userQueryService, userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine))
+    let privateSettingsSyncEngine = DocumentSyncEngine<PrivateUserSettings>(
+        remote: MockRemoteDocumentService(),
+        managerKey: "private_user_settings",
+        enableLocalPersistence: true,
+        logger: nil
+    )
+    container.register(UserManager.self, service: UserManager(
+        queryService: userQueryService,
+        userSyncEngine: userSyncEngine,
+        followingUsersSyncEngine: followingUsersSyncEngine,
+        privateSettingsSyncEngine: privateSettingsSyncEngine
+    ))
     container.register(AuthManager.self, service: AuthManager(service: MockAuthService(scenario: .newAnonymous)))
     container.register(AppState.self, service: AppState(startingModuleId: Constants.onboardingModuleId))
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))

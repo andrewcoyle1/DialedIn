@@ -117,7 +117,18 @@ class DevPreview {
             enableLocalPersistence: false,
             logger: logManager
         )
-        let userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+        let privateSettingsSyncEngine = DocumentSyncEngine<PrivateUserSettings>(
+            remote: MockRemoteDocumentService(),
+            managerKey: "private_user_settings",
+            enableLocalPersistence: false,
+            logger: logManager
+        )
+        let userManager = UserManager(
+            queryService: MockUserQueryService(),
+            userSyncEngine: userSyncEngine,
+            followingUsersSyncEngine: followingUsersSyncEngine,
+            privateSettingsSyncEngine: privateSettingsSyncEngine
+        )
         
         self.authManager = AuthManager(service: MockAuthService(scenario: isSignedIn ? .existingSignedIn : .newAnonymous), logger: logManager)
         self.userManager = userManager

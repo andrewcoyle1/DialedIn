@@ -15,8 +15,12 @@ class UserManager {
     private let queryService: any UserQueryService
     private let userSyncEngine: DocumentSyncEngine<UserModel>
     private let followingUsersSyncEngine: CollectionSyncEngine<UserModel>
+    private let privateSettingsSyncEngine: DocumentSyncEngine<PrivateUserSettings>
 
     var currentUser: UserModel? { userSyncEngine.currentDocument }
+
+    /// The owner-only settings document. A user who has never written it reads as all defaults.
+    var privateSettings: PrivateUserSettings { privateSettingsSyncEngine.currentDocument ?? PrivateUserSettings() }
 
     /// Blocked accounts are left out even while their follow is still being taken back.
     var followingUsers: [UserModel] {
@@ -30,11 +34,13 @@ class UserManager {
     init(
         queryService: any UserQueryService,
         userSyncEngine: DocumentSyncEngine<UserModel>,
-        followingUsersSyncEngine: CollectionSyncEngine<UserModel>
+        followingUsersSyncEngine: CollectionSyncEngine<UserModel>,
+        privateSettingsSyncEngine: DocumentSyncEngine<PrivateUserSettings>
     ) {
         self.queryService = queryService
         self.userSyncEngine = userSyncEngine
         self.followingUsersSyncEngine = followingUsersSyncEngine
+        self.privateSettingsSyncEngine = privateSettingsSyncEngine
     }
     
     func signIn(auth: UserAuthInfo, isNewUser: Bool) async throws {
@@ -44,11 +50,13 @@ class UserManager {
             try await userSyncEngine.saveDocument(user)
         }
         try await userSyncEngine.startListening(documentId: auth.uid)
+        try await privateSettingsSyncEngine.startListening(documentId: PrivateUserSettings.documentId)
     }
     
     func signOut() {
         userSyncEngine.stopListening()
         followingUsersSyncEngine.stopListening()
+        privateSettingsSyncEngine.stopListening()
     }
 
     func refreshFollowingUsers(followingIds: [String]) async {
@@ -207,7 +215,14 @@ class UserManager {
 
     // User FCM Token
     
+    /// Written to the owner-only private document, merged over what is there. `saveDocument` is a
+    /// merge, so this cannot fail on a document that does not exist yet the way an update would.
     func saveUserFCMToken(token: String) async throws {
+        var settings = privateSettings
+        settings.fcmToken = token
+        try await privateSettingsSyncEngine.saveDocument(settings)
+        // ponytail: legacy public copy for the Cloud Function deployed before the private doc.
+        // Drop this write one release after the functions deploy that reads users/{uid}/private/settings.
         try await userSyncEngine.updateDocument(data: [
             UserModel.CodingKeys.fcmToken.rawValue: token
         ])
@@ -271,9 +286,7 @@ class UserManager {
     }
 
     func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws {
-        try await userSyncEngine.updateDocument(data: [
-            UserModel.socialPushKey(for: type).rawValue: isEnabled
-        ])
+        try await privateSettingsSyncEngine.saveDocument(privateSettings.settingSocialPush(type, isEnabled: isEnabled))
     }
 
     // MARK: - User Blocking
@@ -334,6 +347,8 @@ class UserManager {
     /// Note: This method only handles user profile deletion. The caller (typically CoreInteractor)
     /// is responsible for orchestrating deletion of related data (workout sessions, exercise history, templates, etc.)
     func deleteCurrentUser() async throws {
+        // Best effort: most users never wrote the private document, and deleting nothing is not a failure.
+        try? await privateSettingsSyncEngine.deleteDocument()
         try await userSyncEngine.deleteDocument()
         // Reset UserManager state (does not sign out Auth)
         signOut()
@@ -519,6 +534,10 @@ extension CoreInteractor {
 
     func updatePrivacy(isPrivate: Bool) async throws {
         try await userManager.updatePrivacy(isPrivate: isPrivate)
+    }
+
+    var privateUserSettings: PrivateUserSettings {
+        userManager.privateSettings
     }
 
     func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws {

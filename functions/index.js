@@ -3,7 +3,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getMessaging } from "firebase-admin/messaging";
-import { requireAuth, cleanJson, normaliseName, buildActivityPush, newlyBlockedIds } from "./lib.js";
+import { requireAuth, cleanJson, normaliseName, buildActivityPush, newlyBlockedIds, pushRecipientSettings } from "./lib.js";
 import { genkit } from "genkit";
 import { vertexAI, gemini20Flash, imagen3Fast } from "@genkit-ai/vertexai";
 
@@ -392,8 +392,9 @@ export const foodSearch = onCall(CALLABLE_OPTIONS, async (request) => {
 // ---------------------------------------------------------------------------
 
 // The app writes users/{uid}/notifications for the in-app bell; this turns each new doc into a
-// push so it still arrives when the app is closed. Message building and the opt-out check live in
-// buildActivityPush (lib.js) so they can be tested without Firestore.
+// push so it still arrives when the app is closed. The token and opt-outs are private to the owner,
+// in users/{uid}/private/settings; pushRecipientSettings falls back to the legacy user-doc fields.
+// Message building and the opt-out check live in lib.js so they can be tested without Firestore.
 export const onActivityNotificationCreated = onDocumentCreated(
     { document: "users/{userId}/notifications/{notificationId}", region: REGION },
     async (event) => {
@@ -401,8 +402,13 @@ export const onActivityNotificationCreated = onDocumentCreated(
         if (!notification) return;
 
         const userId = event.params.userId;
-        const userDoc = await getFirestore().collection("users").doc(userId).get();
-        const message = buildActivityPush(notification, userDoc.data());
+        const userRef = getFirestore().collection("users").doc(userId);
+        const [userDoc, privateDoc] = await Promise.all([
+            userRef.get(),
+            userRef.collection("private").doc("settings").get(),
+        ]);
+        const recipient = pushRecipientSettings(privateDoc.data(), userDoc.data());
+        const message = buildActivityPush(notification, recipient);
         if (!message) {
             console.log(`No push for user ${userId} (${notification.type}): no token or opted out.`);
             return;

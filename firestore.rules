@@ -32,6 +32,13 @@ service cloud.firestore {
       allow read: if isAuthed();
       allow write: if isAuthed() && request.auth.uid == user_id;
 
+      // Private settings: users/{user_id}/private/settings holds the FCM token and the
+      // social_push_* opt-outs, which the public profile above exposes to every signed-in user.
+      // Owner only; the push Cloud Function reads it with the Admin SDK.
+      match /private/{private_id} {
+        allow read, write: if isAuthed() && request.auth.uid == user_id;
+      }
+
       // Body Measurements subcollection
       match /body_measurements/{entry_id} {
         allow read: if isAuthed() && request.auth.uid == user_id;

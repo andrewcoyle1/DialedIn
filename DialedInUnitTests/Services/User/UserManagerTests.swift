@@ -115,42 +115,98 @@ struct UserManagerTests {
 
     // MARK: - Blocking
 
+    private struct Recording {
+        let manager: UserManager
+        let remote: RecordingRemoteDocumentService<UserModel>
+        let privateRemote: RecordingRemoteDocumentService<PrivateUserSettings>
+    }
+
     /// Blocking someone the reader follows takes the follow back in the same write, so a blocked
     /// person's sessions stop syncing into the feed.
     /// The mock remote never applies an update, so these read the write itself: blocking drops the
     /// follow in the same write as the block, and unblocking touches only the block list.
-    private func recordingManager(_ user: UserModel) async throws -> (UserManager, RecordingRemoteDocumentService<UserModel>) {
+    private func recordingManager(
+        _ user: UserModel,
+        privateSettings: PrivateUserSettings? = nil
+    ) async throws -> Recording {
         let remote = RecordingRemoteDocumentService<UserModel>(document: user)
+        let privateRemote = RecordingRemoteDocumentService<PrivateUserSettings>(document: privateSettings)
         let manager = UserManager(
             queryService: MockUserQueryService(),
             userSyncEngine: DocumentSyncEngine<UserModel>(
                 remote: remote, managerKey: TestManagers.key("user"), enableLocalPersistence: false
             ),
-            followingUsersSyncEngine: TestManagers.collectionEngine([UserModel](), key: "following-users")
+            followingUsersSyncEngine: TestManagers.collectionEngine([UserModel](), key: "following-users"),
+            privateSettingsSyncEngine: DocumentSyncEngine<PrivateUserSettings>(
+                remote: privateRemote, managerKey: TestManagers.key("private-user-settings"), enableLocalPersistence: false
+            )
         )
         try await manager.signIn(auth: UserAuthInfo(uid: user.userId), isNewUser: false)
         await TestManagers.eventually { manager.currentUser != nil }
-        return (manager, remote)
+        if let privateSettings {
+            await TestManagers.eventually { manager.privateSettings == privateSettings }
+        }
+        return Recording(manager: manager, remote: remote, privateRemote: privateRemote)
     }
 
     @Test("Test Blocking A Followed User Unfollows Them")
     func testBlockingAFollowedUserUnfollowsThem() async throws {
-        let (manager, remote) = try await recordingManager(UserModel(userId: "me", followingIds: ["friend", "other"]))
+        let recording = try await recordingManager(UserModel(userId: "me", followingIds: ["friend", "other"]))
 
-        try await manager.blockUser(userId: "friend")
+        try await recording.manager.blockUser(userId: "friend")
 
-        #expect(remote.lastStrings(for: UserModel.CodingKeys.blockedUserIds.rawValue) == ["friend"])
-        #expect(remote.lastStrings(for: UserModel.CodingKeys.followingIds.rawValue) == ["other"])
+        #expect(recording.remote.lastStrings(for: UserModel.CodingKeys.blockedUserIds.rawValue) == ["friend"])
+        #expect(recording.remote.lastStrings(for: UserModel.CodingKeys.followingIds.rawValue) == ["other"])
     }
 
     @Test("Test Unblocking Does Not Restore The Follow")
     func testUnblockingDoesNotRestoreTheFollow() async throws {
-        let (manager, remote) = try await recordingManager(UserModel(userId: "me", blockedUserIds: ["friend"], followingIds: ["other"]))
+        let recording = try await recordingManager(UserModel(userId: "me", blockedUserIds: ["friend"], followingIds: ["other"]))
 
-        try await manager.unblockUser(userId: "friend")
+        try await recording.manager.unblockUser(userId: "friend")
 
-        #expect(remote.lastStrings(for: UserModel.CodingKeys.blockedUserIds.rawValue) == [])
-        #expect(remote.lastStrings(for: UserModel.CodingKeys.followingIds.rawValue) == nil)
+        #expect(recording.remote.lastStrings(for: UserModel.CodingKeys.blockedUserIds.rawValue) == [])
+        #expect(recording.remote.lastStrings(for: UserModel.CodingKeys.followingIds.rawValue) == nil)
+    }
+
+    // MARK: - Private Settings
+
+    /// The push opt-outs are owner-only now: a switch writes the private settings document, and
+    /// the public profile, which any signed-in user can read, is not touched.
+    @Test("Test Social Push Preference Writes The Private Settings Not The Profile")
+    func testSocialPushPreferenceWritesThePrivateSettingsNotTheProfile() async throws {
+        let recording = try await recordingManager(UserModel(userId: "me"))
+
+        try await recording.manager.updateSocialNotificationPreferences(type: .comment, isEnabled: false)
+
+        #expect(recording.privateRemote.saves.last == PrivateUserSettings(socialPushComments: false))
+        #expect(recording.remote.updates.isEmpty)
+        #expect(await TestManagers.eventually { !recording.manager.privateSettings.isSocialPushEnabled(for: .comment) })
+        #expect(recording.manager.privateSettings.isSocialPushEnabled(for: .like))
+    }
+
+    /// A preference write is a merge over what the document already holds, so flipping one switch
+    /// keeps the push token and the other switches.
+    @Test("Test Social Push Preference Keeps The Other Private Fields")
+    func testSocialPushPreferenceKeepsTheOtherPrivateFields() async throws {
+        let stored = PrivateUserSettings(fcmToken: "tok", socialPushLikes: false)
+        let recording = try await recordingManager(UserModel(userId: "me"), privateSettings: stored)
+
+        try await recording.manager.updateSocialNotificationPreferences(type: .follow, isEnabled: false)
+
+        #expect(recording.privateRemote.saves.last == PrivateUserSettings(fcmToken: "tok", socialPushLikes: false, socialPushFollows: false))
+    }
+
+    /// The token goes to the private document, and for one release also to the legacy profile
+    /// field so the Cloud Function deployed before the move keeps finding it.
+    @Test("Test FCM Token Writes The Private Settings And The Legacy Field")
+    func testFCMTokenWritesThePrivateSettingsAndTheLegacyField() async throws {
+        let recording = try await recordingManager(UserModel(userId: "me"))
+
+        try await recording.manager.saveUserFCMToken(token: "abc-123")
+
+        #expect(recording.privateRemote.saves.last?.fcmToken == "abc-123")
+        #expect(recording.remote.updates.last?[UserModel.CodingKeys.fcmToken.rawValue] as? String == "abc-123")
     }
 
     // MARK: - Helpers

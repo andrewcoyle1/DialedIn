@@ -25,7 +25,7 @@ class NotificationsPresenter {
     private(set) var isLoading: Bool = true
 
     /// The Social switches. Each writes the moment it flips, like the Account privacy switch, and
-    /// reads back from the profile, so a failed write snaps the switch back once the alert shows.
+    /// reads back from the private settings document, so a failed write snaps the switch back once the alert shows.
     var isLikesPushEnabled: Bool {
         get { isSocialPushEnabled(.like) }
         set { onSocialPushToggled(.like, isEnabled: newValue) }
@@ -42,7 +42,7 @@ class NotificationsPresenter {
     }
 
     private func isSocialPushEnabled(_ type: ActivityNotificationModel.ActivityType) -> Bool {
-        interactor.currentUser?.isSocialPushEnabled(for: type) ?? true
+        interactor.privateUserSettings.isSocialPushEnabled(for: type)
     }
 
     private func onSocialPushToggled(_ type: ActivityNotificationModel.ActivityType, isEnabled: Bool) {

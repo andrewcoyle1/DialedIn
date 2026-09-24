@@ -332,7 +332,18 @@ extension CoreRouter {
         logger: nil
     )
     let userQueryService = MockUserQueryService()
-    container.register(UserManager.self, service: UserManager(queryService: userQueryService, userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine))
+    let privateSettingsSyncEngine = DocumentSyncEngine<PrivateUserSettings>(
+        remote: MockRemoteDocumentService(),
+        managerKey: "private_user_settings",
+        enableLocalPersistence: true,
+        logger: nil
+    )
+    container.register(UserManager.self, service: UserManager(
+        queryService: userQueryService,
+        userSyncEngine: userSyncEngine,
+        followingUsersSyncEngine: followingUsersSyncEngine,
+        privateSettingsSyncEngine: privateSettingsSyncEngine
+    ))
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     return RouterView { router in
         builder.profileView(router: router)

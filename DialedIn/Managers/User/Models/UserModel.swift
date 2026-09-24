@@ -45,15 +45,17 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     let submittedCurrentGoalId: String?
     let submittedFavouriteGymProfileId: String?
     let submittedActiveTrainingProgramId: String?
+    /// Legacy: the token now lives in `PrivateUserSettings`. Still written for one release so the
+    /// deployed Cloud Function keeps finding it; kept decodable so old documents parse.
     let fcmToken: String?
     let blockedUserIds: [String]?
     let followingIds: [String]?
     /// A private profile is left out of search and suggestions, and shows strangers nothing but
     /// a name. Sessions were already visible to followers only, so that does not change.
     let isPrivate: Bool?
-    /// Per-type opt-outs for social pushes, read by the `onActivityNotificationCreated` Cloud
-    /// Function. Nil means on, so profiles written before the setting existed still get pushes.
-    /// Three flat booleans rather than a map so each switch writes one key.
+    /// Legacy per-type opt-outs for social pushes. They now live in `PrivateUserSettings`, and the
+    /// app no longer writes them here; kept decodable so old documents parse, and the Cloud Function
+    /// falls back to them for users who have not written the private document yet.
     let socialPushLikes: Bool?
     let socialPushComments: Bool?
     let socialPushFollows: Bool?
@@ -518,27 +520,5 @@ extension OnboardingStep {
         case .customiseProgram: return 9
         case .complete: return 10
         }
-    }
-}
-
-extension UserModel {
-    /// The profile field that opts out of pushes for one kind of social activity. Must match
-    /// `SOCIAL_PUSH_PREFERENCE_KEYS` in `functions/lib.js`.
-    static func socialPushKey(for type: ActivityNotificationModel.ActivityType) -> CodingKeys {
-        switch type {
-        case .like: return .socialPushLikes
-        case .comment: return .socialPushComments
-        case .follow: return .socialPushFollows
-        }
-    }
-
-    /// On unless the user has switched it off.
-    func isSocialPushEnabled(for type: ActivityNotificationModel.ActivityType) -> Bool {
-        let stored: Bool? = switch type {
-        case .like: socialPushLikes
-        case .comment: socialPushComments
-        case .follow: socialPushFollows
-        }
-        return stored ?? true
     }
 }

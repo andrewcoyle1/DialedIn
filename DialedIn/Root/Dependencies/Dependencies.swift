@@ -71,6 +71,14 @@ struct Dependencies {
             logManager = LogManager(services: [
                 ConsoleService(printParameters: true)
             ])
+            // Not in Keys.swift: that file is gitignored, so a new constant there breaks every
+            // existing checkout until it is copied in by hand.
+            let privateSettingsSyncEngine = DocumentSyncEngine<PrivateUserSettings>(
+                remote: MockRemoteDocumentService(),
+                managerKey: "private_user_settings",
+                enableLocalPersistence: true,
+                logger: logManager
+            )
             switch scenario {
             case .newAnonymous:
                 authManager = AuthManager(service: MockAuthService(scenario: .newAnonymous))
@@ -86,7 +94,7 @@ struct Dependencies {
                     enableLocalPersistence: true,
                     logger: logManager
                 )
-                userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+                userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine, privateSettingsSyncEngine: privateSettingsSyncEngine)
                 appState = AppState(startingModuleId: Constants.onboardingModuleId)
             case .existingSignedOut:
                 authManager = AuthManager(service: MockAuthService(scenario: .existingSignedOut))
@@ -102,7 +110,7 @@ struct Dependencies {
                     enableLocalPersistence: true,
                     logger: logManager
                 )
-                userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+                userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine, privateSettingsSyncEngine: privateSettingsSyncEngine)
                 appState = AppState(startingModuleId: Constants.onboardingModuleId)
             case .existingSignedIn:
                 authManager = AuthManager(service: MockAuthService(scenario: .existingSignedIn))
@@ -118,7 +126,7 @@ struct Dependencies {
                     enableLocalPersistence: true,
                     logger: logManager
                 )
-                userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+                userManager = UserManager(queryService: MockUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine, privateSettingsSyncEngine: privateSettingsSyncEngine)
                 appState = AppState(startingModuleId: Constants.tabBarModuleId)
             }
             purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
@@ -336,7 +344,23 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            userManager = UserManager(queryService: FirebaseUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+            let privateSettingsSyncEngine = DocumentSyncEngine<PrivateUserSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/private"
+                    }
+                ),
+                managerKey: "private_user_settings",
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            userManager = UserManager(
+                queryService: FirebaseUserQueryService(),
+                userSyncEngine: userSyncEngine,
+                followingUsersSyncEngine: followingUsersSyncEngine,
+                privateSettingsSyncEngine: privateSettingsSyncEngine
+            )
             abTestManager = ABTestManager(service: LocalABTestService(), logger: logManager)
             purchaseManager = PurchaseManager(service: RevenueCatPurchaseService(apiKey: Keys.revenueCatAPIKey), logger: logManager)
             let userExerciseSyncEngine = CollectionSyncEngine<ExerciseModel>(
@@ -652,7 +676,23 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            userManager = UserManager(queryService: FirebaseUserQueryService(), userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+            let privateSettingsSyncEngine = DocumentSyncEngine<PrivateUserSettings>(
+                remote: FirebaseRemoteDocumentService(
+                    collectionPath: {[weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/private"
+                    }
+                ),
+                managerKey: "private_user_settings",
+                enableLocalPersistence: true,
+                logger: logManager
+            )
+            userManager = UserManager(
+                queryService: FirebaseUserQueryService(),
+                userSyncEngine: userSyncEngine,
+                followingUsersSyncEngine: followingUsersSyncEngine,
+                privateSettingsSyncEngine: privateSettingsSyncEngine
+            )
             abTestManager = ABTestManager(service: FirebaseABTestService(), logger: logManager)
             purchaseManager = PurchaseManager(service: StoreKitPurchaseService())
             let userExerciseSyncEngine = CollectionSyncEngine<ExerciseModel>(
