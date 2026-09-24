@@ -13,6 +13,7 @@ class WorkoutSessionRowPresenter {
 
     private let interactor: WorkoutSessionRowInteractor
     private let router: WorkoutSessionRowRouter
+    let reportFlow: ReportFlow
     let session: WorkoutSessionModel
     let author: UserModel
     private let sessionAuthorId: String
@@ -27,6 +28,7 @@ class WorkoutSessionRowPresenter {
     ) {
         self.interactor = interactor
         self.router = router
+        self.reportFlow = ReportFlow(interactor: interactor, router: router)
         self.session = delegate.session
         self.author = delegate.author
         self.sessionAuthorId = delegate.session.authorId
@@ -79,6 +81,17 @@ class WorkoutSessionRowPresenter {
             parts.append("\(Int(volume)) kg lifted")
         }
         return parts.joined(separator: " · ")
+    }
+
+    /// The reader cannot report their own workout.
+    var canReport: Bool {
+        guard let readerId = interactor.currentUser?.userId else { return false }
+        return sessionAuthorId != readerId
+    }
+
+    func onReportPressed() {
+        guard canReport else { return }
+        reportFlow.start(ReportedContent(type: .session, id: session.id, authorUserId: sessionAuthorId, noun: "workout"))
     }
 
     func onUserPressed() {

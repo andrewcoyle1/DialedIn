@@ -78,3 +78,85 @@ struct BlockedCommentsTests {
         #expect(presenter.comments.map(\.id) == ["kept", "reply-to-kept"])
     }
 }
+
+// MARK: - Reporting
+
+/// Every report goes through `ReportFlow`: a reason picker first, then one call naming the content
+/// type, its id and its author.
+@MainActor
+struct ReportFlowTests {
+
+    private final class Interactor: SpyGlobalInteractor, WorkoutSessionRowInteractor {
+        var currentUser: UserModel? = UserModel(userId: "me")
+        private(set) var reports: [String] = []
+
+        func likeSession(sessionId: String, authorId: String, userId: String) async throws { }
+        func unlikeSession(sessionId: String, authorId: String, userId: String) async throws { }
+
+        func report(
+            contentType: ReportContentType,
+            contentId: String,
+            authorUserId: String?,
+            reason: ReportReason,
+            notes: String?
+        ) async throws {
+            reports.append("\(contentType.rawValue)|\(contentId)|\(authorUserId ?? "")|\(reason.rawValue)")
+        }
+    }
+
+    private final class Router: WorkoutSessionRowRouter {
+        let router: AnyRouter = TestRouting.anyRouter
+        private(set) var alertTitles: [String] = []
+
+        func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) { }
+        func showSocialProfileView(delegate: SocialProfileDelegate) { }
+        func showCommentsView(delegate: CommentsDelegate) { }
+        func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) { alertTitles.append(title) }
+        func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
+    }
+
+    private struct Row {
+        let presenter: WorkoutSessionRowPresenter
+        let interactor: Interactor
+        let router: Router
+    }
+
+    private func makeRow(author: String) -> Row {
+        let interactor = Interactor()
+        let router = Router()
+        let session = DashboardFixture.session(id: "session-x", author: author, on: DashboardFixture.date(day: 2))
+        let presenter = WorkoutSessionRowPresenter(
+            interactor: interactor,
+            router: router,
+            delegate: WorkoutSessionRowDelegate(session: session, author: UserModel(userId: author))
+        )
+        return Row(presenter: presenter, interactor: interactor, router: router)
+    }
+
+    @Test("Test Reporting A Session Card Sends The Session")
+    func testReportingASessionCardSendsTheSession() async {
+        let row = makeRow(author: "friend")
+        let presenter = row.presenter, interactor = row.interactor, router = row.router
+
+        presenter.onReportPressed()
+        #expect(router.alertTitles == ["Report Workout"])
+        #expect(interactor.reports.isEmpty)
+
+        presenter.reportFlow.onReasonSelected(.spam)
+        await TestManagers.eventually { !interactor.reports.isEmpty }
+
+        #expect(interactor.reports == ["session|session-x|friend|spam"])
+        #expect(router.alertTitles == ["Report Workout", "Report Sent"])
+    }
+
+    @Test("Test The Reader Cannot Report Their Own Session")
+    func testTheReaderCannotReportTheirOwnSession() {
+        let row = makeRow(author: "me")
+        let presenter = row.presenter, router = row.router
+
+        presenter.onReportPressed()
+
+        #expect(presenter.canReport == false)
+        #expect(router.alertTitles.isEmpty)
+    }
+}
