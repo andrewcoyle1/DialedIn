@@ -23,6 +23,12 @@ class CommentsPresenter {
     /// The comment the draft replies to, if any. Set by the row's Reply action, cleared by the
     /// bar's cancel or by sending.
     private(set) var replyingTo: WorkoutSessionComment?
+    /// People picked from the suggestion row for the current draft. Only those whose `@FirstName`
+    /// is still in the text when it is sent are recorded on the comment.
+    private(set) var draftMentions: [CommentMentionCandidate] = []
+    /// The session's author, fetched only when neither the reader's follows nor the thread
+    /// already name them, so they can be mentioned before they have commented.
+    private var sessionAuthor: UserModel?
 
     init(
         interactor: CommentsInteractor,
@@ -47,6 +53,9 @@ class CommentsPresenter {
         let fetched = (try? await interactor.fetchComments(sessionId: session.id)) ?? []
         comments = Self.threaded(hidingBlocked(fetched))
         isLoading = false
+        if !knownPeople.contains(where: { $0.id == session.authorId }) {
+            sessionAuthor = try? await interactor.getUser(userId: session.authorId)
+        }
     }
 
     /// Drops comments by anyone the reader has blocked, and the replies under them — which would
@@ -102,11 +111,14 @@ class CommentsPresenter {
             authorImageUrl: user.profileImageNameCalculated,
             text: trimmed,
             dateCreated: Date(),
-            parentId: replyingTo?.id
+            parentId: replyingTo?.id,
+            mentionedUserIds: mentionedUserIds(in: trimmed)
         )
         let parent = replyingTo
+        let mentions = draftMentions
         commentDraft = ""
         replyingTo = nil
+        draftMentions = []
         isSending = true
         Task {
             do {
@@ -114,6 +126,7 @@ class CommentsPresenter {
                 comments = Self.threaded(comments + [comment])
             } catch {
                 replyingTo = parent
+                draftMentions = mentions
                 // Was `try?` followed by an unconditional append: a comment that never reached the
                 // server still appeared in the list, and the draft was already cleared, so the text
                 // was gone too.
@@ -122,6 +135,74 @@ class CommentsPresenter {
             }
             isSending = false
         }
+    }
+
+    // MARK: - Mentions
+
+    /// Everyone who could be mentioned here, or appear as a mention: the reader, the people they
+    /// follow, the session's author, and everyone who has commented in this thread. First occurrence wins, so a followed user's profile name beats
+    /// the name frozen on an old comment.
+    private var knownPeople: [CommentMentionCandidate] {
+        let reader = interactor.currentUser.map { [$0] } ?? []
+        let users = (reader + interactor.followingUsers + (sessionAuthor.map { [$0] } ?? [])).compactMap { user in
+            user.fullNameCalculated.map { CommentMentionCandidate(id: user.userId, fullName: $0) }
+        }
+        let commenters = comments.compactMap { comment in
+            comment.authorName.map { CommentMentionCandidate(id: comment.authorId, fullName: $0) }
+        }
+        var seen = Set<String>()
+        return (users + commenters).filter { seen.insert($0.id).inserted }
+    }
+
+    /// The letters after a trailing `@` in the draft, or nil when the draft is not mid-mention.
+    private var mentionQueryText: Substring? {
+        commentDraft.firstMatch(of: #/(?:^|\s)@(\p{L}+)$/#)?.output.1
+    }
+
+    private var mentionQuery: String? {
+        mentionQueryText?.lowercased()
+    }
+
+    /// Up to five people whose first or full name starts with what follows the `@`. Never the
+    /// reader: mentioning yourself notifies nobody.
+    var mentionSuggestions: [CommentMentionCandidate] {
+        guard let query = mentionQuery else { return [] }
+        let readerId = interactor.currentUser?.userId
+        return Array(
+            knownPeople
+                .filter { $0.id != readerId }
+                .filter { $0.firstName.lowercased().hasPrefix(query) || $0.fullName.lowercased().filter { !$0.isWhitespace }.hasPrefix(query) }
+                .prefix(5)
+        )
+    }
+
+    func onMentionSuggestionPressed(_ candidate: CommentMentionCandidate) {
+        guard let query = mentionQueryText else { return }
+        commentDraft.replaceSubrange(query.startIndex..<commentDraft.endIndex, with: "\(candidate.firstName) ")
+        if !draftMentions.contains(candidate) {
+            draftMentions.append(candidate)
+        }
+    }
+
+    private func mentionedUserIds(in text: String) -> [String] {
+        draftMentions.filter { text.contains("@\($0.firstName)") }.map(\.id)
+    }
+
+    /// The comment's text with each resolvable `@FirstName` in the accent colour. A mention of
+    /// someone the reader has never seen named stays plain.
+    func attributedText(for comment: WorkoutSessionComment) -> AttributedString {
+        // ponytail: names resolve only from the reader, their follows, the author and the thread;
+        // store names on the comment if mentions of strangers need highlighting too.
+        var result = AttributedString(comment.text)
+        let names = knownPeople.filter { comment.mentionedUserIds.contains($0.id) }.map(\.firstName)
+        for name in Set(names) {
+            var searchStart = result.startIndex
+            while let range = result[searchStart...].range(of: "@\(name)") {
+                result[range].foregroundColor = Color.accentColor
+                searchStart = range.upperBound
+            }
+        }
+        return result
     }
 
     /// The Report swipe action was a `Button` with an empty closure. `ReportManager` and its remote
@@ -154,6 +235,17 @@ class CommentsPresenter {
         }
     }
  }
+
+/// Someone who can be picked from the mention row. The inserted text is `@firstName`; the id is
+/// what the comment records.
+struct CommentMentionCandidate: Identifiable, Equatable {
+    let id: String
+    let fullName: String
+
+    var firstName: String {
+        fullName.split(separator: " ").first.map(String.init) ?? fullName
+    }
+}
 
 // MARK: - Preview support
 

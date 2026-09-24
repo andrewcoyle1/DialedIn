@@ -94,7 +94,7 @@ struct CommentsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Text(comment.text)
+                Text(presenter.attributedText(for: comment))
                     .font(.subheadline)
             }
         }
@@ -119,11 +119,34 @@ struct CommentsView: View {
                     .accessibilityLabel("Cancel reply")
                 }
             }
+            if !presenter.mentionSuggestions.isEmpty {
+                mentionSuggestionRow
+            }
             inputRow
         }
         .padding()
         .glassEffect(in: .containerRelative)
         .padding()
+    }
+
+    private var mentionSuggestionRow: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 8) {
+                ForEach(presenter.mentionSuggestions) { candidate in
+                    Button {
+                        presenter.onMentionSuggestionPressed(candidate)
+                    } label: {
+                        Text(candidate.fullName)
+                            .font(.subheadline)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                    }
+                    .buttonStyle(.glass)
+                    .accessibilityLabel("Mention \(candidate.fullName)")
+                }
+            }
+        }
+        .scrollIndicators(.hidden)
     }
 
     private var inputRow: some View {

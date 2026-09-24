@@ -36,6 +36,11 @@ class NotificationsPresenter {
         set { onSocialPushToggled(.comment, isEnabled: newValue) }
     }
 
+    var isMentionsPushEnabled: Bool {
+        get { isSocialPushEnabled(.mention) }
+        set { onSocialPushToggled(.mention, isEnabled: newValue) }
+    }
+
     var isFollowsPushEnabled: Bool {
         get { isSocialPushEnabled(.follow) }
         set { onSocialPushToggled(.follow, isEnabled: newValue) }

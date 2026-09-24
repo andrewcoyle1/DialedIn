@@ -42,10 +42,10 @@ test("each deployed callable rejects an unauthenticated request before doing any
 
 test("buildActivityPush titles each social type and routes the tap to the Dashboard tab", () => {
     const recipient = { fcm_token: "tok" };
-    const like = buildActivityPush({ type: "like", actor_name: "Jane", session_id: "s1", actor_id: "a1" }, recipient);
+    const like = buildActivityPush({ type: "like", actor_name: "Jane", session_id: "s1", session_author_id: "u1", actor_id: "a1" }, recipient);
     assert.equal(like.token, "tok");
     assert.deepEqual(like.notification, { title: "New like", body: "Jane liked your workout" });
-    assert.deepEqual(like.data, { tab: "dashboard", type: "like", session_id: "s1", actor_id: "a1" });
+    assert.deepEqual(like.data, { tab: "dashboard", type: "like", session_id: "s1", session_author_id: "u1", actor_id: "a1" });
 
     const comment = buildActivityPush({ type: "comment", actor_name: "Jane", comment_text: "Nice!" }, recipient);
     assert.deepEqual(comment.notification, { title: "New comment", body: "Jane commented: Nice!" });
@@ -53,8 +53,22 @@ test("buildActivityPush titles each social type and routes the tap to the Dashbo
     const follow = buildActivityPush({ type: "follow", actor_name: "Jane" }, recipient);
     assert.deepEqual(follow.notification, { title: "New follower", body: "Jane started following you" });
     assert.equal(follow.data.session_id, "");
+    assert.equal(follow.data.session_author_id, "");
 
     assert.equal(buildActivityPush({ type: "like" }, recipient).notification.body, "Someone liked your workout");
+});
+
+test("buildActivityPush tells a mentioned user who tagged them, with the comment's preview", () => {
+    const mention = buildActivityPush(
+        { type: "mention", actor_name: "Jane", comment_text: " Nice one @Sam ", session_id: "s1", session_author_id: "u1" },
+        { fcm_token: "tok" }
+    );
+    assert.deepEqual(mention.notification, { title: "Mention", body: "Jane mentioned you: Nice one @Sam" });
+    assert.equal(mention.data.type, "mention");
+    assert.equal(mention.data.session_id, "s1");
+    assert.equal(mention.data.session_author_id, "u1");
+    const long = buildActivityPush({ type: "mention", actor_name: "Jane", comment_text: "z".repeat(100) }, { fcm_token: "tok" });
+    assert.equal(long.notification.body, `Jane mentioned you: ${"z".repeat(59)}…`);
 });
 
 test("buildActivityPush truncates a long comment to a 60-character preview", () => {
@@ -68,7 +82,8 @@ test("buildActivityPush truncates a long comment to a 60-character preview", () 
 test("buildActivityPush sends nothing without a token, for an unknown type, or when opted out", () => {
     assert.equal(buildActivityPush({ type: "like" }, {}), null);
     assert.equal(buildActivityPush({ type: "like" }, undefined), null);
-    assert.equal(buildActivityPush({ type: "mention" }, { fcm_token: "tok" }), null);
+    assert.equal(buildActivityPush({ type: "poke" }, { fcm_token: "tok" }), null);
+    assert.equal(buildActivityPush({ type: "mention" }, { fcm_token: "tok", social_push_mentions: false }), null);
     assert.equal(buildActivityPush({ type: "like" }, { fcm_token: "tok", social_push_likes: false }), null);
     assert.equal(buildActivityPush({ type: "comment" }, { fcm_token: "tok", social_push_comments: false }), null);
     assert.equal(buildActivityPush({ type: "follow" }, { fcm_token: "tok", social_push_follows: false }), null);

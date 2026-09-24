@@ -14,6 +14,8 @@ struct ActivityNotificationModel: Identifiable {
         /// Someone started following the user. `sessionId` is empty and `sessionAuthorId` is
         /// the followed user, since there is no session behind it.
         case follow
+        /// Someone tagged the user in a comment. `commentText` is that comment.
+        case mention
     }
 
     let id: String

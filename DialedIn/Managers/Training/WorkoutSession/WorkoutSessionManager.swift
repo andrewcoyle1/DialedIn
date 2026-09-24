@@ -361,9 +361,24 @@ extension CoreInteractor {
 
     func addComment(_ comment: WorkoutSessionComment) async throws {
         try await commentsManager.addComment(comment)
-        let notification = ActivityNotificationModel(
-            id: "comment_\(comment.id)",
-            type: .comment,
+        var parentAuthorId: String?
+        if let parentId = comment.parentId {
+            parentAuthorId = try? await commentsManager.fetchComments(sessionId: comment.sessionId)
+                .first(where: { $0.id == parentId })?.authorId
+        }
+        let recipients = comment.activityRecipients(parentAuthorId: parentAuthorId)
+        for recipient in recipients.commented {
+            try? await activityNotificationManager.addNotification(activityNotification(for: comment, type: .comment), userId: recipient)
+        }
+        for recipient in recipients.mentioned {
+            try? await activityNotificationManager.addNotification(activityNotification(for: comment, type: .mention), userId: recipient)
+        }
+    }
+
+    private func activityNotification(for comment: WorkoutSessionComment, type: ActivityNotificationModel.ActivityType) -> ActivityNotificationModel {
+        ActivityNotificationModel(
+            id: "\(type.rawValue)_\(comment.id)",
+            type: type,
             actorId: comment.authorId,
             actorName: comment.authorName ?? "Someone",
             actorImageUrl: comment.authorImageUrl,
@@ -373,18 +388,6 @@ extension CoreInteractor {
             dateCreated: comment.dateCreated,
             isRead: false
         )
-        // The session's author hears about every comment; a reply also reaches the person it
-        // answers. Nobody is told about their own comment, and nobody is told twice.
-        var recipients = Set([comment.sessionAuthorId])
-        if let parentId = comment.parentId,
-           let parent = try? await commentsManager.fetchComments(sessionId: comment.sessionId)
-                .first(where: { $0.id == parentId }) {
-            recipients.insert(parent.authorId)
-        }
-        recipients.remove(comment.authorId)
-        for recipient in recipients {
-            try? await activityNotificationManager.addNotification(notification, userId: recipient)
-        }
     }
 
     func deleteComment(id: String) async throws {

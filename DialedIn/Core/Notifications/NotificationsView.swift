@@ -78,6 +78,7 @@ struct NotificationsView: View {
         Section {
             Toggle("Likes", isOn: $presenter.isLikesPushEnabled)
             Toggle("Comments", isOn: $presenter.isCommentsPushEnabled)
+            Toggle("Mentions", isOn: $presenter.isMentionsPushEnabled)
             Toggle("New followers", isOn: $presenter.isFollowsPushEnabled)
         } header: {
             Text("Social")
@@ -120,6 +121,9 @@ struct NotificationsView: View {
             return "\(notification.actorName) commented\(preview)"
         case .follow:
             return "\(notification.actorName) started following you"
+        case .mention:
+            let preview = notification.commentText.map { ": \"\($0.prefix(60))\"" } ?? ""
+            return "\(notification.actorName) mentioned you\(preview)"
         }
     }
 
