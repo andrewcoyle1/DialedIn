@@ -77,6 +77,19 @@ struct UserManagerTests {
         #expect(user.inferredOnboardingStep == OnboardingStep.complete)
     }
 
+    /// The listener delivers the profile on its own task, so the moment `signIn` returns the
+    /// profile may not be there yet; log-in reads it through this instead of `currentUser`.
+    @Test("Test The Profile Can Be Read The Moment Sign In Returns")
+    func testTheProfileCanBeReadTheMomentSignInReturns() async throws {
+        let existingUser = UserModel.mockExisting
+        let manager = TestManagers.userManager(user: existingUser)
+
+        try await manager.signIn(auth: auth(uid: existingUser.userId), isNewUser: false)
+        let user = await manager.currentUserOrFetched(userId: existingUser.userId)
+
+        #expect(user?.followingIds == existingUser.followingIds)
+    }
+
     @Test("Test Signing In Anonymously Keeps No Email")
     func testSigningInAnonymouslyKeepsNoEmail() async throws {
         let manager = TestManagers.userManager(user: nil)

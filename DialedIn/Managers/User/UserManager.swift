@@ -67,6 +67,14 @@ class UserManager {
         try? await fetchIncomingFollowRequests(userId: auth.uid)
     }
     
+    /// `startListening` returns before the listener's first value lands, so straight after sign-in
+    /// `currentUser` can still be nil on a fresh install. Anything that needs the profile at that
+    /// moment — the following ids that drive the feed and the circle — reads it through this.
+    func currentUserOrFetched(userId: String) async -> UserModel? {
+        if let currentUser { return currentUser }
+        return try? await userSyncEngine.getDocumentAsync(id: userId)
+    }
+
     func signOut() {
         userSyncEngine.stopListening()
         followingUsersSyncEngine.stopListening()

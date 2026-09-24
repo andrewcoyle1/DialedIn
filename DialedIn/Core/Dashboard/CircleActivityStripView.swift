@@ -53,7 +53,8 @@ struct CircleActivityStripView: View {
             } label: {
                 VStack(spacing: 4) {
                     avatar(member)
-                    Text(member.name)
+                    // First name only: a full name under a 56pt face truncates to "Alice Coo…".
+                    Text(member.user.firstNameCalculated ?? member.name)
                         .font(.caption)
                         .foregroundStyle(member.trainedToday ? .primary : .secondary)
                         .lineLimit(1)

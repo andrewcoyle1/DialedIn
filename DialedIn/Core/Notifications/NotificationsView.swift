@@ -139,9 +139,15 @@ struct NotificationsView: View {
                 HStack(spacing: 12) {
                     UserAvatarView(imageUrl: request.requesterImageUrl, size: 40)
 
-                    Text("\(request.requesterName) wants to follow you")
-                        .font(.subheadline.weight(.medium))
-                        .lineLimit(2)
+                    // Name and verb on their own lines: on one line the two buttons truncated it.
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(request.requesterName)
+                            .font(.subheadline.weight(.medium))
+                            .lineLimit(1)
+                        Text("Wants to follow you")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
 
                     Spacer(minLength: 0)
 

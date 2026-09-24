@@ -3,7 +3,18 @@ import Foundation
 @MainActor
 class MockUserQueryService: UserQueryService {
     /// Follow requests by target id, standing in for each user's `follow_requests` subcollection.
-    private(set) var followRequests: [String: [FollowRequestModel]] = [:]
+    /// Seeded with one request to the signed-in mock user so the Notifications screen has one to answer.
+    private(set) var followRequests: [String: [FollowRequestModel]] = [
+        "mock_user_123": [
+            FollowRequestModel(
+                requesterId: "user2",
+                requesterName: "Bob Martinez",
+                requesterImageUrl: "https://picsum.photos/seed/bob/200",
+                dateCreated: Date().addingTimeInterval(-1800),
+                status: .pending
+            )
+        ]
+    ]
 
     func fetchFollowers(userId: String) async throws -> [UserModel] { [] }
     func searchUsers(query: String) async throws -> [UserModel] { [] }

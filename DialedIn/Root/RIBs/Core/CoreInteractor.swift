@@ -131,7 +131,9 @@ struct CoreInteractor: GlobalInteractor {
         async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
         async let gymProfileSignIn: () = gymProfileManager.signIn()
         async let trainingProgramSignIn: () = trainingProgramManager.signIn(userId: user.uid)
-        let followingIds = userManager.currentUser?.followingIds ?? []
+        // Not `currentUser` directly: on a fresh install the listener has not delivered the
+        // profile yet, and an empty list here left the feed and the circle empty until relaunch.
+        let followingIds = await userManager.currentUserOrFetched(userId: user.uid)?.followingIds ?? []
         async let workoutSessionSignIn: () = workoutSessionManager.signIn(userId: user.uid, followingIds: followingIds)
         async let followingUsersSignIn: () = userManager.refreshFollowingUsers(followingIds: followingIds)
         async let exerciseSignIn: () = exerciseModelManager.signIn(userId: user.uid)

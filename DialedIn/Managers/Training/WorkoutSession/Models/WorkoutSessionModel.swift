@@ -530,6 +530,8 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                 session.fillMockSets(progression: progression, completedAt: startedAt)
                 session.endSession(at: startedAt.addingTimeInterval(TimeInterval(durationMinutes * 60)))
                 session.likedByUserIds = Array(["user1", "user3", "user5"].prefix(counter % 4))
+                // The streak the finish path would have stamped: one longer per session, reset by the gap above.
+                session.streakCount = counter % 6 + 2
                 sessions.append(session)
                 counter += 1
             }

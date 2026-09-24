@@ -36,6 +36,8 @@ extension UserModel {
             submittedCurrentGoalId: "goal1",
             submittedActiveTrainingProgramId: TrainingProgram.mock.id,
             submittedFavouriteGymProfileId: GymProfileModel.mock.id,
+            // The same circle as `mocks[0]`, so the signed-in mock scenario has a feed and a strip.
+            followingIds: ["user1", "user3", "user4", "user5"],
             didCompleteOnboarding: true,
             acceptedHealthDisclaimerVersion: "2025.10.05"
         )
@@ -114,7 +116,8 @@ extension UserModel {
                 submittedActiveTrainingProgramId: TrainingProgram.mock.id,
                 submittedFavouriteGymProfileId: GymProfileModel.mock.id,
                 blockedUserIds: ["user6"],
-                followingIds: ["user1", "user2", "user3", "user4", "user5"],
+                // Bob is private and not followed, so his profile shows the request flow.
+                followingIds: ["user1", "user3", "user4", "user5"],
                 fcmToken: "mock_fcm_token_andrew",
                 didCompleteOnboarding: true,
                 acceptedHealthDisclaimerVersion: "2025.10.05",
@@ -174,6 +177,7 @@ extension UserModel {
                 submittedLengthUnitPreference: .inches,
                 submittedWeightUnitPreference: .pounds,
                 followingIds: ["mock_user_123"],
+                isPrivate: true,
                 didCompleteOnboarding: true,
                 acceptedHealthDisclaimerVersion: "2025.10.05",
                 acceptedHealthDisclaimerDate: now.addingTimeInterval(-96 * day)
