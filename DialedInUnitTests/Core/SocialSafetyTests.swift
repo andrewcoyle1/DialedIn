@@ -90,6 +90,7 @@ struct ReportFlowTests {
         var currentUser: UserModel? = UserModel(userId: "me")
         private(set) var reports: [String] = []
 
+        func workoutSessions(authoredBy authorId: String) -> [WorkoutSessionModel] { [] }
         func likeSession(sessionId: String, authorId: String, userId: String) async throws { }
         func unlikeSession(sessionId: String, authorId: String, userId: String) async throws { }
 
