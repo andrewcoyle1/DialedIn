@@ -50,6 +50,7 @@ struct MuscleGroupPickerView: View {
                 } label: {
                     Text(!presenter.selectedMuscleGroups.isEmpty ? "Next" : "Skip")
                 }
+                .accessibilityIdentifier("MuscleGroupPicker.next")
             }
             .padding(.bottom)
             .background(.bar)
@@ -115,6 +116,7 @@ struct MuscleGroupPickerView: View {
         .anyButton(.press) {
             presenter.onMuscleGroupPressed(muscle: muscle)
         }
+        .accessibilityIdentifier("MuscleGroupPicker.\(muscle.name)")
         .padding(8)
     }
 }

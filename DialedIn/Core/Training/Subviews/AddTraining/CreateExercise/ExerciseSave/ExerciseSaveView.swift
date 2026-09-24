@@ -78,6 +78,7 @@ struct ExerciseSaveView: View {
             } label: {
                 Text("Create")
             }
+            .accessibilityIdentifier("ExerciseSave.create")
             .disabled(presenter.isSaving)
             .padding(.bottom)
         }

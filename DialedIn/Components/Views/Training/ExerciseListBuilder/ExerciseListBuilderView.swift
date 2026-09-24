@@ -268,6 +268,7 @@ struct ExerciseListBuilderView: View {
                             onExerciseSelectionChanged: delegate.onExerciseSelectionChanged
                         )
                     }
+                    .accessibilityIdentifier("ExerciseList.\(exercise.name)")
                     .removeListRowFormatting()
                 }
             } else {
@@ -309,6 +310,7 @@ struct ExerciseListBuilderView: View {
                         onExerciseSelectionChanged: delegate.onExerciseSelectionChanged
                     )
                 }
+                .accessibilityIdentifier("ExerciseList.\(exercise.name)")
                 .removeListRowFormatting()
             }
         } header: {
@@ -342,6 +344,7 @@ struct ExerciseListBuilderView: View {
                         onExerciseSelectionChanged: delegate.onExerciseSelectionChanged
                     )
                 }
+                .accessibilityIdentifier("ExerciseList.\(exercise.name)")
                 .removeListRowFormatting()
             }
         }

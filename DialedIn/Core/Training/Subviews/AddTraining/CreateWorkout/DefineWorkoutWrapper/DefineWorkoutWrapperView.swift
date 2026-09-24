@@ -43,6 +43,7 @@ struct DefineWorkoutWrapperView<DefineWorkout: View>: View {
                 } label: {
                     Text(isStartWorkoutMode ? "Start Workout" : "Save")
                 }
+                .accessibilityIdentifier("DefineWorkoutWrapper.save")
                 .disabled(!presenter.canSave)
             }
     }

@@ -207,7 +207,7 @@ class ProgramDesignPresenter {
                 AnyView(
                     HStack {
                         Button(role: .cancel) { }
-                        Button(role: .destructive) {
+                        Button("Discard", role: .destructive) {
                             if delegate.onComplete == nil {
                                 self.router.dismissEnvironment()
                             } else {

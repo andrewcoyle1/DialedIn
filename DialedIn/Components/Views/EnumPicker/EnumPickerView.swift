@@ -61,6 +61,7 @@ struct EnumPickerView<Item: PickableItem>: View {
         .anyButton(.press) {
             presenter.onSelect(item: item, binding: delegate.chosenItem)
         }
+        .accessibilityIdentifier("EnumPicker.\(item.name)")
     }
     
     @ToolbarContentBuilder

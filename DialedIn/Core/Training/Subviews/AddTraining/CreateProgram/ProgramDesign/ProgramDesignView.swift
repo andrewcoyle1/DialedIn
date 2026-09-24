@@ -160,6 +160,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                 } label: {
                     Text("Activate Program")
                 }
+                .accessibilityIdentifier("ProgramDesign.activate")
                 .disabled(!presenter.canSave)
             }
 
@@ -169,6 +170,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                 } label: {
                     Text("Save Program")
                 }
+                .accessibilityIdentifier("ProgramDesign.save")
                 .disabled(!presenter.canSave)
             }
         }
@@ -212,6 +214,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                 Image(systemName: "chevron.left")
             }
             .accessibilityLabel("Back")
+            .accessibilityIdentifier("ProgramDesign.back")
         }
         
         ToolbarItem(placement: .topBarTrailing) {

@@ -39,6 +39,7 @@ struct CreateExerciseView: View {
             } label: {
                 Text("Next")
             }
+            .accessibilityIdentifier("CreateExercise.next")
             .padding(.bottom)
             .opacity(presenter.canSave ? 1 : 0.3)
             .disabled(!presenter.canSave)
@@ -54,6 +55,7 @@ struct CreateExerciseView: View {
                 }
             ))
             .textInputAutocapitalization(.words)
+            .accessibilityIdentifier("CreateExercise.name")
        } header: {
             HStack(alignment: .firstTextBaseline) {
                 Text("Exercise Name")
@@ -77,6 +79,7 @@ struct CreateExerciseView: View {
                         )
                     }
                 )
+                .accessibilityIdentifier("CreateExercise.metricA")
                 Divider()
                 CustomPickerView(
                     text: presenter.trackableMetricB?.name ?? "None",

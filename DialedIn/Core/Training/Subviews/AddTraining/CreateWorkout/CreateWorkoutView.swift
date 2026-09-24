@@ -40,6 +40,7 @@ struct CreateWorkoutView: View {
             } label: {
                 Text("Continue")
             }
+            .accessibilityIdentifier("CreateWorkout.continue")
         }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

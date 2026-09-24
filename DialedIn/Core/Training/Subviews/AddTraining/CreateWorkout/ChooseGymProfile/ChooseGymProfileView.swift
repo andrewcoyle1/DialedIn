@@ -36,6 +36,7 @@ struct ChooseGymProfileView: View {
                     .anyButton {
                         presenter.onGymProfilePressed(name: delegate.name, profile: profile, delegate: delegate)
                     }
+                    .accessibilityIdentifier("ChooseGymProfile.profile")
                 }
                 .removeListRowFormatting()
             } header: {

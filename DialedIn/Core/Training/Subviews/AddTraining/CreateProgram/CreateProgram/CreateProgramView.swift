@@ -45,6 +45,7 @@ struct CreateProgramView: View {
             } label: {
                 Text("Continue")
             }
+            .accessibilityIdentifier("CreateProgram.continue")
             .padding(.bottom)
         }
     }
@@ -60,6 +61,7 @@ struct CreateProgramView: View {
                     Image(systemName: "xmark")
                 }
                 .accessibilityLabel("Close")
+                .accessibilityIdentifier("CreateProgram.close")
             }
         }
     }

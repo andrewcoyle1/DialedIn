@@ -23,6 +23,7 @@ struct NameWorkoutView: View {
         List {
             Section {
                 TextField("Enter workout name", text: $presenter.workoutName)
+                    .accessibilityIdentifier("NameWorkout.name")
             } header: {
                 Text("Workout name")
             }
@@ -45,6 +46,7 @@ struct NameWorkoutView: View {
             } label: {
                 Text("Continue")
             }
+            .accessibilityIdentifier("NameWorkout.continue")
             .disabled(!presenter.canSave)
         }
     }
