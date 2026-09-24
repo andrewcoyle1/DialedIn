@@ -12,7 +12,7 @@ import SwiftfulAuthenticating
 @MainActor
 class UserManager {
 
-    private let queryService: any UserQueryService
+    let queryService: any UserQueryService
     private let userSyncEngine: DocumentSyncEngine<UserModel>
     private let followingUsersSyncEngine: CollectionSyncEngine<UserModel>
     private let privateSettingsSyncEngine: DocumentSyncEngine<PrivateUserSettings>
@@ -64,7 +64,7 @@ class UserManager {
         // Best effort: a failed read leaves the buttons on "Follow" and the list empty, which a
         // later fetch corrects.
         sentFollowRequestIds = Set((try? await queryService.fetchSentFollowRequestTargetIds(requesterId: auth.uid)) ?? [])
-        try? await fetchIncomingFollowRequests(userId: auth.uid)
+        startListeningToFollowRequests(userId: auth.uid)
     }
     
     /// `startListening` returns before the listener's first value lands, so straight after sign-in
@@ -80,6 +80,7 @@ class UserManager {
         followingUsersSyncEngine.stopListening()
         privateSettingsSyncEngine.stopListening()
         sentFollowRequestIds = []
+        stopListeningToFollowRequests()
         incomingFollowRequests = []
     }
 
@@ -388,9 +389,7 @@ class UserManager {
     }
 
     func fetchIncomingFollowRequests(userId: String) async throws {
-        incomingFollowRequests = try await queryService.fetchPendingFollowRequests(userId: userId)
-            .filter { !isBlocked(id: $0.requesterId) }
-            .sorted { $0.dateCreated > $1.dateCreated }
+        setIncomingFollowRequests(try await queryService.fetchPendingFollowRequests(userId: userId))
     }
 
     /// Accepting only writes the status; the `onFollowRequestUpdated` Cloud Function adds the
@@ -428,6 +427,29 @@ class UserManager {
                 return "No user id available"
             }
         }
+    }
+
+    // MARK: - Follow Requests Live
+
+    /// Stops the pending-request listener started at sign-in.
+    @ObservationIgnored private var stopFollowRequestsListener: (@MainActor () -> Void)?
+
+    private func startListeningToFollowRequests(userId: String) {
+        stopListeningToFollowRequests()
+        stopFollowRequestsListener = queryService.listenToPendingFollowRequests(userId: userId) { [weak self] requests in
+            self?.setIncomingFollowRequests(requests)
+        }
+    }
+
+    private func stopListeningToFollowRequests() {
+        stopFollowRequestsListener?()
+        stopFollowRequestsListener = nil
+    }
+
+    private func setIncomingFollowRequests(_ requests: [FollowRequestModel]) {
+        incomingFollowRequests = requests
+            .filter { !isBlocked(id: $0.requesterId) }
+            .sorted { $0.dateCreated > $1.dateCreated }
     }
 }
 

@@ -91,13 +91,19 @@ class NotificationsPresenter {
 
     func loadNotifications() async {
         isLoading = true
+        // Follow requests are live from the user manager's listener, so only activity is fetched here.
         try? await interactor.fetchActivityNotifications()
-        try? await interactor.fetchIncomingFollowRequests()
         try? await interactor.markActivityNotificationsRead()
         interactor.clearAllDeliveredNotifications()
         isLoading = false
     }
     
+    /// Pull-to-refresh re-reads the follow requests too, in case the listener has dropped.
+    func onPullToRefresh() async {
+        try? await interactor.fetchIncomingFollowRequests()
+        await loadNotifications()
+    }
+
     func checkPermissions() async {
         do {
             _ = try await interactor.checkPushNotificationAuthorisation()

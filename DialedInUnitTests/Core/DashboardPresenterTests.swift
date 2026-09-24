@@ -554,6 +554,26 @@ struct DashboardFeedPresenterTests {
         #expect(screen.interactor.fetchedNotificationsCount == 1)
     }
 
+    /// The bell counts unread activity and pending follow requests together, and a request that
+    /// arrives on the live listener raises it without any fetch.
+    @Test("Test The Bell Badge Adds Pending Follow Requests")
+    func testTheBellBadgeAddsPendingFollowRequests() {
+        let screen = makeScreen()
+        screen.interactor.activityNotifications = [false, true].enumerated().map { index, isRead in
+            ActivityNotificationModel(
+                id: "n\(index)", type: .like, actorId: "a", actorName: "A", actorImageUrl: nil,
+                sessionId: "s", sessionAuthorId: "me", commentText: nil, dateCreated: DashboardFixture.date(day: 1), isRead: isRead
+            )
+        }
+        #expect(screen.presenter.bellBadgeCount == 1)
+
+        screen.interactor.incomingFollowRequests = ["fan", "friend"].map {
+            FollowRequestModel(requesterId: $0, requesterName: $0, requesterImageUrl: nil, dateCreated: DashboardFixture.date(day: 1), status: .pending)
+        }
+
+        #expect(screen.presenter.bellBadgeCount == 3)
+    }
+
     @Test("Test The Bell Opens The Notifications Screen")
     func testTheBellOpensTheNotificationsScreen() {
         let screen = makeScreen()

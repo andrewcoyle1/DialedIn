@@ -17,4 +17,13 @@ protocol UserQueryService {
     func fetchPendingFollowRequests(userId: String) async throws -> [FollowRequestModel]
     /// The ids of the profiles `requesterId` has a pending request with.
     func fetchSentFollowRequestTargetIds(requesterId: String) async throws -> [String]
+    /// Pending requests waiting on `userId`, delivered now and again on every change until the
+    /// returned closure is called.
+    /// Takes the caller out of `followerId`'s following list. That is a write to someone else's
+    /// document, so it goes through the `removeFollower` Cloud Function.
+    func removeFollower(followerId: String) async throws
+    func listenToPendingFollowRequests(
+        userId: String,
+        onChange: @escaping @MainActor ([FollowRequestModel]) -> Void
+    ) -> @MainActor () -> Void
 }

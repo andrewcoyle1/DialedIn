@@ -91,13 +91,17 @@ struct NotificationsFollowRequestTests {
         )
     }
 
-    @Test("Test Opening The Screen Fetches Incoming Requests")
-    func testOpeningTheScreenFetchesIncomingRequests() async {
+    /// Requests arrive through the user manager's live listener, so opening the screen does not
+    /// fetch them; only pull-to-refresh does.
+    @Test("Test Only Pull To Refresh Fetches Incoming Requests")
+    func testOnlyPullToRefreshFetchesIncomingRequests() async {
         let interactor = Interactor()
         let presenter = NotificationsPresenter(interactor: interactor, router: Router())
 
         await presenter.loadNotifications()
+        #expect(interactor.fetchedRequestsCount == 0)
 
+        await presenter.onPullToRefresh()
         #expect(interactor.fetchedRequestsCount == 1)
     }
 

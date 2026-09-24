@@ -15,6 +15,8 @@ class MockUserQueryService: UserQueryService {
             )
         ]
     ]
+    /// Live listeners by target id, told whenever that target's requests change.
+    private var listeners: [String: [UUID: @MainActor ([FollowRequestModel]) -> Void]] = [:]
 
     func fetchFollowers(userId: String) async throws -> [UserModel] { [] }
     func searchUsers(query: String) async throws -> [UserModel] { [] }
@@ -26,24 +28,53 @@ class MockUserQueryService: UserQueryService {
     func sendFollowRequest(_ request: FollowRequestModel, targetId: String) async throws {
         followRequests[targetId, default: []].removeAll { $0.requesterId == request.requesterId }
         followRequests[targetId, default: []].append(request)
+        notifyListeners(targetId: targetId)
     }
 
     func deleteFollowRequest(requesterId: String, targetId: String) async throws {
         followRequests[targetId]?.removeAll { $0.requesterId == requesterId }
+        notifyListeners(targetId: targetId)
     }
 
     func updateFollowRequestStatus(_ status: FollowRequestModel.Status, requesterId: String, targetId: String) async throws {
         guard let index = followRequests[targetId]?.firstIndex(where: { $0.requesterId == requesterId }) else { return }
         followRequests[targetId]?[index].status = status
+        notifyListeners(targetId: targetId)
     }
 
     func fetchPendingFollowRequests(userId: String) async throws -> [FollowRequestModel] {
-        (followRequests[userId] ?? []).filter { $0.status == .pending }
+        pending(for: userId)
     }
 
     func fetchSentFollowRequestTargetIds(requesterId: String) async throws -> [String] {
         followRequests.compactMap { targetId, requests in
             requests.contains { $0.requesterId == requesterId && $0.status == .pending } ? targetId : nil
         }
+    }
+
+    /// Every follower removed, in order, since nothing here holds other users' documents.
+    private(set) var removedFollowerIds: [String] = []
+
+    func removeFollower(followerId: String) async throws {
+        removedFollowerIds.append(followerId)
+    }
+
+    func listenToPendingFollowRequests(
+        userId: String,
+        onChange: @escaping @MainActor ([FollowRequestModel]) -> Void
+    ) -> @MainActor () -> Void {
+        let token = UUID()
+        listeners[userId, default: [:]][token] = onChange
+        onChange(pending(for: userId))
+        return { [weak self] in self?.listeners[userId]?[token] = nil }
+    }
+
+    private func pending(for userId: String) -> [FollowRequestModel] {
+        (followRequests[userId] ?? []).filter { $0.status == .pending }
+    }
+
+    private func notifyListeners(targetId: String) {
+        let requests = pending(for: targetId)
+        listeners[targetId]?.values.forEach { $0(requests) }
     }
 }
