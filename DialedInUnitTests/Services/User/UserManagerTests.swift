@@ -117,28 +117,40 @@ struct UserManagerTests {
 
     /// Blocking someone the reader follows takes the follow back in the same write, so a blocked
     /// person's sessions stop syncing into the feed.
+    /// The mock remote never applies an update, so these read the write itself: blocking drops the
+    /// follow in the same write as the block, and unblocking touches only the block list.
+    private func recordingManager(_ user: UserModel) async throws -> (UserManager, RecordingRemoteDocumentService<UserModel>) {
+        let remote = RecordingRemoteDocumentService<UserModel>(document: user)
+        let manager = UserManager(
+            queryService: MockUserQueryService(),
+            userSyncEngine: DocumentSyncEngine<UserModel>(
+                remote: remote, managerKey: TestManagers.key("user"), enableLocalPersistence: false
+            ),
+            followingUsersSyncEngine: TestManagers.collectionEngine([UserModel](), key: "following-users")
+        )
+        try await manager.signIn(auth: UserAuthInfo(uid: user.userId), isNewUser: false)
+        await TestManagers.eventually { manager.currentUser != nil }
+        return (manager, remote)
+    }
+
     @Test("Test Blocking A Followed User Unfollows Them")
     func testBlockingAFollowedUserUnfollowsThem() async throws {
-        let reader = UserModel(userId: "me", followingIds: ["friend", "other"])
-        let manager = try await TestManagers.signedInUserManager(reader)
+        let (manager, remote) = try await recordingManager(UserModel(userId: "me", followingIds: ["friend", "other"]))
 
         try await manager.blockUser(userId: "friend")
 
-        await TestManagers.eventually { manager.currentUser?.blockedUserIds == ["friend"] }
-        #expect(manager.currentUser?.blockedUserIds == ["friend"])
-        #expect(manager.currentUser?.followingIds == ["other"])
+        #expect(remote.lastStrings(for: UserModel.CodingKeys.blockedUserIds.rawValue) == ["friend"])
+        #expect(remote.lastStrings(for: UserModel.CodingKeys.followingIds.rawValue) == ["other"])
     }
 
     @Test("Test Unblocking Does Not Restore The Follow")
     func testUnblockingDoesNotRestoreTheFollow() async throws {
-        let reader = UserModel(userId: "me", blockedUserIds: ["friend"], followingIds: ["other"])
-        let manager = try await TestManagers.signedInUserManager(reader)
+        let (manager, remote) = try await recordingManager(UserModel(userId: "me", blockedUserIds: ["friend"], followingIds: ["other"]))
 
         try await manager.unblockUser(userId: "friend")
 
-        await TestManagers.eventually { manager.currentUser?.blockedUserIds?.isEmpty == true }
-        #expect(manager.currentUser?.blockedUserIds == [])
-        #expect(manager.currentUser?.followingIds == ["other"])
+        #expect(remote.lastStrings(for: UserModel.CodingKeys.blockedUserIds.rawValue) == [])
+        #expect(remote.lastStrings(for: UserModel.CodingKeys.followingIds.rawValue) == nil)
     }
 
     // MARK: - Helpers

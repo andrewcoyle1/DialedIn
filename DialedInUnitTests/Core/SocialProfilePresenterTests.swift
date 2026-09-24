@@ -98,6 +98,9 @@ struct SocialProfilePresenterTests {
         func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
             alertTitles.append(title)
         }
+        func showSimpleAlert(title: String, subtitle: String?) {
+            alertTitles.append(title)
+        }
     }
 
     private struct Screen {
@@ -455,6 +458,9 @@ struct SocialFollowersListTests {
         private(set) var profileUserIds: [String] = []
 
         func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+            alertTitles.append(title)
+        }
+        func showSimpleAlert(title: String, subtitle: String?) {
             alertTitles.append(title)
         }
         func showSocialProfileView(delegate: SocialProfileDelegate) {
