@@ -48,6 +48,10 @@ struct NotificationsScheduledPushTests {
         func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws { }
         func fetchWorkoutSession(id: String, authorId: String) async throws -> WorkoutSessionModel { throw DevToolsTestError.failed }
         func fetchShare(id: String) async throws -> ShareModel { throw DevToolsTestError.failed }
+        // MARK: - GroupedNotifications
+        var canLoadMoreActivityNotifications = false
+        func fetchMoreActivityNotifications() async throws { }
+        func markActivityNotificationsRead(ids: [String]) async throws { }
     }
 
     private final class Router: NotificationsRouter {

@@ -20,7 +20,7 @@ class FirebaseActivityNotificationService: ActivityNotificationService {
     func fetchNotifications(userId: String) async throws -> [ActivityNotificationModel] {
         let snapshot = try await collection(userId: userId)
             .order(by: "date_created", descending: true)
-            .limit(to: 50)
+            .limit(to: ActivityNotificationManager.pageSize)
             .getDocuments()
         return snapshot.documents.compactMap { Self.parse(doc: $0) }
     }
@@ -77,6 +77,28 @@ class FirebaseActivityNotificationService: ActivityNotificationService {
     func stopListening() {
         listener?.remove()
         listener = nil
+    }
+
+    // MARK: - GroupedNotifications
+
+    // ponytail: a date cursor skips notifications sharing the exact timestamp of a page's last one;
+    // switch to a document-snapshot cursor if that ever shows up.
+    func fetchNotifications(userId: String, before: Date) async throws -> [ActivityNotificationModel] {
+        let snapshot = try await collection(userId: userId)
+            .order(by: "date_created", descending: true)
+            .start(after: [Timestamp(date: before)])
+            .limit(to: ActivityNotificationManager.pageSize)
+            .getDocuments()
+        return snapshot.documents.compactMap { Self.parse(doc: $0) }
+    }
+
+    func markRead(ids: [String], userId: String) async throws {
+        guard !ids.isEmpty else { return }
+        let batch = Firestore.firestore().batch()
+        for id in ids {
+            batch.updateData(["is_read": true], forDocument: collection(userId: userId).document(id))
+        }
+        try await batch.commit()
     }
 
     private static func parse(doc: QueryDocumentSnapshot) -> ActivityNotificationModel? {

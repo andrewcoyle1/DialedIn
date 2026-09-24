@@ -29,6 +29,10 @@ protocol NotificationsInteractor: FollowInteractor {
     // MARK: - Sharing
     func fetchShare(id: String) async throws -> ShareModel
     func updatePrivateUserSettings(_ change: (inout PrivateUserSettings) -> Void) async throws
+    // MARK: - GroupedNotifications
+    var canLoadMoreActivityNotifications: Bool { get }
+    func fetchMoreActivityNotifications() async throws
+    func markActivityNotificationsRead(ids: [String]) async throws
 }
 
 extension CoreInteractor: NotificationsInteractor { }
