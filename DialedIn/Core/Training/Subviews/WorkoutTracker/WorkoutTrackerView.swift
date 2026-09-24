@@ -250,6 +250,7 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
             } label: {
                 Image(systemName: "line.3.horizontal")
             }
+            .accessibilityLabel("Workout options")
         }
     }
 }
