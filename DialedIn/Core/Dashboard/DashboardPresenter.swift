@@ -36,6 +36,7 @@ class DashboardPresenter {
         return combined
             .filter { $0.endedAt != nil && !$0.isRestDay && author(for: $0) != nil }
             .filter { !(reader?.hasBlocked($0.authorId) ?? false) }
+            .filter { !$0.isHidden(from: reader?.userId) }
             .sorted { $0.dateCreated > $1.dateCreated }
     }
 

@@ -25,6 +25,8 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
     var mentionedUserIds: [String] = []
     /// Everyone who has liked the comment. Each reader may add or remove only their own id.
     var likedByUserIds: [String] = []
+    /// Set by the `onReportCreated` function once three people have reported this comment.
+    var hidden: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -39,6 +41,13 @@ struct WorkoutSessionComment: Identifiable, Codable, Equatable {
         case parentId = "parent_id"
         case mentionedUserIds = "mentioned_user_ids"
         case likedByUserIds = "liked_by_user_ids"
+        case hidden
+    }
+
+    /// Whether the thread leaves this comment out for `readerId`: hidden by moderation and not
+    /// the reader's own.
+    func isHidden(from readerId: String?) -> Bool {
+        hidden == true && readerId != authorId
     }
 
     /// Who hears about this comment. The session's author hears about every one, and a reply also

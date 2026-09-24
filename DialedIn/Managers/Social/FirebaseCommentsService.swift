@@ -39,7 +39,8 @@ struct FirebaseCommentsService: CommentsManagerService {
                 dateCreated: dateCreatedTimestamp.dateValue(),
                 parentId: data["parent_id"] as? String,
                 mentionedUserIds: data["mentioned_user_ids"] as? [String] ?? [],
-                likedByUserIds: data["liked_by_user_ids"] as? [String] ?? []
+                likedByUserIds: data["liked_by_user_ids"] as? [String] ?? [],
+                hidden: data["hidden"] as? Bool
             )
         }
     }

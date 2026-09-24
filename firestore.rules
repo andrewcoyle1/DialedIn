@@ -111,8 +111,9 @@ service cloud.firestore {
         allow read: if isAuthed() && request.auth.uid == user_id;
         allow create: if isAuthed() && request.auth.uid == user_id && request.resource.data.author_id == user_id;
         allow update: if isAuthed() && (
-          // Owner can update any field
-          (request.auth.uid == user_id && resource.data.author_id == user_id) ||
+          // Owner can update any field but `hidden`, which only report moderation sets
+          (request.auth.uid == user_id && resource.data.author_id == user_id
+            && request.resource.data.get('hidden', false) == resource.data.get('hidden', false)) ||
           // Any authenticated user can toggle their like (only liked_by_user_ids may change),
           // unless the session's author has blocked them.
           (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['liked_by_user_ids'])
@@ -378,11 +379,31 @@ service cloud.firestore {
     }
 
     // ---------------- REPORTS ----------------
-    // Written by FirebaseReportService when a user reports content. Write-once by the
-    // reporter; nobody reads them from the client.
+    // Written by FirebaseReportService when a user reports content. Write-once by the reporter,
+    // always open; nobody reads or changes them from the client. The onReportCreated function
+    // counts the open ones per target and hides the target at three distinct reporters.
     match /reports/{report_id} {
       allow read, update, delete: if false;
-      allow create: if isAuthed() && request.resource.data.author_id == request.auth.uid;
+      allow create: if isAuthed()
+                    && request.resource.data.keys().hasOnly([
+                        'id', 'reporter_id', 'target_type', 'target_id', 'target_author_id',
+                        'reason', 'note', 'status', 'date_created'
+                    ])
+                    && request.resource.data.id == report_id
+                    && request.resource.data.reporter_id == request.auth.uid
+                    && request.resource.data.target_type in ['user', 'session', 'comment']
+                    && request.resource.data.target_id is string
+                    && request.resource.data.reason in ['spam', 'harassment', 'inappropriate', 'other']
+                    && request.resource.data.status == 'open'
+                    && (request.resource.data.get('note', null) == null
+                        || (request.resource.data.note is string && request.resource.data.note.size() <= 500));
+    }
+
+    // ---------------- MODERATION QUEUE ----------------
+    // moderation_queue/{target_id}: written by onReportCreated when a target reaches three distinct
+    // reporters. Admin SDK only.
+    match /moderation_queue/{target_id} {
+      allow read, write: if false;
     }
 
     // ---------------- WORKOUT SESSION COMMENTS ----------------

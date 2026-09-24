@@ -403,3 +403,49 @@ test("buildActivityPush words a reply to the recipient's comment as a reply", ()
     assert.equal(plain.notification.body, "Jane commented: Agreed");
     assert.equal(buildActivityPush({ type: "comment", is_reply: true }, { fcm_token: "tok", social_push_comments: false }), null);
 });
+
+import { REPORT_HIDE_THRESHOLD, planReportModeration } from "./lib.js";
+
+const report = (id, reporter, extra = {}) => ({
+    id, reporter_id: reporter, target_type: "session", target_id: "s1", target_author_id: "author",
+    reason: "spam", status: "open", ...extra,
+});
+
+test("planReportModeration waits for three distinct reporters", () => {
+    assert.equal(REPORT_HIDE_THRESHOLD, 3);
+    const newest = report("r3", "c");
+    assert.equal(planReportModeration(newest, [report("r1", "a"), report("r2", "b")]), null);
+    // One person reporting three times is still one reporter.
+    assert.equal(planReportModeration(newest, [report("r1", "c"), report("r2", "c"), newest]), null);
+    // Reports already actioned or dismissed, or naming a different author, do not count.
+    assert.equal(planReportModeration(newest, [
+        report("r1", "a", { status: "dismissed" }), report("r2", "b", { target_author_id: "other" }), newest,
+    ]), null);
+});
+
+test("planReportModeration hides a session under its author and queues it", () => {
+    const newest = report("r3", "c", { reason: "harassment" });
+    const plan = planReportModeration(newest, [report("r1", "a"), report("r2", "b"), newest]);
+    assert.equal(plan.hidePath, "users/author/workout_sessions/s1");
+    assert.equal(plan.queueId, "s1");
+    assert.deepEqual(plan.queue, {
+        target_id: "s1", target_type: "session", target_author_id: "author",
+        reporter_ids: ["a", "b", "c"], report_ids: ["r1", "r2", "r3"], reasons: ["harassment", "spam"], hidden: true,
+    });
+});
+
+test("planReportModeration hides a comment at the top level and never hides a profile", () => {
+    const comment = (id, who) => report(id, who, { target_type: "comment", target_id: "c1" });
+    const commentPlan = planReportModeration(comment("r3", "c"), [comment("r1", "a"), comment("r2", "b"), comment("r3", "c")]);
+    assert.equal(commentPlan.hidePath, "workout_session_comments/c1");
+
+    const profile = (id, who) => report(id, who, { target_type: "user", target_id: "u1", target_author_id: "u1" });
+    const profilePlan = planReportModeration(profile("r3", "c"), [profile("r1", "a"), profile("r2", "b"), profile("r3", "c")]);
+    assert.equal(profilePlan.hidePath, null);
+    assert.equal(profilePlan.queue.hidden, false);
+    assert.equal(profilePlan.queueId, "u1");
+
+    // A session report with no author cannot be located, so it is queued but not hidden.
+    const orphan = (id, who) => report(id, who, { target_author_id: null });
+    assert.equal(planReportModeration(orphan("r3", "c"), [orphan("r1", "a"), orphan("r2", "b"), orphan("r3", "c")]).hidePath, null);
+});

@@ -72,6 +72,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         case isRestDay = "is_rest_day"
         case likedByUserIds = "liked_by_user_ids"
         case streakCount = "streak_count"
+        case hidden
     }
 
     @MainActor
@@ -560,5 +561,17 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                 exercises[exerciseIndex].sets[setIndex] = set
             }
         }
+    }
+
+    // MARK: - Report moderation
+
+    /// Set by the `onReportCreated` function once three people have reported this session; the
+    /// rules stop the author changing it. Absent on almost every session.
+    var hidden: Bool?
+
+    /// Whether the feed leaves this session out for `readerId`. A hidden session is still shown
+    /// to its author, who would otherwise see their own workout vanish without explanation.
+    func isHidden(from readerId: String?) -> Bool {
+        hidden == true && readerId != authorId
     }
 }
