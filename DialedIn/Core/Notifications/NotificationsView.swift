@@ -65,11 +65,24 @@ struct NotificationsView: View {
     
     private var authorizedContent: some View {
         Group {
+            socialPushSection
             if presenter.activityNotifications.isEmpty {
                 emptyStateContent
             } else {
                 activityNotificationsList
             }
+        }
+    }
+
+    private var socialPushSection: some View {
+        Section {
+            Toggle("Likes", isOn: $presenter.isLikesPushEnabled)
+            Toggle("Comments", isOn: $presenter.isCommentsPushEnabled)
+            Toggle("New followers", isOn: $presenter.isFollowsPushEnabled)
+        } header: {
+            Text("Social")
+        } footer: {
+            Text("Get a push when someone in your circle interacts with you, even when DialedIn is closed.")
         }
     }
 

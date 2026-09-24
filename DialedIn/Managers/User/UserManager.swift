@@ -265,6 +265,12 @@ class UserManager {
         ])
     }
 
+    func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws {
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.socialPushKey(for: type).rawValue: isEnabled
+        ])
+    }
+
     // MARK: - User Blocking
 
     func blockUser(userId: String) async throws {
@@ -493,6 +499,10 @@ extension CoreInteractor {
 
     func updatePrivacy(isPrivate: Bool) async throws {
         try await userManager.updatePrivacy(isPrivate: isPrivate)
+    }
+
+    func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws {
+        try await userManager.updateSocialNotificationPreferences(type: type, isEnabled: isEnabled)
     }
 
 }

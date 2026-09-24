@@ -427,6 +427,17 @@ struct DevToolsNotificationsPresenterTests {
         func deleteActivityNotification(id: String) async throws { deletedIds.append(id) }
 
         func clearAllDeliveredNotifications() { clearDeliveredCount += 1 }
+
+        var currentUser: UserModel? = UserModel(userId: "user-1")
+        var preferenceError: Error?
+        private(set) var preferenceWrites: [String: Bool] = [:]
+
+        /// Records the profile key the real `UserManager` would write, so a test can check the
+        /// value lands under the field the Cloud Function reads.
+        func updateSocialNotificationPreferences(type: ActivityNotificationModel.ActivityType, isEnabled: Bool) async throws {
+            if let preferenceError { throw preferenceError }
+            preferenceWrites[UserModel.socialPushKey(for: type).rawValue] = isEnabled
+        }
     }
 
     private final class Router: NotificationsRouter {
@@ -586,5 +597,56 @@ struct DevToolsNotificationsPresenterTests {
 
         #expect(screen.interactor.trackedScreenEventNames == ["NotificationsView_Appear"])
         #expect(screen.interactor.trackedEventNames == ["NotificationsView_Disappear"])
+    }
+
+    // MARK: - Social push switches
+
+    /// A profile written before the setting existed has no preference fields, and must keep
+    /// getting pushes: every switch reads on.
+    @Test("Test Social Push Switches Default To On When The Profile Has No Preferences")
+    func testSocialPushSwitchesDefaultToOnWhenTheProfileHasNoPreferences() {
+        let screen = makeScreen()
+        #expect(screen.presenter.isLikesPushEnabled)
+        #expect(screen.presenter.isCommentsPushEnabled)
+        #expect(screen.presenter.isFollowsPushEnabled)
+
+        screen.interactor.currentUser = nil
+        #expect(screen.presenter.isFollowsPushEnabled)
+
+        screen.interactor.currentUser = UserModel(userId: "user-1", socialPushLikes: false, socialPushFollows: true)
+        #expect(!screen.presenter.isLikesPushEnabled)
+        #expect(screen.presenter.isCommentsPushEnabled)
+        #expect(screen.presenter.isFollowsPushEnabled)
+    }
+
+    /// Each switch writes its own key, and only that key, the moment it flips. The key names are
+    /// the contract with `SOCIAL_PUSH_PREFERENCE_KEYS` in functions/lib.js.
+    @Test("Test Flipping A Social Push Switch Writes Its Own Key")
+    func testFlippingASocialPushSwitchWritesItsOwnKey() async {
+        let screen = makeScreen()
+
+        screen.presenter.isCommentsPushEnabled = false
+        #expect(await TestManagers.eventually { screen.interactor.preferenceWrites == ["social_push_comments": false] })
+
+        screen.presenter.isLikesPushEnabled = false
+        screen.presenter.isFollowsPushEnabled = false
+        let expected = ["social_push_comments": false, "social_push_likes": false, "social_push_follows": false]
+        #expect(await TestManagers.eventually { screen.interactor.preferenceWrites == expected })
+        #expect(screen.interactor.trackedEventNames.contains("NotificationsView_SocialPush_Toggle"))
+        #expect(screen.router.alertedErrors.isEmpty)
+    }
+
+    /// A write that fails says so, and the switch still reads the stored value rather than the
+    /// one the user tried to set.
+    @Test("Test A Failed Social Push Write Shows An Alert")
+    func testAFailedSocialPushWriteShowsAnAlert() async {
+        let screen = makeScreen()
+        screen.interactor.preferenceError = DevToolsTestError.failed
+
+        screen.presenter.isLikesPushEnabled = false
+
+        #expect(await TestManagers.eventually { screen.router.alertedErrors.count == 1 })
+        #expect(screen.interactor.preferenceWrites.isEmpty)
+        #expect(screen.presenter.isLikesPushEnabled)
     }
 }

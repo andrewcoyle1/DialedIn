@@ -51,6 +51,12 @@ struct UserModel: DataSyncModelProtocol, Equatable {
     /// A private profile is left out of search and suggestions, and shows strangers nothing but
     /// a name. Sessions were already visible to followers only, so that does not change.
     let isPrivate: Bool?
+    /// Per-type opt-outs for social pushes, read by the `onActivityNotificationCreated` Cloud
+    /// Function. Nil means on, so profiles written before the setting existed still get pushes.
+    /// Three flat booleans rather than a map so each switch writes one key.
+    let socialPushLikes: Bool?
+    let socialPushComments: Bool?
+    let socialPushFollows: Bool?
     var didCompleteOnboarding: Bool
     let acceptedHealthDisclaimerVersion: String?
     let acceptedHealthDisclaimerDate: Date?
@@ -99,6 +105,9 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         blockedUserIds: [String]? = nil,
         followingIds: [String]? = nil,
         isPrivate: Bool? = nil,
+        socialPushLikes: Bool? = nil,
+        socialPushComments: Bool? = nil,
+        socialPushFollows: Bool? = nil,
         fcmToken: String? = nil,
         didCompleteOnboarding: Bool = false,
         acceptedHealthDisclaimerVersion: String? = nil,
@@ -138,6 +147,9 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         self.blockedUserIds = blockedUserIds
         self.followingIds = followingIds
         self.isPrivate = isPrivate
+        self.socialPushLikes = socialPushLikes
+        self.socialPushComments = socialPushComments
+        self.socialPushFollows = socialPushFollows
         self.fcmToken = fcmToken
         self.didCompleteOnboarding = didCompleteOnboarding
         self.acceptedHealthDisclaimerVersion = acceptedHealthDisclaimerVersion
@@ -197,6 +209,9 @@ struct UserModel: DataSyncModelProtocol, Equatable {
         case blockedUserIds = "blocked_user_ids"
         case followingIds = "following_ids"
         case isPrivate = "is_private"
+        case socialPushLikes = "social_push_likes"
+        case socialPushComments = "social_push_comments"
+        case socialPushFollows = "social_push_follows"
         case fcmToken = "fcm_token"
         case acceptedHealthDisclaimerVersion = "accepted_health_disclaimer_version"
         case acceptedHealthDisclaimerDate = "accepted_health_disclaimer_date"
@@ -497,5 +512,27 @@ extension OnboardingStep {
         case .customiseProgram: return 9
         case .complete: return 10
         }
+    }
+}
+
+extension UserModel {
+    /// The profile field that opts out of pushes for one kind of social activity. Must match
+    /// `SOCIAL_PUSH_PREFERENCE_KEYS` in `functions/lib.js`.
+    static func socialPushKey(for type: ActivityNotificationModel.ActivityType) -> CodingKeys {
+        switch type {
+        case .like: return .socialPushLikes
+        case .comment: return .socialPushComments
+        case .follow: return .socialPushFollows
+        }
+    }
+
+    /// On unless the user has switched it off.
+    func isSocialPushEnabled(for type: ActivityNotificationModel.ActivityType) -> Bool {
+        let stored: Bool? = switch type {
+        case .like: socialPushLikes
+        case .comment: socialPushComments
+        case .follow: socialPushFollows
+        }
+        return stored ?? true
     }
 }

@@ -23,6 +23,38 @@ class NotificationsPresenter {
     }
     
     private(set) var isLoading: Bool = true
+
+    /// The Social switches. Each writes the moment it flips, like the Account privacy switch, and
+    /// reads back from the profile, so a failed write snaps the switch back once the alert shows.
+    var isLikesPushEnabled: Bool {
+        get { isSocialPushEnabled(.like) }
+        set { onSocialPushToggled(.like, isEnabled: newValue) }
+    }
+
+    var isCommentsPushEnabled: Bool {
+        get { isSocialPushEnabled(.comment) }
+        set { onSocialPushToggled(.comment, isEnabled: newValue) }
+    }
+
+    var isFollowsPushEnabled: Bool {
+        get { isSocialPushEnabled(.follow) }
+        set { onSocialPushToggled(.follow, isEnabled: newValue) }
+    }
+
+    private func isSocialPushEnabled(_ type: ActivityNotificationModel.ActivityType) -> Bool {
+        interactor.currentUser?.isSocialPushEnabled(for: type) ?? true
+    }
+
+    private func onSocialPushToggled(_ type: ActivityNotificationModel.ActivityType, isEnabled: Bool) {
+        interactor.trackEvent(event: Event.socialPushToggled(type: type, isEnabled: isEnabled))
+        Task {
+            do {
+                try await interactor.updateSocialNotificationPreferences(type: type, isEnabled: isEnabled)
+            } catch {
+                router.showAlert(error: error)
+            }
+        }
+    }
     
     init(
         interactor: NotificationsInteractor,
@@ -91,16 +123,20 @@ extension NotificationsPresenter {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
+        case socialPushToggled(type: ActivityNotificationModel.ActivityType, isEnabled: Bool)
 
         var eventName: String {
             switch self {
             case .onAppear:     return "NotificationsView_Appear"
             case .onDisappear:  return "NotificationsView_Disappear"
+            case .socialPushToggled: return "NotificationsView_SocialPush_Toggle"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
+            case .socialPushToggled(let type, let isEnabled):
+                return ["type": type.rawValue, "is_enabled": isEnabled]
             default:
                 return nil
             }
