@@ -105,6 +105,8 @@ struct NotificationsView: View {
         case .comment:
             let preview = notification.commentText.map { ": \"\($0.prefix(60))\"" } ?? ""
             return "\(notification.actorName) commented\(preview)"
+        case .follow:
+            return "\(notification.actorName) started following you"
         }
     }
 

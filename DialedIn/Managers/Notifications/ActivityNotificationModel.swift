@@ -11,6 +11,9 @@ struct ActivityNotificationModel: Identifiable {
     enum ActivityType: String {
         case like
         case comment
+        /// Someone started following the user. `sessionId` is empty and `sessionAuthorId` is
+        /// the followed user, since there is no session behind it.
+        case follow
     }
 
     let id: String

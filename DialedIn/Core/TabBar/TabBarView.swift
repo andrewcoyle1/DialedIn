@@ -41,6 +41,7 @@ struct TabBarView<TrainingTabAccessory: View, MealTabAccessory: View, Search: Vi
                 } label: {
                     Label(tab.title, systemImage: tab.systemImage)
                 }
+                .badge(tab.title == DeepLink.Tab.dashboard.title ? presenter.unreadActivityCount : 0)
             }
 
             Tab(value: searchTabTitle, role: .search) {

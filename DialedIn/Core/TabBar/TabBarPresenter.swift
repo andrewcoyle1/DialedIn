@@ -22,6 +22,12 @@ class TabBarPresenter {
         interactor.draftMeal
     }
     
+    /// Unread likes, comments and follows, shown on the Dashboard tab since that is where the bell
+    /// lives. Zero hides the badge.
+    var unreadActivityCount: Int {
+        interactor.activityNotifications.filter { !$0.isRead }.count
+    }
+
     var showTabAccessory: Bool {
         activeSession != nil || draftMeal != nil
     }

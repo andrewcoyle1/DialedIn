@@ -322,6 +322,7 @@ struct AppShellTabBarPresenterTests {
     private final class Interactor: SpyGlobalInteractor, TabBarInteractor {
         var activeSession: WorkoutSessionModel?
         var draftMeal: MealLogModel?
+        var activityNotifications: [ActivityNotificationModel] = []
 
         private(set) var trackedParameters: [[String: Any]] = []
 
@@ -357,6 +358,33 @@ struct AppShellTabBarPresenterTests {
 
     private func meal() -> MealLogModel {
         MealLogModel(authorId: "user-1", dayKey: "2026-03-04", date: Date(timeIntervalSince1970: 0), items: [])
+    }
+
+    /// The Dashboard tab's badge is the unread count — a read notification, or a follow someone
+    /// has already seen, must not keep the badge up.
+    @Test("Test The Dashboard Badge Counts Only Unread Activity")
+    func testTheDashboardBadgeCountsOnlyUnreadActivity() {
+        let screen = makeScreen()
+        #expect(screen.presenter.unreadActivityCount == 0)
+
+        screen.interactor.activityNotifications = [
+            activity(id: "1", type: .like, isRead: false),
+            activity(id: "2", type: .follow, isRead: false),
+            activity(id: "3", type: .comment, isRead: true)
+        ]
+
+        #expect(screen.presenter.unreadActivityCount == 2)
+    }
+
+    private func activity(
+        id: String,
+        type: ActivityNotificationModel.ActivityType,
+        isRead: Bool
+    ) -> ActivityNotificationModel {
+        ActivityNotificationModel(
+            id: id, type: type, actorId: "a", actorName: "A", actorImageUrl: nil,
+            sessionId: "", sessionAuthorId: "user-1", commentText: nil, dateCreated: Date(), isRead: isRead
+        )
     }
 
     // MARK: - Where the app starts

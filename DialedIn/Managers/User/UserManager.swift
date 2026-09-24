@@ -433,6 +433,22 @@ extension CoreInteractor {
         async let refreshProfiles: () = userManager.refreshFollowingUsers(followingIds: ids)
         await refreshSessions
         await refreshProfiles
+        // The followed user hears about it the same way they hear about a like: a notification in
+        // their own collection, keyed so that an unfollow can take it back.
+        guard let actor = userManager.currentUser else { return }
+        let notification = ActivityNotificationModel(
+            id: "follow_\(actor.userId)",
+            type: .follow,
+            actorId: actor.userId,
+            actorName: actor.fullNameCalculated ?? "Someone",
+            actorImageUrl: actor.submittedProfileImage,
+            sessionId: "",
+            sessionAuthorId: userId,
+            commentText: nil,
+            dateCreated: .now,
+            isRead: false
+        )
+        try? await activityNotificationManager.addNotification(notification, userId: userId)
     }
 
     func unfollowUser(userId: String) async throws {
@@ -442,6 +458,8 @@ extension CoreInteractor {
         async let refreshProfiles: () = userManager.refreshFollowingUsers(followingIds: ids)
         await refreshSessions
         await refreshProfiles
+        guard let actorId = userManager.currentUser?.userId else { return }
+        try? await activityNotificationManager.deleteNotification(id: "follow_\(actorId)", userId: userId)
     }
 
     func fetchFollowers(userId: String) async throws -> [UserModel] {

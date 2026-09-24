@@ -9,6 +9,7 @@
 protocol TabBarInteractor: GlobalInteractor {
     var activeSession: WorkoutSessionModel? { get }
     var draftMeal: MealLogModel? { get }
+    var activityNotifications: [ActivityNotificationModel] { get }
 }
 
 extension CoreInteractor: TabBarInteractor { }

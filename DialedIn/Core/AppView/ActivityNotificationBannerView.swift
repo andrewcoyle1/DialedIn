@@ -21,6 +21,8 @@ struct ActivityNotificationBannerView: View {
                 return "\(notification.actorName) commented: \"\(preview)\""
             }
             return "\(notification.actorName) commented on your workout"
+        case .follow:
+            return "\(notification.actorName) started following you"
         }
     }
 
