@@ -7,16 +7,22 @@ struct SocialProfileDelegate {
     }
 }
 
-struct SocialProfileView: View {
+struct SocialProfileView<WorkoutSessionRow: View>: View {
     
     @Environment(\.colorScheme) private var colorScheme
     
     @State var presenter: SocialProfilePresenter
     let delegate: SocialProfileDelegate
+
+    @ViewBuilder var workoutSessionRow: (WorkoutSessionRowDelegate) -> WorkoutSessionRow
     
     var body: some View {
         List {
             profileSection
+            if !presenter.isLocked {
+                consistencySection
+                sessionsSection
+            }
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
@@ -46,10 +52,9 @@ struct SocialProfileView: View {
                                 .font(.title3)
                                 .fontWeight(.semibold)
                         }
-                        // Was formatted with a time component, so a date of birth read
-                        // "14 Mar 1994 at 00:00".
-                        if let dob = delegate.user.submittedDateOfBirth {
-                            Text(dob.formatted(date: .abbreviated, time: .omitted))
+                        // A date of birth sat here: personal data with no social value.
+                        if let programName = presenter.programName {
+                            Text("Following \(programName)")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -108,8 +113,61 @@ struct SocialProfileView: View {
     // "Puma Deviate Nitro", "Yesterday"). It needs the Strava *read* API, and `StravaManager` is
     // upload-only: authenticate, uploadActivity, disconnect, and no fetch of any kind. Showing
     // someone else's mileage as fact is the worst version of this, so the section is gone rather than
-    // emptied. "Posts" is the one row that maps to data the app owns — the session feed — but
-    // SocialProfileInteractor cannot reach another user's sessions today. Recorded in the plan.
+    // emptied. "Posts" was the one row that maps to data the app owns; it is the sessions list
+    // below now.
+
+    /// Training days over the last twelve weeks, a square per day.
+    private var consistencySection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Consistency")
+                    .font(.headline)
+                ContributionChart(
+                    data: [presenter.consistencySeries],
+                    configuration: ChartConfiguration(
+                        aggregation: .sum,
+                        unit: "workouts",
+                        seriesColors: [.orange],
+                        goal: 1,
+                        accessibilityTitle: "Training days"
+                    )
+                )
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(colorScheme.backgroundPrimary, in: .rect(cornerRadius: 24))
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        }
+        .listSectionMargins(.all, 0)
+        .listSectionSeparator(.hidden)
+    }
+
+    private var sessionsSection: some View {
+        Section {
+            if presenter.sessions.isEmpty {
+                Text("No workouts yet")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(colorScheme.backgroundPrimary, in: .rect(cornerRadius: 24))
+                    .padding(.horizontal)
+                    .removeListRowFormatting()
+            } else {
+                ForEach(presenter.sessions) { session in
+                    workoutSessionRow(WorkoutSessionRowDelegate(session: session, author: delegate.user))
+                        .removeListRowFormatting()
+                        .listRowSeparator(.hidden)
+                }
+            }
+        } header: {
+            Text("Recent Workouts")
+                .padding(.horizontal)
+        }
+        .listSectionMargins(.horizontal, 0)
+        .listSectionSeparator(.hidden)
+    }
 
     private var mutualFollowersImagesSection: some View {
         HStack {
@@ -173,7 +231,10 @@ extension CoreBuilder {
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
             ),
-            delegate: delegate
+            delegate: delegate,
+            workoutSessionRow: { delegate in
+                self.workoutSessionRowView(router: router, delegate: delegate)
+            }
         )
     }
     

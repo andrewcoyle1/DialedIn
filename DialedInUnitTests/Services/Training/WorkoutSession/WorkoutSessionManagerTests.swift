@@ -74,6 +74,23 @@ struct WorkoutSessionManagerTests {
         #expect(manager.workoutSessions.count == 3)
     }
 
+    /// Another person's sessions live under their own user document, not the reader's, so the
+    /// lookup must not go through the reader's collection — it used to, and always came back empty.
+    @Test("Test Sessions For Another Author Come From Their Collection")
+    func testSessionsForAnotherAuthorComeFromTheirCollection() async throws {
+        let manager = TestManagers.workoutSessionManager(
+            sessions: history,
+            following: [
+                DashboardFixture.session(id: "f1", author: "friend", on: start),
+                DashboardFixture.session(id: "o1", author: "other", on: start)
+            ]
+        )
+
+        let sessions = try await manager.getWorkoutSessionsForAuthor(authorId: "friend")
+
+        #expect(sessions.map(\.id) == ["f1"])
+    }
+
     @Test("Test Reading Sessions By Id")
     func testReadingSessionsById() async {
         let manager = await TestManagers.signedInWorkoutSessionManager(sessions: history)
