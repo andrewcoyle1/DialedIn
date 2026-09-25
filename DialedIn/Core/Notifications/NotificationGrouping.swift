@@ -31,8 +31,8 @@ struct NotificationGroup: Identifiable {
         let actors = actors
         switch actors.count {
         case 0, 1: return newest.actorName
-        case 2: return String(localized: "\(actors[0].actorName) and \(actors[1].actorName)")
-        default: return String(localized: "\(actors[0].actorName) and \(actors.count - 1) others")
+        case 2: return String(localized: "\(String(describing: actors[0].actorName)) and \(String(describing: actors[1].actorName))")
+        default: return String(localized: "\(String(describing: actors[0].actorName)) and \(String(describing: actors.count - 1)) others")
         }
     }
 
@@ -40,9 +40,9 @@ struct NotificationGroup: Identifiable {
     var groupedTitle: String? {
         guard members.count > 1 else { return nil }
         switch type {
-        case .comment: return String(localized: "\(actorSummary) commented on your workout")
-        case .mention: return String(localized: "\(actorSummary) mentioned you")
-        default: return String(localized: "\(actorSummary) liked your workout")
+        case .comment: return String(localized: "\(String(describing: actorSummary)) commented on your workout")
+        case .mention: return String(localized: "\(String(describing: actorSummary)) mentioned you")
+        default: return String(localized: "\(String(describing: actorSummary)) liked your workout")
         }
     }
 

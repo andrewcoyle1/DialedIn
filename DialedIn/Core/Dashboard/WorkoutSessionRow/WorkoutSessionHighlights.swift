@@ -64,7 +64,7 @@ enum WorkoutSessionHighlights {
         let formatter = NumberFormatter()
         formatter.numberStyle = .ordinal
         let ordinal = formatter.string(from: NSNumber(value: number)) ?? "\(number)"
-        return String(localized: "\(ordinal) workout of the week")
+        return String(localized: "\(String(describing: ordinal)) workout of the week")
     }
 
     /// "12-day streak", stamped on the session when the author finished it. Only from two days

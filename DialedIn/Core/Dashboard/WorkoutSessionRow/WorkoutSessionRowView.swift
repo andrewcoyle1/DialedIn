@@ -33,7 +33,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
         let total = Int(endedAt.timeIntervalSince(presenter.session.dateCreated))
         let hours = total / 3600
         let minutes = (total % 3600) / 60
-        return hours > 0 ? String(localized: "\(hours)h \(minutes)m") : String(localized: "\(minutes)m")
+        return hours > 0 ? String(localized: "\(String(describing: hours))h \(String(describing: minutes))m") : String(localized: "\(String(describing: minutes))m")
     }
 
     private var workingSets: [WorkoutSetModel] {
@@ -247,7 +247,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
         switch exercise.trackingMode {
         case .weightReps:
             if let first = sets.first, let reps = first.reps, let weight = first.weightKg {
-                return String(localized: "\(count) × \(reps) @ \(formatWeight(weight)) kg")
+                return String(localized: "\(String(describing: count)) × \(String(describing: reps)) @ \(String(describing: formatWeight(weight))) kg")
             }
             if let first = sets.first, let reps = first.reps {
                 return "\(count) × \(reps)"
@@ -278,7 +278,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
     }
 
     private func formatDuration(_ seconds: Int) -> String {
-        seconds >= 60 ? String(localized: "\(seconds / 60)m") : String(localized: "\(seconds)s")
+        seconds >= 60 ? String(localized: "\(String(describing: seconds / 60))m") : String(localized: "\(String(describing: seconds))s")
     }
 
     private func formatDistance(_ meters: Double) -> String {

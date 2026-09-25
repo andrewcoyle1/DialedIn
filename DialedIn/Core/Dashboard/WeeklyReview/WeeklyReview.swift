@@ -154,16 +154,16 @@ struct WeeklyReview: Equatable {
             return String(localized: "No sessions logged this week.")
         }
         if sessionCount >= goal, prCount > 0 {
-            return String(localized: "Goal hit and \(prCount) \(prCount == 1 ? String(localized: "PR") : String(localized: "PRs")) set. Great week.")
+            return String(localized: "Goal hit and \(String(describing: prCount)) \(prCount == 1 ? String(localized: "PR") : String(localized: "PRs")) set. Great week.")
         }
         if sessionCount >= goal {
-            return String(localized: "Goal hit: \(sessionCount) of \(goal) sessions.")
+            return String(localized: "Goal hit: \(String(describing: sessionCount)) of \(String(describing: goal)) sessions.")
         }
         if let change = volumeChange, change >= 0.1 {
             return String(localized: "Volume up \(Self.percent(change)) on last week.")
         }
         let toGo = CircleWeek.remaining(sessions: sessionCount, goal: goal)
-        return String(localized: "\(toGo) more \(toGo == 1 ? String(localized: "session") : String(localized: "sessions")) would have hit your goal.")
+        return String(localized: "\(String(describing: toGo)) more \(toGo == 1 ? String(localized: "session") : String(localized: "sessions")) would have hit your goal.")
     }
 
     var dateRangeText: String {
@@ -193,7 +193,7 @@ struct WeeklyReview: Equatable {
         let value = "\(latest.formatted(.number.precision(.fractionLength(0...1)))) kg"
         guard let change = weightChangeKg else { return value }
         let sign = change > 0 ? "+" : change < 0 ? "−" : "±"
-        return String(localized: "\(value) (\(sign)\(abs(change).formatted(.number.precision(.fractionLength(0...1)))) kg)")
+        return String(localized: "\(String(describing: value)) (\(sign)\(abs(change).formatted(.number.precision(.fractionLength(0...1)))) kg)")
     }
 
     var nutritionText: String? {

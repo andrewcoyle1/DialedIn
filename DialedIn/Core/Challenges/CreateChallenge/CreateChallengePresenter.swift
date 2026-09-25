@@ -44,7 +44,7 @@ class CreateChallengePresenter {
             return String(localized: "Keep the name under \(ChallengeModel.titleMaxLength) characters.")
         }
         if !ChallengeModel.targetRange.contains(targetSessions) {
-            return String(localized: "Pick a target between \(ChallengeModel.targetRange.lowerBound) and \(ChallengeModel.targetRange.upperBound) sessions.")
+            return String(localized: "Pick a target between \(String(describing: ChallengeModel.targetRange.lowerBound)) and \(String(describing: ChallengeModel.targetRange.upperBound)) sessions.")
         }
         if !ChallengeModel.durations.contains(durationDays) { return "Pick a duration." }
         if selectedMemberIds.isEmpty { return "Invite at least one person." }
