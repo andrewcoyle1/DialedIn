@@ -100,7 +100,7 @@ struct SetTrackerView<SetTrackerRow: View>: View {
                         let groupLabel: String = {
                             guard let groupId = delegate.exercise.wrappedValue.supersetGroupId else { return "Superset" }
                             let count = delegate.allWorkoutExercises.filter { $0.supersetGroupId == groupId }.count
-                            return count > 2 ? "Remove Circuit" : "Remove Superset"
+                            return count > 2 ? String(localized: "Remove Circuit") : String(localized: "Remove Superset")
                         }()
                         Label(groupLabel, systemImage: "arrow.2.circlepath")
                     }

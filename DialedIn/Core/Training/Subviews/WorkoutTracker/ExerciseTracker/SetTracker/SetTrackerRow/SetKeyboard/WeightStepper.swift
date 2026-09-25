@@ -150,7 +150,7 @@ enum WeightStepper {
         let step = (plates.first.map { $0 * 2 }) ?? fallbackStep(unit)
         return WeightStep(
             kind: .increment(step, min: base, max: nil),
-            chip: "Bar \(format(base)) \(unit.abbreviation)",
+            chip: String(localized: "Bar \(format(base)) \(unit.abbreviation)"),
             baseWeight: base,
             plates: plates
         )

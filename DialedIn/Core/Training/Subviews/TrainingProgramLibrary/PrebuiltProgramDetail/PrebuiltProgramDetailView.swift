@@ -35,7 +35,7 @@ struct PrebuiltProgramDetailView: View {
             LabeledContent("Workouts per microcycle", value: "\(presenter.workoutCount)")
             LabeledContent("Microcycles", value: "\(presenter.program.numMicrocycles)")
             LabeledContent("Deload", value: presenter.program.deload.title)
-            LabeledContent("Periodisation", value: presenter.program.periodisation ? "On" : "Off")
+            LabeledContent("Periodisation", value: presenter.program.periodisation ? String(localized: "On") : String(localized: "Off"))
         }
     }
 

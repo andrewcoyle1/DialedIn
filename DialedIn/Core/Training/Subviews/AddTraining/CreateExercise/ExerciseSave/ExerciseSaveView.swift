@@ -127,7 +127,7 @@ struct ExerciseSaveView: View {
             ScrollView(.horizontal) {
                 HStack {
                     ForEach(muscles, id: \.key) { muscle, targetType in
-                        Text("\(muscle.name): \(targetType == .primary ? "Primary" : "Secondary")")
+                        Text("\(muscle.name): \(targetType == .primary ? String(localized: "Primary") : String(localized: "Secondary"))")
                     }
                 }
             }

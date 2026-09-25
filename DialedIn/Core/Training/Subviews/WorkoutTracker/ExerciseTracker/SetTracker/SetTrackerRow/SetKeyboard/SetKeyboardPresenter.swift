@@ -196,17 +196,17 @@ final class SetKeyboardPresenter {
 
     var weightChips: [SetKeyboardChip] {
         chips([
-            ("Last set", context.lastSetWeightKg),
-            ("Last time", context.previousSessionWeightKg),
-            ("Target", context.targetWeightKg)
+            (String(localized: "Last set"), context.lastSetWeightKg),
+            (String(localized: "Last time"), context.previousSessionWeightKg),
+            (String(localized: "Target"), context.targetWeightKg)
         ]) { UnitConversion.convertWeight($0, to: context.unit) }
     }
 
     var repsChips: [SetKeyboardChip] {
         chips([
-            ("Last set", context.lastSetReps.map(Double.init)),
-            ("Min", context.targetMinReps.map(Double.init)),
-            ("Max", context.targetMaxReps.map(Double.init))
+            (String(localized: "Last set"), context.lastSetReps.map(Double.init)),
+            (String(localized: "Min"), context.targetMinReps.map(Double.init)),
+            (String(localized: "Max"), context.targetMaxReps.map(Double.init))
         ]) { $0 }
     }
 

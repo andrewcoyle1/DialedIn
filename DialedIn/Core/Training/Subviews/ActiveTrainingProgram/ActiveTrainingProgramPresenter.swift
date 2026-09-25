@@ -71,7 +71,7 @@ class ActiveTrainingProgramPresenter {
 
     func currentMicrocycleItems(program: TrainingProgram) -> [MicrocycleItem] {
         guard !program.workoutTemplates.isEmpty else {
-            microcycleHeaderText = "Current Microcycle"
+            microcycleHeaderText = String(localized: "Current Microcycle")
             return []
         }
 
@@ -114,7 +114,7 @@ class ActiveTrainingProgramPresenter {
         let cycleIndex = (completedCycles % cyclesTotal) + 1
         isDeloadCycle = isCurrentCycleDeload(cycleIndex: cycleIndex, program: program)
         periodisationPhase = currentPeriodisationPhase(cycleIndex: cycleIndex, program: program)
-        microcycleHeaderText = "Microcycle \(cycleIndex) of \(cyclesTotal)"
+        microcycleHeaderText = String(localized: "Microcycle \(cycleIndex) of \(cyclesTotal)")
 
         return dayPlans.map { plan in
             MicrocycleItem(
