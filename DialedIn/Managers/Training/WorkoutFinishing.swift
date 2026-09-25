@@ -139,6 +139,7 @@ func preCompleteConsecutiveRestDays(
     let existingSessions = sessions.workoutSessions
 
     for (offset, restTemplate) in restTemplates.enumerated() {
+        // Safe: adding days to a valid date never returns nil.
         let restDate = calendar.date(byAdding: .day, value: offset + 1, to: today)!
 
         let alreadyExists = existingSessions.contains { existing in

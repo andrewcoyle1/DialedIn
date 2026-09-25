@@ -10,6 +10,7 @@ import Firebase
 import FirebaseMessaging
 
 class AppDelegate: NSObject, UIApplicationDelegate {
+    // Safe: both are set in application(_:didFinishLaunchingWithOptions:) before any use.
     var dependencies: Dependencies!
     var builder: CoreBuilder!
 
@@ -68,6 +69,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     private func registerLiveActivityIntentHandler(container: DependencyContainer) {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let handler = AppLiveActivityIntentHandler(
+            // Safe: Dependencies registers every one of these for every BuildConfiguration.
             workoutSessionManager: container.resolve(WorkoutSessionManager.self)!,
             hkWorkoutManager: container.resolve(HKWorkoutManager.self)!,
             liveActivityUpdater: container.resolve(LiveActivityManager.self)!,
@@ -171,6 +173,7 @@ enum BuildConfiguration {
         case .mock:
             break
         case .dev:
+            // Deliberate launch crash: the app cannot run without its Firebase plist (see CLAUDE.md First-Time Setup).
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Dev", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
             #if targetEnvironment(simulator)
@@ -183,6 +186,7 @@ enum BuildConfiguration {
             Analytics.setAnalyticsCollectionEnabled(true)
             
         case .prod:
+            // Deliberate launch crash: the app cannot run without its Firebase plist (see CLAUDE.md First-Time Setup).
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Prod", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
             let providerFactory = MyAppCheckProviderFactory()

@@ -70,6 +70,7 @@ struct CoreInteractor: GlobalInteractor {
     let progressPhotoManager: ProgressPhotoManager
 
     init(container: DependencyContainer) {
+        // Safe: Dependencies registers every one of these for every BuildConfiguration.
         self.authManager = container.resolve(AuthManager.self)!
         self.userManager = container.resolve(UserManager.self)!
         self.abTestManager = container.resolve(ABTestManager.self)!

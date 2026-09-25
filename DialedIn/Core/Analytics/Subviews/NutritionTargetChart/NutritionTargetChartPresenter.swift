@@ -52,6 +52,7 @@ class NutritionTargetChartPresenter {
         let calendar = Calendar.current
         let symbols = calendar.veryShortWeekdaySymbols // [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
         // Reorder to start with Monday: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+        // Safe: a calendar always has seven weekday symbols.
         return Array(symbols[1...] + [symbols[0]])
     }
 
