@@ -90,7 +90,7 @@ class UserManager {
             return
         }
         await followingUsersSyncEngine.startListening { query in
-            query.where("user_id", in: followingIds)
+            FollowingQueries.users(query, followingIds: followingIds)
         }
     }
     
