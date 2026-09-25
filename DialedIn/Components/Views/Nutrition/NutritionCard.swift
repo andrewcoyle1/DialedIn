@@ -44,7 +44,7 @@ struct NutritionCard: View {
                         .foregroundStyle(.secondary)
                     Spacer()
                     let remaining = calorieTarget - calories
-                    Text(remaining > 0 ? String(localized: "\(Int(remaining)) remaining") : String(localized: "Goal reached!"))
+                    Text(remaining > 0 ? String(localized: "\(String(describing: Int(remaining))) remaining") : String(localized: "Goal reached!"))
                         .font(.caption)
                         .foregroundStyle(remaining > 0 ? Color.secondary : Color.orange)
                 }

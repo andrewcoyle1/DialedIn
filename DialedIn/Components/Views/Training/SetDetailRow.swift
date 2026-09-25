@@ -15,7 +15,7 @@ struct SetDetailRow: View {
     /// A left/right pair shares its number and is told apart by the marker, so three sets a side
     /// read 1L, 1R, 2L, 2R rather than 1 through 4.
     private var label: String {
-        String(localized: "Set \(index)\(set.side?.initial ?? "")")
+        String(localized: "Set \(String(describing: index))\(set.side?.initial ?? "")")
     }
 
     var body: some View {
@@ -92,7 +92,7 @@ struct SetDetailRow: View {
         let remainingSeconds = seconds % 60
         
         if minutes > 0 {
-            return String(localized: "\(minutes)m \(remainingSeconds)s")
+            return String(localized: "\(String(describing: minutes))m \(String(describing: remainingSeconds))s")
         } else {
             return "\(seconds)s"
         }
