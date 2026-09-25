@@ -101,6 +101,10 @@ class AccountPresenter {
 
     func saveProfile() async {
         guard canSave else { return }
+        // A new photo is an upload, which needs the server; the rest of the profile does not.
+        if selectedImageData != nil {
+            guard interactor.ensureOnline(or: router) else { return }
+        }
         isSaving = true
 
         do {
@@ -131,12 +135,12 @@ class AccountPresenter {
             if let uiImage = selectedImageData.flatMap({ UIImage(data: $0) }) {
                 try await interactor.updateProfileImageUrl(image: uiImage)
             }
-            try await interactor.updateUser(data: data)
+            try await updateUser(data: data)
             #elseif canImport(AppKit)
             if let nsImage = selectedImageData.flatMap({ NSImage(data: $0) }) {
                 try await interactor.updateProfileImageUrl(image: nsImage)
             }
-            try await interactor.updateUser(data: data)
+            try await updateUser(data: data)
             #endif
 
             interactor.trackEvent(eventName: "profile_edit_save_success", parameters: [:], type: .analytic)
@@ -151,6 +155,16 @@ class AccountPresenter {
         isSaving = false
     }
     
+    /// Offline, Firestore queues the update and the user listener shows it at once, but awaiting it
+    /// waits for the server, so Save would spin until the signal came back. The queued write is
+    /// left to finish on its own and the screen closes as it would online.
+    private func updateUser(data: [String: any DMCodableSendable]) async throws {
+        guard interactor.isOffline else {
+            return try await interactor.updateUser(data: data)
+        }
+        Task { [interactor] in try? await interactor.updateUser(data: data) }
+    }
+
     /// Name, height, cardio fitness and lifting experience are all edited in place in the Profile
     /// section now, so the six `onEdit…Pressed` functions that used to live here — every one of them
     /// empty, behind a live "Edit" button — are gone with the buttons.
