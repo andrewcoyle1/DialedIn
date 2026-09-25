@@ -317,9 +317,9 @@ class AnalyticsPresenter {
         let deficit = tdee - avgIntake
         let value = Int(deficit.rounded())
         if value > 0 {
-            return String(localized: "\(value) deficit")
+            return String(localized: "\(String(describing: value)) deficit")
         } else if value < 0 {
-            return String(localized: "\(-value) surplus")
+            return String(localized: "\(String(describing: -value)) surplus")
         }
         return String(localized: "Balanced")
     }

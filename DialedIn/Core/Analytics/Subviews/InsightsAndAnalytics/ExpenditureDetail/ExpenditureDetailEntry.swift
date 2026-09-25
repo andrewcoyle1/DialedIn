@@ -20,7 +20,7 @@ extension ExpenditureDetailEntry: @MainActor MetricEntry {
     }
 
     var displayValue: String {
-        String(localized: "\(Int(expenditure.rounded())) kcal")
+        String(localized: "\(String(describing: Int(expenditure.rounded()))) kcal")
     }
 
     var systemImageName: String {
