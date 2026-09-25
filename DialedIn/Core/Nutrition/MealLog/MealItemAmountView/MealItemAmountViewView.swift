@@ -31,7 +31,7 @@ struct MealItemAmountViewDelegate {
     var unit: String {
         switch mode {
         case .addFood(let food):
-            return food.measurementMethod == .volume ? "ml" : "g"
+            return food.measurementMethod == .volume ? String(localized: "ml") : String(localized: "g")
         case .editItem(let item):
             return item.unit
         }

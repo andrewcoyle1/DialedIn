@@ -206,7 +206,7 @@ class CheckInPresenter {
         guard let weekly = interactor.currentExpenditure.weeklyTrendChangeKg else { return nil }
         let rounded = (weekly * 10).rounded() / 10
         if rounded == 0 { return "holding steady" }
-        return String(localized: "\(rounded < 0 ? "down" : "up") \(abs(rounded)) kg")
+        return String(localized: "\(rounded < 0 ? String(localized: "down") : String(localized: "up")) \(abs(rounded)) kg")
     }
 
     var expenditureDescription: String {
@@ -220,7 +220,7 @@ class CheckInPresenter {
     /// "2,180 kcal a day, up from 2,050", the same sentence the overview card uses.
     var proposalSummary: String? {
         guard let proposal else { return nil }
-        let direction = proposal.proposedTargetKcal > proposal.currentTargetKcal ? "up from" : "down from"
+        let direction = proposal.proposedTargetKcal > proposal.currentTargetKcal ? String(localized: "up from") : String(localized: "down from")
         return String(localized: "\(Int(proposal.proposedTargetKcal)) kcal a day, \(direction) \(Int(proposal.currentTargetKcal)).")
     }
 

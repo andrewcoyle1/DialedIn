@@ -101,7 +101,7 @@ class TimelineActionsPresenter {
         }
 
         // Destructive and not undoable, so it is confirmed before anything is deleted.
-        let noun = meals.count == 1 ? "meal" : "meals"
+        let noun = meals.count == 1 ? String(localized: "meal") : String(localized: "meals")
         router.showAlert(
             title: String(localized: "Clear this day?"),
             subtitle: String(localized: "\(meals.count) logged \(noun) will be deleted. This cannot be undone."),

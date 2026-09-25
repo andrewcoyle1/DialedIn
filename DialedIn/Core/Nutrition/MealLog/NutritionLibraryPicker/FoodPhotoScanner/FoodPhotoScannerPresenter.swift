@@ -43,7 +43,7 @@ class FoodPhotoScannerPresenter {
         interactor.trackEvent(event: Event.onCapture)
 
         guard let data = image.jpegData(compressionQuality: 0.8) else {
-            errorMessage = "Failed to process image."
+            errorMessage = String(localized: "Failed to process image.")
             isAnalysing = false
             return
         }

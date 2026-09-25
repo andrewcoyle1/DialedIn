@@ -166,7 +166,7 @@ class AddMealPresenter {
             notes: mealLog.notes
         )
     }
-    var scopeLabel: String { nutritionScope == .plate ? "in plate" : "today" }
+    var scopeLabel: String { nutritionScope == .plate ? String(localized: "in plate") : String(localized: "today") }
 
     // MARK: - Nutrient Breakdown
 

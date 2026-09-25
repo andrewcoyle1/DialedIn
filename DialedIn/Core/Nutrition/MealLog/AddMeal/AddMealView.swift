@@ -26,7 +26,7 @@ struct AddMealView: View {
                     breakdownSection(for: category)
                 }
             }
-            CustomToggleView(symbolName: "carrot", title: "Show all nutrients", subtitle: nil, bool: $presenter.showAllNutrients)
+            CustomToggleView(symbolName: "carrot", title: String(localized: "Show all nutrients"), subtitle: nil, bool: $presenter.showAllNutrients)
         }
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $presenter.isEditingMealTime) {
