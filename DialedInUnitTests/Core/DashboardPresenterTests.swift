@@ -72,6 +72,11 @@ struct DashboardFeedPresenterTests {
         func acceptInvite(code: String) async throws -> (inviter: UserModel, acceptance: InviteAcceptance) {
             throw InviteError.notFound
         }
+        var inviteFails = false
+        func myInvite() async throws -> InviteModel {
+            if inviteFails { throw InviteError.unavailable }
+            return InviteModel(code: "PUSH2345", inviterId: "me")
+        }
         var userImageUrl: String?
         var currentUser: UserModel? = DashboardFixture.user("me")
         var draftMeal: MealLogModel?
@@ -172,6 +177,7 @@ struct DashboardFeedPresenterTests {
         func showCreateChallengeView() { shown.append("createChallenge") }
         // MARK: - WeeklyReview
         func showWeeklyReviewView() { shown.append("weeklyReview") }
+        func showShareSheet(items: [Any]) { shown.append("share: \(items.first as? String ?? "")") }
 
         func showAddMealView(delegate: AddMealDelegate) {
             shown.append("addMeal")

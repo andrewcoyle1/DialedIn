@@ -75,3 +75,20 @@ struct InviteAcceptFlow {
         }
     }
 }
+
+/// Sharing the user's invite link: Profile's "Invite a friend" row and the Dashboard's invite card.
+/// Creates the invite the first time, then hands the link to the share sheet.
+@MainActor
+struct InviteShareFlow {
+    let interactor: InviteLinkInteractor
+    let router: ShareSheetRouter
+
+    func share() async {
+        do {
+            let invite = try await interactor.myInvite()
+            router.showShareSheet(items: [invite.shareMessage])
+        } catch {
+            router.showSimpleAlert(title: "Couldn't create invite", subtitle: "Please try again.")
+        }
+    }
+}

@@ -114,6 +114,7 @@ func finishWorkout(_ session: WorkoutSessionModel, using managers: WorkoutFinish
             sessions: managers.sessions.workoutSessions.filter { $0.id != session.id } + [session],
             streak: managers.streak?.currentStreakData.currentStreak
         )
+        recordFinishedSessionForReviewPrompt(session)
     }
     return outcome
 }

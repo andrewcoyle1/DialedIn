@@ -1,7 +1,7 @@
 import SwiftUI
 
 @MainActor
-protocol DashboardRouter: GlobalRouter, InviteAcceptRouter {
+protocol DashboardRouter: GlobalRouter, InviteAcceptRouter, ShareSheetRouter {
 //    func showProfileView()
     func showProfileViewZoom(transitionId: String?, namespace: Namespace.ID)
     func showNotificationsView()

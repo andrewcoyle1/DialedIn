@@ -423,6 +423,11 @@ class DashboardPresenter {
 
     /// The week whose Monday recap the user closed. Held here so closing it redraws at once.
     var dismissedSummaryWeekId: String? = UserDefaults.standard.string(forKey: CircleWeek.summaryDismissedWeekKey)
+
+    // MARK: - RatingReferral
+
+    /// Whether the invite card has been tapped or closed. Held here so closing it redraws at once.
+    var inviteCardDismissed: Bool = ReviewPromptStore().inviteCardDismissed
 }
 
 extension DashboardPresenter {
@@ -619,5 +624,33 @@ extension DashboardPresenter {
     func onWeeklyReviewPressed() {
         interactor.trackEvent(eventName: "DashboardView_WeeklyReview_Press", parameters: nil, type: .analytic)
         router.showWeeklyReviewView()
+    }
+}
+
+// MARK: - RatingReferral
+
+extension DashboardPresenter {
+    /// The one-time invite card, from the fifth finished workout until it is tapped or dismissed.
+    var showsInviteCard: Bool {
+        interactor.currentUser != nil && ReviewPromptPolicy.showsInviteCard(
+            completedSessions: ReviewPromptStore().completedSessions,
+            inviteCardDismissed: inviteCardDismissed
+        )
+    }
+
+    func onInviteCardPressed() {
+        interactor.trackEvent(eventName: "DashboardView_InviteCard_Press", parameters: nil, type: .analytic)
+        dismissInviteCard()
+        Task { await InviteShareFlow(interactor: interactor, router: router).share() }
+    }
+
+    func onInviteCardDismissed() {
+        interactor.trackEvent(eventName: "DashboardView_InviteCard_Dismiss", parameters: nil, type: .analytic)
+        dismissInviteCard()
+    }
+
+    private func dismissInviteCard() {
+        ReviewPromptStore().inviteCardDismissed = true
+        inviteCardDismissed = true
     }
 }

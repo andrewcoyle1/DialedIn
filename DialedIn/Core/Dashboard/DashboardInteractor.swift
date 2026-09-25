@@ -1,7 +1,7 @@
 import SwiftUI
 
 @MainActor
-protocol DashboardInteractor: FollowInteractor, InviteAcceptInteractor {
+protocol DashboardInteractor: FollowInteractor, InviteAcceptInteractor, InviteLinkInteractor {
     var userId: String? { get }
     var userImageUrl: String? { get }
     var currentUser: UserModel? { get }
