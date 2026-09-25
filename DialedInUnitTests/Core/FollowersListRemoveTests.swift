@@ -65,6 +65,20 @@ struct FollowersListRemoveTests {
         #expect(interactor.trackedEventNames == ["FollowersListView_RemoveFollower"])
     }
 
+    @Test("Test Offline Remove Says You're Offline And Keeps The Row")
+    func testOfflineRemoveSaysYoureOfflineAndKeepsTheRow() async {
+        let interactor = Interactor()
+        interactor.isOffline = true
+        let router = Router()
+        let presenter = FollowersListPresenter(interactor: interactor, router: router)
+
+        await presenter.removeFollower(followers[0])
+
+        #expect(router.alertTitles == [OfflineError.title])
+        #expect(interactor.removed.isEmpty)
+        #expect(presenter.visibleFollowers(followers).count == 2)
+    }
+
     @Test("Test A Failed Remove Keeps The Row And Says So")
     func testAFailedRemoveKeepsTheRowAndSaysSo() async {
         let interactor = Interactor()

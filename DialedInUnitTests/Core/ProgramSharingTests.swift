@@ -127,6 +127,23 @@ struct ProgramSharingTests {
         #expect(presenter.recipients.map(\.userId) == ["mutual"])
     }
 
+    @Test("Test Offline Send Says You're Offline And Sends Nothing")
+    func testOfflineSendSaysYoureOfflineAndSendsNothing() async {
+        let interactor = PickerInteractor()
+        interactor.currentUser = UserModel(userId: "me")
+        interactor.followingUsers = [UserModel(userId: "amy", followingIds: ["me"])]
+        interactor.isOffline = true
+        let router = Router()
+        let presenter = ShareToFollowerPresenter(interactor: interactor, router: router, delegate: ShareToFollowerDelegate(payload: .template(template())))
+
+        presenter.onRecipientPressed(interactor.followingUsers[0])
+        presenter.onSendPressed()
+
+        #expect(router.alertTitles == [OfflineError.title])
+        #expect(!presenter.isSending)
+        #expect(interactor.sent.isEmpty)
+    }
+
     @Test("Test Send Goes To Each Selected Recipient In List Order")
     func testSendGoesToEachSelectedRecipientInListOrder() async {
         let interactor = PickerInteractor()

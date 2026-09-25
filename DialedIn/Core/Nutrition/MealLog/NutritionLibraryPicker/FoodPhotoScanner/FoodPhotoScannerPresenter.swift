@@ -36,6 +36,7 @@ class FoodPhotoScannerPresenter {
     }
 
     func onCapture(_ image: UIImage) async {
+        guard interactor.ensureOnline(or: router) else { return }
         isAnalysing = true
         errorMessage = nil
         analysisResults = []

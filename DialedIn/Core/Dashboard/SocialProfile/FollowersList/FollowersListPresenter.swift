@@ -66,6 +66,7 @@ class FollowersListPresenter {
     }
 
     func removeFollower(_ user: UserModel) async {
+        guard interactor.ensureOnline(or: router) else { return }
         interactor.trackEvent(eventName: "FollowersListView_RemoveFollower", parameters: nil, type: .analytic)
         do {
             try await interactor.removeFollower(userId: user.userId)

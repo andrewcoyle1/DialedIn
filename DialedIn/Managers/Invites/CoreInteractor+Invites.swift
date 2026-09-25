@@ -59,6 +59,7 @@ struct InviteAcceptFlow {
     let router: InviteAcceptRouter
 
     func accept(code: String) async {
+        guard interactor.ensureOnline(or: router) else { return }
         interactor.trackEvent(eventName: "Invite_Accept_Start", parameters: nil, type: .analytic)
         do {
             let (inviter, acceptance) = try await interactor.acceptInvite(code: code)

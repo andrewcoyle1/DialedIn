@@ -126,6 +126,7 @@ class ProfilePresenter {
 
     /// Creates the user's invite the first time, then hands the link to the share sheet.
     func onInviteFriendPressed() async {
+        guard interactor.ensureOnline(or: router) else { return }
         interactor.trackEvent(eventName: "ProfileView_InviteFriend_Press", parameters: nil, type: .analytic)
         do {
             let invite = try await interactor.myInvite()
