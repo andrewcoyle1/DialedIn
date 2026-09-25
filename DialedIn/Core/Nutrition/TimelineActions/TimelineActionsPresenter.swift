@@ -35,7 +35,7 @@ class TimelineActionsPresenter {
                 try await interactor.saveFoodLogSettings(settings)
             } catch {
                 interactor.trackEvent(event: Event.saveFail(error: error))
-                router.showSimpleAlert(title: "Unable to Save Settings", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Save Settings"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -53,7 +53,7 @@ class TimelineActionsPresenter {
         let meals = (try? interactor.getMeals(for: delegate.date.dayKey)) ?? []
         guard !meals.isEmpty else {
             isChoosingCopyDestination = false
-            router.showSimpleAlert(title: "Nothing to copy", subtitle: "This day has no meals logged.")
+            router.showSimpleAlert(title: String(localized: "Nothing to copy"), subtitle: String(localized: "This day has no meals logged."))
             return
         }
 
@@ -68,7 +68,7 @@ class TimelineActionsPresenter {
                 router.dismissScreen()
             } catch {
                 interactor.trackEvent(event: Event.onActionFail(error: error))
-                router.showSimpleAlert(title: "Unable to copy day", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to copy day"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -96,15 +96,15 @@ class TimelineActionsPresenter {
         // Silent: local read; a failure falls through to the empty-day guard below.
         let meals = (try? interactor.getMeals(for: delegate.date.dayKey)) ?? []
         guard !meals.isEmpty else {
-            router.showSimpleAlert(title: "Nothing to clear", subtitle: "This day has no meals logged.")
+            router.showSimpleAlert(title: String(localized: "Nothing to clear"), subtitle: String(localized: "This day has no meals logged."))
             return
         }
 
         // Destructive and not undoable, so it is confirmed before anything is deleted.
         let noun = meals.count == 1 ? "meal" : "meals"
         router.showAlert(
-            title: "Clear this day?",
-            subtitle: "\(meals.count) logged \(noun) will be deleted. This cannot be undone.",
+            title: String(localized: "Clear this day?"),
+            subtitle: String(localized: "\(meals.count) logged \(noun) will be deleted. This cannot be undone."),
             buttons: {
                 AnyView(
                     Group {
@@ -132,7 +132,7 @@ class TimelineActionsPresenter {
                 router.dismissScreen()
             } catch {
                 interactor.trackEvent(event: Event.onActionFail(error: error))
-                router.showSimpleAlert(title: "Unable to clear day", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to clear day"), subtitle: String(localized: "Please try again."))
             }
         }
     }

@@ -61,7 +61,7 @@ class FoodDetailPresenter {
     }
 
     func showDeleteConfirmation(food: FoodModel) {
-        router.showAlert(title: "Delete Food", subtitle: "Are you sure you want to delete '\(food.name)'? This action cannot be undone.", buttons: {
+        router.showAlert(title: String(localized: "Delete Food"), subtitle: String(localized: "Are you sure you want to delete '\(food.name)'? This action cannot be undone."), buttons: {
             AnyView(
                 HStack {
                     Button("Delete", role: .destructive) {
@@ -83,7 +83,7 @@ class FoodDetailPresenter {
             onDismiss()
         } catch {
             isDeleting = false
-            router.showSimpleAlert(title: "Failed to delete food", subtitle: "Please try again later")
+            router.showSimpleAlert(title: String(localized: "Failed to delete food"), subtitle: String(localized: "Please try again later"))
         }
     }
 

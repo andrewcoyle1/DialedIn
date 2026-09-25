@@ -80,7 +80,7 @@ class AddMealPresenter {
         do {
             try interactor.updateDraftMeal(mealLog)
         } catch {
-            router.showSimpleAlert(title: "Unable to Save Progress", subtitle: "We were unable to save your meal. Please try again.")
+            router.showSimpleAlert(title: String(localized: "Unable to Save Progress"), subtitle: String(localized: "We were unable to save your meal. Please try again."))
         }
     }
 
@@ -97,7 +97,7 @@ class AddMealPresenter {
                 // Saving is what dismisses this screen. Without this the meal is simply still
                 // sitting there, unlogged, with nothing to say the save was even attempted.
                 router.showSimpleAlert(
-                    title: "Unable to Save Meal",
+                    title: String(localized: "Unable to Save Meal"),
                     subtitle: "Please check your internet connection and try again."
                 )
             }

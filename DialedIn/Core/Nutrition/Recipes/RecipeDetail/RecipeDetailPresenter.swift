@@ -100,7 +100,7 @@ func onDevSettingsPressed() {
     }
 
     func showDeleteConfirmation(recipe: RecipeTemplateModel) {
-        router.showAlert(title: "Delete Recipe", subtitle: "Are you sure you want to delete '\(recipe.name)'? This action cannot be undone.", buttons: {
+        router.showAlert(title: String(localized: "Delete Recipe"), subtitle: String(localized: "Are you sure you want to delete '\(recipe.name)'? This action cannot be undone."), buttons: {
             AnyView(
                 HStack {
                     Button("Delete", role: .destructive) {
@@ -122,7 +122,7 @@ func onDevSettingsPressed() {
             onDismiss()
         } catch {
             isDeleting = false
-            router.showSimpleAlert(title: "Failed to delete recipe", subtitle: "Please try again later")
+            router.showSimpleAlert(title: String(localized: "Failed to delete recipe"), subtitle: String(localized: "Please try again later"))
         }
     }
 }

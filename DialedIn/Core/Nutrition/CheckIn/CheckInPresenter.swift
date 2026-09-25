@@ -206,11 +206,11 @@ class CheckInPresenter {
         guard let weekly = interactor.currentExpenditure.weeklyTrendChangeKg else { return nil }
         let rounded = (weekly * 10).rounded() / 10
         if rounded == 0 { return "holding steady" }
-        return "\(rounded < 0 ? "down" : "up") \(abs(rounded)) kg"
+        return String(localized: "\(rounded < 0 ? "down" : "up") \(abs(rounded)) kg")
     }
 
     var expenditureDescription: String {
-        "\(Int(interactor.currentExpenditure.kcal)) kcal a day"
+        String(localized: "\(Int(interactor.currentExpenditure.kcal)) kcal a day")
     }
 
     var proposal: TargetProposal? {
@@ -221,7 +221,7 @@ class CheckInPresenter {
     var proposalSummary: String? {
         guard let proposal else { return nil }
         let direction = proposal.proposedTargetKcal > proposal.currentTargetKcal ? "up from" : "down from"
-        return "\(Int(proposal.proposedTargetKcal)) kcal a day, \(direction) \(Int(proposal.currentTargetKcal))."
+        return String(localized: "\(Int(proposal.proposedTargetKcal)) kcal a day, \(direction) \(Int(proposal.currentTargetKcal)).")
     }
 
     var hasOpenLoggingBreak: Bool {
@@ -387,7 +387,7 @@ class CheckInPresenter {
             } catch {
                 isCompleted = false
                 interactor.trackEvent(event: Event.completeFail(error: error))
-                router.showSimpleAlert(title: "Unable to Complete Check-In", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Complete Check-In"), subtitle: String(localized: "Please try again."))
             }
         }
     }
