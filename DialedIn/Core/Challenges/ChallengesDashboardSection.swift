@@ -50,7 +50,7 @@ struct ChallengesDashboardSection: View {
                     Text(card.challenge.title)
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(1)
-                    Text(card.daysLeft == 1 ? "1 day left" : "\(card.daysLeft) days left")
+                    Text(card.daysLeft == 1 ? String(localized: "1 day left") : String(localized: "\(card.daysLeft) days left"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     topThree(card)

@@ -65,7 +65,7 @@ class SocialProfilePresenter {
     }
 
     var blockMenuTitle: String {
-        isBlocked ? "Unblock" : "Block \(displayName)"
+        isBlocked ? String(localized: "Unblock") : String(localized: "Block \(displayName)")
     }
 
     var mutualFollowers: [UserModel] {
@@ -309,7 +309,7 @@ extension SocialProfilePresenter {
         let goal = CircleWeek.goal(for: user)
         return user.weeklySessionGoal == nil
             ? "Set a weekly goal"
-            : "Goal: \(goal) \(goal == 1 ? "session" : "sessions") a week"
+            : "Goal: \(goal) \(goal == 1 ? String(localized: "session") : String(localized: "sessions")) a week"
     }
 
     func onWeeklyGoalPressed() {

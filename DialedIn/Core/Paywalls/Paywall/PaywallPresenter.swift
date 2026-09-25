@@ -57,7 +57,7 @@ class PaywallPresenter {
             products = fetchedProducts
             
             if fetchedProducts.isEmpty {
-                loadErrorMessage = "No subscription options are available right now. Please try again in a moment."
+                loadErrorMessage = String(localized: "No subscription options are available right now. Please try again in a moment.")
                 interactor.trackEvent(event: Event.loadProductsFail(error: PaywallLoadError.noProductsReturned, variant: paywallTest))
             } else {
                 interactor.trackEvent(event: Event.loadProductsSuccess(count: fetchedProducts.count, variant: paywallTest))

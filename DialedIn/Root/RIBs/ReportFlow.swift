@@ -75,7 +75,7 @@ final class ReportFlow {
     func onReasonSelected(_ reason: ReportReason) {
         guard pending != nil else { return }
         self.reason = reason
-        showNoteAlert(subtitle: reason == .other ? "Tell us what is wrong." : "Optional: anything that helps us review it.")
+        showNoteAlert(subtitle: reason == .other ? String(localized: "Tell us what is wrong.") : String(localized: "Optional: anything that helps us review it."))
     }
 
     func onSendPressed() {

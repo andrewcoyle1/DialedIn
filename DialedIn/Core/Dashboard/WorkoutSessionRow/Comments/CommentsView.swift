@@ -122,8 +122,8 @@ struct CommentsView: View {
             .frame(minWidth: 32)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(isLiked ? "Unlike comment" : "Like comment")
-        .accessibilityValue(count == 1 ? "1 like" : "\(count) likes")
+        .accessibilityLabel(isLiked ? String(localized: "Unlike comment") : String(localized: "Like comment"))
+        .accessibilityValue(count == 1 ? String(localized: "1 like") : String(localized: "\(count) likes"))
     }
 
     private var inputBar: some View {
@@ -176,7 +176,7 @@ struct CommentsView: View {
 
     private var inputRow: some View {
         HStack(spacing: 8) {
-            TextField(presenter.replyingTo == nil ? "Add a comment…" : "Add a reply…", text: $presenter.commentDraft, axis: .vertical)
+            TextField(presenter.replyingTo == nil ? String(localized: "Add a comment…") : String(localized: "Add a reply…"), text: $presenter.commentDraft, axis: .vertical)
                 .lineLimit(1...4)
             Button {
                 presenter.onSendPressed()

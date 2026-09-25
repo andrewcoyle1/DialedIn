@@ -119,7 +119,7 @@ enum CircleWeek {
         let circleSessions: Int
 
         var text: String {
-            String(localized: "Last week: you \(ownSessions)/\(ownGoal), circle \(circleSessions) \(circleSessions == 1 ? "session" : "sessions")")
+            String(localized: "Last week: you \(ownSessions)/\(ownGoal), circle \(circleSessions) \(circleSessions == 1 ? String(localized: "session") : String(localized: "sessions"))")
         }
     }
 

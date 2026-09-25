@@ -33,7 +33,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
         let total = Int(endedAt.timeIntervalSince(presenter.session.dateCreated))
         let hours = total / 3600
         let minutes = (total % 3600) / 60
-        return hours > 0 ? "\(hours)h \(minutes)m" : "\(minutes)m"
+        return hours > 0 ? String(localized: "\(hours)h \(minutes)m") : String(localized: "\(minutes)m")
     }
 
     private var workingSets: [WorkoutSetModel] {
@@ -184,8 +184,8 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
             }
             .frame(maxWidth: .infinity)
             .foregroundStyle(presenter.isLiked ? Color.accentColor : Color.secondary)
-            .accessibilityLabel(presenter.isLiked ? "Unlike" : "Like")
-            .accessibilityValue(presenter.likeCount == 1 ? "1 like" : "\(presenter.likeCount) likes")
+            .accessibilityLabel(presenter.isLiked ? String(localized: "Unlike") : String(localized: "Like"))
+            .accessibilityValue(presenter.likeCount == 1 ? String(localized: "1 like") : String(localized: "\(presenter.likeCount) likes"))
             Button {
                 presenter.onCommentButtonPressed()
             } label: {
@@ -278,7 +278,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
     }
 
     private func formatDuration(_ seconds: Int) -> String {
-        seconds >= 60 ? "\(seconds / 60)m" : "\(seconds)s"
+        seconds >= 60 ? String(localized: "\(seconds / 60)m") : String(localized: "\(seconds)s")
     }
 
     private func formatDistance(_ meters: Double) -> String {

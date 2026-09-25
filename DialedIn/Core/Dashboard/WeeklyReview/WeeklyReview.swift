@@ -154,7 +154,7 @@ struct WeeklyReview: Equatable {
             return String(localized: "No sessions logged this week.")
         }
         if sessionCount >= goal, prCount > 0 {
-            return String(localized: "Goal hit and \(prCount) \(prCount == 1 ? "PR" : "PRs") set. Great week.")
+            return String(localized: "Goal hit and \(prCount) \(prCount == 1 ? String(localized: "PR") : String(localized: "PRs")) set. Great week.")
         }
         if sessionCount >= goal {
             return String(localized: "Goal hit: \(sessionCount) of \(goal) sessions.")
@@ -163,7 +163,7 @@ struct WeeklyReview: Equatable {
             return String(localized: "Volume up \(Self.percent(change)) on last week.")
         }
         let toGo = CircleWeek.remaining(sessions: sessionCount, goal: goal)
-        return String(localized: "\(toGo) more \(toGo == 1 ? "session" : "sessions") would have hit your goal.")
+        return String(localized: "\(toGo) more \(toGo == 1 ? String(localized: "session") : String(localized: "sessions")) would have hit your goal.")
     }
 
     var dateRangeText: String {

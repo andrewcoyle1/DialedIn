@@ -133,7 +133,7 @@ struct WorkoutShareCardView: View {
             if let volume = content.volumeText {
                 stat("Volume", volume)
             }
-            stat(content.setCount == 1 ? "Set" : "Sets", "\(content.setCount)")
+            stat(content.setCount == 1 ? String(localized: "Set") : String(localized: "Sets"), "\(content.setCount)")
         }
     }
 
