@@ -33,7 +33,7 @@ class TrainingAccessoryPresenter {
 
     var progressLabel: String {
         guard let active = interactor.activeSession else { return "" }
-        return "\(completedSetsCount(active))/\(totalSetsCount(active)) sets"
+        return String(localized: "\(completedSetsCount(active))/\(totalSetsCount(active)) sets")
     }
     
     var isRestActive: Bool {

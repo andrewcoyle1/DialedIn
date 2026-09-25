@@ -77,9 +77,9 @@ struct FollowButton: View {
 
     private var title: String {
         switch state {
-        case .follow: "Follow"
-        case .following: "Following"
-        case .requested: "Requested"
+        case .follow: String(localized: "Follow")
+        case .following: String(localized: "Following")
+        case .requested: String(localized: "Requested")
         }
     }
 
