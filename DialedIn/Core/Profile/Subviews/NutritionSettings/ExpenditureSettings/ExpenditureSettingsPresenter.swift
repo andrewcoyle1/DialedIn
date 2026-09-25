@@ -23,7 +23,7 @@ class ExpenditureSettingsPresenter {
     // MARK: - Today's estimate
 
     var expenditureValueText: String {
-        String(localized: "\(Int(estimate.kcal.rounded())) kcal")
+        String(localized: "\(String(describing: Int(estimate.kcal.rounded()))) kcal")
     }
 
     /// One line saying where the figure above came from, because "2,480 kcal" on its own cannot
@@ -35,7 +35,7 @@ class ExpenditureSettingsPresenter {
         case .prior:
             return String(localized: "Estimated from your profile until \(ExpenditureEngine.Constants.minWindowDays) days are logged")
         case .adaptive:
-            return String(localized: "Adaptive \u{00B7} \(estimate.loggedDays) of \(estimate.windowDays) days logged")
+            return String(localized: "Adaptive \u{00B7} \(String(describing: estimate.loggedDays)) of \(String(describing: estimate.windowDays)) days logged")
         }
     }
 
@@ -45,7 +45,7 @@ class ExpenditureSettingsPresenter {
         let adjustment = estimate.stepAdjustmentKcal.rounded()
         guard adjustment != 0 else { return nil }
         let sign = adjustment > 0 ? "+" : "\u{2212}"
-        return String(localized: "Includes \(sign)\(Int(abs(adjustment))) kcal from your recent step count")
+        return String(localized: "Includes \(sign)\(String(describing: Int(abs(adjustment)))) kcal from your recent step count")
     }
 
     let estimationMethods = ExpenditureEstimationMethod.allCases

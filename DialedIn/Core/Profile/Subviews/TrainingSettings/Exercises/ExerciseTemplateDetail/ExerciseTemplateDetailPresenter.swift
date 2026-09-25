@@ -48,7 +48,7 @@ class ExerciseModelDetailPresenter {
         let times = stats.performances.count
         let noun = times == 1 ? String(localized: "time") : String(localized: "times")
         let date = latest.date.formatted(date: .abbreviated, time: .omitted)
-        return String(localized: "Performed \(times) \(noun) · last \(date)")
+        return String(localized: "Performed \(String(describing: times)) \(noun) · last \(date)")
     }
 
     /// The unit the charts and figures are in.

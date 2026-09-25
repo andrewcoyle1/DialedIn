@@ -89,8 +89,8 @@ class FoodLogSettingsPresenter {
         switch hour {
         case 0: return String(localized: "12 AM")
         case 12: return String(localized: "12 PM")
-        case 1..<12: return String(localized: "\(hour) AM")
-        default: return String(localized: "\(hour - 12) PM")
+        case 1..<12: return String(localized: "\(String(describing: hour)) AM")
+        default: return String(localized: "\(String(describing: hour - 12)) PM")
         }
     }
 

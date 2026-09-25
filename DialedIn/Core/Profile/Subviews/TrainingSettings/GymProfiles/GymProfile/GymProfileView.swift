@@ -534,7 +534,7 @@ private struct GymProfileMachineSectionsView: View {
                             value: { $0.minWeight },
                             unit: { $0.unit },
                             formatter: {
-                                String(localized: "\(String(format: "%g", $0.minWeight)) - \(String(format: "%g", $0.maxWeight)) \($0.unit.abbreviation), \(String(format: "%g", $0.increment)) \($0.unit.abbreviation) increments")
+                                String(localized: "\(String(format: "%g", $0.minWeight)) - \(String(format: "%g", $0.maxWeight)) \(String(describing: $0.unit.abbreviation)), \(String(format: "%g", $0.increment)) \(String(describing: $0.unit.abbreviation)) increments")
                             },
                             separator: "\n"
                         )))
@@ -614,7 +614,7 @@ private struct GymProfileMachineSectionsView: View {
                             value: { $0.minWeight },
                             unit: { $0.unit },
                             formatter: {
-                                String(localized: "\(String(format: "%g", $0.minWeight)) - \(String(format: "%g", $0.maxWeight)) \($0.unit.abbreviation), \(String(format: "%g", $0.increment)) \($0.unit.abbreviation) increments")
+                                String(localized: "\(String(format: "%g", $0.minWeight)) - \(String(format: "%g", $0.maxWeight)) \(String(describing: $0.unit.abbreviation)), \(String(format: "%g", $0.increment)) \(String(describing: $0.unit.abbreviation)) increments")
                             },
                             separator: "\n"
                         )))

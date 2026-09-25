@@ -95,7 +95,7 @@ struct ExerciseModelDetailView: View {
         let sets = "\(performance.workingSets) × sets"
         let reps = "\(performance.totalReps) reps"
         let top = presenter.formattedWeight(performance.heaviestWeightKg)
-        return String(localized: "\(sets) · \(reps) · top \(top)")
+        return String(localized: "\(String(describing: sets)) · \(String(describing: reps)) · top \(String(describing: top))")
     }
     
     private var pickerSection: some View {
