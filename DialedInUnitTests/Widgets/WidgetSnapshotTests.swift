@@ -187,6 +187,8 @@ struct WidgetSnapshotTests {
         var draftMeal: MealLogModel?
         var activityNotifications: [ActivityNotificationModel] = []
         var incomingFollowRequests: [FollowRequestModel] = []
+
+        func consumePendingDeepLink() -> DeepLink? { nil }
     }
 
     private final class TabBarRouterDouble: TabBarRouter {

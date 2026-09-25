@@ -157,7 +157,9 @@ extension AppViewForUITesting {
                 ActiveSessionScreen(interactor: interactor) { try? builder.workoutTrackerView(router: router) }.any()
             }),
             // MARK: - WeeklyReview
-            ("STARTSCREEN_WEEKLY_REVIEW", { builder.weeklyReviewView(router: $0).any() })
+            ("STARTSCREEN_WEEKLY_REVIEW", { builder.weeklyReviewView(router: $0).any() }),
+            // MARK: - Muscle Balance
+            ("STARTSCREEN_MUSCLE_BALANCE", { builder.muscleBalanceView(router: $0).any() })
         ]
     }
 }
