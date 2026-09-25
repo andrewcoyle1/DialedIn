@@ -136,6 +136,19 @@ class WorkoutSessionRowPresenter {
         }
     }
 
+    // MARK: Copy Link
+
+    /// The session's public web page, absent where that page would refuse it.
+    var webLink: URL? {
+        SessionWebLink.url(for: session, author: author)
+    }
+
+    func onCopyLinkPressed(_ link: URL) {
+        UIPasteboard.general.url = link
+        interactor.playHaptic(option: .success)
+        interactor.trackEvent(event: Event.copyLink(sessionId: session.id))
+    }
+
     // MARK: Save as Template
 
     /// Copies the card's workout into the reader's own library. Offered on every card, the reader's
@@ -195,12 +208,14 @@ class WorkoutSessionRowPresenter {
         case saveAsTemplateSuccess(sessionId: String, exerciseCount: Int)
         case saveAsTemplateUnresolved(sessionId: String)
         case saveAsTemplateFail(error: Error)
+        case copyLink(sessionId: String)
 
         var eventName: String {
             switch self {
             case .saveAsTemplateSuccess: return "WorkoutSessionRow_SaveAsTemplate_Success"
             case .saveAsTemplateUnresolved: return "WorkoutSessionRow_SaveAsTemplate_Unresolved"
             case .saveAsTemplateFail: return "WorkoutSessionRow_SaveAsTemplate_Fail"
+            case .copyLink: return "WorkoutSessionRow_CopyLink"
             }
         }
 
@@ -208,7 +223,7 @@ class WorkoutSessionRowPresenter {
             switch self {
             case .saveAsTemplateSuccess(let sessionId, let exerciseCount):
                 return ["session_id": sessionId, "exercise_count": exerciseCount]
-            case .saveAsTemplateUnresolved(let sessionId):
+            case .saveAsTemplateUnresolved(let sessionId), .copyLink(let sessionId):
                 return ["session_id": sessionId]
             case .saveAsTemplateFail(let error):
                 return error.eventParameters

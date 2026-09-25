@@ -201,6 +201,11 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
                         }
                     }
                 }
+                if let link = presenter.webLink {
+                    Button("Copy Link", systemImage: "link") {
+                        presenter.onCopyLinkPressed(link)
+                    }
+                }
                 if presenter.canReport {
                     Button("Report Workout", systemImage: "exclamationmark.bubble") {
                         presenter.onReportPressed()

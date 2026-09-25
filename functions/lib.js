@@ -576,3 +576,152 @@ export function buildInviteFollowRequest(requester, requesterId, now = new Date(
         status: "pending",
     };
 }
+
+// MARK: - Web share page
+// /s/{authorId}/{sessionId} on Hosting renders one finished session as a static page. Everything
+// the page prints goes through escapeHtml; the only person on it is the author, by first name and
+// avatar, as on the in-app share card.
+
+export const APP_STORE_URL = "https://apps.apple.com/app/dialedin"; // placeholder until the listing is live
+
+const ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+
+export function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+// "/s/{authorId}/{sessionId}" as ids, or null for any other path.
+export function parseSessionPath(path) {
+    const parts = String(path ?? "").split("/").filter(Boolean);
+    if (parts.length !== 3 || parts[0] !== "s" || !ID_PATTERN.test(parts[1]) || !ID_PATTERN.test(parts[2])) return null;
+    return { authorId: parts[1], sessionId: parts[2] };
+}
+
+// Whether the page may show `session` at all: a public author, and a finished session that is
+// neither deleted nor hidden by moderation.
+export function isSessionShareable(session, author) {
+    return Boolean(session && author && author.is_private !== true && session.hidden !== true
+        && !session.deleted_at && session.ended_at);
+}
+
+const workingSets = (exercise) => (exercise?.sets ?? []).filter((set) => !set.isWarmup);
+const counts = (session) => session.ended_at && !session.is_rest_day && !session.deleted_at;
+
+// The best completed working set of one exercise across `sessions` as [value, reps], or null.
+// Mirrors WorkoutSessionHighlights.best: weight then reps for weighted lifts, the largest reps,
+// time or distance otherwise.
+function bestMark(templateId, mode, sessions) {
+    const sets = sessions.filter((s) => s.ended_at).flatMap((s) => s.exercises ?? [])
+        .filter((e) => e.template_id === templateId).flatMap(workingSets).filter((set) => set.completed_at);
+    if (mode === "weightReps") {
+        let best = null;
+        for (const set of sets) {
+            const mark = [set.weight_kg ?? 0, set.reps ?? 0];
+            if (!best || mark[0] > best[0] || (mark[0] === best[0] && mark[1] > best[1])) best = mark;
+        }
+        return best && best[0] > 0 ? best : null;
+    }
+    const field = { repsOnly: "reps", timeOnly: "duration_sec", distanceTime: "distance_meters" }[mode];
+    const values = sets.map((set) => set[field]).filter((v) => typeof v === "number");
+    const top = values.length ? Math.max(...values) : 0;
+    return top > 0 ? [top, 0] : null;
+}
+
+function describeMark([value, reps], mode) {
+    const oneDp = (n) => String(Math.round(n * 10) / 10);
+    switch (mode) {
+        case "weightReps": return `${oneDp(value)} kg × ${reps}`;
+        case "repsOnly": return `${Math.trunc(value)} reps`;
+        case "timeOnly": return `${Math.floor(value / 60)}:${String(Math.trunc(value % 60)).padStart(2, "0")}`;
+        default: return value >= 1000 ? `${oneDp(value / 1000)} km` : `${Math.trunc(value)} m`;
+    }
+}
+
+// "Bench Press 100 kg × 5" for each exercise that beat every earlier finished session, at most
+// `limit`. A first-ever lift is not a record. The JS twin of WorkoutSessionHighlights.personalRecords.
+export function personalRecordLines(session, priorSessions, limit = 3) {
+    const start = toDate(session.date_created);
+    const earlier = priorSessions.filter((s) => counts(s) && s.id !== session.id && toDate(s.date_created) < start);
+    const seen = new Set();
+    const lines = [];
+    for (const exercise of session.exercises ?? []) {
+        if (seen.has(exercise.template_id) || lines.length >= limit) continue;
+        seen.add(exercise.template_id);
+        const now = bestMark(exercise.template_id, exercise.tracking_mode, [session]);
+        const before = bestMark(exercise.template_id, exercise.tracking_mode, earlier);
+        if (now && before && (now[0] > before[0] || (now[0] === before[0] && now[1] > before[1]))) {
+            lines.push(`${exercise.name} ${describeMark(now, exercise.tracking_mode)}`);
+        }
+    }
+    return lines;
+}
+
+// Everything the page prints, as plain strings, before escaping.
+export function sessionPageContent(session, author, priorSessions = []) {
+    const start = toDate(session.date_created);
+    const end = toDate(session.ended_at);
+    const seconds = start && end ? Math.max(0, Math.floor((end - start) / 1000)) : null;
+    const hours = Math.floor((seconds ?? 0) / 3600);
+    const minutes = Math.floor(((seconds ?? 0) % 3600) / 60);
+    const volume = (session.exercises ?? []).flatMap(workingSets).reduce((sum, set) => sum + (set.weight_kg ?? 0) * (set.reps ?? 0), 0);
+    const avatar = author.submitted_profile_image ?? author.photo_url;
+    return {
+        firstName: author.submitted_first_name || author.first_name || null,
+        // Only https images: the URL lands in src and og:image.
+        avatarURL: typeof avatar === "string" && avatar.startsWith("https://") ? avatar : null,
+        sessionName: session.name || "Workout",
+        // ponytail: UTC date; the author's zone is in private settings, read it if midnight sessions land on the wrong day.
+        dateText: start ? start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" }) : null,
+        durationText: seconds === null ? null : hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`,
+        volumeText: volume > 0 ? `${Math.round(volume).toLocaleString("en-US")} kg` : null,
+        personalRecordLines: personalRecordLines(session, priorSessions),
+        streakText: session.streak_count > 1 ? `${session.streak_count}-day streak` : null,
+    };
+}
+
+const PAGE_STYLE = `body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f2f2f7;color:#1c1c1e}
+main{max-width:480px;margin:0 auto;padding:32px 16px}.card{background:#fff;border-radius:20px;padding:24px}
+.author{display:flex;align-items:center;gap:12px}.author img{width:48px;height:48px;border-radius:50%;object-fit:cover}
+h1{font-size:28px;margin:16px 0 4px}.date{color:#6e6e73;margin:0}.stats{display:flex;gap:24px;margin:20px 0}
+.stats b{display:block;font-size:22px}.prs{padding-left:20px}.badge{display:inline-block;margin-top:24px;padding:12px 20px;border-radius:10px;background:#000;color:#fff;text-decoration:none}
+@media (prefers-color-scheme:dark){body{background:#000;color:#f2f2f7}.card{background:#1c1c1e}.date{color:#98989d}.badge{background:#fff;color:#000}}`;
+
+function page({ title, description, url, image, body }) {
+    const meta = [
+        ["og:title", title], ["og:description", description], ["og:type", "website"], ["og:site_name", "DialedIn"],
+        ...(url ? [["og:url", url]] : []), ...(image ? [["og:image", image]] : []),
+    ].map(([p, c]) => `<meta property="${p}" content="${escapeHtml(c)}">`).join("\n");
+    return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}">
+${meta}
+<meta name="twitter:card" content="summary">
+<style>${PAGE_STYLE}</style></head>
+<body><main>${body}
+<a class="badge" href="${escapeHtml(APP_STORE_URL)}">Download on the App Store</a></main></body></html>`;
+}
+
+// The page for a shareable session, or null when the author is private or the session hidden,
+// deleted or unfinished — the caller answers 404 with notFoundPageHtml().
+export function buildSessionPageHtml({ session, author, priorSessions = [], url = null }) {
+    if (!isSessionShareable(session, author)) return null;
+    const c = sessionPageContent(session, author, priorSessions);
+    const who = c.firstName ?? "Someone";
+    const stats = [["Duration", c.durationText], ["Volume", c.volumeText]].filter(([, v]) => v);
+    const description = [c.dateText, c.durationText, c.volumeText, c.personalRecordLines.length ? `${c.personalRecordLines.length} PR${c.personalRecordLines.length > 1 ? "s" : ""}` : null, c.streakText]
+        .filter(Boolean).join(" · ");
+    const body = `<article class="card">
+<div class="author">${c.avatarURL ? `<img src="${escapeHtml(c.avatarURL)}" alt="">` : ""}<strong>${escapeHtml(who)}</strong></div>
+<h1>${escapeHtml(c.sessionName)}</h1>
+${c.dateText ? `<p class="date">${escapeHtml(c.dateText)}</p>` : ""}
+${stats.length ? `<div class="stats">${stats.map(([k, v]) => `<div><b>${escapeHtml(v)}</b>${k}</div>`).join("")}</div>` : ""}
+${c.personalRecordLines.length ? `<h2>Personal records</h2><ul class="prs">${c.personalRecordLines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}</ul>` : ""}
+${c.streakText ? `<p>🔥 ${escapeHtml(c.streakText)}</p>` : ""}
+</article>`;
+    return page({ title: `${who}'s ${c.sessionName} on DialedIn`, description, url, image: c.avatarURL, body });
+}
+
+// Every refusal looks the same, so the page does not reveal whether a session exists.
+export function notFoundPageHtml() {
+    return page({ title: "Workout not found · DialedIn", description: "This workout isn't available.", body: `<article class="card"><h1>Workout not found</h1><p>This workout is private or no longer available.</p></article>` });
+}

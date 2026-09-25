@@ -594,3 +594,82 @@ test("the follow and request docs acceptInvite writes match the shapes the app w
         requester_id: "b", requester_name: "Someone", requester_image_url: null, date_created: now, status: "pending",
     });
 });
+
+// MARK: - Web share page
+
+test("sessionPage: parseSessionPath accepts /s/{author}/{id} and nothing else", async () => {
+    const { parseSessionPath } = await import("./lib.js");
+    assert.deepEqual(parseSessionPath("/s/uid_1/ABC-123"), { authorId: "uid_1", sessionId: "ABC-123" });
+    for (const bad of ["/s/a", "/s/a/b/c", "/x/a/b", "/s/a/b%2Fc", "/s/../b", "", null]) {
+        assert.equal(parseSessionPath(bad), null, String(bad));
+    }
+});
+
+const sharePageFixture = () => {
+    const start = new Date("2026-09-24T09:00:00Z");
+    const set = (weight_kg, reps, at = start) => ({ weight_kg, reps, completed_at: at, isWarmup: false });
+    const bench = (sets) => ({ template_id: "bench", name: "Bench Press", tracking_mode: "weightReps", sets });
+    return {
+        author: { first_name: "Ann", last_name: "Secret", photo_url: "https://img.example/a.png", is_private: false },
+        session: {
+            id: "s2", author_id: "a", name: "Push Day", date_created: start, ended_at: new Date("2026-09-24T10:05:00Z"), streak_count: 12,
+            exercises: [bench([{ weight_kg: 40, reps: 10, isWarmup: true, completed_at: start }, set(100, 5), set(90, 8)])],
+        },
+        prior: [{ id: "s1", author_id: "a", date_created: new Date("2026-09-20T09:00:00Z"), ended_at: new Date("2026-09-20T10:00:00Z"), exercises: [bench([set(95, 5)])] }],
+    };
+};
+
+test("sessionPage: the page shows first name, stats, PRs and streak, with Open Graph tags", async () => {
+    const { buildSessionPageHtml } = await import("./lib.js");
+    const { author, session, prior } = sharePageFixture();
+    const html = buildSessionPageHtml({ session, author, priorSessions: prior, url: "https://p.web.app/s/a/s2" });
+    assert.match(html, /<title>Ann&#39;s Push Day on DialedIn<\/title>/);
+    assert.match(html, /<strong>Ann<\/strong>/);
+    assert.match(html, /Thursday, September 24/);
+    assert.match(html, /1h 5m/);
+    assert.match(html, /1,220 kg/); // 100×5 + 90×8, warm-up excluded
+    assert.match(html, /<li>Bench Press 100 kg × 5<\/li>/);
+    assert.match(html, /12-day streak/);
+    assert.match(html, /<meta property="og:url" content="https:\/\/p.web.app\/s\/a\/s2">/);
+    assert.match(html, /<meta property="og:image" content="https:\/\/img.example\/a.png">/);
+    assert.match(html, /App Store/);
+    assert.doesNotMatch(html, /Secret/, "no last name");
+});
+
+test("sessionPage: a first-ever lift is not a record, and a lighter set beats nothing", async () => {
+    const { personalRecordLines } = await import("./lib.js");
+    const { session, prior } = sharePageFixture();
+    assert.deepEqual(personalRecordLines(session, []), []);
+    prior[0].exercises[0].sets[0].weight_kg = 120;
+    assert.deepEqual(personalRecordLines(session, prior), []);
+});
+
+test("sessionPage: private author, hidden, deleted or unfinished session → null", async () => {
+    const { buildSessionPageHtml } = await import("./lib.js");
+    const cases = [
+        (f) => { f.author.is_private = true; },
+        (f) => { f.session.hidden = true; },
+        (f) => { f.session.deleted_at = new Date(); },
+        (f) => { delete f.session.ended_at; },
+        (f) => { f.session = null; },
+        (f) => { f.author = undefined; },
+    ];
+    for (const mutate of cases) {
+        const f = sharePageFixture();
+        mutate(f);
+        assert.equal(buildSessionPageHtml({ session: f.session, author: f.author }), null, mutate.toString());
+    }
+});
+
+test("sessionPage: user text is escaped and non-https avatars are dropped", async () => {
+    const { buildSessionPageHtml, escapeHtml, notFoundPageHtml } = await import("./lib.js");
+    assert.equal(escapeHtml(`<a href="x">'&'</a>`), "&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;");
+    const { author, session } = sharePageFixture();
+    author.first_name = "<script>alert(1)</script>";
+    author.photo_url = "javascript:alert(1)";
+    session.name = `"><img src=x onerror=alert(1)>`;
+    const html = buildSessionPageHtml({ session, author });
+    assert.doesNotMatch(html, /<script>|<img src=x|javascript:/);
+    assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+    assert.match(notFoundPageHtml(), /Workout not found/);
+});

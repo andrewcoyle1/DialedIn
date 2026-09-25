@@ -291,6 +291,11 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
                         presenter.onShareImagePressed(session: session, format: format)
                     }
                 }
+                if let link = presenter.webLink(session: session) {
+                    Button("Copy Link", systemImage: "link") {
+                        presenter.onCopyLinkPressed(link, session: session)
+                    }
+                }
             } label: {
                 Label("Share Image", systemImage: "square.and.arrow.up")
             }

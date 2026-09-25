@@ -906,3 +906,35 @@ export const acceptInvite = onCall(CALLABLE_OPTIONS, async (request) => {
         };
     });
 });
+
+// MARK: - Web share page
+
+import { onRequest } from "firebase-functions/v2/https";
+import { buildSessionPageHtml, notFoundPageHtml, parseSessionPath } from "./lib.js";
+
+// Hosting rewrites /s/** here (firebase.json). Public and unauthenticated by design, so it reads
+// with the Admin SDK and lets buildSessionPageHtml refuse private authors and hidden sessions,
+// answering every refusal with the same 404 so the page never confirms a session exists.
+export const sessionPage = onRequest({ region: REGION }, async (req, res) => {
+    const notFound = () => res.status(404).set("Cache-Control", "public, max-age=60").send(notFoundPageHtml());
+    const ids = parseSessionPath(req.path);
+    if (req.method !== "GET" && req.method !== "HEAD") return res.status(405).send("");
+    if (!ids) return notFound();
+
+    const author = getFirestore().collection("users").doc(ids.authorId);
+    const [authorDoc, sessionDoc] = await Promise.all([author.get(), author.collection("workout_sessions").doc(ids.sessionId).get()]);
+    const session = sessionDoc.exists ? { id: sessionDoc.id, ...sessionDoc.data() } : null;
+    if (!buildSessionPageHtml({ session, author: authorDoc.data() })) return notFound();
+
+    // Records need the author's earlier sessions, read only once the page is known to render.
+    // ponytail: reads every earlier session per uncached view; stamp PR lines on the session if that bill shows up.
+    const prior = await author.collection("workout_sessions").where("date_created", "<", session.date_created).get();
+    const html = buildSessionPageHtml({
+        session,
+        author: authorDoc.data(),
+        priorSessions: prior.docs.map((d) => ({ id: d.id, ...d.data() })),
+        url: `https://${PROJECT_ID}.web.app/s/${ids.authorId}/${ids.sessionId}`,
+    });
+    // Short CDN cache: going private takes effect within ten minutes.
+    res.set("Cache-Control", "public, max-age=300, s-maxage=600").send(html);
+});

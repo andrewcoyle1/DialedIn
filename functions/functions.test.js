@@ -447,4 +447,56 @@ describe("Cloud Functions on the Firestore emulator", { skip: !HOST && "needs FI
             assert.equal(sent[0].notification.body, "This week: you trained 1 time, your circle 2");
         });
     });
+
+    describe("sessionPage", () => {
+        // An onRequest function is a plain (req, res) handler; this res records what it was sent.
+        async function get(path) {
+            const out = { status: 200, headers: {}, body: null };
+            const res = {
+                status(code) { out.status = code; return this; },
+                set(key, value) { out.headers[key] = value; return this; },
+                send(body) { out.body = body; return this; },
+            };
+            await fns.sessionPage({ method: "GET", path, headers: {} }, res);
+            return out;
+        }
+        const start = new Date("2026-09-24T09:00:00Z");
+        const session = (extra = {}) => ({
+            author_id: "a", name: "Push Day", date_created: start, ended_at: new Date(start.getTime() + HOUR),
+            exercises: [{ template_id: "bench", name: "Bench Press", tracking_mode: "weightReps",
+                sets: [{ weight_kg: 100, reps: 5, isWarmup: false, completed_at: start }] }],
+            ...extra,
+        });
+
+        test("renders a public session with its record against an earlier one", async () => {
+            await seed({
+                "users/a": { first_name: "Ann", is_private: false },
+                "users/a/workout_sessions/s2": session(),
+                "users/a/workout_sessions/s1": session({ date_created: new Date(start.getTime() - 24 * HOUR), ended_at: new Date(start.getTime() - 23 * HOUR),
+                    exercises: [{ template_id: "bench", name: "Bench Press", tracking_mode: "weightReps", sets: [{ weight_kg: 90, reps: 5, isWarmup: false, completed_at: start }] }] }),
+            });
+            const out = await get("/s/a/s2");
+            assert.equal(out.status, 200);
+            assert.match(out.body, /Ann&#39;s Push Day on DialedIn/);
+            assert.match(out.body, /<li>Bench Press 100 kg × 5<\/li>/);
+            assert.match(out.headers["Cache-Control"], /max-age/);
+        });
+
+        test("answers the same 404 for a private author, a hidden session and a missing one", async () => {
+            await seed({
+                "users/p": { first_name: "Pat", is_private: true },
+                "users/p/workout_sessions/s1": session({ author_id: "p" }),
+                "users/a": { first_name: "Ann" },
+                "users/a/workout_sessions/h": session({ hidden: true }),
+            });
+            const bodies = [];
+            for (const path of ["/s/p/s1", "/s/a/h", "/s/a/missing", "/s/a"]) {
+                const out = await get(path);
+                assert.equal(out.status, 404, path);
+                bodies.push(out.body);
+            }
+            assert.equal(new Set(bodies).size, 1);
+            assert.doesNotMatch(bodies[0], /Pat|Push Day/);
+        });
+    });
 });
