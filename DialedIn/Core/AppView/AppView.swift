@@ -37,10 +37,6 @@ struct AppView<Content: View>: View {
                     .task {
                         await presenter.checkUserStatus()
                     }
-                    .task {
-                        try? await Task.sleep(for: .seconds(2))
-                        await presenter.showATTPromptIfNeeded()
-                    }
                     .onChange(of: presenter.auth?.uid) { _, newValue in
                         if newValue == nil || newValue?.isEmpty == true {
                             Task {
