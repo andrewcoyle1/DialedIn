@@ -29,6 +29,11 @@ class WorkoutSessionManager {
         followingWorkoutSessionSyncEngine.currentCollection
     }
 
+    /// Whether the following feed has answered once since sign-in, so an empty feed can be told
+    /// apart from one still loading. `startListening` returns once its bulk load has landed (or
+    /// failed, so an offline launch does not spin forever); following nobody answers at once.
+    private(set) var hasLoadedFollowingSessions = false
+
     // MARK: - Init
 
     init(
@@ -58,16 +63,19 @@ class WorkoutSessionManager {
     func refreshFollowingSync(followingIds: [String]) async {
         guard !followingIds.isEmpty else {
             followingWorkoutSessionSyncEngine.stopListening()
+            hasLoadedFollowingSessions = true
             return
         }
         await followingWorkoutSessionSyncEngine.startListening { query in
             query.where("author_id", in: followingIds)
         }
+        hasLoadedFollowingSessions = true
     }
 
     func signOut() {
         userWorkoutSessionSyncEngine.stopListening()
         followingWorkoutSessionSyncEngine.stopListening()
+        hasLoadedFollowingSessions = false
     }
 
     func updateActiveSession(_ session: WorkoutSessionModel) throws {
@@ -241,6 +249,10 @@ extension CoreInteractor {
 
     var followingWorkoutSessions: [WorkoutSessionModel] {
         workoutSessionManager.followingWorkoutSessions
+    }
+
+    var hasLoadedFollowingSessions: Bool {
+        workoutSessionManager.hasLoadedFollowingSessions
     }
 
     /// Every session by `authorId` this device holds: the reader's own history, or what the

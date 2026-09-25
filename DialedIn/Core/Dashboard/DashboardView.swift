@@ -169,7 +169,13 @@ struct DashboardView<
             }
             // MARK: - Challenges
             if presenter.showsChallengesSection { challengesSection }
-            if presenter.feedSessions.isEmpty {
+            if presenter.isFeedLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 32)
+                    .removeListRowFormatting()
+                    .listRowSeparator(.hidden)
+            } else if presenter.feedSessions.isEmpty {
                 ContentUnavailableView {
                     Label("No Activity Yet", systemImage: "figure.run")
                 } description: {

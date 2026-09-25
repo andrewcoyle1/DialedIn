@@ -621,3 +621,13 @@ extension DashboardPresenter {
         router.showWeeklyReviewView()
     }
 }
+
+// MARK: - FeedLoading
+
+extension DashboardPresenter {
+    /// A spinner rather than "No Activity Yet" until the following feed has answered once: the
+    /// user's own sessions arrive first, so an empty feed before then only means "not loaded".
+    var isFeedLoading: Bool {
+        feedSessions.isEmpty && !interactor.hasLoadedFollowingSessions
+    }
+}

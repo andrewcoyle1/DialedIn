@@ -24,6 +24,8 @@ protocol DashboardInteractor: FollowInteractor, InviteAcceptInteractor {
     var challenges: [ChallengeModel] { get }
     func challengeProgress(challengeId: String) -> [String: Int]
     func refreshChallenges() async throws
+    // MARK: - FeedLoading
+    var hasLoadedFollowingSessions: Bool { get }
 }
 
 extension CoreInteractor: DashboardInteractor { }
