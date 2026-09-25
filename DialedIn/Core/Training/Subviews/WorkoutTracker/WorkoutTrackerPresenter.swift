@@ -364,6 +364,9 @@ class WorkoutTrackerPresenter {
     }
         
     func presentWorkoutNotes() {
+        // Seeded from the session each time, so a resumed workout's note is not wiped by a save
+        // and a cancelled edit does not linger as the draft.
+        workoutNotes = workoutSession.notes ?? ""
         router.showWorkoutNotesView(
             delegate: WorkoutNotesDelegate(
                 notes: Binding(
@@ -381,8 +384,9 @@ class WorkoutTrackerPresenter {
         )
     }
     
-    private func updateWorkoutNotes() {
-        workoutSession.notes = workoutNotes.isEmpty ? nil : workoutNotes
+    func updateWorkoutNotes() {
+        let trimmed = workoutNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        workoutSession.notes = trimmed.isEmpty ? nil : trimmed
     }
     
     // MARK: - The handler's writes
@@ -513,7 +517,8 @@ class WorkoutTrackerPresenter {
         }
 
         var updatedExercises = workoutSession.exercises
-        updatedExercises[exerciseIndex].notes = notes.isEmpty ? nil : notes
+        let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        updatedExercises[exerciseIndex].notes = trimmed.isEmpty ? nil : trimmed
         workoutSession.updateExercises(updatedExercises)
     }
 
