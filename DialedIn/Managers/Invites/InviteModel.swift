@@ -88,10 +88,10 @@ struct InviteAcceptance: Equatable, Sendable {
     /// The toast after accepting.
     func message(inviterName: String) -> String {
         switch (youFollow, theyFollow) {
-        case (.following, .following): "You're now following each other"
-        case (.following, .requested): "You're following \(inviterName). They've asked to follow you."
-        case (.requested, .following): "\(inviterName) is following you. Your follow request is waiting."
-        case (.requested, .requested): "Follow requests sent both ways"
+        case (.following, .following): String(localized: "You're now following each other")
+        case (.following, .requested): String(localized: "You're following \(inviterName). They've asked to follow you.")
+        case (.requested, .following): String(localized: "\(inviterName) is following you. Your follow request is waiting.")
+        case (.requested, .requested): String(localized: "Follow requests sent both ways")
         }
     }
 }
@@ -105,11 +105,11 @@ enum InviteError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .invalidCode: "That doesn't look like an invite code. Codes are 8 letters and numbers."
-        case .notFound: "That invite code doesn't exist."
-        case .ownInvite: "That's your own invite. Send it to a friend."
-        case .exhausted: "That invite has been used too many times."
-        case .unavailable: "That invite isn't available."
+        case .invalidCode: String(localized: "That doesn't look like an invite code. Codes are 8 letters and numbers.")
+        case .notFound: String(localized: "That invite code doesn't exist.")
+        case .ownInvite: String(localized: "That's your own invite. Send it to a friend.")
+        case .exhausted: String(localized: "That invite has been used too many times.")
+        case .unavailable: String(localized: "That invite isn't available.")
         }
     }
 }

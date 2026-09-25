@@ -26,10 +26,10 @@ enum Username {
         var message: String? {
             switch self {
             case .valid: nil
-            case .tooShort: "At least \(Username.minLength) characters"
-            case .tooLong: "At most \(Username.maxLength) characters"
-            case .invalidCharacters: "Letters, numbers, underscores and dots only"
-            case .edgeDot: "Can't start or end with a dot"
+            case .tooShort: String(localized: "At least \(Username.minLength) characters")
+            case .tooLong: String(localized: "At most \(Username.maxLength) characters")
+            case .invalidCharacters: String(localized: "Letters, numbers, underscores and dots only")
+            case .edgeDot: String(localized: "Can't start or end with a dot")
             }
         }
     }
@@ -73,8 +73,8 @@ enum UsernameError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .invalid: "That username isn't valid."
-        case .taken: "That username is taken."
+        case .invalid: String(localized: "That username isn't valid.")
+        case .taken: String(localized: "That username is taken.")
         }
     }
 }

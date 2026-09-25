@@ -406,8 +406,8 @@ enum Gender: String, Codable, Sendable {
     case female
     var description: String {
         switch self {
-        case .male: return "Male"
-        case .female: return "Female"
+        case .male: return String(localized: "Male")
+        case .female: return String(localized: "Female")
         }
     }
 }
@@ -436,8 +436,8 @@ enum LengthUnitPreference: String, Codable, Sendable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .centimeters: return "Centimeters"
-        case .inches: return "Feet & Inches"
+        case .centimeters: return String(localized: "Centimeters")
+        case .inches: return String(localized: "Feet & Inches")
         }
     }
 
@@ -456,8 +456,8 @@ enum DistanceUnitPreference: String, Codable, Sendable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .kilometers: return "Kilometers & Metres"
-        case .miles: return "Miles & Yards"
+        case .kilometers: return String(localized: "Kilometers & Metres")
+        case .miles: return String(localized: "Miles & Yards")
         }
     }
 
@@ -476,8 +476,8 @@ enum WeightUnitPreference: String, Codable, Sendable {
     
     var displayName: String {
         switch self {
-        case .kilograms: return "Kilograms"
-        case .pounds: return "Pounds"
+        case .kilograms: return String(localized: "Kilograms")
+        case .pounds: return String(localized: "Pounds")
         }
     }
 
@@ -500,8 +500,8 @@ enum ClockUnitPreference: String, Codable, Sendable {
     
     var displayName: String {
         switch self {
-        case .twelveHour: return "12 Hour"
-        case .twentyFourHour: return "24 Hour"
+        case .twelveHour: return String(localized: "12 Hour")
+        case .twentyFourHour: return String(localized: "24 Hour")
         }
     }
 
