@@ -61,7 +61,7 @@ class WorkoutSessionManager {
             return
         }
         await followingWorkoutSessionSyncEngine.startListening { query in
-            query.where("author_id", in: followingIds)
+            FollowingQueries.sessions(query, followingIds: followingIds)
         }
     }
 
