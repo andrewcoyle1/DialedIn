@@ -9,7 +9,7 @@
 
 import Foundation
 import Network
-import Synchronization
+import os
 
 final class NetworkMonitor: Sendable {
 
@@ -22,7 +22,7 @@ final class NetworkMonitor: Sendable {
 
     private let monitor = NWPathMonitor()
     /// Online until the first path arrives: an unknown status should not block anything.
-    private let satisfied = Mutex(true)
+    private let satisfied = OSAllocatedUnfairLock(initialState: true)
 
     private init() {
         monitor.pathUpdateHandler = { [satisfied] path in
