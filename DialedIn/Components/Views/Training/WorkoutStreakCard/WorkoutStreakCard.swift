@@ -17,7 +17,7 @@ struct WorkoutStreakCard: View {
     let delegate: WorkoutStreakDelegate
     
     var body: some View {
-        DashboardCard(title: "Workout Streak") {
+        DashboardCard(title: String(localized: "Workout Streak")) {
             VStack(alignment: .leading, spacing: 16) {
                 streakHeader
                 weeklyDotsRow
@@ -36,7 +36,7 @@ struct WorkoutStreakCard: View {
                 Text("\(presenter.workoutStreakCount)")
                     .font(.system(.largeTitle, design: .rounded, weight: .bold))
                     .foregroundStyle(streakAccentColor)
-                Text(presenter.workoutStreakCount == 1 ? "day" : "days")
+                Text(presenter.workoutStreakCount == 1 ? String(localized: "day") : String(localized: "days"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
