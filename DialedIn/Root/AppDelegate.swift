@@ -49,7 +49,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         self.builder = CoreBuilder(interactor: CoreInteractor(container: dependencies.container))
         registerLiveActivityIntentHandler(container: dependencies.container)
         seedPushPayloadFromLaunchArguments()
+        registerAppIntents()
         return true
+    }
+
+    /// Siri and Shortcuts reach the app through this interactor (see `AppIntentsBridge`). The
+    /// "Start <workout>" phrases list template names, so they are refreshed once the signed-in
+    /// user's data has synced.
+    private func registerAppIntents() {
+        AppIntentsBridge.interactor = builder.interactor
+        NotificationCenter.default.addObserver(forName: Constants.remoteDataSyncDidComplete, object: nil, queue: .main) { _ in
+            DialedInAppShortcuts.updateAppShortcutParameters()
+        }
     }
     
     /// Registered for every configuration, mock included, so the Mock scheme exercises the same
