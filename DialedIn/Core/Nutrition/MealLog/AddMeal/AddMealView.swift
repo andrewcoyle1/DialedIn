@@ -149,7 +149,7 @@ struct AddMealView: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 100)), count: 2)) {
                 AnalyticsCard(
                     title: String(localized: "Calories"),
-                    subtitle: String(localized: "\(Int(presenter.displayCalories)) kcal \(presenter.scopeLabel)"),
+                    subtitle: String(localized: "\(String(describing: Int(presenter.displayCalories))) kcal \(presenter.scopeLabel)"),
                     subsubtitle: "",
                     subsubsubtitle: "") {
                         MacroProgressChart(

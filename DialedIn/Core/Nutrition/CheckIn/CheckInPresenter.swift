@@ -206,11 +206,11 @@ class CheckInPresenter {
         guard let weekly = interactor.currentExpenditure.weeklyTrendChangeKg else { return nil }
         let rounded = (weekly * 10).rounded() / 10
         if rounded == 0 { return "holding steady" }
-        return String(localized: "\(rounded < 0 ? String(localized: "down") : String(localized: "up")) \(abs(rounded)) kg")
+        return String(localized: "\(rounded < 0 ? String(localized: "down") : String(localized: "up")) \(String(describing: abs(rounded))) kg")
     }
 
     var expenditureDescription: String {
-        String(localized: "\(Int(interactor.currentExpenditure.kcal)) kcal a day")
+        String(localized: "\(String(describing: Int(interactor.currentExpenditure.kcal))) kcal a day")
     }
 
     var proposal: TargetProposal? {
@@ -221,7 +221,7 @@ class CheckInPresenter {
     var proposalSummary: String? {
         guard let proposal else { return nil }
         let direction = proposal.proposedTargetKcal > proposal.currentTargetKcal ? String(localized: "up from") : String(localized: "down from")
-        return String(localized: "\(Int(proposal.proposedTargetKcal)) kcal a day, \(direction) \(Int(proposal.currentTargetKcal)).")
+        return String(localized: "\(String(describing: Int(proposal.proposedTargetKcal))) kcal a day, \(direction) \(String(describing: Int(proposal.currentTargetKcal))).")
     }
 
     var hasOpenLoggingBreak: Bool {

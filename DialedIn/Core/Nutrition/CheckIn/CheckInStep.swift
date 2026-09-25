@@ -52,6 +52,6 @@ struct CheckInDayRow: Identifiable, Equatable, Sendable {
 
     var intakeDescription: String {
         guard let intakeKcal else { return "Nothing logged" }
-        return String(localized: "\(Int(intakeKcal)) kcal")
+        return String(localized: "\(String(describing: Int(intakeKcal))) kcal")
     }
 }

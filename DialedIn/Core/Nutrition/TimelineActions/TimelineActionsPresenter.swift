@@ -104,7 +104,7 @@ class TimelineActionsPresenter {
         let noun = meals.count == 1 ? String(localized: "meal") : String(localized: "meals")
         router.showAlert(
             title: String(localized: "Clear this day?"),
-            subtitle: String(localized: "\(meals.count) logged \(noun) will be deleted. This cannot be undone."),
+            subtitle: String(localized: "\(String(describing: meals.count)) logged \(noun) will be deleted. This cannot be undone."),
             buttons: {
                 AnyView(
                     Group {

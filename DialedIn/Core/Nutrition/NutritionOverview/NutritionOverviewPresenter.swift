@@ -108,7 +108,7 @@ class NutritionOverviewPresenter {
     var proposalSummary: String? {
         guard let proposal else { return nil }
         let direction = proposal.proposedTargetKcal > proposal.currentTargetKcal ? String(localized: "up from") : String(localized: "down from")
-        return String(localized: "\(Int(proposal.proposedTargetKcal)) kcal a day, \(direction) \(Int(proposal.currentTargetKcal)).")
+        return String(localized: "\(String(describing: Int(proposal.proposedTargetKcal))) kcal a day, \(direction) \(String(describing: Int(proposal.currentTargetKcal))).")
     }
 
     /// Takes the card away optimistically, and puts it back if the save does not land.
