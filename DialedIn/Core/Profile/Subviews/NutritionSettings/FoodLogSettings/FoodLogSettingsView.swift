@@ -220,10 +220,10 @@ struct FoodLogSettingsView: View {
 
     private func hourLabel(_ hour: Int) -> String {
         switch hour {
-        case 0: return "12 AM"
-        case 12: return "12 PM"
-        case 1..<12: return "\(hour) AM"
-        default: return "\(hour - 12) PM"
+        case 0: return String(localized: "12 AM")
+        case 12: return String(localized: "12 PM")
+        case 1..<12: return String(localized: "\(hour) AM")
+        default: return String(localized: "\(hour - 12) PM")
         }
     }
 }

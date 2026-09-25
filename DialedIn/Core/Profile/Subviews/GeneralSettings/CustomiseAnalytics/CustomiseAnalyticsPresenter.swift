@@ -56,7 +56,7 @@ class CustomiseAnalyticsPresenter {
                 try await interactor.saveAnalyticsSettings(settings)
             } catch {
                 interactor.trackEvent(event: Event.saveFail(error: error))
-                router.showSimpleAlert(title: "Unable to Save Settings", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Save Settings"), subtitle: String(localized: "Please try again."))
             }
         }
     }

@@ -148,7 +148,7 @@ class AccountPresenter {
         } catch {
             interactor.trackEvent(eventName: "profile_edit_save_failed", parameters: ["error": String(describing: error)], type: .analytic)
             router.showSimpleAlert(
-                title: "Unable to save",
+                title: String(localized: "Unable to save"),
                 subtitle: "Please check your internet connection and try again."
             )
         }
@@ -220,8 +220,8 @@ class AccountPresenter {
         interactor.trackEvent(event: Event.deleteAccountStart)
 
         router.showAlert(
-            title: "Delete Account?",
-            subtitle: "This action is permanent and cannot be undone. Your data will be deleted from our server forever.",
+            title: String(localized: "Delete Account?"),
+            subtitle: String(localized: "This action is permanent and cannot be undone. Your data will be deleted from our server forever."),
             buttons: {
                 AnyView(
                     Button("Delete", role: .destructive, action: {

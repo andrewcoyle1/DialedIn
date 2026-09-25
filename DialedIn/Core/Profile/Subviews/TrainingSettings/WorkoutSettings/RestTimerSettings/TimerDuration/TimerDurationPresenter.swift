@@ -65,7 +65,7 @@ class TimerDurationPresenter {
                 try await save()
             } catch {
                 interactor.trackEvent(event: Event.saveFail(error: error))
-                router.showSimpleAlert(title: "Unable to Save Settings", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Save Settings"), subtitle: String(localized: "Please try again."))
             }
         }
         editingType = nil
@@ -78,7 +78,7 @@ class TimerDurationPresenter {
                 try await save()
             } catch {
                 interactor.trackEvent(event: Event.saveFail(error: error))
-                router.showSimpleAlert(title: "Unable to Save Settings", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Save Settings"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -154,7 +154,7 @@ class TimerDurationPresenter {
                 try await interactor.setExerciseRestOverride(seconds, for: exerciseId)
             } catch {
                 interactor.trackEvent(event: Event.saveFail(error: error))
-                router.showSimpleAlert(title: "Unable to Save Settings", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Save Settings"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -165,7 +165,7 @@ class TimerDurationPresenter {
                 try await interactor.setExerciseRestOverride(nil, for: override.id)
             } catch {
                 interactor.trackEvent(event: Event.saveFail(error: error))
-                router.showSimpleAlert(title: "Unable to Save Settings", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Save Settings"), subtitle: String(localized: "Please try again."))
             }
         }
     }

@@ -48,7 +48,7 @@ class ExerciseModelDetailPresenter {
         let times = stats.performances.count
         let noun = times == 1 ? "time" : "times"
         let date = latest.date.formatted(date: .abbreviated, time: .omitted)
-        return "Performed \(times) \(noun) · last \(date)"
+        return String(localized: "Performed \(times) \(noun) · last \(date)")
     }
 
     /// The unit the charts and figures are in.
@@ -134,7 +134,7 @@ class ExerciseModelDetailPresenter {
     }
 
     func showDeleteConfirmation(exercise: ExerciseModel) {
-        router.showAlert(title: "Delete Exercise", subtitle: "Are you sure you want to delete '\(exercise.name)'? This action cannot be undone.", buttons: {
+        router.showAlert(title: String(localized: "Delete Exercise"), subtitle: String(localized: "Are you sure you want to delete '\(exercise.name)'? This action cannot be undone."), buttons: {
             AnyView(
                 HStack {
                     Button("Delete", role: .destructive) {
@@ -156,7 +156,7 @@ class ExerciseModelDetailPresenter {
             onDismiss()
         } catch {
             isDeleting = false
-            router.showSimpleAlert(title: "Failed to delete exercise", subtitle: "Please try again later")
+            router.showSimpleAlert(title: String(localized: "Failed to delete exercise"), subtitle: String(localized: "Please try again later"))
         }
     }
     
