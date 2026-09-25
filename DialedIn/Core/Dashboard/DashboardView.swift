@@ -22,6 +22,8 @@ struct DashboardView<
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.layoutMode) private var layoutMode
+    /// The card titles grow with Dynamic Type; a fixed 30pt clipped them at accessibility sizes.
+    @ScaledMetric(relativeTo: .headline) private var carouselTitleHeight = DashboardCard<EmptyView>.titleHeight
     @State var presenter: DashboardPresenter
     let delegate: DashboardDelegate
 
@@ -85,7 +87,7 @@ struct DashboardView<
     }
 
     private var carouselHeight: CGFloat {
-        DashboardCard<EmptyView>.contentHeight + DashboardCard<EmptyView>.titleHeight
+        DashboardCard<EmptyView>.contentHeight + carouselTitleHeight
     }
 
     /// A single card deliberately stops short of the full width. The paged `TabView` this replaced
@@ -171,7 +173,13 @@ struct DashboardView<
             }
             // MARK: - Challenges
             if presenter.showsChallengesSection { challengesSection }
-            if presenter.feedSessions.isEmpty {
+            if presenter.isFeedLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 32)
+                    .removeListRowFormatting()
+                    .listRowSeparator(.hidden)
+            } else if presenter.feedSessions.isEmpty {
                 ContentUnavailableView {
                     Label("No Activity Yet", systemImage: "figure.run")
                 } description: {

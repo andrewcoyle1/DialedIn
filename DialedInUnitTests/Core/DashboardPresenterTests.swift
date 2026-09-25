@@ -153,6 +153,8 @@ struct DashboardFeedPresenterTests {
         private(set) var challengeRefreshCount = 0
         func challengeProgress(challengeId: String) -> [String: Int] { challengeProgressById[challengeId] ?? [:] }
         func refreshChallenges() async throws { challengeRefreshCount += 1 }
+        // MARK: - FeedLoading
+        var hasLoadedFollowingSessions = true
     }
 
     /// `showDevSettingsView()` is declared unguarded: the protocol wraps it in `#if DEV || MOCK` but

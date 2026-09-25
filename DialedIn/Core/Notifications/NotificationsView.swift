@@ -54,9 +54,11 @@ struct NotificationsView: View {
             if !presenter.incomingFollowRequests.isEmpty {
                 followRequestsSection
             }
+            // Push permission governs only the push switches. The activity list is in-app and was
+            // hidden behind the prompt, so a simulator (or a user) that never granted push saw none.
             switch presenter.authorizationStatus {
             case .authorized:
-                authorizedContent
+                socialPushSection
             case .notDetermined:
                 notDeterminedContent
             case .denied, .provisional, .ephemeral:
@@ -64,12 +66,6 @@ struct NotificationsView: View {
             default:
                 EmptyView()
             }
-        }
-    }
-    
-    private var authorizedContent: some View {
-        Group {
-            socialPushSection
             if presenter.activityNotifications.isEmpty {
                 emptyStateContent
             } else {
