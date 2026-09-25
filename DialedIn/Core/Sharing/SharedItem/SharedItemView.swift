@@ -58,7 +58,7 @@ struct SharedItemView: View {
         }
         .safeAreaInset(edge: .bottom) {
             if presenter.isAnswered {
-                Text(presenter.status == .accepted ? "Added to your library" : "Dismissed")
+                Text(presenter.status == .accepted ? String(localized: "Added to your library") : String(localized: "Dismissed"))
                     .foregroundStyle(.secondary)
                     .padding()
             } else {

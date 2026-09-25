@@ -65,7 +65,7 @@ class SocialProfilePresenter {
     }
 
     var blockMenuTitle: String {
-        isBlocked ? "Unblock" : "Block \(displayName)"
+        isBlocked ? String(localized: "Unblock") : String(localized: "Block \(displayName)")
     }
 
     var mutualFollowers: [UserModel] {
@@ -171,9 +171,9 @@ class SocialProfilePresenter {
         Task {
             do {
                 let users = try await interactor.fetchUsers(userIds: profileUser.followingIds ?? [])
-                router.showFollowersList(delegate: FollowersListDelegate(followers: users, title: "Following"))
+                router.showFollowersList(delegate: FollowersListDelegate(followers: users, title: String(localized: "Following")))
             } catch {
-                router.showSimpleAlert(title: "Unable to load following", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to load following"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -201,8 +201,8 @@ class SocialProfilePresenter {
     func onBlockPressed() {
         guard profileUser != nil, !isOwnProfile else { return }
         router.showAlert(
-            title: "Block \(displayName)?",
-            subtitle: "They will be hidden from your feed, comments, search and notifications, and you will stop following them.",
+            title: String(localized: "Block \(displayName)?"),
+            subtitle: String(localized: "They will be hidden from your feed, comments, search and notifications, and you will stop following them."),
             buttons: {
                 AnyView(
                     Group {
@@ -223,7 +223,7 @@ class SocialProfilePresenter {
             do {
                 try await interactor.blockUser(userId: profileUser.userId)
             } catch {
-                router.showSimpleAlert(title: "Unable to block user", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to block user"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -235,7 +235,7 @@ class SocialProfilePresenter {
             do {
                 try await interactor.unblockUser(userId: profileUser.userId)
             } catch {
-                router.showSimpleAlert(title: "Unable to unblock user", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to unblock user"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -309,7 +309,7 @@ extension SocialProfilePresenter {
         let goal = CircleWeek.goal(for: user)
         return user.weeklySessionGoal == nil
             ? "Set a weekly goal"
-            : "Goal: \(goal) \(goal == 1 ? "session" : "sessions") a week"
+            : "Goal: \(goal) \(goal == 1 ? String(localized: "session") : String(localized: "sessions")) a week"
     }
 
     func onWeeklyGoalPressed() {

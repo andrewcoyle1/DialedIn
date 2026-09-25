@@ -35,7 +35,7 @@ class WorkoutTemplateDetailPresenter {
     }
     
     func showDeleteConfirmation(workoutTemplate: WorkoutTemplateModel) {
-        router.showAlert(title: "Delete Workout", subtitle: "Are you sure you want to delete '\(workoutTemplate.name)'? This action cannot be undone.", buttons: {
+        router.showAlert(title: String(localized: "Delete Workout"), subtitle: String(localized: "Are you sure you want to delete '\(workoutTemplate.name)'? This action cannot be undone."), buttons: {
             AnyView(
                 HStack {
                     Button("Delete", role: .destructive) {
@@ -74,7 +74,7 @@ class WorkoutTemplateDetailPresenter {
             onDismiss()
         } catch {
             isDeleting = false
-            router.showSimpleAlert(title: "Failed to delete workout", subtitle: "Please try again later")
+            router.showSimpleAlert(title: String(localized: "Failed to delete workout"), subtitle: String(localized: "Please try again later"))
         }
     }
 
@@ -105,8 +105,8 @@ class WorkoutTemplateDetailPresenter {
         }
         
         router.showAlert(
-            title: "Workout In Progress",
-            subtitle: "You already have '\(activeSession.name)' in progress. What would you like to do?",
+            title: String(localized: "Workout In Progress"),
+            subtitle: String(localized: "You already have '\(activeSession.name)' in progress. What would you like to do?"),
             buttons: {
                 AnyView(
                     VStack {
@@ -144,7 +144,7 @@ class WorkoutTemplateDetailPresenter {
                 self.router.dismissScreen()
                 onStartWorkout?()
             } catch {
-                self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
+                self.router.showSimpleAlert(title: String(localized: "Unable to start workout"), subtitle: String(localized: "Please try again."))
             }
         }
     }

@@ -99,7 +99,7 @@ class EditUsernamePresenter {
             interactor.trackEvent(event: Event.saveFail(error: UsernameError.taken))
         } catch {
             interactor.trackEvent(event: Event.saveFail(error: error))
-            router.showSimpleAlert(title: "Unable to save", subtitle: "Please check your connection and try again.")
+            router.showSimpleAlert(title: String(localized: "Unable to save"), subtitle: String(localized: "Please check your connection and try again."))
         }
     }
 }

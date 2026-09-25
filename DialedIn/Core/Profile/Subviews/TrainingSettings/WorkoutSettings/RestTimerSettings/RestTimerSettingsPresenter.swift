@@ -86,9 +86,9 @@ class RestTimerSettingsPresenter {
 
         var label: String {
             switch self {
-            case .warmUp:             return "Rest After Last Warm-Up Set"
-            case .betweenExercises:   return "Rest Between Exercises"
-            case .sideSets:           return "Rest Between Left/Right Sets"
+            case .warmUp:             return String(localized: "Rest After Last Warm-Up Set")
+            case .betweenExercises:   return String(localized: "Rest Between Exercises")
+            case .sideSets:           return String(localized: "Rest Between Left/Right Sets")
             }
         }
     }
@@ -141,7 +141,7 @@ class RestTimerSettingsPresenter {
                 try await interactor.saveWorkoutSettings(settings)
             } catch {
                 interactor.trackEvent(event: Event.saveFail(error: error))
-                router.showSimpleAlert(title: "Unable to Save Settings", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Save Settings"), subtitle: String(localized: "Please try again."))
             }
         }
     }

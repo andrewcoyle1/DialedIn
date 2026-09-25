@@ -116,7 +116,7 @@ struct WorkoutTemplateDetailView: View {
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)
                                 
-                                Text("\(summary.exerciseCount) \(summary.exerciseCount == 1 ? "exercise" : "exercises")")
+                                Text("\(summary.exerciseCount) \(summary.exerciseCount == 1 ? String(localized: "exercise") : String(localized: "exercises"))")
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)
@@ -166,7 +166,7 @@ struct WorkoutTemplateDetailView: View {
                                         .fontWeight(value == .secondary ? .regular : .semibold)
                                         .foregroundStyle(.secondary)
                                         .lineLimit(1)
-                                        .accessibilityLabel("\(key.name), \(value == .secondary ? "secondary" : "primary")")
+                                        .accessibilityLabel("\(key.name), \(value == .secondary ? String(localized: "secondary") : String(localized: "primary"))")
                                         .padding(4)
                                         .padding(.horizontal, 4)
                                         .background(value == .secondary ? Color.secondary.opacity(0.2) : Color.secondary.opacity(0.4), in: Capsule())

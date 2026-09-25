@@ -70,13 +70,13 @@ struct ShareCardContent: Equatable {
         let total = max(0, Int(end.timeIntervalSince(start)))
         let hours = total / 3600
         let minutes = (total % 3600) / 60
-        return hours > 0 ? "\(hours)h \(minutes)m" : "\(minutes)m"
+        return hours > 0 ? String(localized: "\(String(describing: hours))h \(String(describing: minutes))m") : String(localized: "\(String(describing: minutes))m")
     }
 
     /// "12,340 kg" with the reader's grouping; nil when nothing was lifted, so a run or a
     /// bodyweight session does not boast "0 kg".
     static func volumeText(_ kilograms: Double, locale: Locale = .current) -> String? {
         guard kilograms > 0 else { return nil }
-        return "\(Int(kilograms.rounded()).formatted(.number.locale(locale))) kg"
+        return String(localized: "\(Int(kilograms.rounded()).formatted(.number.locale(locale))) kg")
     }
 }

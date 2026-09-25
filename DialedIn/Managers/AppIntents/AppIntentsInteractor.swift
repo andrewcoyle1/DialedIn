@@ -45,9 +45,9 @@ enum AppIntentsError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .notSignedIn: return "Open DialedIn and sign in first."
-        case .workoutNotFound: return "That workout isn't in your library any more."
-        case .weightOutOfRange: return "That doesn't look like a body weight. Try again with a number between 20 and 400 kg."
+        case .notSignedIn: return String(localized: "Open DialedIn and sign in first.")
+        case .workoutNotFound: return String(localized: "That workout isn't in your library any more.")
+        case .weightOutOfRange: return String(localized: "That doesn't look like a body weight. Try again with a number between 20 and 400 kg.")
         }
     }
 }

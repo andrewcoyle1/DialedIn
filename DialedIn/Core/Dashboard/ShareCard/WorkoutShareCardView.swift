@@ -26,8 +26,8 @@ struct WorkoutShareCardView: View {
 
         var title: String {
             switch self {
-            case .story: "Story"
-            case .square: "Square"
+            case .story: String(localized: "Story")
+            case .square: String(localized: "Square")
             }
         }
     }
@@ -133,7 +133,7 @@ struct WorkoutShareCardView: View {
             if let volume = content.volumeText {
                 stat("Volume", volume)
             }
-            stat(content.setCount == 1 ? "Set" : "Sets", "\(content.setCount)")
+            stat(content.setCount == 1 ? String(localized: "Set") : String(localized: "Sets"), "\(content.setCount)")
         }
     }
 

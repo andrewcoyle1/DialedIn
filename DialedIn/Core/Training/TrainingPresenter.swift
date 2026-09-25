@@ -127,7 +127,7 @@ class TrainingPresenter {
             try await interactor.startBlankWorkout()
             router.showWorkoutTrackerView()
         } catch {
-            router.showSimpleAlert(title: "Could Not Start Workout", subtitle: "Please try again.")
+            router.showSimpleAlert(title: String(localized: "Could Not Start Workout"), subtitle: String(localized: "Please try again."))
         }
     }
     
@@ -173,8 +173,8 @@ class TrainingPresenter {
 
     private func showSessionPicker(sessions: [WorkoutSessionModel]) {
         router.showAlert(
-            title: "Multiple Workouts",
-            subtitle: "Which workout would you like to open?",
+            title: String(localized: "Multiple Workouts"),
+            subtitle: String(localized: "Which workout would you like to open?"),
             buttons: {
                 AnyView(
                     VStack {
@@ -222,7 +222,7 @@ enum TrainingError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .sessionNotFound:
-            return "The workout session is no longer available"
+            return String(localized: "The workout session is no longer available")
         }
     }
 }

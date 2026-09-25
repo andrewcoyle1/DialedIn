@@ -119,9 +119,9 @@ enum MuscleBalanceStatus: Equatable {
 
     var label: String {
         switch self {
-        case .below:  return "Under"
-        case .within: return "On target"
-        case .above:  return "Over"
+        case .below:  return String(localized: "Under")
+        case .within: return String(localized: "On target")
+        case .above:  return String(localized: "Over")
         }
     }
 

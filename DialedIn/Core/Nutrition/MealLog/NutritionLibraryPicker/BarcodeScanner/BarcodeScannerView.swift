@@ -79,7 +79,7 @@ struct BarcodeScannerView: View {
             Form {
                 Section {
                     TextField(
-                        presenter.scanningMode == .barcode ? "Barcode number" : "Label text",
+                        presenter.scanningMode == .barcode ? String(localized: "Barcode number") : String(localized: "Label text"),
                         text: $presenter.manualEntryText,
                         axis: presenter.scanningMode == .barcode ? .horizontal : .vertical
                     )
@@ -93,7 +93,7 @@ struct BarcodeScannerView: View {
                     )
                 }
             }
-            .navigationTitle(presenter.scanningMode == .barcode ? "Enter Barcode" : "Enter Label")
+            .navigationTitle(presenter.scanningMode == .barcode ? String(localized: "Enter Barcode") : String(localized: "Enter Label"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -139,7 +139,7 @@ struct BarcodeScannerView: View {
                         .padding()
                         .background(.secondary, in: .circle)
                 }
-                .accessibilityLabel(presenter.isTorchOn ? "Turn off torch" : "Turn on torch")
+                .accessibilityLabel(presenter.isTorchOn ? String(localized: "Turn off torch") : String(localized: "Turn on torch"))
             }
         }
         .padding()

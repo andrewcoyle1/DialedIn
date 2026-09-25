@@ -81,9 +81,9 @@ struct SetKeyboardView: View {
         case .increment(let step, _, _):
             return "± \(WeightStepper.format(step)) \(presenter.context.unit.abbreviation)"
         case .list:
-            return "Next available"
+            return String(localized: "Next available")
         case .bands:
-            return "Cycle bands"
+            return String(localized: "Cycle bands")
         }
     }
 
@@ -93,7 +93,7 @@ struct SetKeyboardView: View {
         Group {
             switch presenter.plateLoad {
             case .loadable(let perSide)?:
-                Text(perSide.isEmpty ? "Empty bar" : "Per side: " + perSide.map(WeightStepper.format).joined(separator: " + ") + " \(unit)")
+                Text(perSide.isEmpty ? String(localized: "Empty bar") : String(localized: "Per side: ") + perSide.map(WeightStepper.format).joined(separator: " + ") + " \(unit)")
             case let .notLoadable(below, above)?:
                 HStack(spacing: 8) {
                     Text("Not loadable")
@@ -170,10 +170,10 @@ struct SetKeyboardView: View {
             GridRow {
                 digit("1"); digit("2"); digit("3")
                 if presenter.activeField == .reps {
-                    keyButton(title: "Prev", label: "Previous, weight") { presenter.previous() }
+                    keyButton(title: String(localized: "Prev"), label: "Previous, weight") { presenter.previous() }
                         .disabled(!presenter.context.tracksWeight)
                 } else {
-                    keyButton(title: "Next", label: "Next, reps") { presenter.next() }
+                    keyButton(title: String(localized: "Next"), label: "Next, reps") { presenter.next() }
                 }
             }
             GridRow {
@@ -182,7 +182,7 @@ struct SetKeyboardView: View {
             }
             GridRow {
                 digit("7"); digit("8"); digit("9")
-                keyButton(title: "Done", label: "Done", prominent: true) { presenter.done() }
+                keyButton(title: String(localized: "Done"), label: "Done", prominent: true) { presenter.done() }
             }
             GridRow {
                 if presenter.activeField == .weight {

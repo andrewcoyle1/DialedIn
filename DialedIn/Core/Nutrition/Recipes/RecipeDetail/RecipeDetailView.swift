@@ -56,7 +56,7 @@ struct RecipeDetailView: View {
                 in: RecipeDetailPresenter.servingsRange,
                 step: RecipeDetailPresenter.servingsStep
             ) {
-                Text("\(servings.formatted()) \(servings == 1 ? "serving" : "servings")")
+                Text("\(servings.formatted()) \(servings == 1 ? String(localized: "serving") : String(localized: "servings"))")
             }
             nutrientRow("Calories", nutrients[.calories], unit: "kcal")
             nutrientRow("Protein", nutrients[.protein], unit: "g")
@@ -112,7 +112,7 @@ struct RecipeDetailView: View {
             } label: {
                 Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
             }
-            .accessibilityLabel(presenter.isFavourited ? "Remove from favourites" : "Add to favourites")
+            .accessibilityLabel(presenter.isFavourited ? String(localized: "Remove from favourites") : String(localized: "Add to favourites"))
         }
 
         ToolbarItem(placement: .topBarTrailing) {

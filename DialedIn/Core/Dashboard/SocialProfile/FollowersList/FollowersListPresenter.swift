@@ -50,8 +50,8 @@ class FollowersListPresenter {
     func onRemoveFollowerPressed(user: UserModel) {
         let name = user.fullNameCalculated ?? "this person"
         router.showAlert(
-            title: "Remove Follower?",
-            subtitle: "\(name) won't be told they were removed.",
+            title: String(localized: "Remove Follower?"),
+            subtitle: String(localized: "\(name) won't be told they were removed."),
             buttons: {
                 AnyView(
                     Group {
@@ -72,7 +72,7 @@ class FollowersListPresenter {
             try await interactor.removeFollower(userId: user.userId)
             removedFollowerIds.insert(user.userId)
         } catch {
-            router.showSimpleAlert(title: "Unable to remove follower", subtitle: "Please try again.")
+            router.showSimpleAlert(title: String(localized: "Unable to remove follower"), subtitle: String(localized: "Please try again."))
         }
     }
 }

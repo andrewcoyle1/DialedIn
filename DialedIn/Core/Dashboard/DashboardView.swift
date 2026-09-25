@@ -204,8 +204,8 @@ struct DashboardView<
             }
         } header: {
             SectionHeaderView(
-                title: "Workout Feed",
-                actionTitle: "Find People",
+                title: String(localized: "Workout Feed"),
+                actionTitle: String(localized: "Find People"),
                 onActionPressed: presenter.feedSessions.isEmpty ? nil : { presenter.onFindPeoplePressed() }
             )
         }

@@ -63,7 +63,7 @@ class ShareToFollowerPresenter {
             } catch {
                 isSending = false
                 interactor.trackEvent(event: Event.sendFail(error: error))
-                router.showSimpleAlert(title: "Unable to share", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to share"), subtitle: String(localized: "Please try again."))
             }
         }
     }

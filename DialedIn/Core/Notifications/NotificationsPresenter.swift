@@ -152,7 +152,7 @@ class NotificationsPresenter {
                 try await interactor.deleteActivityNotification(id: notification.id)
             } catch {
                 interactor.trackEvent(event: Event.deleteNotificationFail(error: error))
-                router.showSimpleAlert(title: "Unable to Delete Notification", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Delete Notification"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -178,7 +178,7 @@ class NotificationsPresenter {
                 let actor = try await interactor.getUser(userId: notification.actorId)
                 followFlow.onButtonPressed(user: actor)
             } catch {
-                router.showSimpleAlert(title: "Unable to follow user", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to follow user"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -197,7 +197,7 @@ class NotificationsPresenter {
             do {
                 try await interactor.respondToFollowRequest(requesterId: request.requesterId, accept: accept)
             } catch {
-                router.showSimpleAlert(title: "Unable to answer request", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to answer request"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -239,7 +239,7 @@ class NotificationsPresenter {
                 }
             } catch {
                 router.dismissModal()
-                router.showSimpleAlert(title: "Unable to Open", subtitle: "It may have been deleted. Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Open"), subtitle: String(localized: "It may have been deleted. Please try again."))
             }
         }
     }

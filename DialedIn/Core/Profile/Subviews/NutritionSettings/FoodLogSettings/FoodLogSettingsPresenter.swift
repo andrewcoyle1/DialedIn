@@ -82,15 +82,15 @@ class FoodLogSettingsPresenter {
     }
 
     var alignmentSubtitle: String {
-        timestampSide == .left ? "Left" : "Right"
+        timestampSide == .left ? String(localized: "Left") : String(localized: "Right")
     }
 
     private func hourLabel(_ hour: Int) -> String {
         switch hour {
-        case 0: return "12 AM"
-        case 12: return "12 PM"
-        case 1..<12: return "\(hour) AM"
-        default: return "\(hour - 12) PM"
+        case 0: return String(localized: "12 AM")
+        case 12: return String(localized: "12 PM")
+        case 1..<12: return String(localized: "\(String(describing: hour)) AM")
+        default: return String(localized: "\(String(describing: hour - 12)) PM")
         }
     }
 
@@ -106,7 +106,7 @@ class FoodLogSettingsPresenter {
                 try await interactor.saveFoodLogSettings(settings)
             } catch {
                 interactor.trackEvent(event: Event.saveFail(error: error))
-                router.showSimpleAlert(title: "Unable to Save Settings", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Save Settings"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -132,7 +132,7 @@ class FoodLogSettingsPresenter {
 
     func onEditAlignmentPressed() {
         router.showAlert(
-            title: "Timestamp Side",
+            title: String(localized: "Timestamp Side"),
             subtitle: nil,
             buttons: {
                 AnyView(

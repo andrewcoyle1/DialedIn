@@ -29,10 +29,10 @@ enum ReportReason: String, CaseIterable, Codable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .spam: return "Spam"
-        case .harassment: return "Harassment"
-        case .inappropriate: return "Inappropriate"
-        case .other: return "Other"
+        case .spam: return String(localized: "Spam")
+        case .harassment: return String(localized: "Harassment")
+        case .inappropriate: return String(localized: "Inappropriate")
+        case .other: return String(localized: "Other")
         }
     }
 }

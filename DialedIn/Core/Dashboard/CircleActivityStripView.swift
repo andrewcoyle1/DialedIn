@@ -87,7 +87,7 @@ struct CircleActivityStripView: View {
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(
-                "\(member.name), \(member.trainedToday ? "trained today" : "not trained yet today"), "
+                "\(member.name), \(member.trainedToday ? String(localized: "trained today") : String(localized: "not trained yet today")), "
                 + "\(member.sessionsThisWeek) of \(member.weeklyGoal) sessions this week"
             )
             .accessibilityHint("Opens their profile")

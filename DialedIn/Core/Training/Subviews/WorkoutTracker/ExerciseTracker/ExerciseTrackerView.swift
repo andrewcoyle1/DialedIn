@@ -123,7 +123,7 @@ struct ExerciseTrackerView<SetTracker: View>: View {
             Image(systemName: exercise.notes == nil ? "note.text.badge.plus" : "note.text")
         }
         .buttonStyle(.borderless)
-        .accessibilityLabel(exercise.notes == nil ? "Add note" : "Edit note")
+        .accessibilityLabel(exercise.notes == nil ? String(localized: "Add note") : String(localized: "Edit note"))
     }
 }
 

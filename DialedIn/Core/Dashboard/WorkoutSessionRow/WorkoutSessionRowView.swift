@@ -33,7 +33,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
         let total = Int(endedAt.timeIntervalSince(presenter.session.dateCreated))
         let hours = total / 3600
         let minutes = (total % 3600) / 60
-        return hours > 0 ? "\(hours)h \(minutes)m" : "\(minutes)m"
+        return hours > 0 ? String(localized: "\(String(describing: hours))h \(String(describing: minutes))m") : String(localized: "\(String(describing: minutes))m")
     }
 
     private var workingSets: [WorkoutSetModel] {
@@ -88,16 +88,16 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
             highlights
             // Four stats side by side stop fitting at the accessibility text sizes.
             AdaptiveStack(verticalAlignment: .top, spacing: dynamicTypeSize.isAccessibilitySize ? 8 : 20) {
-                StatItem(header: "Exercises", value: "\(presenter.session.exercises.count)")
-                StatItem(header: "Sets", value: "\(workingSets.count)")
+                StatItem(header: String(localized: "Exercises"), value: "\(presenter.session.exercises.count)")
+                StatItem(header: String(localized: "Sets"), value: "\(workingSets.count)")
                 if totalVolumeKg > 0 {
-                    StatItem(header: "Volume", value: formatVolume(totalVolumeKg))
+                    StatItem(header: String(localized: "Volume"), value: formatVolume(totalVolumeKg))
                 }
                 if !dynamicTypeSize.isAccessibilitySize {
                     Spacer()
                 }
                 if let duration = durationFormatted {
-                    StatItem(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, header: "Duration", value: duration)
+                    StatItem(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, header: String(localized: "Duration"), value: duration)
                 }
             }
         }
@@ -184,8 +184,8 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
             }
             .frame(maxWidth: .infinity)
             .foregroundStyle(presenter.isLiked ? Color.accentColor : Color.secondary)
-            .accessibilityLabel(presenter.isLiked ? "Unlike" : "Like")
-            .accessibilityValue(presenter.likeCount == 1 ? "1 like" : "\(presenter.likeCount) likes")
+            .accessibilityLabel(presenter.isLiked ? String(localized: "Unlike") : String(localized: "Like"))
+            .accessibilityValue(presenter.likeCount == 1 ? String(localized: "1 like") : String(localized: "\(presenter.likeCount) likes"))
             Button {
                 presenter.onCommentButtonPressed()
             } label: {
@@ -247,7 +247,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
         switch exercise.trackingMode {
         case .weightReps:
             if let first = sets.first, let reps = first.reps, let weight = first.weightKg {
-                return "\(count) × \(reps) @ \(formatWeight(weight)) kg"
+                return String(localized: "\(String(describing: count)) × \(String(describing: reps)) @ \(String(describing: formatWeight(weight))) kg")
             }
             if let first = sets.first, let reps = first.reps {
                 return "\(count) × \(reps)"
@@ -265,7 +265,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
                 return "\(count) × \(formatDistance(meters))"
             }
         }
-        return "\(count) sets"
+        return String(localized: "\(count) sets")
     }
 
     private func formatWeight(_ kilograms: Double) -> String {
@@ -278,7 +278,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
     }
 
     private func formatDuration(_ seconds: Int) -> String {
-        seconds >= 60 ? "\(seconds / 60)m" : "\(seconds)s"
+        seconds >= 60 ? String(localized: "\(String(describing: seconds / 60))m") : String(localized: "\(String(describing: seconds))s")
     }
 
     private func formatDistance(_ meters: Double) -> String {

@@ -36,7 +36,7 @@ extension WorkoutTrackerPresenter {
                     self.updateWorkoutNotes()
                     didConfirm = true
                 },
-                title: "Finish Workout",
+                title: String(localized: "Finish Workout"),
                 hint: nil,
                 saveTitle: "Finish",
                 onDidDismiss: {

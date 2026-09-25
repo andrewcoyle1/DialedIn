@@ -41,10 +41,10 @@ class CreateChallengePresenter {
     var validationMessage: String? {
         if trimmedTitle.isEmpty { return "Give the challenge a name." }
         if trimmedTitle.count > ChallengeModel.titleMaxLength {
-            return "Keep the name under \(ChallengeModel.titleMaxLength) characters."
+            return String(localized: "Keep the name under \(ChallengeModel.titleMaxLength) characters.")
         }
         if !ChallengeModel.targetRange.contains(targetSessions) {
-            return "Pick a target between \(ChallengeModel.targetRange.lowerBound) and \(ChallengeModel.targetRange.upperBound) sessions."
+            return String(localized: "Pick a target between \(String(describing: ChallengeModel.targetRange.lowerBound)) and \(String(describing: ChallengeModel.targetRange.upperBound)) sessions.")
         }
         if !ChallengeModel.durations.contains(durationDays) { return "Pick a duration." }
         if selectedMemberIds.isEmpty { return "Invite at least one person." }
@@ -92,7 +92,7 @@ class CreateChallengePresenter {
             } catch {
                 isSaving = false
                 interactor.trackEvent(event: Event.createFail(error: error))
-                router.showSimpleAlert(title: "Unable to create challenge", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to create challenge"), subtitle: String(localized: "Please try again."))
             }
         }
     }

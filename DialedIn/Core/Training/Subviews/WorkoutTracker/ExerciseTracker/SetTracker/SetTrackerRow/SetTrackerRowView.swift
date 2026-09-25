@@ -307,7 +307,7 @@ struct SetTrackerRowView: View {
                 )
                 .frame(height: 35)
         }
-        .accessibilityLabel(set.wrappedValue.completedAt != nil ? "Set completed" : "Complete set")
+        .accessibilityLabel(set.wrappedValue.completedAt != nil ? String(localized: "Set completed") : String(localized: "Complete set"))
         .buttonStyle(PlainButtonStyle())
         .frame(width: 32, alignment: .center)
         .disabled(!presenter.canComplete(trackingMode: exercise.trackingMode, set: set.wrappedValue))

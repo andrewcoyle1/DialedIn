@@ -64,14 +64,14 @@ enum WorkoutSessionHighlights {
         let formatter = NumberFormatter()
         formatter.numberStyle = .ordinal
         let ordinal = formatter.string(from: NSNumber(value: number)) ?? "\(number)"
-        return "\(ordinal) workout of the week"
+        return String(localized: "\(String(describing: ordinal)) workout of the week")
     }
 
     /// "12-day streak", stamped on the session when the author finished it. Only from two days
     /// on, like the weekly count, and absent on sessions finished before streaks were stamped.
     static func streakText(_ streakCount: Int?) -> String? {
         guard let streakCount, streakCount > 1 else { return nil }
-        return "\(streakCount)-day streak"
+        return String(localized: "\(streakCount)-day streak")
     }
 
     /// `author`'s finished, non-rest sessions dated in the calendar week containing `date`. The one

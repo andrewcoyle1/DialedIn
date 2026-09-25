@@ -73,16 +73,16 @@ final class FollowFlow {
                     try await interactor.cancelFollowRequest(userId: user.userId)
                 }
             } catch {
-                router.showSimpleAlert(title: Self.failureTitle(for: state), subtitle: "Please try again.")
+                router.showSimpleAlert(title: Self.failureTitle(for: state), subtitle: String(localized: "Please try again."))
             }
         }
     }
 
     private static func failureTitle(for state: FollowState) -> String {
         switch state {
-        case .follow: "Unable to follow user"
-        case .following: "Unable to unfollow user"
-        case .requested: "Unable to cancel request"
+        case .follow: String(localized: "Unable to follow user")
+        case .following: String(localized: "Unable to unfollow user")
+        case .requested: String(localized: "Unable to cancel request")
         }
     }
 }

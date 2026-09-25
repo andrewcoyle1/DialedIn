@@ -107,8 +107,8 @@ class NutritionOverviewPresenter {
     /// "2,180 kcal a day, up from 2,050" — the whole of what the card has to say.
     var proposalSummary: String? {
         guard let proposal else { return nil }
-        let direction = proposal.proposedTargetKcal > proposal.currentTargetKcal ? "up from" : "down from"
-        return "\(Int(proposal.proposedTargetKcal)) kcal a day, \(direction) \(Int(proposal.currentTargetKcal))."
+        let direction = proposal.proposedTargetKcal > proposal.currentTargetKcal ? String(localized: "up from") : String(localized: "down from")
+        return String(localized: "\(String(describing: Int(proposal.proposedTargetKcal))) kcal a day, \(direction) \(String(describing: Int(proposal.currentTargetKcal))).")
     }
 
     /// Takes the card away optimistically, and puts it back if the save does not land.

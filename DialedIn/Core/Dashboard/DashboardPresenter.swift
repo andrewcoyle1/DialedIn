@@ -99,7 +99,7 @@ class DashboardPresenter {
                 try await interactor.nudgeUser(userId: userId)
             } catch {
                 nudgedUserIds.remove(userId)
-                router.showSimpleAlert(title: "Unable to nudge \(member.name)", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to nudge \(member.name)"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -366,8 +366,8 @@ class DashboardPresenter {
         guard let userId = interactor.currentUser?.userId else { return }
         if let meal = interactor.draftMeal {
             router.showAlert(
-                title: "Unable to add new meal",
-                subtitle: "You already have an draft meal.",
+                title: String(localized: "Unable to add new meal"),
+                subtitle: String(localized: "You already have an draft meal."),
                 buttons: {
                     AnyView(
                         VStack {
