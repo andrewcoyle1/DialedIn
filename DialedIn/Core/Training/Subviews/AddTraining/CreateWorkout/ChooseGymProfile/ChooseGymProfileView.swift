@@ -55,7 +55,7 @@ struct ChooseGymProfileView: View {
     private func equipmentSubtitle(for profile: GymProfileModel) -> String {
         let count = profile.activeEquipmentCount
         let pieceLabel = count == 1 ? String(localized: "piece") : String(localized: "pieces")
-        return String(localized: "\(count) active \(pieceLabel) of equipment")
+        return String(localized: "\(String(describing: count)) active \(pieceLabel) of equipment")
     }
 
 }

@@ -33,7 +33,7 @@ class FinalExerciseDetailsPresenter {
         let unit = interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
         let moved = kilograms * Double(bodyweightContribution) / 100
         let shown = unit == .pounds ? moved * 2.2046226218 : moved
-        return String(localized: "About \(Int(shown.rounded())) \(unit.abbreviation) at your current weight.")
+        return String(localized: "About \(String(describing: Int(shown.rounded()))) \(unit.abbreviation) at your current weight.")
     }
 
     func onNextPressed(delegate: FinalExerciseDetailsDelegate) {

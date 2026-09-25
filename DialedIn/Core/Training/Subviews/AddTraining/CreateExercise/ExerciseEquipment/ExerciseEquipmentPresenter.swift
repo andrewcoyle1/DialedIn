@@ -38,7 +38,7 @@ class ExerciseEquipmentPresenter {
     }
 
     func variationName(for index: Int) -> String {
-        String(localized: "Variation \(index + 1)")
+        String(localized: "Variation \(String(describing: index + 1))")
     }
 
     func onAddVariationPressed() {

@@ -114,7 +114,7 @@ class ActiveTrainingProgramPresenter {
         let cycleIndex = (completedCycles % cyclesTotal) + 1
         isDeloadCycle = isCurrentCycleDeload(cycleIndex: cycleIndex, program: program)
         periodisationPhase = currentPeriodisationPhase(cycleIndex: cycleIndex, program: program)
-        microcycleHeaderText = String(localized: "Microcycle \(cycleIndex) of \(cyclesTotal)")
+        microcycleHeaderText = String(localized: "Microcycle \(String(describing: cycleIndex)) of \(String(describing: cyclesTotal))")
 
         return dayPlans.map { plan in
             MicrocycleItem(
