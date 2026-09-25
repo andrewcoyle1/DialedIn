@@ -36,6 +36,11 @@ struct MuscleGroupsView: View {
                     presenter.onDismissPressed()
                 }
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Muscle Balance", systemImage: "square.grid.3x3.fill") {
+                    presenter.onMuscleBalancePressed()
+                }
+            }
         }
     }
     

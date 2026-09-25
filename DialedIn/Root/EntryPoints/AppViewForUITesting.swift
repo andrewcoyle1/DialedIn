@@ -155,7 +155,9 @@ extension AppViewForUITesting {
             // The tracker with the first set's weight keyboard open; `SetKeyboardLaunch` opens it.
             ("STARTSCREEN_SET_KEYBOARD", { router in
                 ActiveSessionScreen(interactor: interactor) { try? builder.workoutTrackerView(router: router) }.any()
-            })
+            }),
+            // MARK: - Muscle Balance
+            ("STARTSCREEN_MUSCLE_BALANCE", { builder.muscleBalanceView(router: $0).any() })
         ]
     }
 }
