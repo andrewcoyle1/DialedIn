@@ -58,6 +58,8 @@ class DevPreview {
         container.register(ChallengeManager.self, service: ChallengeManager(service: MockChallengeService()))
         // MARK: - Invites
         container.register(InviteManager.self, service: InviteManager(service: MockInviteService()))
+        // MARK: - ProgressPhotos
+        container.register(ProgressPhotoManager.self, service: progressPhotoManager)
 
         return container
     }
@@ -356,4 +358,14 @@ class DevPreview {
             }
         }
     }
+
+    // MARK: - ProgressPhotos
+    lazy var progressPhotoManager = ProgressPhotoManager(
+        syncEngine: CollectionSyncEngine<ProgressPhotoModel>(
+            remote: MockRemoteCollectionService(collection: ProgressPhotoModel.mocks),
+            managerKey: "progress_photos",
+            enableLocalPersistence: false
+        ),
+        imageUploadManager: imageUploadManager
+    )
 }
