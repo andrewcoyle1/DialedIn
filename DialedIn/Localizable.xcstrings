@@ -108,15 +108,25 @@
         }
       }
     },
-    "%@ %@" : {
-      "shouldTranslate" : false
-    },
-    "%@ %lf kg" : {
+    "%@ / %@" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ %2$lf kg"
+            "value" : "%1$@ / %2$@"
+          }
+        }
+      }
+    },
+    "%@ %@" : {
+      "shouldTranslate" : false
+    },
+    "%@ %@ kg" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ kg"
           }
         }
       }
@@ -127,6 +137,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ %2$lld:%3$@"
+          }
+        }
+      }
+    },
+    "%@ × %@ @ %@ kg" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ × %2$@ @ %3$@ kg"
           }
         }
       }
@@ -151,6 +171,26 @@
         }
       }
     },
+    "%@ active %@ of equipment" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ de equipo activos"
+          }
+        }
+      }
+    },
+    "%@ AM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ a. m."
+          }
+        }
+      }
+    },
     "%@ and %@" : {
       "localizations" : {
         "es" : {
@@ -161,12 +201,12 @@
         }
       }
     },
-    "%@ and %lld others" : {
+    "%@ and %@ others" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ y %2$lld más"
+            "value" : "%1$@ y %2$@ más"
           }
         }
       }
@@ -221,6 +261,16 @@
         }
       }
     },
+    "%@ deficit" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de déficit"
+          }
+        }
+      }
+    },
     "%@ F" : {
       "localizations" : {
         "es" : {
@@ -261,6 +311,36 @@
         }
       }
     },
+    "%@ kcal %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ kcal %2$@"
+          }
+        }
+      }
+    },
+    "%@ kcal a day" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kcal al día"
+          }
+        }
+      }
+    },
+    "%@ kcal a day, %@ %@." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ kcal al día, %2$@ %3$@."
+          }
+        }
+      }
+    },
     "%@ kg" : {
       "localizations" : {
         "es" : {
@@ -271,12 +351,22 @@
         }
       }
     },
-    "%@ kg (%lld%%)" : {
+    "%@ kg (%@%%)" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ kg (%2$lld%%)"
+            "value" : "%1$@ kg (%2$@%%)"
+          }
+        }
+      }
+    },
+    "%@ left" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quedan %@"
           }
         }
       }
@@ -287,6 +377,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A %@ le gustó tu entrenamiento"
+          }
+        }
+      }
+    },
+    "%@ logged %@ will be deleted. This cannot be undone." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se eliminarán %1$@ %2$@ registradas. Esta acción no se puede deshacer."
           }
         }
       }
@@ -317,6 +417,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ te mencionó: \"%2$@\""
+          }
+        }
+      }
+    },
+    "%@ more %@ would have hit your goal." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ más habrían bastado para alcanzar tu objetivo."
           }
         }
       }
@@ -361,12 +471,42 @@
         }
       }
     },
+    "%@ PM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ p. m."
+          }
+        }
+      }
+    },
+    "%@ remaining" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quedan %@"
+          }
+        }
+      }
+    },
     "%@ sets" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ series"
+          }
+        }
+      }
+    },
+    "%@ sets · %@ kg" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ series · %2$@ kg"
           }
         }
       }
@@ -407,6 +547,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ pasos"
+          }
+        }
+      }
+    },
+    "%@ surplus" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de superávit"
           }
         }
       }
@@ -480,6 +630,16 @@
     "%@: %@%@" : {
       "shouldTranslate" : false
     },
+    "%@/%@ sets" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@/%2$@ series"
+          }
+        }
+      }
+    },
     "%@/week" : {
       "localizations" : {
         "es" : {
@@ -523,6 +683,16 @@
         }
       }
     },
+    "%@%% of the rest timer" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@%% del temporizador de descanso"
+          }
+        }
+      }
+    },
     "%@g" : {
       "localizations" : {
         "es" : {
@@ -543,22 +713,52 @@
         }
       }
     },
+    "%@h %@m" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@h %2$@m"
+          }
+        }
+      }
+    },
+    "%@m" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@m"
+          }
+        }
+      }
+    },
+    "%@m %@s" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@m %2$@s"
+          }
+        }
+      }
+    },
+    "%@s" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@s"
+          }
+        }
+      }
+    },
     "%lld" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld"
-          }
-        }
-      }
-    },
-    "%lld / %lld" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld / %2$lld"
           }
         }
       }
@@ -589,36 +789,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld %2$@ por semana"
-          }
-        }
-      }
-    },
-    "%lld × %lld @ %@ kg" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld × %2$lld @ %3$@ kg"
-          }
-        }
-      }
-    },
-    "%lld active %@ of equipment" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld %2$@ de equipo activos"
-          }
-        }
-      }
-    },
-    "%lld AM" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld a. m."
           }
         }
       }
@@ -695,16 +865,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "%lld deficit" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld de déficit"
           }
         }
       }
@@ -825,36 +985,6 @@
         }
       }
     },
-    "%lld kcal %@" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld kcal %2$@"
-          }
-        }
-      }
-    },
-    "%lld kcal a day" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld kcal al día"
-          }
-        }
-      }
-    },
-    "%lld kcal a day, %@ %lld." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld kcal al día, %2$@ %3$lld."
-          }
-        }
-      }
-    },
     "%lld kcal consumed" : {
       "localizations" : {
         "es" : {
@@ -895,16 +1025,6 @@
         }
       }
     },
-    "%lld left" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quedan %lld"
-          }
-        }
-      }
-    },
     "%lld likes" : {
       "localizations" : {
         "es" : {
@@ -923,16 +1043,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "%lld logged %@ will be deleted. This cannot be undone." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se eliminarán %1$lld %2$@ registradas. Esta acción no se puede deshacer."
           }
         }
       }
@@ -957,16 +1067,6 @@
         }
       }
     },
-    "%lld more %@ would have hit your goal." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld %2$@ más habrían bastado para alcanzar tu objetivo."
-          }
-        }
-      }
-    },
     "%lld of %lld sessions" : {
       "localizations" : {
         "es" : {
@@ -977,32 +1077,12 @@
         }
       }
     },
-    "%lld PM" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld p. m."
-          }
-        }
-      }
-    },
     "%lld primary, %lld secondary" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld principales, %2$lld secundarios"
-          }
-        }
-      }
-    },
-    "%lld remaining" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quedan %lld"
           }
         }
       }
@@ -1067,26 +1147,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "%lld sets · %@ kg" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld series · %2$@ kg"
-          }
-        }
-      }
-    },
-    "%lld surplus" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld de superávit"
           }
         }
       }
@@ -1195,16 +1255,6 @@
         }
       }
     },
-    "%lld/%lld sets" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld/%2$lld series"
-          }
-        }
-      }
-    },
     "%lld/300" : {
       "localizations" : {
         "es" : {
@@ -1221,16 +1271,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld%%"
-          }
-        }
-      }
-    },
-    "%lld%% of the rest timer" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%% del temporizador de descanso"
           }
         }
       }
@@ -1275,36 +1315,6 @@
         }
       }
     },
-    "%lldh %lldm" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lldh %2$lldm"
-          }
-        }
-      }
-    },
-    "%lldm" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lldm"
-          }
-        }
-      }
-    },
-    "%lldm %llds" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lldm %2$llds"
-          }
-        }
-      }
-    },
     "%lldP" : {
       "localizations" : {
         "es" : {
@@ -1315,28 +1325,18 @@
         }
       }
     },
-    "%llds" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%llds"
-          }
-        }
-      }
-    },
     "•" : {
       "shouldTranslate" : false
     },
     "×" : {
       "shouldTranslate" : false
     },
-    "~ %lld kcal estimated daily calorie target" : {
+    "~ %@ kcal estimated daily calorie target" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "~ %lld kcal de objetivo calórico diario estimado"
+            "value" : "~ %@ kcal de objetivo calórico diario estimado"
           }
         }
       }
@@ -1660,12 +1660,12 @@
         }
       }
     },
-    "About %lld %@ at your current weight." : {
+    "About %@ %@ at your current weight." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unos %1$lld %2$@ con tu peso actual."
+            "value" : "Unos %1$@ %2$@ con tu peso actual."
           }
         }
       }
@@ -1880,12 +1880,12 @@
         }
       }
     },
-    "Adaptive · %lld of %lld days logged" : {
+    "Adaptive · %@ of %@ days logged" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adaptativo · %1$lld de %2$lld días registrados"
+            "value" : "Adaptativo · %1$@ de %2$@ días registrados"
           }
         }
       }
@@ -5014,12 +5014,12 @@
         }
       }
     },
-    "Custom (%lldm %@s)" : {
+    "Custom (%@m %@s)" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Personalizado (%1$lldm %2$@s)"
+            "value" : "Personalizado (%1$@m %2$@s)"
           }
         }
       }
@@ -5374,12 +5374,12 @@
         }
       }
     },
-    "Default (%llds)" : {
+    "Default (%@s)" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Predeterminado (%llds)"
+            "value" : "Predeterminado (%@s)"
           }
         }
       }
@@ -7756,22 +7756,22 @@
         }
       }
     },
-    "Goal hit and %lld %@ set. Great week." : {
+    "Goal hit and %@ %@ set. Great week." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Objetivo cumplido y %1$lld %2$@. Gran semana."
+            "value" : "Objetivo cumplido y %1$@ %2$@. Gran semana."
           }
         }
       }
     },
-    "Goal hit: %lld of %lld sessions." : {
+    "Goal hit: %@ of %@ sessions." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Objetivo cumplido: %1$lld de %2$lld sesiones."
+            "value" : "Objetivo cumplido: %1$@ de %2$@ sesiones."
           }
         }
       }
@@ -8316,12 +8316,12 @@
         }
       }
     },
-    "Includes %@%lld kcal from your recent step count" : {
+    "Includes %@%@ kcal from your recent step count" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Incluye %1$@%2$lld kcal de tu recuento de pasos reciente"
+            "value" : "Incluye %1$@%2$@ kcal de tu recuento de pasos reciente"
           }
         }
       }
@@ -8850,12 +8850,12 @@
         }
       }
     },
-    "Last week: you %lld/%lld, circle %lld %@" : {
+    "Last week: you %@/%@, circle %@ %@" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La semana pasada: tú %1$lld/%2$lld, círculo %3$lld %4$@"
+            "value" : "La semana pasada: tú %1$@/%2$@, círculo %3$@ %4$@"
           }
         }
       }
@@ -9820,12 +9820,12 @@
         }
       }
     },
-    "Microcycle %lld of %lld" : {
+    "Microcycle %@ of %@" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Microciclo %1$lld de %2$lld"
+            "value" : "Microciclo %1$@ de %2$@"
           }
         }
       }
@@ -11640,12 +11640,12 @@
         }
       }
     },
-    "Performed %lld %@ · last %@" : {
+    "Performed %@ %@ · last %@" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Realizado %1$lld %2$@ · última vez %3$@"
+            "value" : "Realizado %1$@ %2$@ · última vez %3$@"
           }
         }
       }
@@ -11740,12 +11740,12 @@
         }
       }
     },
-    "Pick a target between %lld and %lld sessions." : {
+    "Pick a target between %@ and %@ sessions." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elige un objetivo de entre %1$lld y %2$lld sesiones."
+            "value" : "Elige un objetivo de entre %1$@ y %2$@ sesiones."
           }
         }
       }
@@ -13942,6 +13942,16 @@
         }
       }
     },
+    "Set %@%@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serie %1$@%2$@"
+          }
+        }
+      }
+    },
     "Set %lld, %@" : {
       "localizations" : {
         "es" : {
@@ -13958,16 +13968,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Serie %1$lld/%2$lld"
-          }
-        }
-      }
-    },
-    "Set %lld%@" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serie %1$lld%2$@"
           }
         }
       }
@@ -17302,6 +17302,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Valor"
+          }
+        }
+      }
+    },
+    "Variation %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Variación %@"
           }
         }
       }
