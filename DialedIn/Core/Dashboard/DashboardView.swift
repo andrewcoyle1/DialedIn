@@ -150,6 +150,8 @@ struct DashboardView<
             }
             // MARK: - WeeklyReview
             if presenter.showsWeeklyReviewCard { WeeklyReviewCard { presenter.onWeeklyReviewPressed() }.removeListRowFormatting().listRowSeparator(.hidden) }
+            // MARK: - RatingReferral
+            if presenter.showsInviteCard { InviteFriendCard { presenter.onInviteCardPressed() } onDismiss: { presenter.onInviteCardDismissed() }.removeListRowFormatting().listRowSeparator(.hidden) }
             if !presenter.circleMembers.isEmpty {
                 CircleActivityStripView(
                     members: presenter.circleMembers,

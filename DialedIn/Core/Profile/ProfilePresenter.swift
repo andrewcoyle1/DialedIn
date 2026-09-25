@@ -127,12 +127,7 @@ class ProfilePresenter {
     /// Creates the user's invite the first time, then hands the link to the share sheet.
     func onInviteFriendPressed() async {
         interactor.trackEvent(eventName: "ProfileView_InviteFriend_Press", parameters: nil, type: .analytic)
-        do {
-            let invite = try await interactor.myInvite()
-            router.showShareSheet(items: [invite.shareMessage])
-        } catch {
-            router.showSimpleAlert(title: "Couldn't create invite", subtitle: "Please try again.")
-        }
+        await InviteShareFlow(interactor: interactor, router: router).share()
     }
 
     func onShortcutsPressed() {
