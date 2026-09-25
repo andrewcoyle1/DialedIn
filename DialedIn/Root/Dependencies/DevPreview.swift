@@ -60,6 +60,8 @@ class DevPreview {
         container.register(InviteManager.self, service: InviteManager(service: MockInviteService()))
         // MARK: - ProgressPhotos
         container.register(ProgressPhotoManager.self, service: progressPhotoManager)
+        // `CoreInteractor.init` resolves every manager, and this one had never been registered here.
+        container.register(NutritionStrategyManager.self, service: nutritionStrategyManager)
 
         return container
     }
@@ -360,6 +362,27 @@ class DevPreview {
     }
 
     // MARK: - ProgressPhotos
+    lazy var nutritionStrategyManager = NutritionStrategyManager(
+        dayAnnotationSyncEngine: CollectionSyncEngine<NutritionDayAnnotation>(
+            remote: MockRemoteCollectionService(collection: []),
+            managerKey: Keys.nutritionDayAnnotationManagerKey,
+            enableLocalPersistence: false,
+            logger: logManager
+        ),
+        loggingBreakSyncEngine: DocumentSyncEngine<LoggingBreak>(
+            remote: MockRemoteDocumentService(document: nil),
+            managerKey: Keys.loggingBreakManagerKey,
+            enableLocalPersistence: false,
+            logger: logManager
+        ),
+        checkInRecordSyncEngine: DocumentSyncEngine<CheckInRecord>(
+            remote: MockRemoteDocumentService(document: nil),
+            managerKey: Keys.checkInRecordManagerKey,
+            enableLocalPersistence: false,
+            logger: logManager
+        )
+    )
+
     lazy var progressPhotoManager = ProgressPhotoManager(
         syncEngine: CollectionSyncEngine<ProgressPhotoModel>(
             remote: MockRemoteCollectionService(collection: ProgressPhotoModel.mocks),
