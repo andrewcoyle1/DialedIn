@@ -106,6 +106,15 @@ class WorkoutSessionRowPresenter {
         return sessionAuthorId != readerId
     }
 
+    /// The session note, for its author's eyes only: a note is a private reminder ("left
+    /// shoulder twinged"), not a caption, so a follower's feed never shows it.
+    var authorNote: String? {
+        guard let readerId = interactor.currentUser?.userId, readerId == sessionAuthorId else { return nil }
+        let trimmed = session.notes?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let trimmed, !trimmed.isEmpty else { return nil }
+        return trimmed
+    }
+
     func onReportPressed() {
         guard canReport else { return }
         reportFlow.start(ReportedContent(type: .session, id: session.id, authorUserId: sessionAuthorId, noun: "workout"))

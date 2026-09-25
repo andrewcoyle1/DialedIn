@@ -69,6 +69,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
         VStack {
             sessionTitleAndStats
             exerciseList
+            authorNote
         }
         // One VoiceOver stop for the title, highlights, stats and exercises; the author header
         // above and the like, comment, share and menu controls below stay separate stops.
@@ -157,6 +158,18 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
                 }
                 .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
             }
+        }
+    }
+
+    /// Collapsed to two lines; the whole note is on the session detail the card opens.
+    @ViewBuilder
+    private var authorNote: some View {
+        if let note = presenter.authorNote {
+            Label(note, systemImage: "note.text")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
