@@ -330,7 +330,7 @@ struct Dependencies {
                 FirebaseAnalyticsService(),
                 MixpanelService(token: Keys.mixpanelToken, loggingEnabled: false),
                 FirebaseCrashlyticsService()
-            ])
+            ] + DataAccessLogging.devServices)
             
             authManager = AuthManager(service: FirebaseAuthService(), logger: logManager)
             let userSyncEngine = DocumentSyncEngine<UserModel>(
