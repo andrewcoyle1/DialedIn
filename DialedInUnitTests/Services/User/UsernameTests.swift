@@ -260,6 +260,35 @@ struct EditUsernamePresenterTests {
         presenter.onTextChanged()
     }
 
+    /// Offline the availability read answers from the cache, which can call a taken handle free,
+    /// so nothing is checked and Save stays off.
+    @Test("Test Offline A Handle Is Not Checked")
+    func testOfflineAHandleIsNotChecked() {
+        let screen = makeScreen()
+        screen.interactor.isOffline = true
+
+        type("new_handle", into: screen.presenter)
+
+        #expect(screen.presenter.status == .failed)
+        #expect(screen.interactor.checked.isEmpty)
+        #expect(!screen.presenter.canSave)
+    }
+
+    /// The signal went after the check: Save says so rather than waiting on a reservation write.
+    @Test("Test Offline Save Says You're Offline And Claims Nothing")
+    func testOfflineSaveSaysYoureOfflineAndClaimsNothing() async {
+        let screen = makeScreen()
+        type("new_handle", into: screen.presenter)
+        #expect(await TestManagers.eventually { screen.presenter.canSave })
+        screen.interactor.isOffline = true
+
+        await screen.presenter.onSavePressed()
+
+        #expect(screen.router.alertTitles == [OfflineError.title])
+        #expect(screen.interactor.claimed.isEmpty)
+        #expect(!screen.presenter.isSaving)
+    }
+
     @Test("Test It Starts On The Current Handle")
     func testItStartsOnTheCurrentHandle() {
         let presenter = makeScreen(username: "andrew").presenter

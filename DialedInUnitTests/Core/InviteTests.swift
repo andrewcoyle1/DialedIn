@@ -205,6 +205,19 @@ struct InviteAcceptFlowTests {
         #expect(interactor.shownToasts.map(\.message) == ["Alex is following you. Your follow request is waiting."])
     }
 
+    @Test("Test Offline Accept Says You're Offline And Calls Nothing")
+    func testOfflineAcceptSaysYoureOfflineAndCallsNothing() async {
+        let interactor = Interactor()
+        interactor.isOffline = true
+        let router = Router()
+
+        await InviteAcceptFlow(interactor: interactor, router: router).accept(code: "PUSH2345")
+
+        #expect(interactor.codes.isEmpty)
+        #expect(router.alerts == ["\(OfflineError.title): \(OfflineError.message)"])
+        #expect(router.profileUserIds.isEmpty)
+    }
+
     @Test("Test A Refused Invite Explains Why And Opens Nothing")
     func testARefusedInviteExplainsWhyAndOpensNothing() async {
         let interactor = Interactor()

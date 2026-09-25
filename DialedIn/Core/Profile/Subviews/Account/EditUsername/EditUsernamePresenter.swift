@@ -65,6 +65,11 @@ class EditUsernamePresenter {
             return
         }
 
+        // Offline, the read answers from the cache, which can call a taken handle available.
+        guard !interactor.isOffline else {
+            status = .failed
+            return
+        }
         status = .checking
         checkTask = Task { [debounce, interactor] in
             try? await Task.sleep(for: debounce)
@@ -81,7 +86,7 @@ class EditUsernamePresenter {
     }
 
     func onSavePressed() async {
-        guard canSave else { return }
+        guard canSave, interactor.ensureOnline(or: router) else { return }
         isSaving = true
         defer { isSaving = false }
         do {

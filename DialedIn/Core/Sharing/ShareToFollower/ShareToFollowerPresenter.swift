@@ -51,7 +51,7 @@ class ShareToFollowerPresenter {
     }
 
     func onSendPressed() {
-        guard canSend else { return }
+        guard canSend, interactor.ensureOnline(or: router) else { return }
         let ids = recipients.map(\.userId).filter(selectedIds.contains)
         isSending = true
         interactor.trackEvent(event: Event.sendStart(kind: delegate.payload.kind, count: ids.count))

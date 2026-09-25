@@ -88,6 +88,10 @@ struct ProfileAccountPresenterTests {
         func showEditUsernameView() {
             editUsernameShownCount += 1
         }
+
+        private(set) var alertTitles: [String] = []
+
+        func showSimpleAlert(title: String, subtitle: String?) { alertTitles.append(title) }
     }
 
     private struct Screen {
@@ -337,6 +341,37 @@ struct ProfileAccountPresenterTests {
 
         #expect(screen.interactor.uploadedImageCount == 1)
         #expect(screen.interactor.savedData.count == 1)
+    }
+
+    /// A new photo is an upload, so offline the save does not start.
+    @Test("Test Offline A New Photo Says You're Offline And Saves Nothing")
+    func testOfflineANewPhotoSaysYoureOfflineAndSavesNothing() async {
+        let screen = makeScreen()
+        screen.interactor.isOffline = true
+        screen.presenter.firstName = "Andrew"
+        screen.presenter.selectedImageData = realImageData
+
+        await screen.presenter.saveProfile()
+
+        #expect(screen.router.alertTitles == [OfflineError.title])
+        #expect(screen.interactor.uploadedImageCount == 0)
+        #expect(screen.interactor.savedData.isEmpty)
+        #expect(!screen.presenter.isSaving)
+    }
+
+    /// Without a photo it is a queued Firestore write, which the user listener shows at once, so
+    /// offline the save completes without waiting for the server to acknowledge it.
+    @Test("Test Offline A Profile Edit Is Queued Without Waiting")
+    func testOfflineAProfileEditIsQueuedWithoutWaiting() async {
+        let screen = makeScreen()
+        screen.interactor.isOffline = true
+        screen.presenter.firstName = "Andrew"
+
+        await screen.presenter.saveProfile()
+
+        #expect(screen.router.alertTitles.isEmpty)
+        #expect(!screen.presenter.isSaving)
+        #expect(await TestManagers.eventually { screen.interactor.savedData.count == 1 })
     }
 
     /// Saving without touching the photo must not re-upload anything — the existing picture stays

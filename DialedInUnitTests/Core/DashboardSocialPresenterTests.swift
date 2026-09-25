@@ -557,14 +557,14 @@ struct SocialCommentsPresenterTests {
         screen.presenter.commentDraft = "  Strong session  "
 
         screen.presenter.onSendPressed()
-        await TestManagers.eventually { !screen.presenter.comments.isEmpty }
+        #expect(screen.presenter.comments.map(\.text) == ["Strong session"]) // before the write returns
+        await TestManagers.eventually { !screen.interactor.added.isEmpty }
 
         #expect(screen.interactor.added.map(\.text) == ["Strong session"])
         #expect(screen.interactor.added.first?.authorId == "me")
         #expect(screen.interactor.added.first?.sessionId == "session-x")
         #expect(screen.interactor.added.first?.sessionAuthorId == "friend")
         #expect(screen.presenter.commentDraft.isEmpty)
-        #expect(screen.presenter.isSending == false)
         #expect(screen.router.alertTitles.isEmpty)
     }
 
@@ -605,7 +605,7 @@ struct SocialCommentsPresenterTests {
 
         screen.presenter.commentDraft = "Agreed"
         screen.presenter.onSendPressed()
-        await TestManagers.eventually { screen.presenter.comments.count == 3 }
+        await TestManagers.eventually { !screen.interactor.added.isEmpty }
 
         #expect(screen.interactor.added.first?.parentId == "c1")
         #expect(screen.presenter.replyingTo == nil)
@@ -701,9 +701,9 @@ struct SocialCommentsPresenterTests {
         await TestManagers.eventually { screen.presenter.comments.count == 2 }
 
         screen.presenter.onDeleteConfirmed(screen.presenter.comments[0])
-        await TestManagers.eventually { screen.presenter.comments.count == 1 }
+        #expect(screen.presenter.comments.map(\.id) == ["b"]) // before the write returns
+        await TestManagers.eventually { !screen.interactor.deletedIds.isEmpty }
 
-        #expect(screen.presenter.comments.map(\.id) == ["b"])
         #expect(screen.interactor.deletedIds == ["a"])
     }
 

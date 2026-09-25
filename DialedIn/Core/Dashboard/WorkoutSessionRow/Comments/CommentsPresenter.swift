@@ -18,7 +18,6 @@ class CommentsPresenter {
 
     private(set) var comments: [WorkoutSessionComment] = []
     private(set) var isLoading = false
-    private(set) var isSending = false
     var commentDraft: String = ""
     /// The comment the draft replies to, if any. Set by the row's Reply action, cleared by the
     /// bar's cancel or by sending.
@@ -121,12 +120,14 @@ class CommentsPresenter {
         commentDraft = ""
         replyingTo = nil
         draftMentions = []
-        isSending = true
+        // Shown at once: Firestore queues the write, and offline the await does not return until the
+        // signal does, which left the comment invisible behind a spinner. Taken back if it fails.
+        comments = Self.threaded(comments + [comment])
         Task {
             do {
                 try await interactor.addComment(comment)
-                comments = Self.threaded(comments + [comment])
             } catch {
+                comments.removeAll { $0.id == comment.id }
                 replyingTo = parent
                 draftMentions = mentions
                 // Was `try?` followed by an unconditional append: a comment that never reached the
@@ -135,7 +136,6 @@ class CommentsPresenter {
                 commentDraft = trimmed
                 router.showSimpleAlert(title: "Unable to Post Comment", subtitle: "Please try again.")
             }
-            isSending = false
         }
     }
 
@@ -261,11 +261,13 @@ class CommentsPresenter {
     }
     
     func onDeleteConfirmed(_ comment: WorkoutSessionComment) {
+        // Removed at once, for the same reason a new comment is shown at once; put back if it fails.
+        comments.removeAll { $0.id == comment.id }
         Task {
             do {
                 try await interactor.deleteComment(id: comment.id)
-                comments.removeAll { $0.id == comment.id }
             } catch {
+                comments = Self.threaded(comments + [comment])
                 // Was `try?` with an unconditional removal, so a failed delete looked like it worked
                 // until the next refresh brought the comment back.
                 router.showSimpleAlert(title: "Unable to Delete Comment", subtitle: "Please try again.")
@@ -301,20 +303,18 @@ struct CommentMentionCandidate: Identifiable, Equatable {
 extension CommentsPresenter {
 
     /// Seeds state directly so previews can render states that otherwise only exist mid-flight
-    /// (an in-flight send). `private(set)` is file-scoped, so this has to live next to the
+    /// (a load in progress). `private(set)` is file-scoped, so this has to live next to the
     /// presenter rather than in the view file.
     @discardableResult
     func withPreviewState(
         comments: [WorkoutSessionComment]? = nil,
         isLoading: Bool = false,
-        isSending: Bool = false,
         draft: String = ""
     ) -> CommentsPresenter {
         if let comments {
             self.comments = comments
         }
         self.isLoading = isLoading
-        self.isSending = isSending
         self.commentDraft = draft
         return self
     }

@@ -196,6 +196,17 @@ struct ProfilePresenterTests {
         #expect(screen.interactor.trackedEventNames == ["ProfileView_InviteFriend_Press"])
     }
 
+    /// Creating the invite is a server write the first time, so offline it is not started.
+    @Test("Test Offline Invite Says You're Offline Instead Of Sharing")
+    func testOfflineInviteSaysYoureOfflineInsteadOfSharing() async {
+        let screen = makeScreen()
+        screen.interactor.isOffline = true
+
+        await screen.presenter.onInviteFriendPressed()
+
+        #expect(screen.router.shown == ["alert: \(OfflineError.title)"])
+    }
+
     /// No invite, no share sheet with nothing in it.
     @Test("Test A Failed Invite Says So Instead Of Sharing")
     func testAFailedInviteSaysSoInsteadOfSharing() async {
