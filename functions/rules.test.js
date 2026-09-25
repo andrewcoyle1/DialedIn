@@ -361,3 +361,37 @@ t("invites: inviter creates an unused code of the right shape; nobody edits it",
     await assertSucceeds(getDoc(doc(db(ALICE), "invites/ABCD2345")));
     await assertFails(updateDoc(doc(db(BOB), "invites/ABCD2345"), { uses: 1 }));
 });
+
+// ---------------- PROGRESS PHOTOS ----------------
+
+const photo = (id, owner = ALICE, over = {}) => ({
+    id, author_id: owner, date: now(), pose: "front",
+    storage_path: `users/${owner}/progress_photos/${id}.jpg`, image_url: "https://example.com/p.jpg", ...over,
+});
+const PHOTO = `users/${ALICE}/progress_photos/p1`;
+
+t("users/progress_photos: owner creates, reads, updates and deletes their own", async () => {
+    await assertSucceeds(setDoc(doc(db(ALICE), PHOTO), photo("p1", ALICE, { weight_kg: 80.5, note: "week 1" })));
+    await assertSucceeds(getDoc(doc(db(ALICE), PHOTO)));
+    await assertSucceeds(updateDoc(doc(db(ALICE), PHOTO), { pose: "side" }));
+    await assertSucceeds(deleteDoc(doc(db(ALICE), PHOTO)));
+});
+
+t("users/progress_photos: nobody else reads, writes or deletes them", async () => {
+    await seed(PHOTO, photo("p1"));
+    await assertFails(getDoc(doc(db(BOB), PHOTO)));
+    await assertFails(getDoc(doc(db(), PHOTO)));
+    await assertFails(setDoc(doc(db(BOB), `users/${ALICE}/progress_photos/p2`), photo("p2")));
+    await assertFails(updateDoc(doc(db(BOB), PHOTO), { note: "hi" }));
+    await assertFails(deleteDoc(doc(db(BOB), PHOTO)));
+});
+
+t("users/progress_photos: a forged owner, storage path, pose, id or extra field is rejected", async () => {
+    const path = `users/${ALICE}/progress_photos/p3`;
+    await assertFails(setDoc(doc(db(ALICE), path), photo("p3", ALICE, { author_id: BOB })));
+    await assertFails(setDoc(doc(db(ALICE), path), photo("p3", ALICE, { storage_path: `users/${BOB}/progress_photos/p3.jpg` })));
+    await assertFails(setDoc(doc(db(ALICE), path), photo("p3", ALICE, { pose: "flexing" })));
+    await assertFails(setDoc(doc(db(ALICE), path), photo("p4")));
+    await assertFails(setDoc(doc(db(ALICE), path), photo("p3", ALICE, { is_public: true })));
+    await assertFails(setDoc(doc(db(ALICE), path), photo("p3", ALICE, { date: "yesterday" })));
+});

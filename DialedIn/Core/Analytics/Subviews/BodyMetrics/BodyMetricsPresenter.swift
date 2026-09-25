@@ -69,6 +69,10 @@ class BodyMetricsPresenter {
         router.dismissScreen()
     }
 
+    func onProgressPhotosPressed() {
+        router.showProgressPhotosView()
+    }
+
     var sections: [BodyMetricsSection] {
         [
             BodyMetricsSection(

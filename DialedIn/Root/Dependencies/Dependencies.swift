@@ -1063,6 +1063,34 @@ struct Dependencies {
         }
         container.register(InviteManager.self, service: InviteManager(service: inviteService))
 
+        // MARK: - ProgressPhotos
+        // Persistence off: the photos are remote images, and a literal key keeps Keys.swift unchanged.
+        let progressPhotoSyncEngine: CollectionSyncEngine<ProgressPhotoModel>
+        if case .mock = config {
+            progressPhotoSyncEngine = CollectionSyncEngine<ProgressPhotoModel>(
+                remote: MockRemoteCollectionService(collection: ProgressPhotoModel.mocks),
+                managerKey: "progress_photos",
+                enableLocalPersistence: false,
+                logger: logManager
+            )
+        } else {
+            progressPhotoSyncEngine = CollectionSyncEngine<ProgressPhotoModel>(
+                remote: FirebaseRemoteCollectionService(
+                    collectionPath: { [weak authManager] in
+                        guard let uid = authManager?.auth?.uid else { return nil }
+                        return "users/\(uid)/progress_photos"
+                    }
+                ),
+                managerKey: "progress_photos",
+                enableLocalPersistence: false,
+                logger: logManager
+            )
+        }
+        container.register(
+            ProgressPhotoManager.self,
+            service: ProgressPhotoManager(syncEngine: progressPhotoSyncEngine, imageUploadManager: imageUploadManager)
+        )
+
         self.logManager = logManager
         self.container = container
     }
