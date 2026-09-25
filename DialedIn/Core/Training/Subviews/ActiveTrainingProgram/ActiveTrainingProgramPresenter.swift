@@ -180,8 +180,8 @@ class ActiveTrainingProgramPresenter {
 
     func onProgramDeletePressed(program: TrainingProgram) {
         router.showAlert(
-            title: "Delete Training Program",
-            subtitle: "Are you sure you want to delete your active training program? This cannot be undone.",
+            title: String(localized: "Delete Training Program"),
+            subtitle: String(localized: "Are you sure you want to delete your active training program? This cannot be undone."),
             buttons: {
                 AnyView(
                     HStack {
@@ -200,7 +200,7 @@ class ActiveTrainingProgramPresenter {
             try await interactor.deleteTrainingProgram(programId: programId)
         } catch {
             interactor.trackEvent(event: Event.deleteProgramFail(error: error))
-            router.showSimpleAlert(title: "Unable to Delete Program", subtitle: "Please try again.")
+            router.showSimpleAlert(title: String(localized: "Unable to Delete Program"), subtitle: String(localized: "Please try again."))
         }
     }
 
@@ -212,8 +212,8 @@ class ActiveTrainingProgramPresenter {
         }
 
         router.showAlert(
-            title: "Workout In Progress",
-            subtitle: "You already have '\(activeSession.name)' in progress. What would you like to do?",
+            title: String(localized: "Workout In Progress"),
+            subtitle: String(localized: "You already have '\(activeSession.name)' in progress. What would you like to do?"),
             buttons: {
                 AnyView(
                     VStack {

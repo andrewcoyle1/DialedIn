@@ -26,7 +26,7 @@ struct ExerciseSaveDelegate {
 
     var trackableMetricString: String {
         if let metricB = self.trackableMetricB {
-            return "\(trackableMetricA.name) x \(metricB.name)"
+            return String(localized: "\(trackableMetricA.name) x \(metricB.name)")
         } else {
             return trackableMetricA.name
         }

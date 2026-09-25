@@ -156,33 +156,33 @@ class SetTrackerRowPresenter {
         switch trackingMode {
         case .weightReps:
             if let weight = set.weightKg, weight < 0 {
-                router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Weight must be a non-negative number")
+                router.showSimpleAlert(title: String(localized: "Invalid Set Data"), subtitle: String(localized: "Weight must be a non-negative number"))
                 return false
             }
             guard let reps = set.reps, reps > 0 else {
-                router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
+                router.showSimpleAlert(title: String(localized: "Invalid Set Data"), subtitle: String(localized: "Reps must be a positive number"))
                 return false
             }
             return true
         case .repsOnly:
             guard let reps = set.reps, reps > 0 else {
-                router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
+                router.showSimpleAlert(title: String(localized: "Invalid Set Data"), subtitle: String(localized: "Reps must be a positive number"))
                 return false
             }
             return true
         case .timeOnly:
             guard let duration = set.durationSec, duration > 0 else {
-                router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
+                router.showSimpleAlert(title: String(localized: "Invalid Set Data"), subtitle: String(localized: "Duration must be a positive time"))
                 return false
             }
             return true
         case .distanceTime:
             guard let distance = set.distanceMeters, distance > 0 else {
-                router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Distance must be a positive number")
+                router.showSimpleAlert(title: String(localized: "Invalid Set Data"), subtitle: String(localized: "Distance must be a positive number"))
                 return false
             }
             guard let duration = set.durationSec, duration > 0 else {
-                router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
+                router.showSimpleAlert(title: String(localized: "Invalid Set Data"), subtitle: String(localized: "Duration must be a positive time"))
                 return false
             }
             return true
@@ -253,7 +253,7 @@ extension SetTrackerRowPresenter {
         let set = delegate.set
         let complete: @MainActor () -> Void = { [weak self] in self?.onSetComplete(exercise, set) }
         interactor.trackEvent(event: Event.keyboardOfferedCompletion)
-        router.showAlert(title: "Complete Set?", subtitle: nil) {
+        router.showAlert(title: String(localized: "Complete Set?"), subtitle: nil) {
             AnyView(VStack(spacing: 8) {
                 Button("Not Yet", role: .cancel) { }
                 Button("Complete Set") { complete() }

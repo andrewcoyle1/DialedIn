@@ -97,8 +97,8 @@ class WorkoutSessionDetailPresenter {
         
     func showDiscardChangesAlert(session: WorkoutSessionModel) {
         router.showAlert(
-            title: "Discard changes?",
-            subtitle: "You have unsaved changes. This will discard them.",
+            title: String(localized: "Discard changes?"),
+            subtitle: String(localized: "You have unsaved changes. This will discard them."),
             buttons: {
                 AnyView(
                     VStack {
@@ -163,7 +163,7 @@ class WorkoutSessionDetailPresenter {
                 try await interactor.saveWorkoutSession(session)
             } catch {
                 router.showSimpleAlert(
-                    title: "Save Failed",
+                    title: String(localized: "Save Failed"),
                     subtitle: "Unable to save the change. Please try again."
                 )
             }
@@ -195,7 +195,7 @@ class WorkoutSessionDetailPresenter {
             dismissScreen()
         } catch {
             router.showSimpleAlert(
-                title: "Save Failed",
+                title: String(localized: "Save Failed"),
                 subtitle: "Unable to save changes. Please try again."
             )
         }
@@ -377,8 +377,8 @@ class WorkoutSessionDetailPresenter {
     
     func onDeletePressed(session: WorkoutSessionModel) {
         router.showAlert(
-            title: "Delete Workout?",
-            subtitle: "Are you sure you want to delete this workout? This cannot be undone.") {
+            title: String(localized: "Delete Workout?"),
+            subtitle: String(localized: "Are you sure you want to delete this workout? This cannot be undone.")) {
                 AnyView(
                     HStack {
                         Button(role: .cancel) { }
@@ -398,7 +398,7 @@ class WorkoutSessionDetailPresenter {
                 router.dismissScreen()
             } catch {
                 interactor.trackEvent(event: Event.deleteSessionFail(error: error))
-                router.showSimpleAlert(title: "Unable to Delete Workout", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Delete Workout"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -435,7 +435,7 @@ class WorkoutSessionDetailPresenter {
             if let image {
                 router.showShareSheet(items: [image])
             } else {
-                router.showSimpleAlert(title: "Unable to Create Image", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Create Image"), subtitle: String(localized: "Please try again."))
             }
         }
     }

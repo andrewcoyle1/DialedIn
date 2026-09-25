@@ -137,12 +137,12 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
     
     private var workoutDetailsSection: some View {
         Section {
-            CustomLabelButtonView(symbolName: "scalemass", title: "Volume") {
+            CustomLabelButtonView(symbolName: "scalemass", title: String(localized: "Volume")) {
                 Text(presenter.volumeFormatted(session: session))
             }
             CustomLabelButtonView(
                 symbolName: "arrow.right",
-                title: "Start Time",
+                title: String(localized: "Start Time"),
                 subtitle: session.dateCreated.formatted(date: .long, time: .shortened)
             ) {
                 Text("Edit")
@@ -156,7 +156,7 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
             if let duration = session.endedAt?.timeIntervalSince(session.dateCreated) {
                 CustomLabelButtonView(
                     symbolName: "clock",
-                    title: "Duration",
+                    title: String(localized: "Duration"),
                     subtitle: Date.formatDuration(duration)
                 ) {
                     Text("Edit")
@@ -171,7 +171,7 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
 
             CustomLabelButtonView(
                 symbolName: "pencil",
-                title: "Edit Workout",
+                title: String(localized: "Edit Workout"),
                 subtitle: "Go to the workout editor"
             ) {
                 Text("Edit")
