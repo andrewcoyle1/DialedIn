@@ -635,24 +635,6 @@
     },
     "%lld cycles" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld cycle"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld cycles"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -675,24 +657,6 @@
     },
     "%lld days" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld day"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld days"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -715,24 +679,6 @@
     },
     "%lld days left" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld day left"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld days left"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -775,24 +721,6 @@
     },
     "%lld exercises" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld exercise"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld exercises"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -815,24 +743,6 @@
     },
     "%lld Exercises" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld Exercise"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld Exercises"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -855,24 +765,6 @@
     },
     "%lld exercises selected" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld exercise selected"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld exercises selected"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -1015,24 +907,6 @@
     },
     "%lld likes" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld like"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld likes"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -1135,24 +1009,6 @@
     },
     "%lld reps" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld rep"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld reps"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -1195,24 +1051,6 @@
     },
     "%lld sets" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld set"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld sets"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -1275,24 +1113,6 @@
     },
     "%lld workouts" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld workout"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld workouts"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -1457,12 +1277,6 @@
     },
     "%lldh %lldm" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lldh %2$lldm"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3088,24 +2902,6 @@
     },
     "At least %lld characters" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "At least %lld character"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "At least %lld characters"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -3128,24 +2924,6 @@
     },
     "At most %lld characters" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "At most %lld character"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "At most %lld characters"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -3418,12 +3196,6 @@
     },
     "Bar %@ %@" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Bar %1$@ %2$@"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6844,24 +6616,6 @@
     },
     "Estimated from your profile until %lld days are logged" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Estimated from your profile until %lld day is logged"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Estimated from your profile until %lld days are logged"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -8854,24 +8608,6 @@
     },
     "Keep the name under %lld characters." : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Keep the name under %lld character."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Keep the name under %lld characters."
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -9004,24 +8740,6 @@
     },
     "Last %lld Entries" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Last %lld Entry"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Last %lld Entries"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -10104,12 +9822,6 @@
     },
     "Microcycle %lld of %lld" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Microcycle %1$lld of %2$lld"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12150,24 +11862,6 @@
     },
     "Please add at least %lld characters." : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Please add at least %lld character."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Please add at least %lld characters."
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -15500,24 +15194,6 @@
     },
     "Target: %lld sessions" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Target: %lld session"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Target: %lld sessions"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
@@ -16500,24 +16176,6 @@
     },
     "Train %lld times" : {
       "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Train %lld time"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Train %lld times"
-                }
-              }
-            }
-          }
-        },
         "es" : {
           "variations" : {
             "plural" : {
