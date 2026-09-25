@@ -77,12 +77,12 @@ class BodyMetricsPresenter {
         [
             BodyMetricsSection(
                 id: "weightAndBodyFat",
-                header: "Weight & Body Fat",
+                header: String(localized: "Weight & Body Fat"),
                 cards: [displayModel(for: .scaleWeight), displayModel(for: .visualBodyFat)]
             ),
             BodyMetricsSection(
                 id: "upperBody",
-                header: "Upper Body",
+                header: String(localized: "Upper Body"),
                 cards: [
                     displayModel(for: .neck),
                     displayModel(for: .shoulders),
@@ -94,7 +94,7 @@ class BodyMetricsPresenter {
             ),
             BodyMetricsSection(
                 id: "arms",
-                header: "Arms",
+                header: String(localized: "Arms"),
                 cards: [
                     displayModel(for: .leftBicep),
                     displayModel(for: .rightBicep),
@@ -106,7 +106,7 @@ class BodyMetricsPresenter {
             ),
             BodyMetricsSection(
                 id: "legs",
-                header: "Legs",
+                header: String(localized: "Legs"),
                 cards: [
                     displayModel(for: .leftThigh),
                     displayModel(for: .rightThigh),

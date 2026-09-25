@@ -56,7 +56,7 @@ final class FoodLoggingConsistencyPresenter: @MainActor MetricDetailPresenter {
 
     var configuration: MetricConfiguration {
         MetricConfiguration(
-            title: "Food Logging",
+            title: String(localized: "Food Logging"),
             analyticsName: "FoodLoggingConsistencyView",
             yAxisSuffix: " kcal",
             seriesNames: ["Food Logged"],

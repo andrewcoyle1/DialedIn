@@ -68,7 +68,7 @@ struct BodyMetricsView: View {
             .buttonStyle(.bordered)
             .tint(bodyMetricsColor)
         } header: {
-            SectionHeaderView(title: "Photos")
+            SectionHeaderView(title: String(localized: "Photos"))
         }
     }
 
@@ -78,7 +78,7 @@ struct BodyMetricsView: View {
         Section {
             AnalyticsCardGrid {
                 if presenter.ratioCards.isEmpty {
-                    AnalyticsEmptyCard(message: "Log a waist measurement to see your body ratios.")
+                    AnalyticsEmptyCard(message: String(localized: "Log a waist measurement to see your body ratios."))
                 } else {
                     ForEach(presenter.ratioCards) { card in
                         BodyRatioCardView(card: card, themeColor: bodyMetricsColor) {
@@ -88,7 +88,7 @@ struct BodyMetricsView: View {
                 }
             }
         } header: {
-            SectionHeaderView(title: "Ratios")
+            SectionHeaderView(title: String(localized: "Ratios"))
         }
     }
 }

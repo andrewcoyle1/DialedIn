@@ -307,7 +307,7 @@ class AnalyticsPresenter {
     }
 
     var energyBalanceSubtitle: String {
-        "Last 7 Days"
+        String(localized: "Last 7 Days")
     }
 
     var energyBalanceLatestValueText: String {
@@ -317,11 +317,11 @@ class AnalyticsPresenter {
         let deficit = tdee - avgIntake
         let value = Int(deficit.rounded())
         if value > 0 {
-            return "\(value) deficit"
+            return String(localized: "\(value) deficit")
         } else if value < 0 {
-            return "\(-value) surplus"
+            return String(localized: "\(-value) surplus")
         }
-        return "Balanced"
+        return String(localized: "Balanced")
     }
 
     var energyBalanceUnitText: String {
@@ -392,7 +392,7 @@ class AnalyticsPresenter {
     }
 
     var expenditureSubtitle: String {
-        "Last 7 Days"
+        String(localized: "Last 7 Days")
     }
 
     var expenditureLatestValueText: String {
