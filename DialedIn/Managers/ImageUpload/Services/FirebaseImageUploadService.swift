@@ -9,8 +9,8 @@ import SwiftUI
 
 struct FirebaseImageUploadService: ImageUploadService {
 
-    func uploadImage(image: PlatformImage, path: String) async throws -> URL {
-        let data = try await prepareJPEGData(image: image)
+    func uploadImage(image: PlatformImage, path: String, maxDimension: CGFloat, quality: CGFloat) async throws -> URL {
+        let data = try await prepareJPEGData(image: image, maxDimension: maxDimension, quality: quality)
         _ = try await saveImage(data: data, path: path)
         return try await imageReference(path: path).downloadURL()
     }
@@ -33,7 +33,7 @@ struct FirebaseImageUploadService: ImageUploadService {
         return url
     }
     
-    private func prepareJPEGData(image: PlatformImage, maxDimension: CGFloat = 1280, quality: CGFloat = 0.7) async throws -> Data {
+    private func prepareJPEGData(image: PlatformImage, maxDimension: CGFloat, quality: CGFloat) async throws -> Data {
         #if canImport(UIKit)
         return try await withCheckedThrowingContinuation { continuation in
             Task.detached(priority: .userInitiated) {
