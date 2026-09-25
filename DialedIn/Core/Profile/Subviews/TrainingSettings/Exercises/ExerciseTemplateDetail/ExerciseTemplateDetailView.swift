@@ -318,7 +318,7 @@ private extension ExerciseModelDetailView {
                 Text("Bodyweight")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseModel.isBodyweight ? "Yes" : "No")
+                Text(delegate.exerciseModel.isBodyweight ? String(localized: "Yes") : String(localized: "No"))
             }
         } header: {
             HStack(alignment: .firstTextBaseline) {
@@ -337,7 +337,7 @@ private extension ExerciseModelDetailView {
             ScrollView(.horizontal) {
                 HStack {
                     ForEach(muscles, id: \.key) { muscle, isSecondary in
-                        Text("\(muscle.name): \(isSecondary == .secondary ? "Secondary" : "Primary")")
+                        Text("\(muscle.name): \(isSecondary == .secondary ? String(localized: "Secondary") : String(localized: "Primary"))")
                     }
                 }
             }
@@ -499,7 +499,7 @@ private extension ExerciseModelDetailView {
                 Text("System Exercise")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseModel.isSystemExercise ? "Yes" : "No")
+                Text(delegate.exerciseModel.isSystemExercise ? String(localized: "Yes") : String(localized: "No"))
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Date Created")

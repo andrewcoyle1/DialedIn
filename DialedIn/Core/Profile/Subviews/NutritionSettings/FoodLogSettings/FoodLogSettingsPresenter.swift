@@ -82,7 +82,7 @@ class FoodLogSettingsPresenter {
     }
 
     var alignmentSubtitle: String {
-        timestampSide == .left ? "Left" : "Right"
+        timestampSide == .left ? String(localized: "Left") : String(localized: "Right")
     }
 
     private func hourLabel(_ hour: Int) -> String {

@@ -98,7 +98,7 @@ struct GymProfileView: View {
         .onDisappear {
             presenter.onViewDisappear()
         }
-        .searchable(text: $presenter.searchQuery, prompt: "Filter equipment by name")
+        .searchable(text: $presenter.searchQuery, prompt: String(localized: "Filter equipment by name"))
         .toolbar {
             toolbarContent
         }
@@ -488,7 +488,7 @@ struct GymProfileView: View {
             } label: {
                 Image(systemName: presenter.gymProfile.imageUrl == nil ? "photo.badge.plus" : "photo.badge.checkmark")
             }
-            .accessibilityLabel(presenter.gymProfile.imageUrl == nil ? "Add gym photo" : "Change gym photo")
+            .accessibilityLabel(presenter.gymProfile.imageUrl == nil ? String(localized: "Add gym photo") : String(localized: "Change gym photo"))
         }
     }
 

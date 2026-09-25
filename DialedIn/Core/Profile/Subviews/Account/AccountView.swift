@@ -217,7 +217,7 @@ struct AccountView: View {
             } label: {
                 Image(systemName: presenter.currentUser?.submittedProfileImage == nil ? "photo.badge.plus" : "photo.badge.checkmark")
             }
-            .accessibilityLabel(presenter.currentUser?.submittedProfileImage == nil ? "Add profile photo" : "Change profile photo")
+            .accessibilityLabel(presenter.currentUser?.submittedProfileImage == nil ? String(localized: "Add profile photo") : String(localized: "Change profile photo"))
         }
     }
 

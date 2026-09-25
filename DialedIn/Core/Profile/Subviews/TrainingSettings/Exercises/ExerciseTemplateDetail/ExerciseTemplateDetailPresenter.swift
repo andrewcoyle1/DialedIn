@@ -46,7 +46,7 @@ class ExerciseModelDetailPresenter {
     var performedSubtitle: String {
         guard let latest = stats.mostRecentFirst.first else { return "No history yet" }
         let times = stats.performances.count
-        let noun = times == 1 ? "time" : "times"
+        let noun = times == 1 ? String(localized: "time") : String(localized: "times")
         let date = latest.date.formatted(date: .abbreviated, time: .omitted)
         return String(localized: "Performed \(times) \(noun) · last \(date)")
     }

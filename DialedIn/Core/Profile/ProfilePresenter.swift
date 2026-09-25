@@ -75,7 +75,7 @@ class ProfilePresenter {
     /// The screen that used to state this read a stored property nothing ever assigned, so it said
     /// FREE to everyone, premium subscribers included. This reads the entitlement directly.
     var subscriptionStatus: String {
-        interactor.isPremium ? "PREMIUM" : "FREE"
+        interactor.isPremium ? String(localized: "PREMIUM") : String(localized: "FREE")
     }
 
     func onSubscriptionPressed() {
