@@ -182,6 +182,8 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
                         presenter.enterEditMode(session: session)
                     }
             }
+
+            notesEditor()
         } header: {
             Text("Workout Details")
         }
@@ -192,6 +194,10 @@ struct WorkoutSessionDetailView<AuthorHeader: View>: View {
         Section {
             ForEach(session.exercises) { exercise in
                 DisclosureGroup {
+                    if let note = exercise.notes {
+                        Label(note, systemImage: "note.text")
+                            .font(.subheadline)
+                    }
                     ForEach(exercise.workingSets, id: \.id) { set in
                         SetDetailRow(
                             set: set,

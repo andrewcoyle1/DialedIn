@@ -101,7 +101,7 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Text(presenter.workoutNotes.isEmpty ? "None" : "View")
+                    Text((presenter.workoutSession.notes ?? "").isEmpty ? "None" : "View")
                         .font(.headline)
                 }
                 .onTapGesture {
@@ -150,6 +150,7 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                         supersetLabel: supersetLabel,
                         progressionHint: presenter.progressionHint(for: exerciseId),
                         progressionSuggestion: presenter.progressionSuggestions[exercise.templateId],
+                        previousNote: presenter.previousNote(forExerciseTemplateId: exercise.templateId),
                         onSetSupersetGroup: { exerciseId, groupId in
                             presenter.setSupersetGroupId(groupId, forExerciseId: exerciseId)
                         },
@@ -158,6 +159,9 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                         },
                         onSetCompleted: { completedSet, _ in
                             presenter.applyLiveProgression(after: completedSet, in: exerciseId)
+                        },
+                        onUpdateNote: { note in
+                            presenter.updateExerciseNotes(note, exerciseId: exerciseId)
                         }
                     )
                     exerciseTrackerView(delegate, { duration in
@@ -225,7 +229,7 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                 }
 
                 Button {
-                    presenter.finishWorkout()
+                    presenter.onFinishPressed()
                 } label: {
                     Label("Finish Workout", systemImage: "checkmark")
                 }
