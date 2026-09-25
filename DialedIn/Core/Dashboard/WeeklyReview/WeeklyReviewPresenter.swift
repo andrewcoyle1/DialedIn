@@ -72,7 +72,7 @@ class WeeklyReviewPresenter {
         isSharing = true
         defer { isSharing = false }
         guard let image = WeeklyReviewShareCardView.render(review) else {
-            router.showSimpleAlert(title: "Unable to create the image", subtitle: "Please try again.")
+            router.showSimpleAlert(title: String(localized: "Unable to create the image"), subtitle: String(localized: "Please try again."))
             return
         }
         router.showShareSheet(items: [image])

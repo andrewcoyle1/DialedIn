@@ -92,7 +92,7 @@ class WorkoutSessionRowPresenter {
         var parts = [
             session.name,
             "\(session.exercises.count) exercises",
-            "\(setCount) sets"
+            String(localized: "\(setCount) sets")
         ]
         if volume > 0 {
             parts.append("\(Int(volume)) kg lifted")
@@ -140,7 +140,7 @@ class WorkoutSessionRowPresenter {
             if let image {
                 router.showShareSheet(items: [image])
             } else {
-                router.showSimpleAlert(title: "Unable to Create Image", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Create Image"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -164,7 +164,7 @@ class WorkoutSessionRowPresenter {
     /// own included — saving a one-off session as something to repeat is just as useful.
     func onSaveAsTemplatePressed() {
         guard let userId = interactor.currentUser?.userId else {
-            router.showSimpleAlert(title: "Unable to Save Workout", subtitle: "Please try again.")
+            router.showSimpleAlert(title: String(localized: "Unable to Save Workout"), subtitle: String(localized: "Please try again."))
             return
         }
         guard let template = WorkoutSessionTemplateBuilder.template(
@@ -174,14 +174,14 @@ class WorkoutSessionRowPresenter {
             authorId: userId
         ) else {
             interactor.trackEvent(event: Event.saveAsTemplateUnresolved(sessionId: session.id))
-            router.showSimpleAlert(title: "None of these exercises are in your library", subtitle: nil)
+            router.showSimpleAlert(title: String(localized: "None of these exercises are in your library"), subtitle: nil)
             return
         }
         Task {
             do {
                 try await interactor.saveWorkoutTemplate(workoutTemplate: template, image: nil)
                 interactor.trackEvent(event: Event.saveAsTemplateSuccess(sessionId: session.id, exerciseCount: template.exercises.count))
-                router.showAlert(title: "Saved to your workouts", subtitle: template.name) {
+                router.showAlert(title: String(localized: "Saved to your workouts"), subtitle: template.name) {
                     AnyView(VStack {
                         Button("Open") { self.onOpenSavedTemplatePressed(template) }
                         Button("OK", role: .cancel) { }
@@ -189,7 +189,7 @@ class WorkoutSessionRowPresenter {
                 }
             } catch {
                 interactor.trackEvent(event: Event.saveAsTemplateFail(error: error))
-                router.showSimpleAlert(title: "Unable to Save Workout", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Save Workout"), subtitle: String(localized: "Please try again."))
             }
         }
     }

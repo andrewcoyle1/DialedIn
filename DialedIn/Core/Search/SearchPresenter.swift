@@ -296,7 +296,7 @@ class SearchPresenter {
             try await start()
             router.showWorkoutTrackerView()
         } catch {
-            router.showSimpleAlert(title: "Could Not Start Workout", subtitle: "Please try again.")
+            router.showSimpleAlert(title: String(localized: "Could Not Start Workout"), subtitle: String(localized: "Please try again."))
         }
     }
 
@@ -304,8 +304,8 @@ class SearchPresenter {
         guard let userId = currentUser?.userId else { return }
         if let meal = interactor.draftMeal {
             router.showAlert(
-                title: "Unable to add new meal",
-                subtitle: "You already have an draft meal.",
+                title: String(localized: "Unable to add new meal"),
+                subtitle: String(localized: "You already have an draft meal."),
                 buttons: {
                     AnyView(
                         VStack {

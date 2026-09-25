@@ -88,16 +88,16 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
             highlights
             // Four stats side by side stop fitting at the accessibility text sizes.
             AdaptiveStack(verticalAlignment: .top, spacing: dynamicTypeSize.isAccessibilitySize ? 8 : 20) {
-                StatItem(header: "Exercises", value: "\(presenter.session.exercises.count)")
-                StatItem(header: "Sets", value: "\(workingSets.count)")
+                StatItem(header: String(localized: "Exercises"), value: "\(presenter.session.exercises.count)")
+                StatItem(header: String(localized: "Sets"), value: "\(workingSets.count)")
                 if totalVolumeKg > 0 {
-                    StatItem(header: "Volume", value: formatVolume(totalVolumeKg))
+                    StatItem(header: String(localized: "Volume"), value: formatVolume(totalVolumeKg))
                 }
                 if !dynamicTypeSize.isAccessibilitySize {
                     Spacer()
                 }
                 if let duration = durationFormatted {
-                    StatItem(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, header: "Duration", value: duration)
+                    StatItem(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, header: String(localized: "Duration"), value: duration)
                 }
             }
         }
@@ -247,7 +247,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
         switch exercise.trackingMode {
         case .weightReps:
             if let first = sets.first, let reps = first.reps, let weight = first.weightKg {
-                return "\(count) × \(reps) @ \(formatWeight(weight)) kg"
+                return String(localized: "\(count) × \(reps) @ \(formatWeight(weight)) kg")
             }
             if let first = sets.first, let reps = first.reps {
                 return "\(count) × \(reps)"
@@ -265,7 +265,7 @@ struct WorkoutSessionRowView<AuthorHeader: View>: View {
                 return "\(count) × \(formatDistance(meters))"
             }
         }
-        return "\(count) sets"
+        return String(localized: "\(count) sets")
     }
 
     private func formatWeight(_ kilograms: Double) -> String {

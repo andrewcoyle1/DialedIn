@@ -77,6 +77,6 @@ struct ShareCardContent: Equatable {
     /// bodyweight session does not boast "0 kg".
     static func volumeText(_ kilograms: Double, locale: Locale = .current) -> String? {
         guard kilograms > 0 else { return nil }
-        return "\(Int(kilograms.rounded()).formatted(.number.locale(locale))) kg"
+        return String(localized: "\(Int(kilograms.rounded()).formatted(.number.locale(locale))) kg")
     }
 }

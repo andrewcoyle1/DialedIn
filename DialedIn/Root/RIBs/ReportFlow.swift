@@ -58,8 +58,8 @@ final class ReportFlow {
         reason = nil
         note = ""
         router.showAlert(
-            title: "Report \(content.noun.capitalized)",
-            subtitle: "Why are you reporting this \(content.noun)?",
+            title: String(localized: "Report \(content.noun.capitalized)"),
+            subtitle: String(localized: "Why are you reporting this \(content.noun)?"),
             buttons: {
                 AnyView(
                     ForEach(ReportReason.allCases) { reason in
@@ -98,11 +98,11 @@ final class ReportFlow {
                     notes: trimmed.isEmpty ? nil : trimmed
                 )
                 router.showSimpleAlert(
-                    title: "Report Sent",
+                    title: String(localized: "Report Sent"),
                     subtitle: "Thanks — we will take a look at this \(content.noun)."
                 )
             } catch {
-                router.showSimpleAlert(title: "Unable to Send Report", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Send Report"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -115,7 +115,7 @@ final class ReportFlow {
 
     private func showNoteAlert(subtitle: String) {
         router.showAlert(
-            title: "Add a Note",
+            title: String(localized: "Add a Note"),
             subtitle: subtitle,
             buttons: {
                 AnyView(

@@ -132,7 +132,7 @@ extension CoreBuilder {
     private var tabBarScreens: [TabBarScreen] {
         [
             TabBarScreen(
-                title: "Dashboard",
+                title: String(localized: "Dashboard"),
                 systemImage: "house",
                 screen: {
                     RouterView { router in
@@ -142,7 +142,7 @@ extension CoreBuilder {
                 }
             ),
             TabBarScreen(
-                title: "Training",
+                title: String(localized: "Training"),
                 systemImage: "dumbbell",
                 screen: {
                     RouterView { router in
@@ -152,7 +152,7 @@ extension CoreBuilder {
                 }
             ),
             TabBarScreen(
-                title: "Nutrition",
+                title: String(localized: "Nutrition"),
                 systemImage: "carrot",
                 screen: {
                     RouterView { router in
@@ -162,7 +162,7 @@ extension CoreBuilder {
                 }
             ),
             TabBarScreen(
-                title: "Analytics",
+                title: String(localized: "Analytics"),
                 systemImage: "chart.bar.xaxis",
                 screen: {
                     RouterView { router in

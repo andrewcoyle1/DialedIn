@@ -200,7 +200,7 @@ struct SearchView: View {
     private var exercisesSection: some View {
         if !presenter.filteredExercises.isEmpty {
             searchItemSection(
-                header: "Exercises",
+                header: String(localized: "Exercises"),
                 items: presenter.filteredExercises,
                 action: { item in
                     guard let item = item as? ExerciseModel else { return }
@@ -243,7 +243,7 @@ struct SearchView: View {
     private var recipesSection: some View {
         if !presenter.filteredRecipeTemplates.isEmpty {
             searchItemSection(
-                header: "Recipes",
+                header: String(localized: "Recipes"),
                 items: presenter.filteredRecipeTemplates,
                 action: { item in
                     guard let item = item as? RecipeTemplateModel else { return }
@@ -257,7 +257,7 @@ struct SearchView: View {
     private var ingredientsSection: some View {
         if !presenter.filteredFoods.isEmpty {
             searchItemSection(
-                header: "Foods",
+                header: String(localized: "Foods"),
                 items: presenter.filteredFoods,
                 action: { item in
                     guard let item = item as? FoodModel else { return }

@@ -151,19 +151,19 @@ struct WeeklyReview: Equatable {
     var takeaway: String {
         let prCount = personalRecords.count
         if sessionCount == 0 {
-            return "No sessions logged this week."
+            return String(localized: "No sessions logged this week.")
         }
         if sessionCount >= goal, prCount > 0 {
-            return "Goal hit and \(prCount) \(prCount == 1 ? "PR" : "PRs") set. Great week."
+            return String(localized: "Goal hit and \(prCount) \(prCount == 1 ? "PR" : "PRs") set. Great week.")
         }
         if sessionCount >= goal {
-            return "Goal hit: \(sessionCount) of \(goal) sessions."
+            return String(localized: "Goal hit: \(sessionCount) of \(goal) sessions.")
         }
         if let change = volumeChange, change >= 0.1 {
-            return "Volume up \(Self.percent(change)) on last week."
+            return String(localized: "Volume up \(Self.percent(change)) on last week.")
         }
         let toGo = CircleWeek.remaining(sessions: sessionCount, goal: goal)
-        return "\(toGo) more \(toGo == 1 ? "session" : "sessions") would have hit your goal."
+        return String(localized: "\(toGo) more \(toGo == 1 ? "session" : "sessions") would have hit your goal.")
     }
 
     var dateRangeText: String {
@@ -181,7 +181,7 @@ struct WeeklyReview: Equatable {
     /// "+12% vs last week"; nil when there is nothing to compare with.
     var volumeChangeText: String? {
         guard let change = volumeChange else { return nil }
-        return "\(change >= 0 ? "+" : "")\(Self.percent(change)) vs last week"
+        return String(localized: "\(change >= 0 ? "+" : "")\(Self.percent(change)) vs last week")
     }
 
     var averageRPEText: String? {
@@ -193,7 +193,7 @@ struct WeeklyReview: Equatable {
         let value = "\(latest.formatted(.number.precision(.fractionLength(0...1)))) kg"
         guard let change = weightChangeKg else { return value }
         let sign = change > 0 ? "+" : change < 0 ? "−" : "±"
-        return "\(value) (\(sign)\(abs(change).formatted(.number.precision(.fractionLength(0...1)))) kg)"
+        return String(localized: "\(value) (\(sign)\(abs(change).formatted(.number.precision(.fractionLength(0...1)))) kg)")
     }
 
     var nutritionText: String? {

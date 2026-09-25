@@ -62,7 +62,7 @@ class SharedItemPresenter {
                 router.dismissScreen()
             } catch {
                 interactor.trackEvent(event: Event.answerFail(error: error))
-                router.showSimpleAlert(title: "Unable to add", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to add"), subtitle: String(localized: "Please try again."))
             }
             isWorking = false
         }

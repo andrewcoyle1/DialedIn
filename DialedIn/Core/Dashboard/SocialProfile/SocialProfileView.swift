@@ -118,12 +118,12 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                     HStack(spacing: 32) {
                         // An "Activity 1" stat sat here, hardcoded. Nothing counts a user's activity, and
                         // followers/following beside it are real, which made the fake one look real too.
-                        StatItem(header: "Followers", value: "\(presenter.followersCount)")
+                        StatItem(header: String(localized: "Followers"), value: "\(presenter.followersCount)")
                             .tappableBackground()
                             .anyButton(.press) {
                                 presenter.onFollowersPressed()
                             }
-                        StatItem(header: "Following", value: "\(presenter.followingCount)")
+                        StatItem(header: String(localized: "Following"), value: "\(presenter.followingCount)")
                             .tappableBackground()
                             .anyButton(.press) {
                                 presenter.onFollowingPressed()
@@ -186,7 +186,7 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
             .padding(.bottom, 12)
             .removeListRowFormatting()
         } header: {
-            SectionHeaderView(title: "Consistency")
+            SectionHeaderView(title: String(localized: "Consistency"))
         }
         .listSectionMargins(.vertical, 0)
         .listSectionMargins(.horizontal, 0)
@@ -217,7 +217,7 @@ struct SocialProfileView<WorkoutSessionRow: View>: View {
                 }
             }
         } header: {
-            SectionHeaderView(title: "Recent Workouts")
+            SectionHeaderView(title: String(localized: "Recent Workouts"))
         }
         .listSectionMargins(.top, 0)
         .listSectionMargins(.horizontal, 0)

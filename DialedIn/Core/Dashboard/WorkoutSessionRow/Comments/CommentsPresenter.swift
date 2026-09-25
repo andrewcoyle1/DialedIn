@@ -134,7 +134,7 @@ class CommentsPresenter {
                 // server still appeared in the list, and the draft was already cleared, so the text
                 // was gone too.
                 commentDraft = trimmed
-                router.showSimpleAlert(title: "Unable to Post Comment", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Post Comment"), subtitle: String(localized: "Please try again."))
             }
         }
     }
@@ -251,7 +251,7 @@ class CommentsPresenter {
     }
 
     func onDeletePressed(_ comment: WorkoutSessionComment) {
-        router.showAlert(title: "Delete Comment?", subtitle: "Are you sure you want to delete your comment? This cannot be undone.", buttons: {
+        router.showAlert(title: String(localized: "Delete Comment?"), subtitle: String(localized: "Are you sure you want to delete your comment? This cannot be undone."), buttons: {
             AnyView(
                 Button(role: .destructive) {
                     self.onDeleteConfirmed(comment)
@@ -270,7 +270,7 @@ class CommentsPresenter {
                 comments = Self.threaded(comments + [comment])
                 // Was `try?` with an unconditional removal, so a failed delete looked like it worked
                 // until the next refresh brought the comment back.
-                router.showSimpleAlert(title: "Unable to Delete Comment", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to Delete Comment"), subtitle: String(localized: "Please try again."))
             }
         }
     }

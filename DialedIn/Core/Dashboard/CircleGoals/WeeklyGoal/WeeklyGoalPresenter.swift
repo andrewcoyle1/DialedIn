@@ -36,7 +36,7 @@ class WeeklyGoalPresenter {
                 try await interactor.updateWeeklySessionGoal(goal)
                 router.dismissScreen()
             } catch {
-                router.showSimpleAlert(title: "Unable to save your goal", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to save your goal"), subtitle: String(localized: "Please try again."))
             }
         }
     }

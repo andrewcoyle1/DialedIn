@@ -26,8 +26,8 @@ struct WorkoutShareCardView: View {
 
         var title: String {
             switch self {
-            case .story: "Story"
-            case .square: "Square"
+            case .story: String(localized: "Story")
+            case .square: String(localized: "Square")
             }
         }
     }

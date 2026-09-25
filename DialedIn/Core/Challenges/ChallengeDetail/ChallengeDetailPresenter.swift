@@ -57,9 +57,9 @@ class ChallengeDetailPresenter {
     var daysLeftText: String {
         let days = challenge.daysLeft(from: .now)
         switch days {
-        case 0: return "Ended"
-        case 1: return "1 day left"
-        default: return "\(days) days left"
+        case 0: return String(localized: "Ended")
+        case 1: return String(localized: "1 day left")
+        default: return String(localized: "\(days) days left")
         }
     }
 
@@ -92,8 +92,8 @@ class ChallengeDetailPresenter {
     func onLeavePressed() {
         let title = challenge.title
         router.showAlert(
-            title: "Leave \(title)?",
-            subtitle: "Your progress will no longer count.",
+            title: String(localized: "Leave \(title)?"),
+            subtitle: String(localized: "Your progress will no longer count."),
             buttons: {
                 AnyView(VStack {
                     Button("Leave", role: .destructive) { self.leave() }
@@ -112,7 +112,7 @@ class ChallengeDetailPresenter {
                 router.dismissScreen()
             } catch {
                 interactor.trackEvent(event: Event.leaveFail(error: error))
-                router.showSimpleAlert(title: "Unable to leave", subtitle: "Please try again.")
+                router.showSimpleAlert(title: String(localized: "Unable to leave"), subtitle: String(localized: "Please try again."))
             }
         }
     }
