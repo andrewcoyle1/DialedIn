@@ -1,0 +1,3524 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "-" : {
+
+    },
+    "—" : {
+
+    },
+    ":" : {
+
+    },
+    "·" : {
+
+    },
+    "@%@" : {
+
+    },
+    "/ %@g" : {
+
+    },
+    "/ %lld" : {
+
+    },
+    "/ %lld kcal" : {
+
+    },
+    "%" : {
+
+    },
+    "%@" : {
+
+    },
+    "%@ - %@ %@, %@ %@ increment" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ - %2$@ %3$@, %4$@ %5$@ increment"
+          }
+        }
+      }
+    },
+    "%@ - %@ %@, %@ %@ increments" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ - %2$@ %3$@, %4$@ %5$@ increments"
+          }
+        }
+      }
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ · last 12 weeks" : {
+
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%@ %lld:%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$lld:%3$@"
+          }
+        }
+      }
+    },
+    "%@ × %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ × %2$lld"
+          }
+        }
+      }
+    },
+    "%@ Breakdown" : {
+
+    },
+    "%@ C" : {
+
+    },
+    "%@ calories %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ calories %2$@"
+          }
+        }
+      }
+    },
+    "%@ F" : {
+
+    },
+    "%@ kcal" : {
+
+    },
+    "%@ kg" : {
+
+    },
+    "%@ m" : {
+
+    },
+    "%@ over %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ over %2$@"
+          }
+        }
+      }
+    },
+    "%@ P" : {
+
+    },
+    "%@ photo, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ photo, %2$@"
+          }
+        }
+      }
+    },
+    "%@ shared this with you." : {
+
+    },
+    "%@ target sets" : {
+
+    },
+    "%@ x %lld reps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ x %2$lld reps"
+          }
+        }
+      }
+    },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "%@, %@ sets, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@ sets, %3$@"
+          }
+        }
+      }
+    },
+    "%@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "%@: %@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@%3$@"
+          }
+        }
+      }
+    },
+    "%@/week" : {
+
+    },
+    "%@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@"
+          }
+        }
+      }
+    },
+    "%@g" : {
+
+    },
+    "%lld" : {
+
+    },
+    "%lld / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "%lld / %lld kcal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld / %2$lld kcal"
+          }
+        }
+      }
+    },
+    "%lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@"
+          }
+        }
+      }
+    },
+    "%lld %@ a week" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@ a week"
+          }
+        }
+      }
+    },
+    "%lld cm" : {
+
+    },
+    "%lld cycles" : {
+
+    },
+    "%lld days" : {
+
+    },
+    "%lld days left" : {
+
+    },
+    "%lld exercise%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld exercise%2$@"
+          }
+        }
+      }
+    },
+    "%lld exercises" : {
+
+    },
+    "%lld Exercises" : {
+
+    },
+    "%lld exercises selected" : {
+
+    },
+    "%lld ft" : {
+
+    },
+    "%lld hr" : {
+
+    },
+    "%lld in" : {
+
+    },
+    "%lld kcal" : {
+
+    },
+    "%lld kcal consumed" : {
+
+    },
+    "%lld kcal/day" : {
+
+    },
+    "%lld kg" : {
+
+    },
+    "%lld lbs" : {
+
+    },
+    "%lld left" : {
+
+    },
+    "%lld likes" : {
+
+    },
+    "%lld m" : {
+
+    },
+    "%lld min" : {
+
+    },
+    "%lld of %lld sessions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld sessions"
+          }
+        }
+      }
+    },
+    "%lld primary, %lld secondary" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld primary, %2$lld secondary"
+          }
+        }
+      }
+    },
+    "%lld remaining" : {
+
+    },
+    "%lld reps" : {
+
+    },
+    "%lld s" : {
+
+    },
+    "%lld sec" : {
+
+    },
+    "%lld sets" : {
+
+    },
+    "%lld to go" : {
+
+    },
+    "%lld weeks (%lld months)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld weeks (%2$lld months)"
+          }
+        }
+      }
+    },
+    "%lld workouts" : {
+
+    },
+    "%lld-day streak" : {
+
+    },
+    "%lld:%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld:%2$@"
+          }
+        }
+      }
+    },
+    "%lld. %@ %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld. %2$@ %3$lld"
+          }
+        }
+      }
+    },
+    "%lld. %@, %lld of %lld sessions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld. %2$@, %3$lld of %4$lld sessions"
+          }
+        }
+      }
+    },
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "%lld/300" : {
+
+    },
+    "%lld%%" : {
+
+    },
+    "%lld+" : {
+
+    },
+    "%lldC" : {
+
+    },
+    "%lldF" : {
+
+    },
+    "%lldg" : {
+
+    },
+    "%lldP" : {
+
+    },
+    "•" : {
+
+    },
+    "×" : {
+
+    },
+    "🎉 Onboarding Complete!" : {
+
+    },
+    "0" : {
+
+    },
+    "00" : {
+
+    },
+    "1 day left" : {
+
+    },
+    "1 like" : {
+
+    },
+    "1RM" : {
+
+    },
+    "3–20 characters: letters, numbers, underscores and dots. Friends can find you by it." : {
+
+    },
+    "7-day targets" : {
+
+    },
+    "9+" : {
+
+    },
+    "A fasting day counts as 0 kcal rather than a day you forgot to log." : {
+
+    },
+    "A recent weigh-in keeps the trend honest." : {
+
+    },
+    "A workout is built around the equipment at a gym. Create one to continue." : {
+
+    },
+    "AB Tests" : {
+
+    },
+    "About" : {
+
+    },
+    "About Compound" : {
+
+    },
+    "About You" : {
+
+    },
+    "Accept" : {
+
+    },
+    "Accessories" : {
+
+    },
+    "Account" : {
+
+    },
+    "Achieved on %@" : {
+
+    },
+    "Activate Program" : {
+
+    },
+    "Active" : {
+
+    },
+    "Active Program" : {
+
+    },
+    "Active Session (Local)" : {
+
+    },
+    "Active Training Program" : {
+
+    },
+    "Active Workout Session" : {
+
+    },
+    "Activity Level" : {
+
+    },
+    "Activity Level Multiplier" : {
+
+    },
+    "Add" : {
+
+    },
+    "Add a comment…" : {
+
+    },
+    "Add a front, side or back photo to see how you change over time." : {
+
+    },
+    "Add a Gym Profile" : {
+
+    },
+    "Add a program to start compounding." : {
+
+    },
+    "Add a reply…" : {
+
+    },
+    "Add band" : {
+
+    },
+    "Add body weight" : {
+
+    },
+    "Add cable machine" : {
+
+    },
+    "Add Day" : {
+
+    },
+    "Add exercise" : {
+
+    },
+    "Add fixed-weight bar" : {
+
+    },
+    "Add free weight" : {
+
+    },
+    "Add gym photo" : {
+
+    },
+    "Add gym profile" : {
+
+    },
+    "Add ingredient" : {
+
+    },
+    "Add Ingredients" : {
+
+    },
+    "Add Item" : {
+
+    },
+    "Add loadable bar" : {
+
+    },
+    "Add meal" : {
+
+    },
+    "Add name" : {
+
+    },
+    "Add note" : {
+
+    },
+    "Add notes here..." : {
+
+    },
+    "Add nutrition facts photo" : {
+
+    },
+    "Add Photo" : {
+
+    },
+    "Add Photo (Optional)" : {
+
+    },
+    "Add pin-loaded machine" : {
+
+    },
+    "Add product front photo" : {
+
+    },
+    "Add profile photo" : {
+
+    },
+    "Add Range" : {
+
+    },
+    "Add recipe" : {
+
+    },
+    "Add set" : {
+
+    },
+    "Add set target" : {
+
+    },
+    "Add Step" : {
+
+    },
+    "Add the gyms you train at and the equipment each one has." : {
+
+    },
+    "Add to favourites" : {
+
+    },
+    "Add to my library" : {
+
+    },
+    "Add training" : {
+
+    },
+    "Add Variation" : {
+
+    },
+    "Add workout" : {
+
+    },
+    "Added to your library" : {
+
+    },
+    "Adjust Last Set Reps" : {
+
+    },
+    "Adjust Rest Timer" : {
+
+    },
+    "Adjust the workout rest timer by adding or subtracting time" : {
+
+    },
+    "Adjustment (reps)" : {
+
+    },
+    "Adjustment (seconds)" : {
+
+    },
+    "After" : {
+
+    },
+    "Agreements" : {
+
+    },
+    "Alcohol" : {
+
+    },
+    "All Recorded Data" : {
+
+    },
+    "All-Time Stats" : {
+
+    },
+    "Allow access to health data" : {
+
+    },
+    "Also used for body measurements." : {
+
+    },
+    "Alternate Names" : {
+
+    },
+    "Alternative Names" : {
+
+    },
+    "Alternative Names: " : {
+
+    },
+    "Amount" : {
+
+    },
+    "An estimate of calories burned per day" : {
+
+    },
+    "Analysing label..." : {
+
+    },
+    "Analysing meal..." : {
+
+    },
+    "Analytics" : {
+
+    },
+    "Any" : {
+
+    },
+    "Any days you did not finish logging?" : {
+
+    },
+    "Any Equipment" : {
+
+    },
+    "App Icon" : {
+
+    },
+    "Applies to the previous values shown beside each set while you train." : {
+
+    },
+    "At Risk" : {
+
+    },
+    "At what rate?" : {
+
+    },
+    "Auth Info" : {
+
+    },
+    "Author ID" : {
+
+    },
+    "Auto" : {
+
+    },
+    "Automatically upload every workout to your Strava account the moment you finish a session." : {
+
+    },
+    "Available" : {
+
+    },
+    "Available Integrations" : {
+
+    },
+    "Average" : {
+
+    },
+    "Average RPE" : {
+
+    },
+    "Avg: %lld kcal" : {
+
+    },
+    "Back" : {
+
+    },
+    "Bands" : {
+
+    },
+    "Barcode" : {
+
+    },
+    "Barcode number" : {
+
+    },
+    "Based on your selected rate of %@ per week" : {
+
+    },
+    "Before" : {
+
+    },
+    "Behaviour" : {
+
+    },
+    "Benches & Racks" : {
+
+    },
+    "Bioactive Compounds (per 100g)" : {
+
+    },
+    "Block" : {
+
+    },
+    "BMR (Mifflin-St Jeor)" : {
+
+    },
+    "BMR × (activity + exercise)" : {
+
+    },
+    "BMR uses your age, height, weight and sex. We then scale by daily activity and how often you exercise. Minimum safeguards may apply elsewhere when setting calorie targets." : {
+
+    },
+    "Body & Nutrition" : {
+
+    },
+    "Body Metrics" : {
+
+    },
+    "Body Weight Contribution" : {
+
+    },
+    "Body Weight Contribution: " : {
+
+    },
+    "Body Weights" : {
+
+    },
+    "Bodyweight" : {
+
+    },
+    "Bookmark Count" : {
+
+    },
+    "Brand Name" : {
+
+    },
+    "Breakdown" : {
+
+    },
+    "By continuing, you agree to our [Terms of Service](%@) and [Privacy Policy](%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "By continuing, you agree to our [Terms of Service](%1$@) and [Privacy Policy](%2$@)"
+          }
+        }
+      }
+    },
+    "C" : {
+
+    },
+    "Cable Machines" : {
+
+    },
+    "Calculation Start" : {
+
+    },
+    "Calendar" : {
+
+    },
+    "Calorie distribution" : {
+
+    },
+    "Calorie floor" : {
+
+    },
+    "Calorie floor: %@" : {
+
+    },
+    "Calories" : {
+
+    },
+    "Calories & Macros" : {
+
+    },
+    "Camera not available on this device." : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Cancel reply" : {
+
+    },
+    "Cancels your follow request" : {
+
+    },
+    "Carb Breakdown" : {
+
+    },
+    "Carbs" : {
+
+    },
+    "Carbs Breakdown" : {
+
+    },
+    "Cardio Experience" : {
+
+    },
+    "Cardio Fitness" : {
+
+    },
+    "Centimeters" : {
+
+    },
+    "Challenge your circle to train a set number of times." : {
+
+    },
+    "Challenges" : {
+
+    },
+    "Change gym photo" : {
+
+    },
+    "Change meal time" : {
+
+    },
+    "Change profile photo" : {
+
+    },
+    "Changes your weekly session goal" : {
+
+    },
+    "Charts" : {
+
+    },
+    "Check-in Day" : {
+
+    },
+    "Checking…" : {
+
+    },
+    "Choose Exercise" : {
+
+    },
+    "Choose food image" : {
+
+    },
+    "Choose from Library" : {
+
+    },
+    "Choose Gym Profile" : {
+
+    },
+    "Choose one" : {
+
+    },
+    "Choose One" : {
+
+    },
+    "Choose Program" : {
+
+    },
+    "Choose Shortcuts" : {
+
+    },
+    "Choose your diet" : {
+
+    },
+    "Clear" : {
+
+    },
+    "Clear Day" : {
+
+    },
+    "Clear filters" : {
+
+    },
+    "Clear local data & sign out" : {
+
+    },
+    "Clear selection" : {
+
+    },
+    "Clears all local data and signs out. Your Firebase account remains intact." : {
+
+    },
+    "Click Count" : {
+
+    },
+    "Click me" : {
+
+    },
+    "Close" : {
+
+    },
+    "cm" : {
+
+    },
+    "Coaching Modules" : {
+
+    },
+    "Code" : {
+
+    },
+    "Colour & Icon" : {
+
+    },
+    "Comments" : {
+
+    },
+    "Common foods only" : {
+
+    },
+    "Community & Support" : {
+
+    },
+    "Compare" : {
+
+    },
+    "Complete" : {
+
+    },
+    "Complete Account" : {
+
+    },
+    "Complete set" : {
+
+    },
+    "Complete Set" : {
+
+    },
+    "Complete Workout" : {
+
+    },
+    "Complete your first workout to see it here" : {
+
+    },
+    "Completed today" : {
+
+    },
+    "Completed Workouts" : {
+
+    },
+    "Compound" : {
+
+    },
+    "COMPOUND" : {
+
+    },
+    "Compound is built on the open-source packages below. Thank you to everyone who maintains them." : {
+
+    },
+    "Compound is your training and nutrition platform. Every session builds on the last. You are currently on version %@ (%@)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Compound is your training and nutrition platform. Every session builds on the last. You are currently on version %1$@ (%2$@)."
+          }
+        }
+      }
+    },
+    "Compound needs permission to read and write your weight data in Apple Health. This allows us to automatically track your progress, update your weight logs, and provide you with accurate charts and insights." : {
+
+    },
+    "Compound Pro" : {
+
+    },
+    "Connect" : {
+
+    },
+    "Connect Strava" : {
+
+    },
+    "Connect with Strava" : {
+
+    },
+    "Connected" : {
+
+    },
+    "Consider your ability to maintain sustained cardio activities like running, cycling, or swimming." : {
+
+    },
+    "Continue" : {
+
+    },
+    "Continue editing" : {
+
+    },
+    "Contributors" : {
+
+    },
+    "Convert Values" : {
+
+    },
+    "Copy" : {
+
+    },
+    "Copy Day" : {
+
+    },
+    "Copy Link" : {
+
+    },
+    "Copy to" : {
+
+    },
+    "Correct the reps of the set that was just logged" : {
+
+    },
+    "Couldn't check that username. Try again in a moment." : {
+
+    },
+    "Couldn't search right now" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create & Add" : {
+
+    },
+    "Create a diet plan and your daily calorie and macro targets appear here." : {
+
+    },
+    "Create a Food" : {
+
+    },
+    "Create a Recipe" : {
+
+    },
+    "Create Custom Exercise" : {
+
+    },
+    "Create Diet Plan" : {
+
+    },
+    "Create Food" : {
+
+    },
+    "Create Gym Profile" : {
+
+    },
+    "Create Profile" : {
+
+    },
+    "Create program" : {
+
+    },
+    "Create Program" : {
+
+    },
+    "Create Recipe" : {
+
+    },
+    "Create Workout" : {
+
+    },
+    "Create your first training program to get started" : {
+
+    },
+    "Current Workout" : {
+
+    },
+    "Custom Exercises" : {
+
+    },
+    "Custom Foods" : {
+
+    },
+    "Custom Recipes" : {
+
+    },
+    "Custom Templates" : {
+
+    },
+    "Customise Analytics" : {
+
+    },
+    "Customise Food Log" : {
+
+    },
+    "Customise Program" : {
+
+    },
+    "Daily Average" : {
+
+    },
+    "Daily Calorie Distribution" : {
+
+    },
+    "Dashboard" : {
+
+    },
+    "Data Seeding" : {
+
+    },
+    "Date" : {
+
+    },
+    "Date Created" : {
+
+    },
+    "Date Modified" : {
+
+    },
+    "Date of birth" : {
+
+    },
+    "day" : {
+
+    },
+    "Day %lld" : {
+
+    },
+    "Day name" : {
+
+    },
+    "Day Order" : {
+
+    },
+    "days" : {
+
+    },
+    "Days" : {
+
+    },
+    "Days per microcycle" : {
+
+    },
+    "Days you mark as incomplete are left out of your expenditure estimate." : {
+
+    },
+    "Debug Actions" : {
+
+    },
+    "Decline" : {
+
+    },
+    "Default Timers" : {
+
+    },
+    "Define Workout" : {
+
+    },
+    "Definition" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Delete Account" : {
+
+    },
+    "Delete drafted meal" : {
+
+    },
+    "Delete Exercise" : {
+
+    },
+    "Delete Food" : {
+
+    },
+    "Delete meal" : {
+
+    },
+    "Delete Recipe" : {
+
+    },
+    "Delete this photo?" : {
+
+    },
+    "Delete variation" : {
+
+    },
+    "Delete Workout" : {
+
+    },
+    "Deload" : {
+
+    },
+    "Deload Week" : {
+
+    },
+    "Depending on what your goal is, we will help you by generating a custom plan to help you get there. This can be changed in future, and your plan will be updated accordingly." : {
+
+    },
+    "Description" : {
+
+    },
+    "Description: " : {
+
+    },
+    "Details" : {
+
+    },
+    "Developer settings" : {
+
+    },
+    "Developer Settings" : {
+
+    },
+    "Device Info" : {
+
+    },
+    "Did you fast on any of these days?" : {
+
+    },
+    "Diet Program" : {
+
+    },
+    "Discard" : {
+
+    },
+    "Discard & Start New" : {
+
+    },
+    "Discard Changes" : {
+
+    },
+    "Disconnect" : {
+
+    },
+    "Dismiss" : {
+
+    },
+    "Dismiss last week's summary" : {
+
+    },
+    "Dismissed" : {
+
+    },
+    "Display" : {
+
+    },
+    "Display Only" : {
+
+    },
+    "Distance Units" : {
+
+    },
+    "Distribution: %@" : {
+
+    },
+    "Don't ask for product images again" : {
+
+    },
+    "Done" : {
+
+    },
+    "Duration" : {
+
+    },
+    "Duration: %@" : {
+
+    },
+    "Dynamic reads your logged intake against your weight trend over the last four weeks. Fixed holds the figure where it is." : {
+
+    },
+    "Easily log meals, scan foods, and get AI-powered nutrition analysis. Set goals, track macros, and receive personalized recommendations to fuel your journey." : {
+
+    },
+    "Edit" : {
+
+    },
+    "Edit Base Weight" : {
+
+    },
+    "Edit Base Weights" : {
+
+    },
+    "Edit Inventory" : {
+
+    },
+    "Edit Machine" : {
+
+    },
+    "Edit meal item" : {
+
+    },
+    "Edit note" : {
+
+    },
+    "Edit Range" : {
+
+    },
+    "Edit Weights" : {
+
+    },
+    "Edit Workout" : {
+
+    },
+    "Elapsed Time" : {
+
+    },
+    "Elapsed: " : {
+
+    },
+    "Email" : {
+
+    },
+    "Enable notifications" : {
+
+    },
+    "Enable Notifications" : {
+
+    },
+    "Enable notifications to receive reminders for workouts, nutrition tracking, and important updates. Stay on track and never miss a beat in your fitness journey." : {
+
+    },
+    "End Hour" : {
+
+    },
+    "End my break" : {
+
+    },
+    "Energy" : {
+
+    },
+    "Enter a weight to see the plates" : {
+
+    },
+    "Enter Barcode" : {
+
+    },
+    "Enter invite code" : {
+
+    },
+    "Enter Label" : {
+
+    },
+    "Enter manually" : {
+
+    },
+    "Enter recipe name" : {
+
+    },
+    "Enter workout name" : {
+
+    },
+    "Equipment" : {
+
+    },
+    "Essential Macrominerals (per 100g)" : {
+
+    },
+    "Essential Trace Minerals (per 100g)" : {
+
+    },
+    "Estimated Macros" : {
+
+    },
+    "Estimated Macros (per serving)" : {
+
+    },
+    "Estimated TDEE: %lld kcal/day" : {
+
+    },
+    "Estimated Timeline" : {
+
+    },
+    "Every rep compounds." : {
+
+    },
+    "Exercise" : {
+
+    },
+    "Exercise Assessment" : {
+
+    },
+    "Exercise Details" : {
+
+    },
+    "Exercise Frequency" : {
+
+    },
+    "Exercise Frequency Adjustment" : {
+
+    },
+    "Exercise ID" : {
+
+    },
+    "Exercise info" : {
+
+    },
+    "Exercise Name" : {
+
+    },
+    "Exercise Name: " : {
+
+    },
+    "Exercise options" : {
+
+    },
+    "Exercise Settings" : {
+
+    },
+    "Exercise Timers" : {
+
+    },
+    "Exercises" : {
+
+    },
+    "Exercises, workouts, foods, people" : {
+
+    },
+    "Expenditure" : {
+
+    },
+    "Expenditure Calculation" : {
+
+    },
+    "Expenditure Modifiers" : {
+
+    },
+    "F" : {
+
+    },
+    "Fat" : {
+
+    },
+    "Fat Breakdown" : {
+
+    },
+    "Fat-Soluble Vitamins (per 100g)" : {
+
+    },
+    "Fats" : {
+
+    },
+    "Fats Breakdown" : {
+
+    },
+    "Favourite" : {
+
+    },
+    "Favourite Count" : {
+
+    },
+    "Favourite Gym Profile" : {
+
+    },
+    "Favourite Measurements" : {
+
+    },
+    "Feet" : {
+
+    },
+    "Female" : {
+
+    },
+    "Fetch Session" : {
+
+    },
+    "Fetch Session from Firebase" : {
+
+    },
+    "Fetched Session" : {
+
+    },
+    "Filter equipment by name" : {
+
+    },
+    "Final" : {
+
+    },
+    "Final Details" : {
+
+    },
+    "Find exercises, workouts, foods and people, or pick shortcuts to show here." : {
+
+    },
+    "Find People" : {
+
+    },
+    "Finish and save the workout session" : {
+
+    },
+    "Finish Workout" : {
+
+    },
+    "Finished" : {
+
+    },
+    "Firebase Test" : {
+
+    },
+    "First name" : {
+
+    },
+    "Fixed Weight Bars" : {
+
+    },
+    "Follow athletes you admire. Progress is more fun shared." : {
+
+    },
+    "Follow Requests" : {
+
+    },
+    "Following %@" : {
+
+    },
+    "Follows you" : {
+
+    },
+    "Food Log" : {
+
+    },
+    "Food Name" : {
+
+    },
+    "Food options" : {
+
+    },
+    "Food Search" : {
+
+    },
+    "Food Tiles" : {
+
+    },
+    "Foods" : {
+
+    },
+    "Foods you create appear here." : {
+
+    },
+    "Free Weights" : {
+
+    },
+    "g" : {
+
+    },
+    "Gender" : {
+
+    },
+    "General" : {
+
+    },
+    "Generating your plan…" : {
+
+    },
+    "Get a push when someone in your circle interacts with you, even when DialedIn is closed." : {
+
+    },
+    "Get premium access to unlock all features." : {
+
+    },
+    "Get Started" : {
+
+    },
+    "Go Back" : {
+
+    },
+    "Goal" : {
+
+    },
+    "Goal Overview" : {
+
+    },
+    "Goal reached!" : {
+
+    },
+    "Goal Setting" : {
+
+    },
+    "Goal Summary" : {
+
+    },
+    "Good to Know" : {
+
+    },
+    "Gym" : {
+
+    },
+    "Gym Profiles" : {
+
+    },
+    "Gym Settings" : {
+
+    },
+    "Habits" : {
+
+    },
+    "Health Data" : {
+
+    },
+    "Health Disclaimer" : {
+
+    },
+    "Height" : {
+
+    },
+    "Height Units" : {
+
+    },
+    "Help us personalize your experience by providing your name. You can also add a profile photo if you'd like." : {
+
+    },
+    "Highest: %@" : {
+
+    },
+    "History" : {
+
+    },
+    "Hour Range" : {
+
+    },
+    "Hours" : {
+
+    },
+    "How many workouts you've finished this week." : {
+
+    },
+    "How often do you exercise?" : {
+
+    },
+    "How tall are you?" : {
+
+    },
+    "How these photos are used." : {
+
+    },
+    "How we calculated this" : {
+
+    },
+    "How would you rate your cardiovascular fitness?" : {
+
+    },
+    "I acknowledge and accept the Terms of the Consumer Health Privacy Notice" : {
+
+    },
+    "I acknowledge and accept the Terms of the Health Disclaimer" : {
+
+    },
+    "Image URL" : {
+
+    },
+    "Imperial" : {
+
+    },
+    "Imperial (in)" : {
+
+    },
+    "Imperial (lbs)" : {
+
+    },
+    "In order to for us to help you on your fitness journey, we need to know a few things about you. These will help us tailor our recommendations to your needs." : {
+
+    },
+    "Inches" : {
+
+    },
+    "Increment" : {
+
+    },
+    "Individually configure which modules can appear during your check in." : {
+
+    },
+    "Ingredients" : {
+
+    },
+    "Initial Estimate" : {
+
+    },
+    "Insights & Analytics" : {
+
+    },
+    "Integrations" : {
+
+    },
+    "Introduction" : {
+
+    },
+    "Invite a friend" : {
+
+    },
+    "It's time to create a custom workout program." : {
+
+    },
+    "Items" : {
+
+    },
+    "Join" : {
+
+    },
+    "kcal/day" : {
+
+    },
+    "Keep Editing" : {
+
+    },
+    "kg" : {
+
+    },
+    "Kilograms" : {
+
+    },
+    "Knowledge Base" : {
+
+    },
+    "Label" : {
+
+    },
+    "Label text" : {
+
+    },
+    "Label text captured" : {
+
+    },
+    "Last name" : {
+
+    },
+    "Last name (optional)" : {
+
+    },
+    "Last time: %@" : {
+
+    },
+    "Laterality" : {
+
+    },
+    "Laterality: " : {
+
+    },
+    "Latest: %@" : {
+
+    },
+    "Layout" : {
+
+    },
+    "lb" : {
+
+    },
+    "Leader" : {
+
+    },
+    "Learn More" : {
+
+    },
+    "Leave" : {
+
+    },
+    "Leave Challenge" : {
+
+    },
+    "Left" : {
+
+    },
+    "Legal" : {
+
+    },
+    "Let Compound update your Health data when you log new weights." : {
+
+    },
+    "Let's get to work creating a custom diet program tuned to your needs. This will evolve over time as we learn how your body responds to the diet and make the necessary changes. This can always be manually altered later if you would like a specific change." : {
+
+    },
+    "Library" : {
+
+    },
+    "Licences" : {
+
+    },
+    "Lifting Experience" : {
+
+    },
+    "Like" : {
+
+    },
+    "Like comment" : {
+
+    },
+    "Likes" : {
+
+    },
+    "Load more" : {
+
+    },
+    "Loadable Accessories" : {
+
+    },
+    "Loadable Bars" : {
+
+    },
+    "Loading variations..." : {
+
+    },
+    "Local Storage Debug" : {
+
+    },
+    "Log ${value} ${unit}" : {
+
+    },
+    "Log a Meal" : {
+
+    },
+    "Log Food" : {
+
+    },
+    "Log Foods" : {
+
+    },
+    "Log Out" : {
+
+    },
+    "Log weight" : {
+
+    },
+    "Log Weight" : {
+
+    },
+    "Log your strength and cardio sessions, follow expert routines, and visualize your progress over time. Stay motivated with streaks and personal bests." : {
+
+    },
+    "Log your weight over time and visualize your progress with interactive charts. Set goals, monitor trends, and stay accountable on your fitness journey." : {
+
+    },
+    "Logged at" : {
+
+    },
+    "Logger Banner" : {
+
+    },
+    "Logger Food Tiles" : {
+
+    },
+    "Logger Options" : {
+
+    },
+    "Looking up product..." : {
+
+    },
+    "Lower" : {
+
+    },
+    "Lowest: %@" : {
+
+    },
+    "Macro sum is %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Macro sum is %1$lld %2$@"
+          }
+        }
+      }
+    },
+    "Macros" : {
+
+    },
+    "Maintain full control: you can revoke access or limit permissions at any time in the Health app." : {
+
+    },
+    "Maintaining current weight" : {
+
+    },
+    "Male" : {
+
+    },
+    "Mark the current set as complete and start rest" : {
+
+    },
+    "Meal" : {
+
+    },
+    "Meal Description" : {
+
+    },
+    "Meal Time" : {
+
+    },
+    "Members" : {
+
+    },
+    "Mention %@" : {
+
+    },
+    "Mentions" : {
+
+    },
+    "Metadata" : {
+
+    },
+    "Metric" : {
+
+    },
+    "Metric (cm)" : {
+
+    },
+    "Metric (kg)" : {
+
+    },
+    "Microcycles" : {
+
+    },
+    "Minerals" : {
+
+    },
+    "Minerals Breakdown" : {
+
+    },
+    "Minimise Tracker" : {
+
+    },
+    "Minutes" : {
+
+    },
+    "ml" : {
+
+    },
+    "Monitor Your Nutrition" : {
+
+    },
+    "More" : {
+
+    },
+    "More actions" : {
+
+    },
+    "Motivation" : {
+
+    },
+    "Movement Quality" : {
+
+    },
+    "Muscle Balance" : {
+
+    },
+    "Muscle Groups" : {
+
+    },
+    "My Programs" : {
+
+    },
+    "Name" : {
+
+    },
+    "Name Workout" : {
+
+    },
+    "New" : {
+
+    },
+    "NEW" : {
+
+    },
+    "New challenge" : {
+
+    },
+    "New Challenge" : {
+
+    },
+    "New followers" : {
+
+    },
+    "New targets suggested" : {
+
+    },
+    "Next" : {
+
+    },
+    "Next week" : {
+
+    },
+    "No" : {
+
+    },
+    "No %@ weights" : {
+
+    },
+    "No active session in local storage" : {
+
+    },
+    "No Active Training Program" : {
+
+    },
+    "No Active Weight Goal" : {
+
+    },
+    "No active workout session" : {
+
+    },
+    "No Activity Yet" : {
+
+    },
+    "No comments yet" : {
+
+    },
+    "No Custom Exercises" : {
+
+    },
+    "No data yet" : {
+
+    },
+    "No Diet Plan" : {
+
+    },
+    "No equipment selected" : {
+
+    },
+    "No exercise matches every filter. Try clearing one." : {
+
+    },
+    "No Exercises" : {
+
+    },
+    "No Favourites" : {
+
+    },
+    "No Foods" : {
+
+    },
+    "No Gym Profiles" : {
+
+    },
+    "No Matching Exercises" : {
+
+    },
+    "No Notifications" : {
+
+    },
+    "No one to invite" : {
+
+    },
+    "No one to share with" : {
+
+    },
+    "No One Yet" : {
+
+    },
+    "No Programs" : {
+
+    },
+    "No Progress Photos" : {
+
+    },
+    "No recent sessions" : {
+
+    },
+    "No Recipes" : {
+
+    },
+    "No records yet." : {
+
+    },
+    "No results found" : {
+
+    },
+    "No shortcuts. The Search tab will show only recent searches until you add one." : {
+
+    },
+    "No subscription options available right now." : {
+
+    },
+    "No Weights" : {
+
+    },
+    "No working sets logged yet." : {
+
+    },
+    "No Workout History" : {
+
+    },
+    "No workouts yet" : {
+
+    },
+    "Non-US Label" : {
+
+    },
+    "None" : {
+
+    },
+    "None of the foods on this plate record %@ data." : {
+
+    },
+    "Not connected" : {
+
+    },
+    "Not loadable" : {
+
+    },
+    "Not now" : {
+
+    },
+    "Not set" : {
+
+    },
+    "Not specified" : {
+
+    },
+    "Not Yet" : {
+
+    },
+    "Note" : {
+
+    },
+    "Notes" : {
+
+    },
+    "Notice" : {
+
+    },
+    "Notifications" : {
+
+    },
+    "Notifications are currently disabled. To receive updates, please enable notifications in Settings." : {
+
+    },
+    "Notifications Disabled" : {
+
+    },
+    "Notifications Test" : {
+
+    },
+    "Nudge" : {
+
+    },
+    "Nudge %@ to train" : {
+
+    },
+    "Nudges" : {
+
+    },
+    "Number of cycles" : {
+
+    },
+    "Nutrient Reporting" : {
+
+    },
+    "Nutrition" : {
+
+    },
+    "Nutrition Facts" : {
+
+    },
+    "Nutrition Information (per 100g)" : {
+
+    },
+    "Nutrition Overview" : {
+
+    },
+    "Nutrition Plan" : {
+
+    },
+    "Nutrition Settings" : {
+
+    },
+    "of %lld" : {
+
+    },
+    "Official Exercises" : {
+
+    },
+    "OK" : {
+
+    },
+    "On the Search Tab" : {
+
+    },
+    "Open" : {
+
+    },
+    "Open Food Facts" : {
+
+    },
+    "Open Settings" : {
+
+    },
+    "Opens the standings" : {
+
+    },
+    "Opens the workout" : {
+
+    },
+    "Opens their profile" : {
+
+    },
+    "Optimisation" : {
+
+    },
+    "Optional" : {
+
+    },
+    "Optionally add other names" : {
+
+    },
+    "Organise your training into phases that vary intensity and volume to support continuous progress and effective recovery." : {
+
+    },
+    "Other" : {
+
+    },
+    "Overview" : {
+
+    },
+    "P" : {
+
+    },
+    "Parse Label" : {
+
+    },
+    "Paywall Test" : {
+
+    },
+    "People" : {
+
+    },
+    "People must ask to follow a private profile. Until you accept, they see only your name and counts. Private profiles are left out of suggestions." : {
+
+    },
+    "People will show up here once there are some." : {
+
+    },
+    "People you both follow" : {
+
+    },
+    "People you follow who follow you back." : {
+
+    },
+    "per 100g" : {
+
+    },
+    "Periodisation" : {
+
+    },
+    "Personal Best" : {
+
+    },
+    "Personal Records" : {
+
+    },
+    "Photo" : {
+
+    },
+    "Photos of Food Packaging" : {
+
+    },
+    "Pick a username so friends can find you" : {
+
+    },
+    "Picker" : {
+
+    },
+    "Pin Loaded Machines" : {
+
+    },
+    "Plan auto-renews for %@ until cancelled." : {
+
+    },
+    "Plate Colour" : {
+
+    },
+    "Plate Loaded Machines" : {
+
+    },
+    "Plates" : {
+
+    },
+    "Please add some exercises to get started." : {
+
+    },
+    "Point camera at a barcode" : {
+
+    },
+    "Point camera at a nutrition label" : {
+
+    },
+    "Portion Description" : {
+
+    },
+    "Pounds" : {
+
+    },
+    "Pre-Built Templates" : {
+
+    },
+    "Preferred diet: %@" : {
+
+    },
+    "Preparation Steps" : {
+
+    },
+    "Prev" : {
+
+    },
+    "Previous Reference" : {
+
+    },
+    "Previous week" : {
+
+    },
+    "Privacy" : {
+
+    },
+    "Private profile" : {
+
+    },
+    "Product Front" : {
+
+    },
+    "Professional workout templates designed for common training programs." : {
+
+    },
+    "Profile" : {
+
+    },
+    "Program settings" : {
+
+    },
+    "Program Settings" : {
+
+    },
+    "Program Update" : {
+
+    },
+    "Progress Photos" : {
+
+    },
+    "Protein" : {
+
+    },
+    "Protein Breakdown" : {
+
+    },
+    "Protein Intake" : {
+
+    },
+    "Protein: %@" : {
+
+    },
+    "Provide nutrition facts for %@" : {
+
+    },
+    "Quick add" : {
+
+    },
+    "Quick Add" : {
+
+    },
+    "Range End" : {
+
+    },
+    "Range of Motion" : {
+
+    },
+    "Range Start" : {
+
+    },
+    "Rate us on the app store" : {
+
+    },
+    "Re-scan" : {
+
+    },
+    "Recent" : {
+
+    },
+    "Recent Records" : {
+
+    },
+    "Recent Sessions (Last 3)" : {
+
+    },
+    "Recipe name" : {
+
+    },
+    "Recipe options" : {
+
+    },
+    "Recipes" : {
+
+    },
+    "Recipes you create appear here." : {
+
+    },
+    "Recommended %@ sets a week" : {
+
+    },
+    "Record today's body weight." : {
+
+    },
+    "Records" : {
+
+    },
+    "Recovery is part of the process." : {
+
+    },
+    "Reference Scope" : {
+
+    },
+    "Refresh" : {
+
+    },
+    "Reload" : {
+
+    },
+    "Remind me at" : {
+
+    },
+    "Remove" : {
+
+    },
+    "Remove from favourites" : {
+
+    },
+    "Rename" : {
+
+    },
+    "Rename Day" : {
+
+    },
+    "Renders the Story and Square cards for the first mock session and saves both to the photo library." : {
+
+    },
+    "Reply" : {
+
+    },
+    "Replying to %@" : {
+
+    },
+    "Report" : {
+
+    },
+    "Report Workout" : {
+
+    },
+    "Reps" : {
+
+    },
+    "Reps Max" : {
+
+    },
+    "Reps Min" : {
+
+    },
+    "Reps Per Session" : {
+
+    },
+    "Required" : {
+
+    },
+    "Reset" : {
+
+    },
+    "Reset All Seeding" : {
+
+    },
+    "Reset Exercise Seeding" : {
+
+    },
+    "Reset Program Seeding" : {
+
+    },
+    "Reset Workout Seeding" : {
+
+    },
+    "Resistance:" : {
+
+    },
+    "Resistance: %@" : {
+
+    },
+    "Rest" : {
+
+    },
+    "Rest Day" : {
+
+    },
+    "Rest Scaling" : {
+
+    },
+    "Rest Timer" : {
+
+    },
+    "Rest: " : {
+
+    },
+    "Restore Defaults" : {
+
+    },
+    "Restore Subscription" : {
+
+    },
+    "Results" : {
+
+    },
+    "Resume" : {
+
+    },
+    "Resume Current Workout" : {
+
+    },
+    "Retake" : {
+
+    },
+    "Reveal" : {
+
+    },
+    "Review the week and update your program." : {
+
+    },
+    "Right" : {
+
+    },
+    "RIR" : {
+
+    },
+    "Roadmap" : {
+
+    },
+    "RPE" : {
+
+    },
+    "RPE %@, %@ reps in reserve" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "RPE %1$@, %2$@ reps in reserve"
+          }
+        }
+      }
+    },
+    "S" : {
+
+    },
+    "Save" : {
+
+    },
+    "Save & back-up account" : {
+
+    },
+    "Save as Template" : {
+
+    },
+    "Save Exercise" : {
+
+    },
+    "Save Program" : {
+
+    },
+    "Save Share Cards to Photos" : {
+
+    },
+    "Save to Library" : {
+
+    },
+    "Saved Programs" : {
+
+    },
+    "Scanner not supported on this device." : {
+
+    },
+    "Search" : {
+
+    },
+    "Search exercises" : {
+
+    },
+    "Search workouts" : {
+
+    },
+    "Searching..." : {
+
+    },
+    "Seconds" : {
+
+    },
+    "Section" : {
+
+    },
+    "Sections" : {
+
+    },
+    "Security" : {
+
+    },
+    "See All" : {
+
+    },
+    "See all your progress in one place, even if you use other health apps." : {
+
+    },
+    "Select an item to view details" : {
+
+    },
+    "Select at least one exercise" : {
+
+    },
+    "Select Equipment" : {
+
+    },
+    "Select Muscles" : {
+
+    },
+    "Select one or more ingredients to add" : {
+
+    },
+    "Select Photo" : {
+
+    },
+    "Select the date for this measurement entry" : {
+
+    },
+    "Select the date for this weight entry" : {
+
+    },
+    "Select two photos to compare them." : {
+
+    },
+    "Select your gender" : {
+
+    },
+    "Send" : {
+
+    },
+    "Send comment" : {
+
+    },
+    "Separate names with a comma." : {
+
+    },
+    "Serving Quantity" : {
+
+    },
+    "Serving Size: %lf %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Serving Size: %1$lf %2$@"
+          }
+        }
+      }
+    },
+    "Servings" : {
+
+    },
+    "Session ID" : {
+
+    },
+    "Sessions" : {
+
+    },
+    "Set" : {
+
+    },
+    "Set %lld, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Set %1$lld, %2$@"
+          }
+        }
+      }
+    },
+    "Set %lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Set %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Set a weight goal in Profile to track your progress toward your target." : {
+
+    },
+    "Set completed" : {
+
+    },
+    "Set goal" : {
+
+    },
+    "Set Rest Timers" : {
+
+    },
+    "Set your weekly session goal" : {
+
+    },
+    "Sets Completed" : {
+
+    },
+    "Sets per Muscle" : {
+
+    },
+    "Share" : {
+
+    },
+    "Share %@" : {
+
+    },
+    "Share Card" : {
+
+    },
+    "Share Image" : {
+
+    },
+    "Share with Friends" : {
+
+    },
+    "Share workout" : {
+
+    },
+    "Share Workout with Friends" : {
+
+    },
+    "Shares" : {
+
+    },
+    "Shortcuts" : {
+
+    },
+    "Show All Data" : {
+
+    },
+    "Show All Sections" : {
+
+    },
+    "Show calendar" : {
+
+    },
+    "Show food picker" : {
+
+    },
+    "Shows the currently active workout session if one is in progress." : {
+
+    },
+    "Shows the plates for each side of the bar" : {
+
+    },
+    "Simulate Premium" : {
+
+    },
+    "Siri" : {
+
+    },
+    "Siri & Shortcuts" : {
+
+    },
+    "Skip" : {
+
+    },
+    "Skip for now" : {
+
+    },
+    "Skip Rest Timer" : {
+
+    },
+    "Skip the current rest timer and continue workout" : {
+
+    },
+    "Skip this week" : {
+
+    },
+    "Smart Progression" : {
+
+    },
+    "Social" : {
+
+    },
+    "Stability" : {
+
+    },
+    "Standings" : {
+
+    },
+    "Start" : {
+
+    },
+    "START" : {
+
+    },
+    "Start ${workout}" : {
+
+    },
+    "Start a break" : {
+
+    },
+    "Start date" : {
+
+    },
+    "Start Empty Workout" : {
+
+    },
+    "Start Hour" : {
+
+    },
+    "Start one of your workouts and open the tracker." : {
+
+    },
+    "Start the conversation." : {
+
+    },
+    "Start this program" : {
+
+    },
+    "Start Time" : {
+
+    },
+    "Start Workout" : {
+
+    },
+    "Started at" : {
+
+    },
+    "Starting a template saves your own copy and makes it your active program." : {
+
+    },
+    "Stay Informed & Motivated" : {
+
+    },
+    "Stay informed about workouts, nutrition tracking, and important updates. Enable notifications to never miss a beat." : {
+
+    },
+    "Step %lld" : {
+
+    },
+    "Strategy" : {
+
+    },
+    "Strava" : {
+
+    },
+    "Strava Connected" : {
+
+    },
+    "Streak reminder" : {
+
+    },
+    "Subscribe" : {
+
+    },
+    "Subscription" : {
+
+    },
+    "Support" : {
+
+    },
+    "Support:" : {
+
+    },
+    "Support: %@" : {
+
+    },
+    "Swap" : {
+
+    },
+    "Swap Exercise" : {
+
+    },
+    "Sync your weight entries seamlessly between Compound and Apple Health." : {
+
+    },
+    "System Exercise" : {
+
+    },
+    "System Foods" : {
+
+    },
+    "System Recipes" : {
+
+    },
+    "Take a break from logging?" : {
+
+    },
+    "Take photo" : {
+
+    },
+    "Take Photo" : {
+
+    },
+    "Taken" : {
+
+    },
+    "Tap Edit to reorder or remove." : {
+
+    },
+    "Tap the heart on a food or recipe to keep it here." : {
+
+    },
+    "Tap to toggle a measurement as a favourite" : {
+
+    },
+    "Target %@ sets a week" : {
+
+    },
+    "Target Muscles" : {
+
+    },
+    "Target Weight" : {
+
+    },
+    "Target: %lld sessions" : {
+
+    },
+    "Targets" : {
+
+    },
+    "TDEE Formula" : {
+
+    },
+    "TDEE Result" : {
+
+    },
+    "Template" : {
+
+    },
+    "Templates" : {
+
+    },
+    "Test Upload" : {
+
+    },
+    "Testing" : {
+
+    },
+    "The 8-character code from a friend's invite link." : {
+
+    },
+    "The Basics" : {
+
+    },
+    "The last seven days" : {
+
+    },
+    "The workout keeps its duration; only when it started changes." : {
+
+    },
+    "The workout your active programme has for today." : {
+
+    },
+    "There are no weights added to this gym." : {
+
+    },
+    "There are no weights for the selected unit." : {
+
+    },
+    "These are saved program designs. Start a program from a template to generate a scheduled plan." : {
+
+    },
+    "These take precident over default timers" : {
+
+    },
+    "This account is private. Follow it to see its workouts." : {
+
+    },
+    "This is your estimated total daily energy expenditure." : {
+
+    },
+    "This is your username." : {
+
+    },
+    "This meal has no items." : {
+
+    },
+    "This week" : {
+
+    },
+    "This will be associated with the workout template." : {
+
+    },
+    "This will override default exercise settings." : {
+
+    },
+    "Time Selection" : {
+
+    },
+    "Timeline" : {
+
+    },
+    "Timeline actions" : {
+
+    },
+    "Timeline Actions" : {
+
+    },
+    "Timeline Food Tiles" : {
+
+    },
+    "Timeline Options" : {
+
+    },
+    "Timer Duration" : {
+
+    },
+    "Today" : {
+
+    },
+    "Today's Expenditure" : {
+
+    },
+    "Today's Workout" : {
+
+    },
+    "Top Contributors" : {
+
+    },
+    "Top Set" : {
+
+    },
+    "Total Reps" : {
+
+    },
+    "Total Sets" : {
+
+    },
+    "Total Volume" : {
+
+    },
+    "Total Weight" : {
+
+    },
+    "Track a few sessions and watch the data compound." : {
+
+    },
+    "Track Your Weight" : {
+
+    },
+    "Track Your Workouts" : {
+
+    },
+    "Trackable Metric" : {
+
+    },
+    "Trackable Metric: " : {
+
+    },
+    "Trackable Metrics" : {
+
+    },
+    "Train %lld times" : {
+
+    },
+    "Training" : {
+
+    },
+    "Training focus: %@" : {
+
+    },
+    "Training Program Library" : {
+
+    },
+    "Training program: %@, %lld days/week" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Training program: %1$@, %2$lld days/week"
+          }
+        }
+      }
+    },
+    "Training Settings" : {
+
+    },
+    "Training's easier with someone keeping you honest." : {
+
+    },
+    "Treats this device as a subscriber without a purchase. Debug and Mock builds only — it does not exist in a release build." : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Turn a section off to hide it from the Analytics tab. Everything stays reachable from the More list at the bottom of the tab." : {
+
+    },
+    "Turn off torch" : {
+
+    },
+    "Turn on torch" : {
+
+    },
+    "Tutorials" : {
+
+    },
+    "Type" : {
+
+    },
+    "Type the barcode digits printed under the bars." : {
+
+    },
+    "Type the nutrition table as it appears on the packaging." : {
+
+    },
+    "Type: " : {
+
+    },
+    "Unable to load subscription options" : {
+
+    },
+    "Unit" : {
+
+    },
+    "units" : {
+
+    },
+    "Units" : {
+
+    },
+    "Unknown" : {
+
+    },
+    "Unlike" : {
+
+    },
+    "Unlike comment" : {
+
+    },
+    "Unread" : {
+
+    },
+    "Untitled Gym Profile" : {
+
+    },
+    "Up to %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Up to %1$@ %2$@"
+          }
+        }
+      }
+    },
+    "Uploading…" : {
+
+    },
+    "Upper" : {
+
+    },
+    "US Label" : {
+
+    },
+    "Use %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Use %1$@ %2$@"
+          }
+        }
+      }
+    },
+    "Use Default" : {
+
+    },
+    "Use these options to reset and re-seed system exercises, workouts and programs. Useful for testing or if seeding failed." : {
+
+    },
+    "Use This Food" : {
+
+    },
+    "User Info" : {
+
+    },
+    "username" : {
+
+    },
+    "Username" : {
+
+    },
+    "Value" : {
+
+    },
+    "Variation %lld" : {
+
+    },
+    "View" : {
+
+    },
+    "View Licences" : {
+
+    },
+    "Vitamins" : {
+
+    },
+    "Vitamins Breakdown" : {
+
+    },
+    "Volume" : {
+
+    },
+    "W" : {
+
+    },
+    "Wants to follow you" : {
+
+    },
+    "Warm-Up" : {
+
+    },
+    "Warmup" : {
+
+    },
+    "Warmup Set" : {
+
+    },
+    "Warmup Sets" : {
+
+    },
+    "Water-Soluble Vitamins (per 100g)" : {
+
+    },
+    "We respect your privacy. Notifications are only used to help you reach your goals and are never shared." : {
+
+    },
+    "We'll start with a few questions to get you started." : {
+
+    },
+    "Week" : {
+
+    },
+    "Weekly Calorie & Macro Breakdown" : {
+
+    },
+    "Weekly check-in ready" : {
+
+    },
+    "Weekly digest" : {
+
+    },
+    "Weekly Goal" : {
+
+    },
+    "Weekly Rate" : {
+
+    },
+    "Weekly Review" : {
+
+    },
+    "Weight" : {
+
+    },
+    "Weight Change" : {
+
+    },
+    "Weight Details" : {
+
+    },
+    "Weight in %@. %@. %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Weight in %1$@. %2$@. %3$@"
+          }
+        }
+      }
+    },
+    "Weight of ingredients is 0 %@" : {
+
+    },
+    "Weight Tracking" : {
+
+    },
+    "Weight Units" : {
+
+    },
+    "Weights" : {
+
+    },
+    "Welcome to Compound." : {
+
+    },
+    "What icon should we use to display this program?" : {
+
+    },
+    "What is your goal?" : {
+
+    },
+    "What will you be entering nutrition information for?" : {
+
+    },
+    "What would you like to name this gym?" : {
+
+    },
+    "What would you like to name this program?" : {
+
+    },
+    "What You Get" : {
+
+    },
+    "What's a warmup set?" : {
+
+    },
+    "What's your daily activity level outside of exercise?" : {
+
+    },
+    "What's your weight?" : {
+
+    },
+    "When were you born?" : {
+
+    },
+    "Which pose is this?" : {
+
+    },
+    "Why Enable Notifications?" : {
+
+    },
+    "Why subscribe?" : {
+
+    },
+    "Why We Request Health Data Access" : {
+
+    },
+    "Working sets in the last 7 days. A muscle an exercise only assists counts half a set. Tap a muscle for its 12-week trend." : {
+
+    },
+    "Workout" : {
+
+    },
+    "Workout Details" : {
+
+    },
+    "Workout History" : {
+
+    },
+    "Workout Library" : {
+
+    },
+    "Workout name" : {
+
+    },
+    "Workout Notes" : {
+
+    },
+    "Workout options" : {
+
+    },
+    "Workout Overview" : {
+
+    },
+    "Workout Settings" : {
+
+    },
+    "Workout Summary" : {
+
+    },
+    "Workout Templates" : {
+
+    },
+    "Workouts" : {
+
+    },
+    "Workouts per microcycle" : {
+
+    },
+    "Workouts This Week" : {
+
+    },
+    "Yes" : {
+
+    },
+    "Yesterday" : {
+
+    },
+    "You are on a logging break" : {
+
+    },
+    "You can change your notification preferences at any time in Settings." : {
+
+    },
+    "You can convert the rest day into a workout day by add exercises below" : {
+
+    },
+    "You can invite people you follow who follow you back." : {
+
+    },
+    "You can share with people you follow who follow you back." : {
+
+    },
+    "You don't have any notifications yet. When you receive notifications, they'll appear here." : {
+
+    },
+    "You have blocked this account" : {
+
+    },
+    "You have no custom exercises." : {
+
+    },
+    "You have not logged this exercise yet." : {
+
+    },
+    "You haven't added any exercises yet. Once you add an exercise, target muscles will appear here." : {
+
+    },
+    "You will create a new workout for your library." : {
+
+    },
+    "You're ready to start compounding." : {
+
+    },
+    "You've Got This!" : {
+
+    },
+    "Your circle sees your progress towards this as a ring round your face." : {
+
+    },
+    "Your Control" : {
+
+    },
+    "Your Diet Plan" : {
+
+    },
+    "Your estimate freezes until you end the break, and the check-in stops asking." : {
+
+    },
+    "Your expenditure estimate is frozen while the break is open." : {
+
+    },
+    "Your Goal" : {
+
+    },
+    "Your Health, Your Data" : {
+
+    },
+    "Your Name" : {
+
+    },
+    "Your Plate" : {
+
+    },
+    "Your targets are unchanged this week" : {
+
+    },
+    "Your weekly review is ready" : {
+
+    }
+  },
+  "version" : "1.0"
+}
