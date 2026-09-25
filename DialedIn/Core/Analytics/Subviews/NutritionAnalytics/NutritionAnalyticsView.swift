@@ -54,7 +54,7 @@ struct NutritionAnalyticsView: View {
         return breakdownSection(header: String(localized: "Calories & Macros")) {
             AnalyticsCard(
                 title: String(localized: "Macros"),
-                subtitle: presenter.macrosLast7Days.isEmpty ? "No Data" : "Last 7 Days",
+                subtitle: presenter.macrosLast7Days.isEmpty ? String(localized: "No Data") : String(localized: "Last 7 Days"),
                 subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : Int(presenter.macrosAverageCalories).formatted(),
                 subsubsubtitle: "kcal",
                 themeColor: proteinColor,
@@ -116,7 +116,7 @@ struct NutritionAnalyticsView: View {
     ) -> some View {
         AnalyticsCard(
             title: title,
-            subtitle: presenter.dailyTotals != nil ? "Today" : "No Data",
+            subtitle: presenter.dailyTotals != nil ? String(localized: "Today") : String(localized: "No Data"),
             subsubtitle: presenter.dailyTotals != nil
                 ? card.value.formatted(.number.precision(.fractionLength(card.decimals)))
                 : "--",
@@ -161,7 +161,7 @@ struct NutritionAnalyticsView: View {
     ) -> some View {
         let card = AnalyticsCard(
             title: title,
-            subtitle: isTracked ? "Today" : "Not Tracked",
+            subtitle: isTracked ? String(localized: "Today") : String(localized: "Not Tracked"),
             subsubtitle: isTracked ? presenter.formatBreakdown(value, unit: unit) : "--",
             subsubsubtitle: unit,
             themeColor: color,

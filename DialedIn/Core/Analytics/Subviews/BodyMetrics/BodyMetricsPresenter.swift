@@ -54,7 +54,7 @@ class BodyMetricsPresenter {
             return BodyRatioCardModel(
                 id: kind,
                 title: kind.title,
-                subtitle: recent.isEmpty ? "No Entries" : "Last \(recent.count) Entries",
+                subtitle: recent.isEmpty ? String(localized: "No Entries") : String(localized: "Last \(recent.count) Entries"),
                 latestValueText: recent.last?.displayValue ?? "--",
                 sparklineData: recent.map { (date: $0.date, value: $0.ratio) }
             )
@@ -153,7 +153,7 @@ class BodyMetricsPresenter {
             guard let value = type.value(from: entry) else { return nil }
             return (date: entry.date, value: display(value, as: measure))
         }
-        let subtitle = entries.isEmpty ? "No Entries" : "Last 7 Entries"
+        let subtitle = entries.isEmpty ? String(localized: "No Entries") : String(localized: "Last 7 Entries")
         let latestValueText: String
         if let last = entries.last, let value = type.value(from: last) {
             latestValueText = display(value, as: measure).formatted(.number.precision(.fractionLength(1)))

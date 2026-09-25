@@ -211,7 +211,7 @@ class AnalyticsPresenter {
     }
 
     var stepsSubtitle: String {
-        stepsLast7.isEmpty ? "No Data" : "Last 7 Days"
+        stepsLast7.isEmpty ? String(localized: "No Data") : String(localized: "Last 7 Days")
     }
 
     var stepsLatestValueText: String {
@@ -237,7 +237,7 @@ class AnalyticsPresenter {
     }
 
     var scaleWeightSubtitle: String {
-        scaleWeightLastEntries.isEmpty ? "No Entries" : "Last 7 Entries"
+        scaleWeightLastEntries.isEmpty ? String(localized: "No Entries") : String(localized: "Last 7 Entries")
     }
 
     var scaleWeightLatestValueText: String {
@@ -264,7 +264,7 @@ class AnalyticsPresenter {
     }
 
     var weightTrendSubtitle: String {
-        scaleWeightLastEntries.isEmpty ? "No Entries" : "Last 7 Days"
+        scaleWeightLastEntries.isEmpty ? String(localized: "No Entries") : String(localized: "Last 7 Days")
     }
 
     var weightTrendLatestValueText: String {
@@ -336,7 +336,7 @@ class AnalyticsPresenter {
     }
 
     var bodyFatSubtitle: String {
-        bodyFatLastEntries.isEmpty ? "No Entries" : "Last 7 Entries"
+        bodyFatLastEntries.isEmpty ? String(localized: "No Entries") : String(localized: "Last 7 Entries")
     }
 
     var bodyFatLatestValueText: String {
@@ -364,7 +364,7 @@ class AnalyticsPresenter {
     }
 
     var workoutSubtitle: String {
-        workoutLast7Sessions.isEmpty ? "No Workouts" : "Last 7 Workouts"
+        workoutLast7Sessions.isEmpty ? String(localized: "No Workouts") : String(localized: "Last 7 Workouts")
     }
 
     var workoutLatestValueText: String {
@@ -489,7 +489,7 @@ class AnalyticsPresenter {
 
     var goalProgressSubtitle: String {
         guard hasActiveGoal else { return "No Goal Set" }
-        return goalWeightEntries.isEmpty ? "No Entries" : "Toward Target"
+        return goalWeightEntries.isEmpty ? String(localized: "No Entries") : String(localized: "Toward Target")
     }
 
     var goalProgressLatestValueText: String {

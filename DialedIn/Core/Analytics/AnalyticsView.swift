@@ -306,7 +306,7 @@ private extension AnalyticsView {
             AnalyticsCardGrid {
                 AnalyticsCard(
                     title: String(localized: "Macros"),
-                    subtitle: presenter.macrosLast7Days.isEmpty ? "No Data" : "Last 7 Days",
+                    subtitle: presenter.macrosLast7Days.isEmpty ? String(localized: "No Data") : String(localized: "Last 7 Days"),
                     subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : Int(presenter.macrosAverageCalories).formatted(),
                     subsubsubtitle: "kcal",
                     themeColor: proteinColor,
@@ -323,7 +323,7 @@ private extension AnalyticsView {
                 }
                 AnalyticsCard(
                     title: String(localized: "Protein"),
-                    subtitle: presenter.macrosLast7Days.isEmpty ? "No Data" : "Today",
+                    subtitle: presenter.macrosLast7Days.isEmpty ? String(localized: "No Data") : String(localized: "Today"),
                     subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : presenter.proteinCurrent.formatted(.number.precision(.fractionLength(1))),
                     subsubsubtitle: "g",
                     themeColor: proteinColor,

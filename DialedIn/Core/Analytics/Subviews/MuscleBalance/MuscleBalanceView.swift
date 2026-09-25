@@ -9,8 +9,8 @@ struct MuscleBalanceView: View {
     var body: some View {
         List {
             Group {
-                region(header: "Upper", rows: presenter.upperRows)
-                region(header: "Lower", rows: presenter.lowerRows)
+                region(header: String(localized: "Upper"), rows: presenter.upperRows)
+                region(header: String(localized: "Lower"), rows: presenter.lowerRows)
             }
             .listSectionMargins(.horizontal, 0)
             .listRowSeparator(.hidden)

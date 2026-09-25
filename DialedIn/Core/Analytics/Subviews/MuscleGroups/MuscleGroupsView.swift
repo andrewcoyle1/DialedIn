@@ -12,8 +12,8 @@ struct MuscleGroupsView: View {
     var body: some View {
         List {
             Group {
-                muscleSection(header: "Upper", muscles: presenter.upperMuscles)
-                muscleSection(header: "Lower", muscles: presenter.lowerMuscles)
+                muscleSection(header: String(localized: "Upper"), muscles: presenter.upperMuscles)
+                muscleSection(header: String(localized: "Lower"), muscles: presenter.lowerMuscles)
             }
             .listSectionMargins(.horizontal, 0)
             .listRowSeparator(.hidden)
