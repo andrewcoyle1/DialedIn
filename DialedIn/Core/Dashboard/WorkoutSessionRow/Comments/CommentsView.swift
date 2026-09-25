@@ -181,17 +181,10 @@ struct CommentsView: View {
             Button {
                 presenter.onSendPressed()
             } label: {
-                if presenter.isSending {
-                    ProgressView()
-                } else {
-                    Image(systemName: "paperplane.fill")
-                }
+                Image(systemName: "paperplane.fill")
             }
             .accessibilityLabel("Send comment")
-            .disabled(
-                presenter.commentDraft.trimmingCharacters(in: .whitespaces).isEmpty ||
-                presenter.isSending
-            )
+            .disabled(presenter.commentDraft.trimmingCharacters(in: .whitespaces).isEmpty)
         }
     }
 }
@@ -278,25 +271,6 @@ private func commentsPreviewContainer(
                 delegate: CommentsDelegate(session: session)
             )
             .withPreviewState(comments: comments, draft: "Nice work — what did that top single feel like?")
-        )
-    }
-}
-
-#Preview("Sending") {
-    let session = WorkoutSessionModel.mock
-    let comments = WorkoutSessionComment.mocks(sessionId: session.id)
-    let container = commentsPreviewContainer(comments: comments)
-    let interactor = CoreInteractor(container: container)
-    let builder = CoreBuilder(interactor: interactor)
-
-    RouterView { router in
-        CommentsView(
-            presenter: CommentsPresenter(
-                interactor: interactor,
-                router: CoreRouter(router: router, builder: builder),
-                delegate: CommentsDelegate(session: session)
-            )
-            .withPreviewState(comments: comments, isSending: true)
         )
     }
 }
