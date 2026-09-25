@@ -68,6 +68,7 @@ struct CoreInteractor: GlobalInteractor {
     let inviteManager: InviteManager
 
     init(container: DependencyContainer) {
+        // Safe: Dependencies registers every one of these for every BuildConfiguration.
         self.authManager = container.resolve(AuthManager.self)!
         self.userManager = container.resolve(UserManager.self)!
         self.abTestManager = container.resolve(ABTestManager.self)!

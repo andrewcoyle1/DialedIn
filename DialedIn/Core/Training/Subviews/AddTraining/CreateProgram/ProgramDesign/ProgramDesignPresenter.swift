@@ -108,6 +108,7 @@ class ProgramDesignPresenter {
         guard canRemoveWorkoutTemplateModel else { return }
         if let index = dayPlans.firstIndex(where: { $0.id == selectedWorkoutTemplateModel.id }) {
             dayPlans.remove(at: index)
+            // Safe: canRemoveWorkoutTemplateModel guarantees a plan remains after the removal.
             selectedWorkoutTemplateModel = dayPlans.first!
             recalculateAutoWorkoutTemplateModelNames()
         }

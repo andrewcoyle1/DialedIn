@@ -36,6 +36,7 @@ struct InviteModel: Codable, Equatable, Sendable {
 
     /// `compound://join/<code>`, handled by `DeepLink(url:)`.
     var link: URL {
+        // Safe: codes use the URL-safe invite alphabet, and URL(string:) percent-encodes anything else.
         URL(string: "compound://join/\(code)")!
     }
 
@@ -57,6 +58,7 @@ enum InviteCode {
     }
 
     static func random<G: RandomNumberGenerator>(using generator: inout G) -> String {
+        // Safe: `alphabet` is a non-empty literal.
         String((0..<length).map { _ in alphabet.randomElement(using: &generator)! })
     }
 

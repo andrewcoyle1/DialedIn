@@ -13,6 +13,7 @@ struct NotificationGroup: Identifiable {
     let members: [ActivityNotificationModel]
 
     var id: String { newest.id }
+    // Safe: groups come only from NotificationGrouping.group, which never builds an empty one.
     var newest: ActivityNotificationModel { members[0] }
     var type: ActivityNotificationModel.ActivityType { newest.type }
     /// A group is unread while any member is.
@@ -76,6 +77,7 @@ enum NotificationGrouping {
             }
             let key = "\(notification.type.rawValue)|\(notification.sessionId)"
             if let index = openGroup[key],
+               // Safe: every group is opened with its first notification.
                groups[index][0].dateCreated.timeIntervalSince(notification.dateCreated) <= window {
                 groups[index].append(notification)
             } else {

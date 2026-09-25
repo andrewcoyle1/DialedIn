@@ -38,6 +38,7 @@ struct SplitViewContainer<TabAccessory: View>: View {
                 }
                 .frame(minWidth: 150)
             } content: {
+                // Safe: the only builder, splitViewContainer(router:), passes three tabs.
                 tabs.first!.screen()
                     .background(
                         Color(uiColor: .systemGroupedBackground)

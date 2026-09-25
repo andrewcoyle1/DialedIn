@@ -137,6 +137,7 @@ class TrainingPresenter {
         case 0:
             break
         case 1:
+            // Safe: this arm runs only when there is exactly one session.
             openCompletedSession(sessionId: sessions[0].id)
         default:
             showSessionPicker(sessions: sessions)
