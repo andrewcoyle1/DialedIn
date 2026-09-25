@@ -3,9 +3,11 @@
 # AppViewForUITesting.swift, in light and dark, and writes Screenshots/<ARG>-<light|dark>.jpg
 # plus a contact sheet at Screenshots/index.html.
 #
-# Usage: scripts/screenshots.sh [simulator-udid]
+# Usage: scripts/screenshots.sh [--diff] [simulator-udid]
 #   With no UDID, the first available iPhone on the newest iOS runtime is used.
 #   SKIP_BUILD=1 reuses the last build in $HOME/.dd-screenshots.
+#   --diff runs scripts/screenshots-diff.py against the committed deck after capture and exits
+#   with its status (non-zero when any screen changed).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -15,6 +17,8 @@ OUT="$ROOT/Screenshots"
 SOURCE="$ROOT/DialedIn/Root/EntryPoints/AppViewForUITesting.swift"
 START=$(date +%s)
 
+DIFF=0
+if [[ "${1:-}" == --diff ]]; then DIFF=1; shift; fi
 UDID="${1:-}"
 if [[ -z "$UDID" ]]; then
     UDID=$(xcrun simctl list devices available -j | python3 -c '
@@ -84,3 +88,5 @@ xcrun simctl ui "$UDID" appearance light
 xcrun simctl status_bar "$UDID" clear >/dev/null 2>&1 || true
 python3 "$ROOT/scripts/contact-sheet.py" "$OUT"
 echo "Done in $(( $(date +%s) - START ))s, $(du -sh "$OUT" | cut -f1) in $OUT"
+(( DIFF )) && exec python3 "$ROOT/scripts/screenshots-diff.py"
+exit 0
