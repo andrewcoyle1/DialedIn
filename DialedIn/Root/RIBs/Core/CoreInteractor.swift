@@ -202,7 +202,7 @@ struct CoreInteractor: GlobalInteractor {
         // (offline, most often) this line is skipped, `logIn` rethrows, and the caller retries — so
         // the question gets asked again rather than answered wrongly.
         premiumEntitlementResolution.markResolved()
-        logManager.addUserProperties(dict: Utilities.eventParameters, isHighPriority: false)
+        logManager.addUserProperties(dict: Utilities.offDeviceEventParameters, isHighPriority: false)
 
         activityNotificationManager.startListening(userId: user.uid)
     }
