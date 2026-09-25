@@ -543,5 +543,23 @@ service cloud.firestore {
                     && request.resource.data.date_created is timestamp;
       allow update, delete: if false;
     }
+
+    // ---------------- PROGRESS PHOTOS ----------------
+    // users/{user_id}/progress_photos/{photo_id} = { id, author_id, date, pose, storage_path,
+    // image_url?, weight_kg?, note? }. Owner only. The JPEG lives in Storage at storage_path, which
+    // must be the owner's own users/{user_id}/progress_photos/{photo_id}.jpg.
+    match /users/{user_id}/progress_photos/{photo_id} {
+      function isValidProgressPhoto(data) {
+        return data.keys().hasOnly(['id', 'author_id', 'date', 'pose', 'storage_path', 'image_url', 'weight_kg', 'note'])
+          && data.id == photo_id
+          && data.author_id == user_id
+          && data.date is timestamp
+          && data.pose in ['front', 'side', 'back']
+          && data.storage_path == 'users/' + user_id + '/progress_photos/' + photo_id + '.jpg';
+      }
+      allow read, delete: if isAuthed() && request.auth.uid == user_id;
+      allow create, update: if isAuthed() && request.auth.uid == user_id
+                            && isValidProgressPhoto(request.resource.data);
+    }
   }
 }
