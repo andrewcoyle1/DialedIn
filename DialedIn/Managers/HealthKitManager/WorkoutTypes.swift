@@ -140,7 +140,8 @@ extension HKWorkoutSessionLocationType: @retroactive CustomStringConvertible {
         case .unknown:
             "Unknown"
         @unknown default:
-            fatalError("Unknown HKWorkoutSessionLocationType in \(#function)")
+            // A location type added in a later SDK must not crash a description.
+            "Unknown"
         }
     }
 }
