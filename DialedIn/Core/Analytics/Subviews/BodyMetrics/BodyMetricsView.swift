@@ -20,6 +20,7 @@ struct BodyMetricsView: View {
                     dataDrivenSection(section)
                 }
                 ratiosSection
+                progressPhotosSection
             }
             .listSectionMargins(.horizontal, 0)
             .listRowSeparator(.hidden)
@@ -56,12 +57,20 @@ struct BodyMetricsView: View {
         }
     }
 
-    // A "Visual & Metric Overview" section used to sit here, showing a "No Photos" placeholder
-    // beside an invented "Full Body / 12 Jan 2026 / 1 metric" card, neither of which did anything.
-    // Removed rather than rebuilt: `BodyMeasurementEntry.progressPhotoURLs` is stored and synced,
-    // but no screen in the app reads it, so there is no gallery for a photo card to open. The
-    // visual body fat metric it seemed to duplicate is already a real card in the first section.
-    // Building progress photos means a gallery screen and a capture flow — a feature, not a fix.
+    private var progressPhotosSection: some View {
+        Section {
+            Button {
+                presenter.onProgressPhotosPressed()
+            } label: {
+                Label("Progress Photos", systemImage: "photo.stack")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.bordered)
+            .tint(bodyMetricsColor)
+        } header: {
+            SectionHeaderView(title: "Photos")
+        }
+    }
 
     /// Waist-to-height and waist-to-hip, both computed from logged measurements. Tapping opens the
     /// ratio's history on the shared `MetricDetailView`, the same as every measured card here.

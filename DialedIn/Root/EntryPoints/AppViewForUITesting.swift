@@ -56,6 +56,9 @@ struct AppViewForUITesting: View {
         } else if let screen = challengesScreen {
             // MARK: - Challenges
             startScreen { screen($0) }
+        } else if let screen = progressPhotosScreen {
+            // MARK: - ProgressPhotos
+            startScreen { screen($0) }
         } else if let screen = screenDeckScreen {
             // MARK: - ScreenDeck
             startScreen { screen($0) }
@@ -197,5 +200,18 @@ extension AppViewForUITesting {
             return { builder.createChallengeView(router: $0).any() }
         }
         return nil
+    }
+}
+
+// MARK: - ProgressPhotos
+
+extension AppViewForUITesting {
+
+    /// `STARTSCREEN_PROGRESS_PHOTOS` opens the grid on the two mock photos, whose images are
+    /// asset-catalogue names.
+    private var progressPhotosScreen: ((AnyRouter) -> AnyView)? {
+        guard ProcessInfo.processInfo.arguments.contains("STARTSCREEN_PROGRESS_PHOTOS") else { return nil }
+        let builder = builder
+        return { builder.progressPhotosView(router: $0).any() }
     }
 }
