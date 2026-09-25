@@ -10,6 +10,8 @@ import SwiftUI
 struct FirebaseImageUploadService: ImageUploadService {
 
     func uploadImage(image: PlatformImage, path: String) async throws -> URL {
+        // Offline, Storage retries the upload for ten minutes behind whatever spinner started it.
+        try NetworkMonitor.requireOnline()
         let data = try await prepareJPEGData(image: image)
         _ = try await saveImage(data: data, path: path)
         return try await imageReference(path: path).downloadURL()

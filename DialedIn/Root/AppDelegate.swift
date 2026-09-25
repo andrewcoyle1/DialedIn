@@ -8,6 +8,9 @@
 import SwiftUI
 import Firebase
 import FirebaseMessaging
+import FirebaseFirestore
+import FirebaseFunctions
+import FirebaseStorage
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     var dependencies: Dependencies!
@@ -181,6 +184,11 @@ enum BuildConfiguration {
             #endif
             FirebaseApp.configure(options: options)
             Analytics.setAnalyticsCollectionEnabled(true)
+            #if DEBUG
+            if NetworkMonitor.isOfflineTesting {
+                Self.pointFirebaseAtUnreachableHost()
+            }
+            #endif
             
         case .prod:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Prod", ofType: "plist")!
@@ -190,5 +198,20 @@ enum BuildConfiguration {
             FirebaseApp.configure(options: options)
             Analytics.setAnalyticsCollectionEnabled(true)
         }
+        // Started now so it has a path by the time anything asks.
+        _ = NetworkMonitor.shared
     }
+
+    #if DEBUG
+    /// `OFFLINE_TESTING` on the Development scheme: Firestore, Functions and Storage talk to an
+    /// address that never answers, which is how a device with no signal behaves — writes queue,
+    /// reads fall back to the cache, and anything awaiting the server waits. Must run before the
+    /// first use of each, which is why it is here and not in `Dependencies`.
+    private static func pointFirebaseAtUnreachableHost() {
+        let host = "10.255.255.1"
+        Firestore.firestore().useEmulator(withHost: host, port: 8080)
+        Functions.functions(region: "us-central1").useEmulator(withHost: host, port: 5001)
+        Storage.storage().useEmulator(withHost: host, port: 9199)
+    }
+    #endif
 }

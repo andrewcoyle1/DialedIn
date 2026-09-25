@@ -33,6 +33,10 @@ extension GlobalRouter {
     }
     
     func showAlert(error: Error) {
+        if error.isOfflineError {
+            showOfflineAlert()
+            return
+        }
         router.showAlert(.alert, title: "Error", subtitle: error.localizedDescription, buttons: { })
     }
 
