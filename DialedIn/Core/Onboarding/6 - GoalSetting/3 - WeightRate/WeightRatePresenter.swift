@@ -120,7 +120,7 @@ class WeightRatePresenter {
             baseCalories - dailyCalorieChange :
             baseCalories + dailyCalorieChange
         
-        return String(localized: "~ \(Int(targetCalories)) kcal estimated daily calorie target")
+        return String(localized: "~ \(String(describing: Int(targetCalories))) kcal estimated daily calorie target")
     }
     
     func estimatedEndDateText(delegate: WeightRateDelegate) -> String {
@@ -140,7 +140,7 @@ class WeightRatePresenter {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         
-        return String(localized: "Approximate end date: \(formatter.string(from: endDate))")
+        return String(localized: "Approximate end date: \(String(describing: formatter.string(from: endDate)))")
     }
 
 #if DEV || MOCK
