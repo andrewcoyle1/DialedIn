@@ -79,7 +79,9 @@ class PushManager {
         
         Task {
             do {
-        
+                // Scheduling without permission throws UNErrorDomain 2003 and logged a failure on every launch.
+                guard [.authorized, .provisional, .ephemeral].contains(try await checkPushNotificationAuthorisation()) else { return }
+
                 // Tomorrow
                 try await scheduleNotification(
                     title: "Keep up the momentum!",
