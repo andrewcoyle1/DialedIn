@@ -440,6 +440,20 @@ class WorkoutSessionDetailPresenter {
         }
     }
 
+    // MARK: - Copy Link
+
+    /// The session's public web page, absent where that page would refuse it — including while
+    /// the author is still loading, since a private author's link would only 404.
+    func webLink(session: WorkoutSessionModel) -> URL? {
+        SessionWebLink.url(for: session, author: author)
+    }
+
+    func onCopyLinkPressed(_ link: URL, session: WorkoutSessionModel) {
+        UIPasteboard.general.url = link
+        interactor.playHaptic(option: .success)
+        interactor.trackEvent(event: Event.copyLink(sessionId: session.id))
+    }
+
 #if DEV || MOCK
 func onDevSettingsPressed() {
     router.showDevSettingsView()
@@ -450,22 +464,26 @@ func onDevSettingsPressed() {
 extension WorkoutSessionDetailPresenter {
     enum Event: LoggableEvent {
         case deleteSessionFail(error: Error)
+        case copyLink(sessionId: String)
 
         var eventName: String {
             switch self {
             case .deleteSessionFail: return "WorkoutSessionDetailView_DeleteSession_Fail"
+            case .copyLink: return "WorkoutSessionDetailView_CopyLink"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
             case .deleteSessionFail(error: let error): return error.eventParameters
+            case .copyLink(let sessionId): return ["session_id": sessionId]
             }
         }
 
         var type: LogType {
             switch self {
             case .deleteSessionFail: return .severe
+            case .copyLink: return .analytic
             }
         }
     }
