@@ -43,6 +43,13 @@ final class ProgressPhotoManager {
         await syncEngine.startListening()
     }
 
+    /// Sign-out and account deletion: the listener's path is the signed-in user's, so it must not
+    /// outlive them.
+    func stopListening() {
+        syncEngine.stopListening()
+        userId = nil
+    }
+
     /// Uploads the image, then saves the document that points at it. A failed save removes the
     /// uploaded image so it is not left orphaned in Storage.
     @discardableResult
