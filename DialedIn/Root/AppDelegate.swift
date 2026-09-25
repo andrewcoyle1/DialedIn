@@ -11,6 +11,7 @@ import FirebaseMessaging
 import FirebaseFirestore
 import FirebaseFunctions
 import FirebaseStorage
+import GoogleSignIn
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     // Safe: both are set in application(_:didFinishLaunchingWithOptions:) before any use.
@@ -186,6 +187,7 @@ enum BuildConfiguration {
             AppCheck.setAppCheckProviderFactory(providerFactory)
             #endif
             FirebaseApp.configure(options: options)
+            Self.configureGoogleSignInAppCheck(apiKey: options.apiKey)
             Analytics.setAnalyticsCollectionEnabled(true)
             #if DEBUG
             if NetworkMonitor.isOfflineTesting {
@@ -200,10 +202,28 @@ enum BuildConfiguration {
             let providerFactory = MyAppCheckProviderFactory()
             AppCheck.setAppCheckProviderFactory(providerFactory)
             FirebaseApp.configure(options: options)
+            Self.configureGoogleSignInAppCheck(apiKey: options.apiKey)
             Analytics.setAnalyticsCollectionEnabled(true)
         }
         // Started now so it has a path by the time anything asks.
         _ = NetworkMonitor.shared
+    }
+
+    /// Google Sign-In 8 attaches its own App Check token to the OAuth request, separate from
+    /// Firebase's. The OAuth client enforces it, so without this call Google answers
+    /// "We cannot verify the authenticity of this app … Token failed" (Error 400: invalid_request).
+    /// The simulator uses the same debug token as Firebase App Check, registered in the console.
+    private static func configureGoogleSignInAppCheck(apiKey: String?) {
+        #if targetEnvironment(simulator)
+        guard let apiKey else { return }
+        GIDSignIn.sharedInstance.configureDebugProvider(withAPIKey: apiKey) { error in
+            if let error { print("GIDSignIn App Check debug configure failed: \(error)") }
+        }
+        #else
+        GIDSignIn.sharedInstance.configure { error in
+            if let error { print("GIDSignIn App Check configure failed: \(error)") }
+        }
+        #endif
     }
 
     #if DEBUG
